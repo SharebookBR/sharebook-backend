@@ -1,5 +1,5 @@
-###Projeto SHAREBOOK backend.
-####Tecnologias usadas no projeto
+### Projeto SHAREBOOK backend.
+#### Tecnologias usadas no projeto
 
 - Visual Studio 2017.
 - ASP.NET CORE 2.0.
@@ -7,7 +7,7 @@
 - SQL SERVER.
 - SWAGGER.
 
-####Como rodar o projeto ?
+#### Como rodar o projeto ?
 
 - Não se esquecer de mudar a connection string para a sua base de dados no arquivo appsettings.json que se encontra na camada da API do projeto.
 
