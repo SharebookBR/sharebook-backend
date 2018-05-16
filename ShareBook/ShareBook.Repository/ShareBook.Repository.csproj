@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ShareBook.Data\ShareBook.Data.csproj" />
+    <ProjectReference Include="..\ShareBook.Helper\ShareBook.Helper.csproj" />
+  </ItemGroup>
+
+</Project>
