@@ -16,7 +16,7 @@ namespace ShareBook.Data.Mapping
                 .HasMaxLength(100)
                 .IsRequired();
 
-            entityBuilder.Property(t => t.Email)
+            entityBuilder.Property(t => t.Password)
                     .HasColumnType("varchar(15)")
                     .HasMaxLength(15)
                     .IsRequired();

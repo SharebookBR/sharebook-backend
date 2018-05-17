@@ -11,7 +11,7 @@ using System;
 namespace ShareBook.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20180517004012_UserFeature")]
+    [Migration("20180517013015_UserFeature")]
     partial class UserFeature
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -38,9 +38,15 @@ namespace ShareBook.Data.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<string>("Email");
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)")
+                        .HasMaxLength(100);
 
-                    b.Property<string>("Password");
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("varchar(15)")
+                        .HasMaxLength(15);
 
                     b.HasKey("Id");
 
