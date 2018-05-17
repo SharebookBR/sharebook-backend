@@ -30,6 +30,9 @@ namespace ShareBook.Service
 
             _unitOfWork.BeginTransaction();
 
+            if (_userRepository.GetByEmail(userVM.Email) != null)
+                resultService.Messages.Add("Usuário já possui email cadastrado.");
+
             if (resultService.Success)
             {
                 await _userRepository.InsertAsync(user);
