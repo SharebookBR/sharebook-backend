@@ -12,7 +12,14 @@ namespace ShareBook.Data.Entities.User
 
         public User()
         {
-            Id = new Guid();
+           
+        }
+
+        public User(Guid id, string email, string password)
+        {
+            this.Id = id;
+            this.Email = email.ToLower();
+            this.Password = password;
         }
 
 
