@@ -6,5 +6,7 @@ namespace ShareBook.Repository
     public interface IUserRepository : IRepositoryGeneric<User>
     {
         Task<User> GetByEmailAndPasswordAsync(User user);
+
+        Task<User> GetByEmail(string email);
     }
 }

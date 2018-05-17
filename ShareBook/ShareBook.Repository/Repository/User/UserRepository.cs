@@ -16,6 +16,18 @@ namespace ShareBook.Repository
             _context = context;
         }
 
+        public async Task<User> GetByEmail(string email)
+        {
+           var user = await _context.Users.Where(e => e.Email == email).Select(x => new User
+            {
+                Id = x.Id,
+                Email = x.Email,
+            }).FirstOrDefaultAsync();
+
+            return user;
+
+        }
+
         public async Task<User> GetByEmailAndPasswordAsync(User user)
         {
             user = await _context.Users.Where(e => e.Email == user.Email && e.Password == user.Password).Select(x => new User
