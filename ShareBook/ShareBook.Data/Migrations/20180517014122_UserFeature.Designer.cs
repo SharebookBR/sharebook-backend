@@ -11,7 +11,7 @@ using System;
 namespace ShareBook.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20180517013015_UserFeature")]
+    [Migration("20180517014122_UserFeature")]
     partial class UserFeature
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

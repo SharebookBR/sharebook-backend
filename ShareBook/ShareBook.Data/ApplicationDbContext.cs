@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ShareBook.Data.Entities.User;
 using ShareBook.Data.Mapping;
 using ShareBook.Data.Model;
 

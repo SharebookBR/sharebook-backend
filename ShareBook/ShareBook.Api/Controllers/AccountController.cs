@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using ShareBook.Data.Entities.User.In;
 using ShareBook.Service;
 using ShareBook.VM.Common;
-using ShareBook.VM.User.In;
+using ShareBook.VM.User.Model;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -24,15 +20,15 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpPost("Register")]
-        public async Task<ResultServiceVM> Post([FromBody]UserInVM  userInVM)
+        public async Task<ResultServiceVM> Post([FromBody]UserVM  userVM)
         {
-            return await _userService.CreateUser(userInVM);
+            return await _userService.CreateUser(userVM);
         }
 
         [HttpPost("Login")]
-        public async Task<ResultServiceVM> Login([FromBody]UserInVM userInVM)
+        public async Task<UserVM> Login([FromBody]UserVM userVM)
         {
-            return await _userService.GetUserByEmailAndPasswordAsync(userInVM);
+            return await _userService.GetUserByEmailAndPasswordAsync(userVM);
         }
     }
 }

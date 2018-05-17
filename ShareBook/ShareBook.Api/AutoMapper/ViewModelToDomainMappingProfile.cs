@@ -1,7 +1,8 @@
 ﻿using AutoMapper;
+using ShareBook.Data.Entities.User;
 using ShareBook.Data.Model;
 using ShareBook.VM.Book.In;
-using ShareBook.VM.User.In;
+using ShareBook.VM.User.Model;
 
 namespace ShareBook.Api.AutoMapper
 {
@@ -20,7 +21,9 @@ namespace ShareBook.Api.AutoMapper
             #endregion
 
             #region[ User ]
-            CreateMap<UserInVM, User>();
+            CreateMap<UserVM, User>()
+                .BeforeMap((src, dest) =>
+                dest.Email = src.Email.ToLower());
             #endregion
         }
     }

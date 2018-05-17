@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using ShareBook.VM.Common;
+using System;
 
 namespace ShareBook.VM.User.Model
 {
-    public class UserVM
+    public class UserVM : ResultServiceVM
     {
 
         public Guid Id { get; set; }
@@ -12,5 +11,10 @@ namespace ShareBook.VM.User.Model
         public string Email { get; set; }
 
         public string Password { get; set; }
+
+        public UserVM()
+        {
+            Id = new Guid();
+        }
     }
 }
