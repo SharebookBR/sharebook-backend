@@ -26,7 +26,7 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpPost("Login")]
-        public async Task<ResultServiceVM> Login([FromBody]UserVM userVM)
+        public async Task<UserVM> Login([FromBody]UserVM userVM)
         {
             return await _userService.GetUserByEmailAndPasswordAsync(userVM);
         }

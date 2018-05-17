@@ -1,8 +1,9 @@
-﻿using System;
+﻿using ShareBook.VM.Common;
+using System;
 
 namespace ShareBook.VM.User.Model
 {
-    public class UserVM
+    public class UserVM : ResultServiceVM
     {
 
         public Guid Id { get; set; }

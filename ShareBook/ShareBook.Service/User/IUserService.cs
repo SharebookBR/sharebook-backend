@@ -11,6 +11,6 @@ namespace ShareBook.Service
 
         Task<UserVM> GetUserById(Guid id);
 
-        Task<ResultServiceVM> GetUserByEmailAndPasswordAsync(UserVM userVM);
+        Task<UserVM> GetUserByEmailAndPasswordAsync(UserVM userVM);
     }
 }

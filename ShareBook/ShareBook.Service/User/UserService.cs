@@ -39,7 +39,7 @@ namespace ShareBook.Service
             return Mapper.Map<ResultServiceVM>(resultService);
         }
 
-        public async Task<ResultServiceVM> GetUserByEmailAndPasswordAsync(UserVM userVM)
+        public async Task<UserVM> GetUserByEmailAndPasswordAsync(UserVM userVM)
         {
             User user = Mapper.Map<User>(userVM);
 
@@ -47,7 +47,7 @@ namespace ShareBook.Service
 
             user = await _userRepository.GetByEmailAndPasswordAsync(user);
 
-            return Mapper.Map<ResultServiceVM>(resultService);
+            return Mapper.Map<UserVM>(user);
         }
 
         public Task<UserVM> GetUserById(Guid id)
