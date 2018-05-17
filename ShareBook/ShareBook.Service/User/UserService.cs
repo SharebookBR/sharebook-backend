@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using ShareBook.Data;
 using ShareBook.Data.Common;
+using ShareBook.Data.Entities.User.Out;
 using ShareBook.Data.Model;
 using ShareBook.Repository;
 using ShareBook.Repository.Infra;
@@ -42,7 +41,18 @@ namespace ShareBook.Service
             return Mapper.Map<ResultServiceVM>(resultService);
         }
 
-        public Task<UserOutByIdVM> GetBookById(Guid id)
+        public async Task<UserOutByIdVM> GetUserByEmailAndPasswordAsync(UserInVM userInVM)
+        {
+            User user = Mapper.Map<User>(userInVM);
+
+            ResultService resultService = new ResultService(new UserValidation().Validate(user));
+
+            UserOutById userOutByIdVM = await _userRepository.GetByEmailAndPasswordAsync(user);
+
+            return Mapper.Map<UserOutByIdVM>(userOutByIdVM);
+        }
+
+        public Task<UserOutByIdVM> GetUserById(Guid id)
         {
             throw new NotImplementedException();
         }

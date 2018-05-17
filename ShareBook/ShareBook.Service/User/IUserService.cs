@@ -10,6 +10,8 @@ namespace ShareBook.Service
     {
         Task<ResultServiceVM> CreateUser(UserInVM userInVM);
 
-        Task<UserOutByIdVM> GetBookById(Guid id);
+        Task<UserOutByIdVM> GetUserById(Guid id);
+
+        Task<UserOutByIdVM> GetUserByEmailAndPasswordAsync(UserInVM userInVm);
     }
 }

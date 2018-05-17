@@ -4,6 +4,6 @@ namespace ShareBook.Data.Entities.User.Out
 {
     public class UserOutById : ResultService
     {
-        UserModel user { get; set; }
+        public UserModel User { get; set; }
     }
 }
