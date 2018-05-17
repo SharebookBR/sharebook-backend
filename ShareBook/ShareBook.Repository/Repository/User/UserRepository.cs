@@ -2,13 +2,11 @@
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using ShareBook.Data;
-using ShareBook.Data.Entities.User.Model;
-using ShareBook.Data.Entities.User.Out;
-using ShareBook.Data.Model;
+using ShareBook.Data.Entities.User;
 
 namespace ShareBook.Repository
 {
-    public class UserRepository : RepositoryGeneric<User>,  IUserRepository
+    public class UserRepository : RepositoryGeneric<User>, IUserRepository
     {
         private readonly ApplicationDbContext _context;
 
@@ -18,19 +16,16 @@ namespace ShareBook.Repository
             _context = context;
         }
 
-        public async Task<UserOutById> GetByEmailAndPasswordAsync(User user)
+        public async Task<User> GetByEmailAndPasswordAsync(User user)
         {
-            UserOutById userOutById = new UserOutById
+            user = await _context.Users.Where(e => e.Email == user.Email && e.Password == user.Password).Select(x => new User
             {
-                User = await _context.Users.Where(e => e.Email == user.Email && e.Password == user.Password).Select(x => new UserModel
-                {
-                    Id = x.Id,
-                    Email = x.Email,
+                Id = x.Id,
+                Email = x.Email,
 
-                }).FirstOrDefaultAsync()
-            };
+            }).FirstOrDefaultAsync();
 
-            return userOutById;
+            return user;
         }
     }
 }

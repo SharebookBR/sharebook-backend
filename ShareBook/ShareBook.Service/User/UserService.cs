@@ -3,13 +3,11 @@ using System.Threading.Tasks;
 using AutoMapper;
 using ShareBook.Data;
 using ShareBook.Data.Common;
-using ShareBook.Data.Entities.User.Out;
-using ShareBook.Data.Model;
+using ShareBook.Data.Entities.User;
 using ShareBook.Repository;
 using ShareBook.Repository.Infra;
 using ShareBook.VM.Common;
-using ShareBook.VM.User.In;
-using ShareBook.VM.User.Out;
+using ShareBook.VM.User.Model;
 
 namespace ShareBook.Service
 {
@@ -24,9 +22,9 @@ namespace ShareBook.Service
             _userRepository = userRepository;
             _unitOfWork = unitOfWork;
         }
-        public async Task<ResultServiceVM> CreateUser(UserInVM userInVM)
+        public async Task<ResultServiceVM> CreateUser(UserVM userVM)
         {
-            User user = Mapper.Map<User>(userInVM);
+            User user = Mapper.Map<User>(userVM);
 
             ResultService resultService = new ResultService(new UserValidation().Validate(user));
 
@@ -41,18 +39,18 @@ namespace ShareBook.Service
             return Mapper.Map<ResultServiceVM>(resultService);
         }
 
-        public async Task<UserOutByIdVM> GetUserByEmailAndPasswordAsync(UserInVM userInVM)
+        public async Task<ResultServiceVM> GetUserByEmailAndPasswordAsync(UserVM userVM)
         {
-            User user = Mapper.Map<User>(userInVM);
+            User user = Mapper.Map<User>(userVM);
 
             ResultService resultService = new ResultService(new UserValidation().Validate(user));
 
-            UserOutById userOutByIdVM = await _userRepository.GetByEmailAndPasswordAsync(user);
+            user = await _userRepository.GetByEmailAndPasswordAsync(user);
 
-            return Mapper.Map<UserOutByIdVM>(userOutByIdVM);
+            return Mapper.Map<ResultServiceVM>(resultService);
         }
 
-        public Task<UserOutByIdVM> GetUserById(Guid id)
+        public Task<UserVM> GetUserById(Guid id)
         {
             throw new NotImplementedException();
         }

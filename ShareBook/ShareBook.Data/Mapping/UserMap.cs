@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ShareBook.Data.Model;
-
+using ShareBook.Data.Entities.User;
 
 namespace ShareBook.Data.Mapping
 {

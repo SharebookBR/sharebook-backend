@@ -1,6 +1,5 @@
 ﻿using ShareBook.VM.Common;
-using ShareBook.VM.User.In;
-using ShareBook.VM.User.Out;
+using ShareBook.VM.User.Model;
 using System;
 using System.Threading.Tasks;
 
@@ -8,10 +7,10 @@ namespace ShareBook.Service
 {
     public interface IUserService
     {
-        Task<ResultServiceVM> CreateUser(UserInVM userInVM);
+        Task<ResultServiceVM> CreateUser(UserVM userVM);
 
-        Task<UserOutByIdVM> GetUserById(Guid id);
+        Task<UserVM> GetUserById(Guid id);
 
-        Task<UserOutByIdVM> GetUserByEmailAndPasswordAsync(UserInVM userInVm);
+        Task<ResultServiceVM> GetUserByEmailAndPasswordAsync(UserVM userVM);
     }
 }
