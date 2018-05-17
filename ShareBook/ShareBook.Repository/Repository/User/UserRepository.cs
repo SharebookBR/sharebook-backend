@@ -1,7 +1,7 @@
 ﻿using ShareBook.Data;
 using ShareBook.Data.Model;
 
-namespace ShareBook.Repository.Repository
+namespace ShareBook.Repository
 {
     public class UserRepository : RepositoryGeneric<User>,  IUserRepository
     {
