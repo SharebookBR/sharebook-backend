@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ShareBook.Data.Model;
 using ShareBook.VM.Book.In;
+using ShareBook.VM.User.In;
 
 namespace ShareBook.Api.AutoMapper
 {
@@ -16,6 +17,10 @@ namespace ShareBook.Api.AutoMapper
         {
             #region[ Book ]
             CreateMap<BookInVM, Book>();
+            #endregion
+
+            #region[ User ]
+            CreateMap<UserInVM, User>();
             #endregion
         }
     }

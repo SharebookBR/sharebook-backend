@@ -12,9 +12,11 @@ namespace ShareBook.Api.Configuration
         {
             //services
             services.AddTransient<IBookService, BookService>();
+            services.AddTransient<IUserService, UserService>();
 
             //repositories
             services.AddTransient<IBookRepository, BookRepository>();
+            services.AddTransient<IUserRepository, UserRepository>();
 
             //UnitOfWork
             services.AddTransient<IUnitOfWork, UnitOfWork>();

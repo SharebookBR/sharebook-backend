@@ -18,11 +18,15 @@ namespace ShareBook.Data
 
         public DbSet<Book> Books { get; set; }
 
+        public DbSet<User> Users { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
             new BookMap(modelBuilder.Entity<Book>());
+
+            new UserMap(modelBuilder.Entity<User>());
         }
     }
 }
