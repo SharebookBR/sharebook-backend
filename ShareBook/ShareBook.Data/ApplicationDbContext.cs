@@ -25,6 +25,8 @@ namespace ShareBook.Data
             base.OnModelCreating(modelBuilder);
 
             new BookMap(modelBuilder.Entity<Book>());
+
+            new UserMap(modelBuilder.Entity<User>());
         }
     }
 }
