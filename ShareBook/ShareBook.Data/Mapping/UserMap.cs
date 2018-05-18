@@ -16,7 +16,7 @@ namespace ShareBook.Data.Mapping
                 .IsRequired();
 
             entityBuilder.Property(t => t.Password)
-                    .HasColumnType("varchar(15)")
+                    .HasColumnType("varchar(50)")
                     .HasMaxLength(15)
                     .IsRequired();
         }
