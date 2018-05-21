@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
+using ShareBook.Data.Entities.Book;
 using ShareBook.Data.Entities.User;
-using ShareBook.Data.Model;
-using ShareBook.VM.Book.In;
+using ShareBook.VM.Book.Model;
 using ShareBook.VM.User.Model;
 
 namespace ShareBook.Api.AutoMapper
@@ -17,7 +17,7 @@ namespace ShareBook.Api.AutoMapper
         : base(profileName)
         {
             #region[ Book ]
-            CreateMap<BookInVM, Book>();
+            CreateMap<BookVM, Book>();
             #endregion
 
             #region[ User ]

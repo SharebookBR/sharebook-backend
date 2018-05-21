@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ShareBook.Service;
-using ShareBook.VM.Book.In;
-using ShareBook.VM.Book.Out;
+using ShareBook.VM.Book.Model;
 using ShareBook.VM.Common;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ShareBook.Api.Controllers
@@ -10,29 +10,30 @@ namespace ShareBook.Api.Controllers
     [Route("api/[controller]")]
     public class BookController : Controller
     {
-        private readonly IBookService _iBookService;
+        private readonly IBookService _bookService;
 
-        public BookController(IBookService iBookService)
+        public BookController(IBookService bookService)
         {
-            _iBookService = iBookService;
+            _bookService = bookService;
         }
 
-        [HttpGet("GetBooks")]
-        public async Task<BookOutVM> GetBooks()
+        [HttpGet]
+        public async Task<IEnumerable<BookVM>> GetBooks()
         {
-            return await _iBookService.GetBooks();
+            //TODO - Rever se é realmente necessário a construção desse endpoint e métodos de GetAll Books
+            return await _bookService.GetBooks();
         }
 
-        [HttpGet("GetBookById/{id}")]
-        public async Task<BookOutByIdVM> GetBookById(int id)
+        [HttpGet("{id}", Name = "Get")]
+        public async Task<BookVM> GetBookById(int id)
         {
-            return await _iBookService.GetBookById(id);
+            return await _bookService.GetBookById(id);
         }
 
-        [HttpPost("CreateBook")]
-        public async Task<ResultServiceVM> CreateBook([FromBody]BookInVM bookInVM)
+        [HttpPost]
+        public async Task<ResultServiceVM> CreateBook([FromBody]BookVM bookVM)
         {
-            return await _iBookService.CreateBook(bookInVM);
+            return await _bookService.CreateBook(bookVM);
         }
     }
 }

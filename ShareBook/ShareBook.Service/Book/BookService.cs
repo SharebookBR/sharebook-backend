@@ -1,55 +1,55 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
 using ShareBook.Data;
 using ShareBook.Data.Common;
-using ShareBook.Data.Entities.Book.Out;
-using ShareBook.Data.Model;
+using ShareBook.Data.Entities.Book;
 using ShareBook.Repository;
 using ShareBook.Repository.Infra;
-using ShareBook.VM.Book.In;
-using ShareBook.VM.Book.Out;
+using ShareBook.VM.Book.Model;
 using ShareBook.VM.Common;
 
 namespace ShareBook.Service
 {
     public class BookService : IBookService
     {
-        private readonly IBookRepository _iBookRepository;
-        private readonly IUnitOfWork _iUnitOfWork;
+        private readonly IBookRepository _bookRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public BookService(IBookRepository iBookRepository,
-            IUnitOfWork iUnitOfWork)
+        public BookService(IBookRepository bookRepository,
+            IUnitOfWork unitOfWork)
         {
-            _iBookRepository = iBookRepository;
-            _iUnitOfWork = iUnitOfWork;
+            _bookRepository = bookRepository;
+            _unitOfWork = unitOfWork;
         }
         
-        public async Task<BookOutVM> GetBooks()
+        public async Task<List<BookVM>> GetBooks()
         {
-            BookOut books = await _iBookRepository.GetBooks();
-
-            return Mapper.Map<BookOutVM>(books);
+            return await _bookRepository.GetBooks().ProjectTo<BookVM>().ToListAsync() ;
         }
 
-        public async Task<BookOutByIdVM> GetBookById(int id)
+        public async Task<BookVM> GetBookById(int id)
         {
-            BookOutById book = await _iBookRepository.GetBookById(id);
+            Book book = await _bookRepository.GetBookById(id);
 
-            return Mapper.Map<BookOutByIdVM>(book);
+            return Mapper.Map<BookVM>(book);
         }
 
-        public async Task<ResultServiceVM> CreateBook(BookInVM bookInVM)
+        public async Task<ResultServiceVM> CreateBook(BookVM bookVM)
         {
-            Book book = Mapper.Map<Book>(bookInVM);
+            Book book = Mapper.Map<Book>(bookVM);
 
             ResultService resultService = new ResultService(new BookValidation().Validate(book));
 
-            _iUnitOfWork.BeginTransaction();
+            _unitOfWork.BeginTransaction();
 
             if (resultService.Success)
             {
-                await _iBookRepository.InsertAsync(book);
-                _iUnitOfWork.Commit();
+                await _bookRepository.InsertAsync(book);
+                _unitOfWork.Commit();
             }
 
             return Mapper.Map<ResultServiceVM>(resultService);

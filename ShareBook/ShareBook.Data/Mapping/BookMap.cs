@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ShareBook.Data.Model;
+using ShareBook.Data.Entities.Book;
 namespace ShareBook.Data.Mapping
 {
     public class BookMap

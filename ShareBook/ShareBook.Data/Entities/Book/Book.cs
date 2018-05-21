@@ -1,4 +1,4 @@
-﻿namespace ShareBook.Data.Model
+﻿namespace ShareBook.Data.Entities.Book
 {
     public class Book
     {

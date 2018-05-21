@@ -1,6 +1,5 @@
 ﻿using FluentValidation;
 using ShareBook.Data.Entities.User;
-using ShareBook.Data.Model;
 
 namespace ShareBook.Data
 {
