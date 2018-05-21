@@ -9,29 +9,29 @@ namespace ShareBook.Api.Controllers
     [Route("api/[controller]")]
     public class BookController : Controller
     {
-        private readonly IBookService _iBookService;
+        private readonly IBookService _bookService;
 
-        public BookController(IBookService iBookService)
+        public BookController(IBookService bookService)
         {
-            _iBookService = iBookService;
+            _bookService = bookService;
         }
 
         [HttpGet("GetBooks")]
         public async Task<BookVM> GetBooks()
         {
-            return await _iBookService.GetBooks();
+            return await _bookService.GetBooks();
         }
 
         [HttpGet("GetBookById/{id}")]
         public async Task<BookVM> GetBookById(int id)
         {
-            return await _iBookService.GetBookById(id);
+            return await _bookService.GetBookById(id);
         }
 
         [HttpPost("CreateBook")]
         public async Task<ResultServiceVM> CreateBook([FromBody]BookVM bookVM)
         {
-            return await _iBookService.CreateBook(bookVM);
+            return await _bookService.CreateBook(bookVM);
         }
     }
 }
