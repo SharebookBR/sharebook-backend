@@ -17,19 +17,19 @@ namespace ShareBook.Api.Controllers
             _bookService = bookService;
         }
 
-        [HttpGet("GetBooks")]
+        [HttpGet]
         public async Task<IEnumerable<BookVM>> GetBooks()
         {
             return await _bookService.GetBooks();
         }
 
-        [HttpGet("GetBookById/{id}")]
+        [HttpGet("{id}", Name = "Get")]
         public async Task<BookVM> GetBookById(int id)
         {
             return await _bookService.GetBookById(id);
         }
 
-        [HttpPost("CreateBook")]
+        [HttpPost]
         public async Task<ResultServiceVM> CreateBook([FromBody]BookVM bookVM)
         {
             return await _bookService.CreateBook(bookVM);
