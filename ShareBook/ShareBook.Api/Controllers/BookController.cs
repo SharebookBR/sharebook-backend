@@ -20,6 +20,7 @@ namespace ShareBook.Api.Controllers
         [HttpGet]
         public async Task<IEnumerable<BookVM>> GetBooks()
         {
+            //TODO - Rever se é realmente necessário a construção desse endpoint e métodos de GetAll Books
             return await _bookService.GetBooks();
         }
 
