@@ -13,26 +13,27 @@ namespace ShareBook.Service
 {
     public class BookService : IBookService
     {
-        private readonly IBookRepository _iBookRepository;
-        private readonly IUnitOfWork _iUnitOfWork;
+        private readonly IBookRepository _bookRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public BookService(IBookRepository iBookRepository,
-            IUnitOfWork iUnitOfWork)
+        public BookService(IBookRepository bookRepository,
+            IUnitOfWork unitOfWork)
         {
-            _iBookRepository = iBookRepository;
-            _iUnitOfWork = iUnitOfWork;
+            _bookRepository = bookRepository;
+            _unitOfWork = unitOfWork;
         }
         
         public async Task<BookVM> GetBooks()
         {
-           List<Book> books = await _iBookRepository.GetBooks();
+
+           List<Book> books = await _bookRepository.GetBooks();
 
             return Mapper.Map<BookVM>(books);
         }
 
         public async Task<BookVM> GetBookById(int id)
         {
-            Book book = await _iBookRepository.GetBookById(id);
+            Book book = await _bookRepository.GetBookById(id);
 
             return Mapper.Map<BookVM>(book);
         }
@@ -43,12 +44,12 @@ namespace ShareBook.Service
 
             ResultService resultService = new ResultService(new BookValidation().Validate(book));
 
-            _iUnitOfWork.BeginTransaction();
+            _unitOfWork.BeginTransaction();
 
             if (resultService.Success)
             {
-                await _iBookRepository.InsertAsync(book);
-                _iUnitOfWork.Commit();
+                await _bookRepository.InsertAsync(book);
+                _unitOfWork.Commit();
             }
 
             return Mapper.Map<ResultServiceVM>(resultService);
