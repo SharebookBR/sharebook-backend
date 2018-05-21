@@ -1,10 +1,9 @@
 ﻿using ShareBook.Data;
-using ShareBook.Data.Entities.Book.Model;
-using ShareBook.Data.Entities.Book.Out;
-using ShareBook.Data.Model;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using ShareBook.Data.Entities.Book;
+using System.Collections.Generic;
 
 namespace ShareBook.Repository
 {
@@ -18,32 +17,32 @@ namespace ShareBook.Repository
             _context = context;
         }
 
-        public async Task<BookOutById> GetBookById(int id)
+        public async Task<Book> GetBookById(int id)
         {
-            BookOutById bookOutById = new BookOutById();
+            Book book = new Book();
 
-            bookOutById.Book = await _context.Books.Where(e => e.Id == id).Select(x => new BookModel
+            book = await _context.Books.Where(e => e.Id == id).Select(x => new Book
             {
                 Id = x.Id,
                 Name = x.Name,
 
             }).FirstOrDefaultAsync();
 
-            return bookOutById;
+            return book;
         }
 
-        public async Task<BookOut> GetBooks()
+        public async Task<List<Book>> GetBooks()
         {
-            BookOut bookOut = new BookOut();
+            List<Book> books = new List<Book>();
 
-            bookOut.Books = await _context.Books.Select(x => new BookModel
+            books = await _context.Books.Select(x => new Book
             {
                 Id = x.Id,
                 Name = x.Name,
 
             }).ToListAsync();
 
-            return bookOut;
+            return books;
         }
     }
 }

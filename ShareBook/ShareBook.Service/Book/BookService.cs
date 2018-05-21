@@ -1,9 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using AutoMapper;
 using ShareBook.Data;
 using ShareBook.Data.Common;
-using ShareBook.Data.Entities.Book.Out;
-using ShareBook.Data.Model;
+using ShareBook.Data.Entities.Book;
 using ShareBook.Repository;
 using ShareBook.Repository.Infra;
 using ShareBook.VM.Book.Model;
@@ -25,14 +25,14 @@ namespace ShareBook.Service
         
         public async Task<BookVM> GetBooks()
         {
-            BookOut books = await _iBookRepository.GetBooks();
+           List<Book> books = await _iBookRepository.GetBooks();
 
             return Mapper.Map<BookVM>(books);
         }
 
         public async Task<BookVM> GetBookById(int id)
         {
-            BookOutById book = await _iBookRepository.GetBookById(id);
+            Book book = await _iBookRepository.GetBookById(id);
 
             return Mapper.Map<BookVM>(book);
         }
