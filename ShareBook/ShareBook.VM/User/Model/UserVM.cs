@@ -14,7 +14,7 @@ namespace ShareBook.VM.User.Model
 
         public UserVM()
         {
-            Id = new Guid();
+            Id = Guid.NewGuid();
         }
     }
 }

@@ -11,9 +11,10 @@ using System;
 namespace ShareBook.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180518164714_UserModelBuildingMigration")]
+    partial class UserModelBuildingMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -33,7 +34,7 @@ namespace ShareBook.Data.Migrations
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("varchar(50)")
-                        .HasMaxLength(50);
+                        .HasMaxLength(15);
 
                     b.HasKey("Id");
 
