@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
 using ShareBook.Data;
 using ShareBook.Data.Common;
 using ShareBook.Data.Entities.Book;
@@ -23,12 +26,9 @@ namespace ShareBook.Service
             _unitOfWork = unitOfWork;
         }
         
-        public async Task<BookVM> GetBooks()
+        public async Task<List<BookVM>> GetBooks()
         {
-
-           List<Book> books = await _bookRepository.GetBooks();
-
-            return Mapper.Map<BookVM>(books);
+            return await _bookRepository.GetBooks().ProjectTo<BookVM>().ToListAsync() ;
         }
 
         public async Task<BookVM> GetBookById(int id)

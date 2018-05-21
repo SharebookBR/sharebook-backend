@@ -2,6 +2,7 @@
 using ShareBook.Service;
 using ShareBook.VM.Book.Model;
 using ShareBook.VM.Common;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ShareBook.Api.Controllers
@@ -17,7 +18,7 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpGet("GetBooks")]
-        public async Task<BookVM> GetBooks()
+        public async Task<IEnumerable<BookVM>> GetBooks()
         {
             return await _bookService.GetBooks();
         }

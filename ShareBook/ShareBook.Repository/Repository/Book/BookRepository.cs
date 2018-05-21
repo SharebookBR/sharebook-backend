@@ -31,18 +31,9 @@ namespace ShareBook.Repository
             return book;
         }
 
-        public async Task<List<Book>> GetBooks()
+        public IQueryable<Book> GetBooks()
         {
-            List<Book> books = new List<Book>();
-
-            books = await _context.Books.Select(x => new Book
-            {
-                Id = x.Id,
-                Name = x.Name,
-
-            }).ToListAsync();
-
-            return books;
+            return _context.Books;
         }
     }
 }
