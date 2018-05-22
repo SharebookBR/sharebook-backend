@@ -10,25 +10,26 @@ namespace ShareBook.Api.AutoMapper
 {
     public class DomainToViewModelMappingProfile : Profile
     {
-        public DomainToViewModelMappingProfile()
-        : this("Profile")
-        {
+        public DomainToViewModelMappingProfile() : this("Profile") { }
 
-        }
-
-        protected DomainToViewModelMappingProfile(string profileName)
-         : base(profileName)
+        protected DomainToViewModelMappingProfile(string profileName) : base(profileName)
         {
-            #region[ Book ]
+            #region [ Book ]
+
             CreateMap<Book, BookVM>();
+
             #endregion
 
-            #region[ User ]
+            #region [ User ]
+
             CreateMap<User, UserVM>();
+
             #endregion
 
-            #region[ ResultService]
+            #region [ ResultService]
+
             CreateMap<ResultService, ResultServiceVM>();
+
             #endregion
         }
     }

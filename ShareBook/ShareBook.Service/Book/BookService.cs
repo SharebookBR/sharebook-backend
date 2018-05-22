@@ -1,9 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
-using Microsoft.EntityFrameworkCore;
 using ShareBook.Data;
 using ShareBook.Data.Common;
 using ShareBook.Data.Entities.Book;
@@ -25,34 +21,34 @@ namespace ShareBook.Service
             _bookRepository = bookRepository;
             _unitOfWork = unitOfWork;
         }
-        
-        public async Task<List<BookVM>> GetBooks()
+
+        public ResultServiceVM Create(BookVM bookVM)
         {
-            return await _bookRepository.GetBooks().ProjectTo<BookVM>().ToListAsync() ;
-        }
+            var book = Mapper.Map<Book>(bookVM);
 
-        public async Task<BookVM> GetBookById(int id)
-        {
-            Book book = await _bookRepository.GetBookById(id);
-
-            return Mapper.Map<BookVM>(book);
-        }
-
-        public async Task<ResultServiceVM> CreateBook(BookVM bookVM)
-        {
-            Book book = Mapper.Map<Book>(bookVM);
-
-            ResultService resultService = new ResultService(new BookValidation().Validate(book));
-
-            _unitOfWork.BeginTransaction();
+            var resultService = new ResultService(new BookValidation().Validate(book));
 
             if (resultService.Success)
             {
-                await _bookRepository.InsertAsync(book);
-                _unitOfWork.Commit();
+                _bookRepository.Insert(book);
+                _unitOfWork.SaveChanges();
             }
 
             return Mapper.Map<ResultServiceVM>(resultService);
+        }
+
+        public IEnumerable<BookVM> GetAll()
+        {
+            var books = _bookRepository.GetAll();
+
+            return Mapper.Map<IEnumerable<BookVM>>(books);
+        }
+
+        public BookVM GetById(int id)
+        {
+            var book = _bookRepository.GetById(id);
+
+            return Mapper.Map<BookVM>(book);
         }
     }
 }

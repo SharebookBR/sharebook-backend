@@ -19,11 +19,10 @@ namespace ShareBook.Api
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.RegisterRepositoryServices();
-            //auto mapper start
+            services.RegisterServices();
+
             AutoMapperConfig.RegisterMappings();
 
             services.AddMvc();
@@ -36,7 +35,6 @@ namespace ShareBook.Api
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
@@ -55,10 +53,9 @@ namespace ShareBook.Api
 
             using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
             {
-                var context = serviceScope.ServiceProvider.GetService <ApplicationDbContext> ();
+                var context = serviceScope.ServiceProvider.GetService<ApplicationDbContext>();
                 context.Database.Migrate();
             }
-
         }
     }
 }

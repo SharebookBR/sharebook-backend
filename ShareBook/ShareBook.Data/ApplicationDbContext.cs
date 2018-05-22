@@ -7,15 +7,9 @@ namespace ShareBook.Data
 {
     public class ApplicationDbContext : DbContext
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
-        {
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
-        }
-
-        public ApplicationDbContext()
-        {
-
-        }
+        public ApplicationDbContext() { }
 
         public DbSet<Book> Books { get; set; }
 

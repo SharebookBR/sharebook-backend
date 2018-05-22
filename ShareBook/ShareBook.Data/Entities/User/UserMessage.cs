@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ShareBook.Data.Entities.User
+﻿namespace ShareBook.Data.Entities.User
 {
-    public class UserMessage
+    public static class UserMessage
     {
         public static class Validation
         {

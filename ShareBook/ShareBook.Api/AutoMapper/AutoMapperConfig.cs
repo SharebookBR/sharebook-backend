@@ -1,7 +1,8 @@
 ﻿using AutoMapper;
+
 namespace ShareBook.Api.AutoMapper
 {
-    public class AutoMapperConfig
+    public static class AutoMapperConfig
     {
         public static void RegisterMappings()
         {

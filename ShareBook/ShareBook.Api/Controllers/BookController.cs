@@ -1,9 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc;
 using ShareBook.Service;
 using ShareBook.VM.Book.Model;
 using ShareBook.VM.Common;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace ShareBook.Api.Controllers
 {
@@ -17,23 +16,22 @@ namespace ShareBook.Api.Controllers
             _bookService = bookService;
         }
 
-        [HttpGet]
-        public async Task<IEnumerable<BookVM>> GetBooks()
+        [HttpPost("Create")]
+        public ResultServiceVM Create([FromBody]BookVM bookVM)
         {
-            //TODO - Rever se é realmente necessário a construção desse endpoint e métodos de GetAll Books
-            return await _bookService.GetBooks();
+            return _bookService.Create(bookVM);
+        }
+
+        [HttpGet]
+        public IEnumerable<BookVM> Get()
+        {
+            return _bookService.GetAll();
         }
 
         [HttpGet("{id}", Name = "Get")]
-        public async Task<BookVM> GetBookById(int id)
+        public BookVM GetById(int id)
         {
-            return await _bookService.GetBookById(id);
-        }
-
-        [HttpPost]
-        public async Task<ResultServiceVM> CreateBook([FromBody]BookVM bookVM)
-        {
-            return await _bookService.CreateBook(bookVM);
+            return _bookService.GetById(id);
         }
     }
 }
