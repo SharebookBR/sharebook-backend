@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Threading.Tasks;
 using ShareBook.VM.Book.Model;
 using ShareBook.VM.Common;
 
@@ -7,10 +6,10 @@ namespace ShareBook.Service
 {
     public interface IBookService
     {
-        Task<ResultServiceVM> CreateBookAsync(BookVM bookVM);
+        IEnumerable<BookVM> GetAll();
 
-        Task<BookVM> GetBookByIdAsync(int id);
+        BookVM GetById(int id);
 
-        Task<List<BookVM>> GetBooksAsync();
+        ResultServiceVM Create(BookVM bookVM);
     }
 }

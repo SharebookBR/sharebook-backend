@@ -23,13 +23,13 @@ namespace ShareBook.Api.AutoMapper
             #region [ User ]
 
             CreateMap<User, UserVM>();
-            
+
             #endregion
 
             #region [ ResultService]
 
             CreateMap<ResultService, ResultServiceVM>();
-            
+
             #endregion
         }
     }

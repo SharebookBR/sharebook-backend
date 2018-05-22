@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using ShareBook.Service;
 using ShareBook.VM.Common;
 using ShareBook.VM.User.Model;
@@ -17,15 +16,15 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpPost("Register")]
-        public async Task<ResultServiceVM> Post([FromBody]UserVM userVM)
+        public ResultServiceVM Register([FromBody]UserVM userVM)
         {
-            return await _userService.CreateUserAsync(userVM);
+            return _userService.Register(userVM);
         }
 
         [HttpPost("Login")]
-        public async Task<UserVM> Login([FromBody]UserVM userVM)
+        public UserVM Login([FromBody]UserVM userVM)
         {
-            return await _userService.GetUserByEmailAndPasswordAsync(userVM);
+            return _userService.Login(userVM);
         }
     }
 }

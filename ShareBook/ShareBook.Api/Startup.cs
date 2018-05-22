@@ -21,7 +21,7 @@ namespace ShareBook.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.RegisterRepositoryServices();
+            services.RegisterServices();
 
             AutoMapperConfig.RegisterMappings();
 

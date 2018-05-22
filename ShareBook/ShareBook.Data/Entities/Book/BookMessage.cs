@@ -1,6 +1,6 @@
 ﻿namespace ShareBook.Data.Entities.Book
 {
-    public class BookMessage
+    public static class BookMessage
     {
         public static class Validation
         {

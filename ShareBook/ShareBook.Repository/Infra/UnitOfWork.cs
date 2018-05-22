@@ -11,19 +11,9 @@ namespace ShareBook.Repository.Infra
             _context = context;
         }
 
-        public void BeginTransaction()
+        public void SaveChanges()
         {
-            _context.Database.BeginTransaction();
-        }
-
-        public void Commit()
-        {
-            _context.Database.CommitTransaction();
-        }
-
-        public void Rollback()
-        {
-            _context.Database.RollbackTransaction();
+            _context.SaveChanges();
         }
     }
 }

@@ -1,27 +1,20 @@
-﻿using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using ShareBook.Data;
+﻿using ShareBook.Data;
 using ShareBook.Data.Entities.User;
 
 namespace ShareBook.Repository
 {
-    public class UserRepository : RepositoryGeneric<User>, IUserRepository
+    public class UserRepository : GenericRepository<User>, IUserRepository
     {
-        private readonly ApplicationDbContext _context;
+        public UserRepository(ApplicationDbContext context) : base(context) { }
 
-        public UserRepository(ApplicationDbContext context) : base(context)
+        public User GetByEmail(string email)
         {
-            _context = context;
+            return SingleOrDefault(x => x.Email.Equals(email));
         }
 
-        public async Task<User> GetByEmailAsync(string email)
+        public User GetByEmailAndPassword(User user)
         {
-            return await _context.Users.FirstOrDefaultAsync(x => x.Email.Equals(email));
-        }
-
-        public async Task<User> GetByEmailAndPasswordAsync(User user)
-        {
-            return await _context.Users.FirstOrDefaultAsync(x => x.Email.Equals(user.Email) && x.Password.Equals(user.Password));
+            return SingleOrDefault(x => x.Email.Equals(user.Email) && x.Password.Equals(user.Password));
         }
     }
 }

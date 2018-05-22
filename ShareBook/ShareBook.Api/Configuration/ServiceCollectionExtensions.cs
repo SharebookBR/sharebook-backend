@@ -5,9 +5,9 @@ using ShareBook.Service;
 
 namespace ShareBook.Api.Configuration
 {
-    public static class ServiceRepositoryCollectionExtensions
+    public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection RegisterRepositoryServices(this IServiceCollection services)
+        public static IServiceCollection RegisterServices(this IServiceCollection services)
         {
             // Services
             services.AddScoped<IBookService, BookService>();

@@ -1,9 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
-using Microsoft.EntityFrameworkCore;
 using ShareBook.Data;
 using ShareBook.Data.Common;
 using ShareBook.Data.Entities.Book;
@@ -26,34 +22,33 @@ namespace ShareBook.Service
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<List<BookVM>> GetBooksAsync()
+        public ResultServiceVM Create(BookVM bookVM)
         {
-            /// TODO: Refatorar e remover a referência do "Microsoft.EntityFrameworkCore" da camada Service
-            return await _bookRepository.GetBooks().AsQueryable().ProjectTo<BookVM>().ToListAsync();
-        }
+            var book = Mapper.Map<Book>(bookVM);
 
-        public async Task<BookVM> GetBookByIdAsync(int id)
-        {
-            Book book = await _bookRepository.GetBookByIdAsync(id);
-
-            return Mapper.Map<BookVM>(book);
-        }
-
-        public async Task<ResultServiceVM> CreateBookAsync(BookVM bookVM)
-        {
-            Book book = Mapper.Map<Book>(bookVM);
-
-            ResultService resultService = new ResultService(new BookValidation().Validate(book));
-
-            _unitOfWork.BeginTransaction();
+            var resultService = new ResultService(new BookValidation().Validate(book));
 
             if (resultService.Success)
             {
-                await _bookRepository.InsertAsync(book);
-                _unitOfWork.Commit();
+                _bookRepository.Insert(book);
+                _unitOfWork.SaveChanges();
             }
 
             return Mapper.Map<ResultServiceVM>(resultService);
+        }
+
+        public IEnumerable<BookVM> GetAll()
+        {
+            var books = _bookRepository.GetAll();
+
+            return Mapper.Map<IEnumerable<BookVM>>(books);
+        }
+
+        public BookVM GetById(int id)
+        {
+            var book = _bookRepository.GetById(id);
+
+            return Mapper.Map<BookVM>(book);
         }
     }
 }
