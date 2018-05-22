@@ -3,7 +3,7 @@
     public interface IUnitOfWork
     {
         void BeginTransaction();
-        bool Commit();
+        void Commit();
         void Rollback();
     }
 }

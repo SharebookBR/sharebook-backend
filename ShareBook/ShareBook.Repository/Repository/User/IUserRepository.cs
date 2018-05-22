@@ -1,12 +1,8 @@
-﻿using ShareBook.Data.Entities.User;
-using System.Threading.Tasks;
+﻿using ShareBook.Domain;
 
 namespace ShareBook.Repository
 {
     public interface IUserRepository : IRepositoryGeneric<User>
     {
-        Task<User> GetByEmailAndPasswordAsync(User user);
-
-        Task<User> GetByEmail(string email);
     }
 }
