@@ -17,7 +17,6 @@ namespace ShareBook.Repository
         {
             base.OnModelCreating(modelBuilder);
 
-            new BaseEntityMap(modelBuilder.Entity<BaseEntity>());
             new BookMap(modelBuilder.Entity<Book>());
             new UserMap(modelBuilder.Entity<User>());
         }
