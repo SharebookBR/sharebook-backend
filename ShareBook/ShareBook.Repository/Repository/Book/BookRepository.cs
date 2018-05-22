@@ -1,9 +1,9 @@
-﻿using ShareBook.Data;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using ShareBook.Data;
 using ShareBook.Data.Entities.Book;
-using System.Collections.Generic;
 
 namespace ShareBook.Repository
 {
@@ -11,29 +11,19 @@ namespace ShareBook.Repository
     {
         private readonly ApplicationDbContext _context;
 
-        public BookRepository(ApplicationDbContext context)
-        : base(context)
+        public BookRepository(ApplicationDbContext context) : base(context)
         {
             _context = context;
         }
 
-        public async Task<Book> GetBookById(int id)
+        public async Task<Book> GetBookByIdAsync(int id)
         {
-            Book book = new Book();
-
-            book = await _context.Books.Where(e => e.Id == id).Select(x => new Book
-            {
-                Id = x.Id,
-                Name = x.Name,
-
-            }).FirstOrDefaultAsync();
-
-            return book;
+            return await _context.Books.FirstOrDefaultAsync(x => x.Id == id);
         }
 
-        public IQueryable<Book> GetBooks()
+        public IEnumerable<Book> GetBooks()
         {
-            return _context.Books;
+            return _context.Books.ToList();
         }
     }
 }

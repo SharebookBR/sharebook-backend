@@ -7,6 +7,6 @@ namespace ShareBook.Repository
     {
         Task<User> GetByEmailAndPasswordAsync(User user);
 
-        Task<User> GetByEmail(string email);
+        Task<User> GetByEmailAsync(string email);
     }
 }

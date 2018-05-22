@@ -1,10 +1,15 @@
-﻿using AutoMapper;
-using System;
+﻿using System;
+using AutoMapper;
 
 namespace ShareBook.Helper.Mapper
 {
     public static class Mapper
     {
+        public static void Initialize(Action<IMapperConfigurationExpression> action)
+        {
+            AutoMapper.Mapper.Initialize(action);
+        }
+
         public static TDestination Map<TDestination>(object source)
         {
             return AutoMapper.Mapper.Map<TDestination>(source);
@@ -17,12 +22,7 @@ namespace ShareBook.Helper.Mapper
 
         public static TDestination Map<TSource, TDestination>(TSource source, TDestination destination)
         {
-            return AutoMapper.Mapper.Map<TSource, TDestination>(source, destination);
-        }
-
-        public static void Initialize(Action<IMapperConfigurationExpression> action)
-        {
-            AutoMapper.Mapper.Initialize(action);
+            return AutoMapper.Mapper.Map(source, destination);
         }
     }
 }

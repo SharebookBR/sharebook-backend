@@ -25,20 +25,21 @@ namespace ShareBook.Service
             _bookRepository = bookRepository;
             _unitOfWork = unitOfWork;
         }
-        
-        public async Task<List<BookVM>> GetBooks()
+
+        public async Task<List<BookVM>> GetBooksAsync()
         {
-            return await _bookRepository.GetBooks().ProjectTo<BookVM>().ToListAsync() ;
+            /// TODO: Refatorar e remover a referência do "Microsoft.EntityFrameworkCore" da camada Service
+            return await _bookRepository.GetBooks().AsQueryable().ProjectTo<BookVM>().ToListAsync();
         }
 
-        public async Task<BookVM> GetBookById(int id)
+        public async Task<BookVM> GetBookByIdAsync(int id)
         {
-            Book book = await _bookRepository.GetBookById(id);
+            Book book = await _bookRepository.GetBookByIdAsync(id);
 
             return Mapper.Map<BookVM>(book);
         }
 
-        public async Task<ResultServiceVM> CreateBook(BookVM bookVM)
+        public async Task<ResultServiceVM> CreateBookAsync(BookVM bookVM)
         {
             Book book = Mapper.Map<Book>(bookVM);
 

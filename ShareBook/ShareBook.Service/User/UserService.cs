@@ -16,22 +16,24 @@ namespace ShareBook.Service
         private readonly IUserRepository _userRepository;
         private readonly IUnitOfWork _unitOfWork;
 
-
         public UserService(IUserRepository userRepository, IUnitOfWork unitOfWork)
         {
             _userRepository = userRepository;
             _unitOfWork = unitOfWork;
         }
-        public async Task<ResultServiceVM> CreateUser(UserVM userVM)
-        {
-            User user = Mapper.Map<User>(userVM);
 
-            ResultService resultService = new ResultService(new UserValidation().Validate(user));
+        public async Task<ResultServiceVM> CreateUserAsync(UserVM userVM)
+        {
+            var user = Mapper.Map<User>(userVM);
+
+            var resultService = new ResultService(new UserValidation().Validate(user));
 
             _unitOfWork.BeginTransaction();
 
-            if (_userRepository.GetByEmail(userVM.Email) != null)
+            if (_userRepository.GetByEmailAsync(userVM.Email) != null)
+            {
                 resultService.Messages.Add("Usuário já possui email cadastrado.");
+            }
 
             if (resultService.Success)
             {
@@ -44,16 +46,16 @@ namespace ShareBook.Service
 
         public async Task<UserVM> GetUserByEmailAndPasswordAsync(UserVM userVM)
         {
-            User user = Mapper.Map<User>(userVM);
+            var user = Mapper.Map<User>(userVM);
 
-            ResultService resultService = new ResultService(new UserValidation().Validate(user));
+            var resultService = new ResultService(new UserValidation().Validate(user));
 
             user = await _userRepository.GetByEmailAndPasswordAsync(user);
 
             return Mapper.Map<UserVM>(user);
         }
 
-        public Task<UserVM> GetUserById(Guid id)
+        public Task<UserVM> GetUserByIdAsync(Guid id)
         {
             throw new NotImplementedException();
         }

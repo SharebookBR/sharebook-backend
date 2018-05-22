@@ -1,4 +1,5 @@
 ﻿using ShareBook.Data;
+
 namespace ShareBook.Repository.Infra
 {
     public class UnitOfWork : IUnitOfWork
@@ -15,10 +16,9 @@ namespace ShareBook.Repository.Infra
             _context.Database.BeginTransaction();
         }
 
-        public bool Commit()
+        public void Commit()
         {
             _context.Database.CommitTransaction();
-            return true;
         }
 
         public void Rollback()

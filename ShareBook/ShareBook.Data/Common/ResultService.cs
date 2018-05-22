@@ -1,6 +1,6 @@
-﻿using FluentValidation.Results;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using FluentValidation.Results;
 
 namespace ShareBook.Data.Common
 {
@@ -18,6 +18,8 @@ namespace ShareBook.Data.Common
             this.SuccessMessage = null;
         }
 
+        public List<string> Messages { get; set; }
+
         public bool Success
         {
             get
@@ -25,8 +27,6 @@ namespace ShareBook.Data.Common
                 return this.Messages.Count == 0;
             }
         }
-
-        public List<string> Messages { get; set; }
 
         public string SuccessMessage { get; set; }
 

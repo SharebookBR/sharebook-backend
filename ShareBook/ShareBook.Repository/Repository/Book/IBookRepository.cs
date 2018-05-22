@@ -1,13 +1,13 @@
-﻿using ShareBook.Data.Entities.Book;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using ShareBook.Data.Entities.Book;
 
 namespace ShareBook.Repository
 {
     public interface IBookRepository : IRepositoryGeneric<Book>
     {
-        IQueryable<Book> GetBooks();
-        Task<Book> GetBookById(int id);
+        Task<Book> GetBookByIdAsync(int id);
+
+        IEnumerable<Book> GetBooks();
     }
 }

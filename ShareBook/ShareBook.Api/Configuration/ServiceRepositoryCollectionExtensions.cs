@@ -7,19 +7,18 @@ namespace ShareBook.Api.Configuration
 {
     public static class ServiceRepositoryCollectionExtensions
     {
-        public static IServiceCollection RegisterRepositoryServices(
-           this IServiceCollection services)
+        public static IServiceCollection RegisterRepositoryServices(this IServiceCollection services)
         {
-            //services
-            services.AddTransient<IBookService, BookService>();
-            services.AddTransient<IUserService, UserService>();
+            // Services
+            services.AddScoped<IBookService, BookService>();
+            services.AddScoped<IUserService, UserService>();
 
-            //repositories
-            services.AddTransient<IBookRepository, BookRepository>();
-            services.AddTransient<IUserRepository, UserRepository>();
+            // Repositories
+            services.AddScoped<IBookRepository, BookRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
 
-            //UnitOfWork
-            services.AddTransient<IUnitOfWork, UnitOfWork>();
+            // UnitOfWork
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             return services;
         }
