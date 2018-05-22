@@ -8,6 +8,6 @@ namespace ShareBook.Service
 {
     public class BookService : BaseService<Book>, IBookService
     {
-        public BookService(IBookRepository bookRepository, IUnitOfWork unitOfWork, AbstractValidator<Book> validator) : base(bookRepository, unitOfWork, validator) { }
+        public BookService(IBookRepository bookRepository, IUnitOfWork unitOfWork, IValidator<Book> validator) : base(bookRepository, unitOfWork, validator) { }
     }
 }

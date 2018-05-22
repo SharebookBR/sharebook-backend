@@ -11,9 +11,9 @@ namespace ShareBook.Service.Generic
     {
         protected readonly IRepositoryGeneric<TEntity> _repository;
         protected readonly IUnitOfWork _unitOfWork;
-        protected readonly AbstractValidator<TEntity> _validator;
+        protected readonly IValidator<TEntity> _validator;
 
-        public BaseService(IRepositoryGeneric<TEntity> repository, IUnitOfWork unitOfWork, AbstractValidator<TEntity> validator)
+        public BaseService(IRepositoryGeneric<TEntity> repository, IUnitOfWork unitOfWork, IValidator<TEntity> validator)
         {
             _repository = repository;
             _unitOfWork = unitOfWork;

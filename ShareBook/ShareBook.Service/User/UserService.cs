@@ -11,7 +11,7 @@ namespace ShareBook.Service
 {
     public class UserService : BaseService<User>, IUserService
     {
-        public UserService(IUserRepository userRepository, IUnitOfWork unitOfWork, AbstractValidator<User> validator) : base(userRepository, unitOfWork, validator) { }
+        public UserService(IUserRepository userRepository, IUnitOfWork unitOfWork, IValidator<User> validator) : base(userRepository, unitOfWork, validator) { }
 
         public User GetByEmailAndPassword(User user)
         {
