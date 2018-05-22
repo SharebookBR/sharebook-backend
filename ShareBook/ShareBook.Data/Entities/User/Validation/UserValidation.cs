@@ -8,6 +8,7 @@ namespace ShareBook.Data
         public UserValidation()
         {
             RuleFor(u => u.Email)
+               .EmailAddress()
                .NotEmpty().WithMessage(UserMessage.Validation.Email);
 
             RuleFor(u => u.Password)
