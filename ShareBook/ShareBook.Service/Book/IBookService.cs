@@ -1,14 +1,9 @@
-﻿using ShareBook.VM.Book.Model;
-using ShareBook.VM.Common;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using ShareBook.Domain;
+using ShareBook.Service.Generic;
 
 namespace ShareBook.Service
 {
-    public interface IBookService
+    public interface IBookService : IBaseService<Book>
     {
-        Task<List<BookVM>> GetBooks();
-        Task<BookVM> GetBookById(int id);
-        Task<ResultServiceVM> CreateBook(BookVM bookVM);
     }
 }

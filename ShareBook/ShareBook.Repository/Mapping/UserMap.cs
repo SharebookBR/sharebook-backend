@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ShareBook.Data.Entities.User;
+using ShareBook.Domain;
 
-namespace ShareBook.Data.Mapping
+namespace ShareBook.Repository.Mapping
 {
     public class UserMap
     {

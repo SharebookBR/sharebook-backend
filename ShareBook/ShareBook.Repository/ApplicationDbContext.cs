@@ -1,24 +1,15 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ShareBook.Data.Entities.Book;
-using ShareBook.Data.Entities.User;
-using ShareBook.Data.Mapping;
+using ShareBook.Domain;
+using ShareBook.Repository.Mapping;
 
-namespace ShareBook.Data
+namespace ShareBook.Repository
 {
     public class ApplicationDbContext : DbContext
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
-        {
-
-        }
-
-        public ApplicationDbContext()
-        {
-
-        }
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+        public ApplicationDbContext() { }
 
         public DbSet<Book> Books { get; set; }
-
         public DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -26,7 +17,6 @@ namespace ShareBook.Data
             base.OnModelCreating(modelBuilder);
 
             new BookMap(modelBuilder.Entity<Book>());
-
             new UserMap(modelBuilder.Entity<User>());
         }
     }

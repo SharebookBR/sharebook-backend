@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using FluentValidation;
+using Microsoft.Extensions.DependencyInjection;
+using ShareBook.Domain;
+using ShareBook.Domain.Validators;
 using ShareBook.Repository;
 using ShareBook.Repository.Infra;
 using ShareBook.Service;
@@ -17,6 +20,10 @@ namespace ShareBook.Api.Configuration
             //repositories
             services.AddTransient<IBookRepository, BookRepository>();
             services.AddTransient<IUserRepository, UserRepository>();
+
+            //validators
+            services.AddScoped<IValidator<User>, UserValidator>();
+            services.AddScoped<IValidator<Book>, BookValidator>();
 
             //UnitOfWork
             services.AddTransient<IUnitOfWork, UnitOfWork>();

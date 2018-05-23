@@ -6,11 +6,12 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="2.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="2.0.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ShareBook.Data\ShareBook.Data.csproj" />
-    <ProjectReference Include="..\ShareBook.Helper\ShareBook.Helper.csproj" />
+    <ProjectReference Include="..\ShareBook.Domain\ShareBook.Domain.csproj" />
   </ItemGroup>
 
 </Project>

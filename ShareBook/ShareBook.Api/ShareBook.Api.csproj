@@ -23,7 +23,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ShareBook.Service\ShareBook.Service.csproj" />
-    <ProjectReference Include="..\ShareBook.VM\ShareBook.VM.csproj" />
   </ItemGroup>
 
 </Project>

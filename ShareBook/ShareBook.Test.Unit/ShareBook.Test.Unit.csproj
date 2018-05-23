@@ -19,9 +19,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ShareBook.Api\ShareBook.Api.csproj" />
-    <ProjectReference Include="..\ShareBook.Data\ShareBook.Data.csproj" />
+    <ProjectReference Include="..\ShareBook.Domain\ShareBook.Domain.csproj" />
     <ProjectReference Include="..\ShareBook.Service\ShareBook.Service.csproj" />
-    <ProjectReference Include="..\ShareBook.VM\ShareBook.VM.csproj" />
   </ItemGroup>
 
 </Project>

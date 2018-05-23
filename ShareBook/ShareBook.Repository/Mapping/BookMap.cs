@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ShareBook.Data.Entities.Book;
-namespace ShareBook.Data.Mapping
+using ShareBook.Domain;
+
+namespace ShareBook.Repository.Mapping
 {
     public class BookMap
     {

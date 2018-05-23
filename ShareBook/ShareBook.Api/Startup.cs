@@ -5,7 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ShareBook.Api.AutoMapper;
 using ShareBook.Api.Configuration;
-using ShareBook.Data;
+using ShareBook.Repository;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace ShareBook.Api

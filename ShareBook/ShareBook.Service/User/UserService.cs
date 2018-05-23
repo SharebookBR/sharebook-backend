@@ -1,61 +1,43 @@
 ﻿using System;
-using System.Threading.Tasks;
-using AutoMapper;
-using ShareBook.Data;
-using ShareBook.Data.Common;
-using ShareBook.Data.Entities.User;
+using System.Linq;
+using FluentValidation;
+using ShareBook.Domain;
+using ShareBook.Domain.Common;
 using ShareBook.Repository;
 using ShareBook.Repository.Infra;
-using ShareBook.VM.Common;
-using ShareBook.VM.User.Model;
+using ShareBook.Service.Generic;
 
 namespace ShareBook.Service
 {
-    public class UserService : IUserService
+    public class UserService : BaseService<User>, IUserService
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IUnitOfWork _unitOfWork;
+        public UserService(IUserRepository userRepository, IUnitOfWork unitOfWork, IValidator<User> validator) : base(userRepository, unitOfWork, validator) { }
 
-
-        public UserService(IUserRepository userRepository, IUnitOfWork unitOfWork)
+        public User GetByEmailAndPassword(User user)
         {
-            _userRepository = userRepository;
-            _unitOfWork = unitOfWork;
-        }
-        public async Task<ResultServiceVM> CreateUser(UserVM userVM)
-        {
-            User user = Mapper.Map<User>(userVM);
+            user = _repository.Get()
+                .Where(e => e.Email.Equals(user.Email, StringComparison.InvariantCultureIgnoreCase) && e.Password.Equals(user.Password))
+                .Select(x => new User
+                {
+                    Id = x.Id,
+                    Email = x.Email,
+                }).FirstOrDefault();
 
-            ResultService resultService = new ResultService(new UserValidation().Validate(user));
-
-            _unitOfWork.BeginTransaction();
-
-            if (_userRepository.GetByEmail(userVM.Email) != null)
-                resultService.Messages.Add("Usuário já possui email cadastrado.");
-
-            if (resultService.Success)
-            {
-                await _userRepository.InsertAsync(user);
-                _unitOfWork.Commit();
-            }
-
-            return Mapper.Map<ResultServiceVM>(resultService);
+            return user;
         }
 
-        public async Task<UserVM> GetUserByEmailAndPasswordAsync(UserVM userVM)
+        public override Result<User> Insert(User user)
         {
-            User user = Mapper.Map<User>(userVM);
+            var result = Validate(user);
 
-            ResultService resultService = new ResultService(new UserValidation().Validate(user));
+            if ( _repository.Any(x => x.Email == user.Email))
+                result.Messages.Add("Usuário já possui email cadastrado.");
 
-            user = await _userRepository.GetByEmailAndPasswordAsync(user);
+            user.Email = user.Email.ToLowerInvariant();
+            if (result.Success)
+                result.Value = _repository.Insert(user);
 
-            return Mapper.Map<UserVM>(user);
-        }
-
-        public Task<UserVM> GetUserById(Guid id)
-        {
-            throw new NotImplementedException();
+            return result;
         }
     }
 }
