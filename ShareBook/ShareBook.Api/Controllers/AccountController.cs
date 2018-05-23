@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
+using ShareBook.Repository.Infra.CrossCutting.Identity.Configurations;
 using ShareBook.Service;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace ShareBook.Api.Controllers
 {
@@ -21,6 +20,13 @@ namespace ShareBook.Api.Controllers
         public Result<User> Post([FromBody]User user) => _userService.Insert(user);
 
         [HttpPost("Login")]
-        public User Login([FromBody]User user) => _userService.GetByEmailAndPassword(user);
+        public object Login([FromBody]User user,
+            [FromServices]SigningConfigurations signingConfigurations)
+        {
+            user = _userService.GetByEmailAndPassword(user);
+            ApplicationSignInManager signManager = new ApplicationSignInManager();
+            var obj = signManager.GenerateToken(user, signingConfigurations);
+            return obj;
+        }
     }
 }

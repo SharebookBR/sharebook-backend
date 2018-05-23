@@ -1,0 +1,47 @@
+﻿using Microsoft.IdentityModel.Tokens;
+using ShareBook.Domain;
+using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Principal;
+
+namespace ShareBook.Repository.Infra.CrossCutting.Identity.Configurations
+{
+    public class ApplicationSignInManager
+    {
+        public object GenerateToken(User user, SigningConfigurations signingConfigurations)
+        {
+            ClaimsIdentity identity = new ClaimsIdentity(
+                    new GenericIdentity(user.Id.ToString()),
+                    new[] {
+                        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString("N")),
+                        new Claim(JwtRegisteredClaimNames.UniqueName, user.Id.ToString())
+                    }
+                );
+
+            DateTime dataCriacao = DateTime.Now;
+            DateTime dataExpiracao = dataCriacao + TimeSpan.FromSeconds(60);
+
+            var handler = new JwtSecurityTokenHandler();
+            var securityToken = handler.CreateToken(new SecurityTokenDescriptor
+            {
+                SigningCredentials = signingConfigurations.SigningCredentials,
+                Subject = identity,
+                NotBefore = dataCriacao,
+                Expires = dataExpiracao
+            });
+            var token = handler.WriteToken(securityToken);
+
+            return new
+            {
+                authenticated = true,
+                created = dataCriacao.ToString("yyyy-MM-dd HH:mm:ss"),
+                expiration = dataExpiracao.ToString("yyyy-MM-dd HH:mm:ss"),
+                accessToken = token,
+                email = user.Email,
+                userId = user.Id,
+                message = "OK"
+            };
+        }
+    }
+}
