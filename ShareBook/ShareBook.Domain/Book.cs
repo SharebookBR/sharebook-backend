@@ -1,5 +1,4 @@
-﻿using ShareBook.Domain.Common;
-using System;
+﻿using System;
 
 namespace ShareBook.Domain
 {
