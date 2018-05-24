@@ -1,18 +1,12 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using ShareBook.Api.AutoMapper;
 using ShareBook.Api.Configuration;
 using ShareBook.Repository;
-using ShareBook.Repository.Infra.CrossCutting.Identity;
-using ShareBook.Repository.Infra.CrossCutting.Identity.Configurations;
 using Swashbuckle.AspNetCore.Swagger;
-using System;
 
 namespace ShareBook.Api
 {
@@ -33,9 +27,8 @@ namespace ShareBook.Api
             AutoMapperConfig.RegisterMappings();
 
             services.AddMvc();
-
-            var jwtConfig = new JWTConfig();
-            jwtConfig.RegisterJWT(services, Configuration);
+			
+            JWTConfig.RegisterJWT(services, Configuration);
 
             services.AddSwaggerGen(c =>
             {
