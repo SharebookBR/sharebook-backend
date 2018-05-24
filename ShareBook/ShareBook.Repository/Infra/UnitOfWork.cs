@@ -10,6 +10,6 @@
         public void Commit() => _context.Database.CommitTransaction();
         public void Rollback() => _context.Database.RollbackTransaction();
 
-        UnitOfWork() => _context.Database.CurrentTransaction?.Rollback();
+        public void Dispose() =>  _context.Database.CurrentTransaction?.Rollback();
     }
 }
