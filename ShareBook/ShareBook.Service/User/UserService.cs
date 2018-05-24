@@ -29,12 +29,9 @@ namespace ShareBook.Service
                     PasswordSalt = x.PasswordSalt
                 }).FirstOrDefault();
 
-            if (user != null)
-                user = GetUserByPassword(user, decryptedPass);
-             
-            return user;
+            return IsValidPassword(user, decryptedPass) ? UserCleanup(user) : null;
         }
-         
+
         public override Result<User> Insert(User user)
         {
             var result = Validate(user);
@@ -46,20 +43,16 @@ namespace ShareBook.Service
             if (result.Success)
             {
                 user = GetUserEncryptedPass(user);
-                result.Value = _repository.Insert(user);
-                result.Value = UserCleanup(result.Value);
+                result.Value = UserCleanup(_repository.Insert(user));
             }
-
             return result;
         }
         #endregion
 
         #region Private
-        private User GetUserByPassword(User user, string decryptedPass)
+        private bool IsValidPassword(User user, string decryptedPass)
         {
-            if (user.Password == Hash.Create(decryptedPass, user.PasswordSalt))
-                return UserCleanup(user);
-            return null;
+            return (user != null && user.Password == Hash.Create(decryptedPass, user.PasswordSalt));
         }
         private User GetUserEncryptedPass(User user)
         {
