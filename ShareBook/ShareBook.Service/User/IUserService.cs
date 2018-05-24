@@ -1,10 +1,11 @@
 ﻿using ShareBook.Domain;
+using ShareBook.Domain.Common;
 using ShareBook.Service.Generic;
 
 namespace ShareBook.Service
 {
     public interface IUserService : IBaseService<User>
     {
-        User GetByEmailAndPassword(User user);
+        Result<User> GetByEmailAndPassword(User user);
     }
 }

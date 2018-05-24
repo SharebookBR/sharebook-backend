@@ -15,8 +15,9 @@ namespace ShareBook.Service
         #region Public
         public UserService(IUserRepository userRepository, IUnitOfWork unitOfWork, IValidator<User> validator) : base(userRepository, unitOfWork, validator) { }
 
-        public User GetByEmailAndPassword(User user)
+        public Result<User> GetByEmailAndPassword(User user)
         {
+            var result = Validate(user);
             string decryptedPass = user.Password;
 
             user = _repository.Get()
@@ -29,7 +30,11 @@ namespace ShareBook.Service
                     PasswordSalt = x.PasswordSalt
                 }).FirstOrDefault();
 
-            return IsValidPassword(user, decryptedPass) ? UserCleanup(user) : null;
+            if (!IsValidPassword(user, decryptedPass))
+                result.Messages.Add("Email ou senha incorretos");
+
+            result.Value = UserCleanup(user);
+            return result;
         }
 
         public override Result<User> Insert(User user)
