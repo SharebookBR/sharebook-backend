@@ -31,7 +31,7 @@ namespace ShareBook.Service
 
             if (user != null)
                 user = GetUserByPassword(user, decryptedPass);
-
+             
             return user;
         }
          
@@ -59,7 +59,7 @@ namespace ShareBook.Service
         {
             if (user.Password == Hash.Create(decryptedPass, user.PasswordSalt))
                 return UserCleanup(user);
-            return new User();
+            return null;
         }
         private User GetUserEncryptedPass(User user)
         {
