@@ -6,6 +6,6 @@ namespace ShareBook.Service
 {
     public interface IUserService : IBaseService<User>
     {
-        Result<User> AutenticationByEmailAndPassword(User user);
+        Result<User> AuthenticationByEmailAndPassword(User user);
     }
 }
