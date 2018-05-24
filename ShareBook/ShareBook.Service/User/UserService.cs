@@ -47,7 +47,7 @@ namespace ShareBook.Service
             {
                 user = GetUserEncryptedPass(user);
                 result.Value = _repository.Insert(user);
-                user = UserCleanup(user);
+                result.Value = UserCleanup(result.Value);
             }
 
             return result;
@@ -67,7 +67,7 @@ namespace ShareBook.Service
             user.Password = Hash.Create(user.Password, user.PasswordSalt);
             return user;
         }
-        private static User UserCleanup(User user)
+        private User UserCleanup(User user)
         {
             user.Password = string.Empty;
             user.PasswordSalt = string.Empty;
