@@ -22,20 +22,14 @@ namespace ShareBook.Service
 
             user = _repository.Get()
                 .Where(e => e.Email.Equals(user.Email, StringComparison.InvariantCultureIgnoreCase))
-                .Select(x => new User
-                {
-                    Id = x.Id,
-                    Email = x.Email,
-                    Password = x.Password,
-                    PasswordSalt = x.PasswordSalt
-                }).FirstOrDefault();
+                .FirstOrDefault();
 
-            if (!IsValidPassword(user, decryptedPass))
+            if (user == null || !IsValidPassword(user, decryptedPass))
             {
                 result.Messages.Add("Email ou senha incorretos");
                 return result;
             }
-                
+
             result.Value = UserCleanup(user);
             return result;
         }
@@ -60,7 +54,7 @@ namespace ShareBook.Service
         #region Private
         private bool IsValidPassword(User user, string decryptedPass)
         {
-            return  user == null ? false : user.Password == Hash.Create(decryptedPass, user.PasswordSalt);
+            return user.Password == Hash.Create(decryptedPass, user.PasswordSalt);
         }
 
         private User GetUserEncryptedPass(User user)
