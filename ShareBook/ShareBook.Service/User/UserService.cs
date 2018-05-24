@@ -22,13 +22,7 @@ namespace ShareBook.Service
 
             user = _repository.Get()
                 .Where(e => e.Email.Equals(user.Email, StringComparison.InvariantCultureIgnoreCase))
-                .Select(x => new User
-                {
-                    Id = x.Id,
-                    Email = x.Email,
-                    Password = x.Password,
-                    PasswordSalt = x.PasswordSalt
-                }).FirstOrDefault();
+                .FirstOrDefault();
 
             if (!IsValidPassword(user, decryptedPass))
             {
