@@ -1,5 +1,6 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 using ShareBook.Domain;
+using ShareBook.Repository.Infra.CrossCutting.Identity.Interfaces;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -7,7 +8,7 @@ using System.Security.Principal;
 
 namespace ShareBook.Repository.Infra.CrossCutting.Identity.Configurations
 {
-    public class ApplicationSignInManager
+    public class ApplicationSignInManager : IApplicationSignInManager
     {
         public object GenerateTokenAndSetIdentity(User user, SigningConfigurations signingConfigurations, TokenConfigurations tokenConfigurations)
         {

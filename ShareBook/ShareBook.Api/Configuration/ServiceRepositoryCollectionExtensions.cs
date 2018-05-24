@@ -4,6 +4,8 @@ using ShareBook.Domain;
 using ShareBook.Domain.Validators;
 using ShareBook.Repository;
 using ShareBook.Repository.Infra;
+using ShareBook.Repository.Infra.CrossCutting.Identity.Configurations;
+using ShareBook.Repository.Infra.CrossCutting.Identity.Interfaces;
 using ShareBook.Service;
 
 namespace ShareBook.Api.Configuration
@@ -24,6 +26,9 @@ namespace ShareBook.Api.Configuration
             //validators
             services.AddScoped<IValidator<User>, UserValidator>();
             services.AddScoped<IValidator<Book>, BookValidator>();
+
+            //Auth
+            services.AddTransient<IApplicationSignInManager, ApplicationSignInManager>();
 
             //UnitOfWork
             services.AddTransient<IUnitOfWork, UnitOfWork>();

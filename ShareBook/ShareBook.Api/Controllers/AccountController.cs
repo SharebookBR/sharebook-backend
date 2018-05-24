@@ -3,6 +3,7 @@ using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Repository.Infra.CrossCutting.Identity;
 using ShareBook.Repository.Infra.CrossCutting.Identity.Configurations;
+using ShareBook.Repository.Infra.CrossCutting.Identity.Interfaces;
 using ShareBook.Service;
 
 namespace ShareBook.Api.Controllers
@@ -11,10 +12,12 @@ namespace ShareBook.Api.Controllers
     public class AccountController : Controller
     {
         private readonly IUserService _userService;
+        private readonly IApplicationSignInManager _signManager;
 
-        public AccountController(IUserService userService)
+        public AccountController(IUserService userService, IApplicationSignInManager signManager)
         {
             _userService = userService;
+            _signManager = signManager;
         }
 
         [HttpPost("Register")]
@@ -26,9 +29,8 @@ namespace ShareBook.Api.Controllers
             [FromServices]TokenConfigurations tokenConfigurations)
         {
             user = _userService.GetByEmailAndPassword(user);
-            ApplicationSignInManager signManager = new ApplicationSignInManager();
-            var obj = signManager.GenerateTokenAndSetIdentity(user, signingConfigurations, tokenConfigurations);
-            return obj;
+            var response = _signManager.GenerateTokenAndSetIdentity(user, signingConfigurations, tokenConfigurations);
+            return response;
         }
     }
 }
