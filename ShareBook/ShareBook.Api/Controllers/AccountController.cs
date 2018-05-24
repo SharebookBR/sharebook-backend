@@ -21,6 +21,6 @@ namespace ShareBook.Api.Controllers
         public Result<User> Post([FromBody]User user) => _userService.Insert(user);
 
         [HttpPost("Login")]
-        public Result<User> Login([FromBody]User user) => _userService.GetByEmailAndPassword(user);
+        public Result<User> Login([FromBody]User user) => _userService.AutenticationByEmailAndPassword(user);
     }
 }
