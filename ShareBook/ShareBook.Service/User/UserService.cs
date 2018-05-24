@@ -15,7 +15,7 @@ namespace ShareBook.Service
         #region Public
         public UserService(IUserRepository userRepository, IUnitOfWork unitOfWork, IValidator<User> validator) : base(userRepository, unitOfWork, validator) { }
 
-        public Result<User> AutenticationByEmailAndPassword(User user)
+        public Result<User> AuthenticationByEmailAndPassword(User user)
         {
             var result = Validate(user);
             string decryptedPass = user.Password;
