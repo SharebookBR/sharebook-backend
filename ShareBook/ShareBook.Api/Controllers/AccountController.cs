@@ -28,9 +28,12 @@ namespace ShareBook.Api.Controllers
             [FromServices]SigningConfigurations signingConfigurations,
             [FromServices]TokenConfigurations tokenConfigurations)
         {
-            user = _userService.GetByEmailAndPassword(user);
-            var response = _signManager.GenerateTokenAndSetIdentity(user, signingConfigurations, tokenConfigurations);
-            return response;
+            var result = _userService.AutenticationByEmailAndPassword(user);
+
+            if (result.Success)
+                return  _signManager.GenerateTokenAndSetIdentity(user, signingConfigurations, tokenConfigurations);
+
+            return result;
         }
     }
 }
