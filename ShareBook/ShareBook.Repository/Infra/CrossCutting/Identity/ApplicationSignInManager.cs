@@ -9,7 +9,7 @@ namespace ShareBook.Repository.Infra.CrossCutting.Identity.Configurations
 {
     public class ApplicationSignInManager
     {
-        public object GenerateToken(User user, SigningConfigurations signingConfigurations)
+        public object GenerateToken(User user, SigningConfigurations signingConfigurations, TokenConfigurations tokenConfigurations)
         {
             ClaimsIdentity identity = new ClaimsIdentity(
                     new GenericIdentity(user.Id.ToString()),
@@ -20,11 +20,13 @@ namespace ShareBook.Repository.Infra.CrossCutting.Identity.Configurations
                 );
 
             DateTime dataCriacao = DateTime.Now;
-            DateTime dataExpiracao = dataCriacao + TimeSpan.FromSeconds(60);
+            DateTime dataExpiracao = dataCriacao + TimeSpan.FromSeconds(tokenConfigurations.Seconds);
 
             var handler = new JwtSecurityTokenHandler();
             var securityToken = handler.CreateToken(new SecurityTokenDescriptor
             {
+                Issuer = tokenConfigurations.Issuer,
+                Audience = tokenConfigurations.Audience,
                 SigningCredentials = signingConfigurations.SigningCredentials,
                 Subject = identity,
                 NotBefore = dataCriacao,

@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using ShareBook.Api.AutoMapper;
 using ShareBook.Api.Configuration;
 using ShareBook.Repository;
+using ShareBook.Repository.Infra.CrossCutting.Identity;
 using ShareBook.Repository.Infra.CrossCutting.Identity.Configurations;
 using Swashbuckle.AspNetCore.Swagger;
 using System;
@@ -33,10 +34,16 @@ namespace ShareBook.Api
 
             services.AddMvc();
 
-			var signingConfigurations = new SigningConfigurations();
+            var tokenConfigurations = new TokenConfigurations();
+            new ConfigureFromConfigurationOptions<TokenConfigurations>(
+                Configuration.GetSection("TokenConfigurations"))
+                    .Configure(tokenConfigurations);
+            services.AddSingleton(tokenConfigurations);
+
+            var signingConfigurations = new SigningConfigurations();
 			services.AddSingleton(signingConfigurations);
 
-            ConfigureAuthentication(services, signingConfigurations);
+            ConfigureAuthentication(services, signingConfigurations, tokenConfigurations);
 
             services.AddSwaggerGen(c =>
             {
@@ -71,7 +78,7 @@ namespace ShareBook.Api
 
         }
 
-        public void ConfigureAuthentication(IServiceCollection services, SigningConfigurations signingConfigurations)
+        public void ConfigureAuthentication(IServiceCollection services, SigningConfigurations signingConfigurations, TokenConfigurations tokenConfigurations)
         {
             services.AddAuthentication(authOptions =>
             {
@@ -85,6 +92,9 @@ namespace ShareBook.Api
 
                 // Valida a assinatura de um token recebido
                 paramsValidation.ValidateIssuerSigningKey = true;
+
+                paramsValidation.ValidAudience = tokenConfigurations.Audience;
+                paramsValidation.ValidIssuer = tokenConfigurations.Issuer;
 
                 // Verifica se um token recebido ainda é válido
                 paramsValidation.ValidateLifetime = true;
