@@ -9,18 +9,18 @@ using System;
 
 namespace ShareBook.Api.Configuration
 {
-    public class JWTConfig
+    public static class JWTConfig
     {
 
-        public void RegisterJWT(IServiceCollection services, IConfiguration configuration)
+        public static void RegisterJWT(IServiceCollection services, IConfiguration configuration)
         {
-            var tokenConfigurations = configureToken(services, configuration);
-            var signingConfigurations = configureSigning(services);
-            configureAuth(services, signingConfigurations, tokenConfigurations);
+            var tokenConfigurations = ConfigureToken(services, configuration);
+            var signingConfigurations = ConfigureSigning(services);
+            ConfigureAuth(services, signingConfigurations, tokenConfigurations);
 
         }
 
-        private TokenConfigurations configureToken(IServiceCollection services, IConfiguration configuration)
+        private static TokenConfigurations ConfigureToken(IServiceCollection services, IConfiguration configuration)
         {
             var tokenConfigurations = new TokenConfigurations();
             new ConfigureFromConfigurationOptions<TokenConfigurations>(
@@ -31,7 +31,7 @@ namespace ShareBook.Api.Configuration
             return tokenConfigurations;
         }
 
-        private SigningConfigurations configureSigning(IServiceCollection services)
+        private static SigningConfigurations ConfigureSigning(IServiceCollection services)
         {
             var signingConfigurations = new SigningConfigurations();
             services.AddSingleton(signingConfigurations);
@@ -39,7 +39,7 @@ namespace ShareBook.Api.Configuration
             return signingConfigurations;
         }
 
-        private void configureAuth(IServiceCollection services, SigningConfigurations signingConfigurations, TokenConfigurations tokenConfigurations)
+        private static void ConfigureAuth(IServiceCollection services, SigningConfigurations signingConfigurations, TokenConfigurations tokenConfigurations)
         {
             services.AddAuthentication(authOptions =>
             {
