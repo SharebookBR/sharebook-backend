@@ -9,7 +9,7 @@ namespace ShareBook.Repository.Infra.CrossCutting.Identity.Configurations
 {
     public class ApplicationSignInManager
     {
-        public object GenerateToken(User user, SigningConfigurations signingConfigurations, TokenConfigurations tokenConfigurations)
+        public object GenerateTokenAndSetIdentity(User user, SigningConfigurations signingConfigurations, TokenConfigurations tokenConfigurations)
         {
             ClaimsIdentity identity = new ClaimsIdentity(
                     new GenericIdentity(user.Id.ToString()),

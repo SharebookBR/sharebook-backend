@@ -27,7 +27,7 @@ namespace ShareBook.Api.Controllers
         {
             user = _userService.GetByEmailAndPassword(user);
             ApplicationSignInManager signManager = new ApplicationSignInManager();
-            var obj = signManager.GenerateToken(user, signingConfigurations, tokenConfigurations);
+            var obj = signManager.GenerateTokenAndSetIdentity(user, signingConfigurations, tokenConfigurations);
             return obj;
         }
     }

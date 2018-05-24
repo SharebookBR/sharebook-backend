@@ -43,7 +43,7 @@ namespace ShareBook.Api
             var signingConfigurations = new SigningConfigurations();
 			services.AddSingleton(signingConfigurations);
 
-            ConfigureAuthentication(services, signingConfigurations, tokenConfigurations);
+            ConfigureAuth(services, signingConfigurations, tokenConfigurations);
 
             services.AddSwaggerGen(c =>
             {
@@ -78,7 +78,7 @@ namespace ShareBook.Api
 
         }
 
-        public void ConfigureAuthentication(IServiceCollection services, SigningConfigurations signingConfigurations, TokenConfigurations tokenConfigurations)
+        public void ConfigureAuth(IServiceCollection services, SigningConfigurations signingConfigurations, TokenConfigurations tokenConfigurations)
         {
             services.AddAuthentication(authOptions =>
             {
