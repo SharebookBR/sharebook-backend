@@ -19,6 +19,11 @@ namespace ShareBook.Repository.Mapping
                     .HasColumnType("varchar(50)")
                     .HasMaxLength(50)
                     .IsRequired();
+
+            entityBuilder.Property(t => t.PasswordSalt)
+                    .HasColumnType("varchar(50)")
+                    .HasMaxLength(50)
+                    .IsRequired();
         }
     }
 }
