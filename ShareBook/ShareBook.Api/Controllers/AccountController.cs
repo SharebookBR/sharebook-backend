@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
+using ShareBook.Repository.Infra.CrossCutting.Identity;
+using ShareBook.Repository.Infra.CrossCutting.Identity.Configurations;
+using ShareBook.Repository.Infra.CrossCutting.Identity.Interfaces;
 using ShareBook.Service;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace ShareBook.Api.Controllers
 {
@@ -11,16 +12,28 @@ namespace ShareBook.Api.Controllers
     public class AccountController : Controller
     {
         private readonly IUserService _userService;
+        private readonly IApplicationSignInManager _signManager;
 
-        public AccountController(IUserService userService)
+        public AccountController(IUserService userService, IApplicationSignInManager signManager)
         {
             _userService = userService;
+            _signManager = signManager;
         }
 
         [HttpPost("Register")]
         public Result<User> Post([FromBody]User user) => _userService.Insert(user);
 
         [HttpPost("Login")]
-        public Result<User> Login([FromBody]User user) => _userService.AutenticationByEmailAndPassword(user);
+        public object Login([FromBody]User user,
+            [FromServices]SigningConfigurations signingConfigurations,
+            [FromServices]TokenConfigurations tokenConfigurations)
+        {
+            var result = _userService.AutenticationByEmailAndPassword(user);
+
+            if (result.Success)
+                return  _signManager.GenerateTokenAndSetIdentity(user, signingConfigurations, tokenConfigurations);
+
+            return result;
+        }
     }
 }

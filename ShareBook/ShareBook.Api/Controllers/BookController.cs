@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Service;
@@ -24,6 +25,7 @@ namespace ShareBook.Api.Controllers
         [HttpGet("{id}", Name = "Get")]
         public Book GetBookById(int id) => _bookService.Get(id);
 
+        [Authorize("Bearer")]
         [HttpPost]
         public Result<Book> CreateBook([FromBody]Book book) => _bookService.Insert(book);
     }

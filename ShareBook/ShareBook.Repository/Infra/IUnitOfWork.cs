@@ -1,6 +1,8 @@
-﻿namespace ShareBook.Repository.Infra
+﻿using System;
+
+namespace ShareBook.Repository.Infra
 {
-    public interface IUnitOfWork
+    public interface IUnitOfWork : IDisposable
     {
         void BeginTransaction();
         void Commit();

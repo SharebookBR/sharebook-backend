@@ -27,6 +27,8 @@ namespace ShareBook.Api
             AutoMapperConfig.RegisterMappings();
 
             services.AddMvc();
+			
+            JWTConfig.RegisterJWT(services, Configuration);
 
             services.AddSwaggerGen(c =>
             {

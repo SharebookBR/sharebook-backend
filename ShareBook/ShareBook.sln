@@ -19,7 +19,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "5-Helper", "5-Helper", "{2C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShareBook.Helper", "ShareBook.Helper\ShareBook.Helper.csproj", "{D35C529A-4E05-4ED4-ACA9-97BD57AFCF2D}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "6 - Tests", "6 - Tests", "{4DC3351F-0B20-4D5E-8727-3730DF7A9B88}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "6-Tests", "6-Tests", "{4DC3351F-0B20-4D5E-8727-3730DF7A9B88}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShareBook.Test.Unit", "ShareBook.Test.Unit\ShareBook.Test.Unit.csproj", "{B3EB0A49-B7AE-4A6B-9986-A6A9F5776174}"
 EndProject
