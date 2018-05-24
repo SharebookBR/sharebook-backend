@@ -13,3 +13,17 @@
 
 - Sempre que criar as classes de model e map  rodar o comando:
 "Add-Migration nome-do-migration" na camada BASE do projeto  para criar o novo migration para o  banco de dados.
+
+#### Como rodar os testes ?
+
+- É necessário instalar via Nuget dois pacotes:
+
+1. Adicionar o pacote Microsoft.TestPlatform.TestHost
+2. Adicionar o pacote Microsoft.NET.Test.Sdk
+
+Instalar também o pacote do xunit se não tiver baixado ainda.
+
+1. xunit (2.3.0-beta1-build3642)
+2. xunit.runner.visualstudio
+
+Depois de instalado os pacotes, faça um build da solução e depois acesse Test Explorer acessando Test < Windows < Test Explorer no menu superior do visual studio.
