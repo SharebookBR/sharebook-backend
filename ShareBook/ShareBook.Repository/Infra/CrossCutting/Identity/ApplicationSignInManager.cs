@@ -19,8 +19,8 @@ namespace ShareBook.Repository.Infra.CrossCutting.Identity.Configurations
                     }
                 );
 
-            DateTime dataCriacao = DateTime.Now;
-            DateTime dataExpiracao = dataCriacao + TimeSpan.FromSeconds(tokenConfigurations.Seconds);
+            DateTime creationDate = DateTime.Now;
+            DateTime expireDate = creationDate + TimeSpan.FromSeconds(tokenConfigurations.Seconds);
 
             var handler = new JwtSecurityTokenHandler();
             var securityToken = handler.CreateToken(new SecurityTokenDescriptor
@@ -29,16 +29,16 @@ namespace ShareBook.Repository.Infra.CrossCutting.Identity.Configurations
                 Audience = tokenConfigurations.Audience,
                 SigningCredentials = signingConfigurations.SigningCredentials,
                 Subject = identity,
-                NotBefore = dataCriacao,
-                Expires = dataExpiracao
+                NotBefore = creationDate,
+                Expires = expireDate
             });
             var token = handler.WriteToken(securityToken);
 
             return new
             {
                 authenticated = true,
-                created = dataCriacao.ToString("yyyy-MM-dd HH:mm:ss"),
-                expiration = dataExpiracao.ToString("yyyy-MM-dd HH:mm:ss"),
+                created = creationDate.ToString("yyyy-MM-dd HH:mm:ss"),
+                expiration = expireDate.ToString("yyyy-MM-dd HH:mm:ss"),
                 accessToken = token,
                 email = user.Email,
                 userId = user.Id,
