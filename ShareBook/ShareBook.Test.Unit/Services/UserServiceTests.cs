@@ -29,7 +29,7 @@ namespace ShareBook.Test.Unit.Services
             {
                 return new User()
                 {
-                    Email = "walter.vlopes@gmail.com",
+                    Email = "jose@sharebook.com",
                     Password = "123456"
                 };
             });
@@ -44,7 +44,7 @@ namespace ShareBook.Test.Unit.Services
          
             Result<User> result = service.Insert(new User()
             {
-                Email = "walter.vlopes@gmail.com",
+                Email = "jose@sharebook.com",
                 Password = "123456"
             });          
             Assert.NotNull(result);
