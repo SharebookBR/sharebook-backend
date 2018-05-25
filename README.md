@@ -16,14 +16,12 @@
 
 #### Como rodar os testes ?
 
-- É necessário instalar via Nuget dois pacotes:
+Estamos usando a biblioteca xUnit[https://github.com/xunit/xunit]. Todos os pacotes foram instalados através do NuGet. Caso necessário, efetue o comando Restore para baixar os pacotes para a sua máquina local.
 
-1. Adicionar o pacote Microsoft.TestPlatform.TestHost
-2. Adicionar o pacote Microsoft.NET.Test.Sdk
+Para executar os testes, faça um build da solução e depois acesse o Test Explorer acessando Test < Windows < Test Explorer no menu superior do Visual Studio.
 
-Instalar também o pacote do xunit se não tiver baixado ainda.
-
-1. xunit (2.3.0-beta1-build3642)
-2. xunit.runner.visualstudio
-
-Depois de instalado os pacotes, faça um build da solução e depois acesse Test Explorer acessando Test < Windows < Test Explorer no menu superior do visual studio.
+Lista de bibliotecas instaladas para execução dos testes:
+- Microsoft.NET.Test.Sdk
+- Microsoft.AspNetCore.App [Microsoft.NET.Test.Sdk dependency]
+- xunit
+- xunit.runner.visualstudio
