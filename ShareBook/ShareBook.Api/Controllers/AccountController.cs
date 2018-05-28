@@ -9,7 +9,7 @@ using ShareBook.Service;
 namespace ShareBook.Api.Controllers
 {
     [Route("api/[controller]")]
-    public class AccountController : Controller
+    public class AccountController : BaseController
     {
         private readonly IUserService _userService;
         private readonly IApplicationSignInManager _signManager;
@@ -31,7 +31,7 @@ namespace ShareBook.Api.Controllers
             var result = _userService.AuthenticationByEmailAndPassword(user);
 
             if (result.Success)
-                return  _signManager.GenerateTokenAndSetIdentity(user, signingConfigurations, tokenConfigurations);
+                return  _signManager.GenerateTokenAndSetIdentity(result.Value, signingConfigurations, tokenConfigurations);
 
             return result;
         }

@@ -1,10 +1,9 @@
-﻿using System;
+﻿using ShareBook.Domain.Common;
 
 namespace ShareBook.Domain
 {
-    public class Book
+    public class Book : BaseEntity
     {
-        public Guid Id { get; set; }
         public string Name { get; set; }
     }
 }
