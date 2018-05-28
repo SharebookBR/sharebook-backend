@@ -33,7 +33,7 @@ namespace ShareBook.Repository
         {
             var logTime = DateTime.Now;
 
-            var user = new Guid();
+            Guid? user = null;
             if (!string.IsNullOrEmpty(Thread.CurrentPrincipal?.Identity?.Name))
                 user = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
 

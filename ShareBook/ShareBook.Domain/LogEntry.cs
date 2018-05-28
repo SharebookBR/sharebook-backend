@@ -7,7 +7,7 @@ namespace ShareBook.Domain
 {
     public class LogEntry : BaseEntity
     {
-        public Guid UserId { get; set; }
+        public Guid? UserId { get; set; }
         public string EntityName { get; set; }
         public Guid EntityId { get; set; }
         public string Operation { get; set; }
