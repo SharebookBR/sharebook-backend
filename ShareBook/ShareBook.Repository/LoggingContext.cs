@@ -1,9 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using JsonDiffPatchDotNet;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using ShareBook.Domain;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace ShareBook.Repository
 {
@@ -11,9 +15,11 @@ namespace ShareBook.Repository
     {
         private static readonly List<EntityState> entityStates = new List<EntityState>() { EntityState.Added, EntityState.Modified, EntityState.Deleted };
 
-        public static void LogChanges(this ApplicationDbContext context)
+        public static async Task LogChanges(this ApplicationDbContext context)
         {
             var logTime = DateTime.Now;
+            const string emptyJson = "{}";
+            const string idColumn = "Id";
 
             Guid? user = null;
             if (!string.IsNullOrEmpty(Thread.CurrentPrincipal?.Identity?.Name))
@@ -21,19 +27,35 @@ namespace ShareBook.Repository
 
             var changes = context.ChangeTracker.Entries()
                 .Where(x => entityStates.Contains(x.State) && x.Entity.GetType().IsSubclassOf(typeof(BaseEntity)))
-                .Select(t => new LogEntry()
-                {
-                    EntityName = t.Entity.GetType().Name,
-                    EntityId = new Guid(t.CurrentValues["Id"].ToString()),
-                    LogDateTime = logTime,
-                    Operation = t.State.ToString(),
-                    UserId = user,
-                    OriginalValues = string.Join("\n", t.OriginalValues.Properties.ToDictionary(pn => pn.Name, pn => t.OriginalValues[pn])),
-                    UpdatedValues = string.Join("\n", t.CurrentValues.Properties.ToDictionary(pn => pn.Name, pn => t.CurrentValues[pn])),
-                })
                 .ToList();
 
-            context.LogEntries.AddRange(changes);
+            var jdp = new JsonDiffPatch();
+
+            foreach (var item in changes)
+            {
+                var original = emptyJson;
+                var updated = JsonConvert.SerializeObject(item.CurrentValues.Properties.ToDictionary(pn => pn.Name, pn => item.CurrentValues[pn]));
+
+                if (item.State == EntityState.Modified)
+                {
+                    var dbValues = await item.GetDatabaseValuesAsync();
+                    original = JsonConvert.SerializeObject(dbValues.Properties.ToDictionary(pn => pn.Name, pn => dbValues[pn]));
+                }
+
+                var EntityDiff = JToken.Parse(jdp.Diff(original, updated)).ToString(Formatting.None);
+
+                var logEntry = new LogEntry()
+                {
+                    EntityName = item.Entity.GetType().Name,
+                    EntityId = new Guid(item.CurrentValues[idColumn].ToString()),
+                    LogDateTime = logTime,
+                    Operation = item.State.ToString(),
+                    UserId = user,
+                    ValuesChanges = EntityDiff,
+                };
+
+                context.LogEntries.Add(logEntry);
+            }
         }
     }
 }
