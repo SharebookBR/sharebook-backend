@@ -1,7 +1,7 @@
 ﻿using MailKit.Net.Smtp;
 using MimeKit;
 
-namespace ShareBook.Service.Email
+namespace ShareBook.Service
 {
     public class EmailService : IEmailService
     {
@@ -15,11 +15,12 @@ namespace ShareBook.Service.Email
                 string hostSMTP = string.Empty;
                 string userNameSMTP = string.Empty;
                 string passwordSMTP = string.Empty;
+                int portSMTP = 527;
 
                
                 client.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
-                client.Connect(hostSMTP, 587, false);
+                client.Connect(hostSMTP, portSMTP, false);
 
               
                 client.Authenticate(userNameSMTP, passwordSMTP);
@@ -34,7 +35,7 @@ namespace ShareBook.Service.Email
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress(nameRecipient, emailRecipient));
             message.Subject = subject;
-            message.Body = new TextPart("plain")
+            message.Body = new TextPart("HTML")
             {
                 Text = messageText
             };

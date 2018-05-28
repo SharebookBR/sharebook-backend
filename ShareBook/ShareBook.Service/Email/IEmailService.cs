@@ -1,4 +1,4 @@
-﻿namespace ShareBook.Service.Email
+﻿namespace ShareBook.Service
 {
     public interface IEmailService
     {
