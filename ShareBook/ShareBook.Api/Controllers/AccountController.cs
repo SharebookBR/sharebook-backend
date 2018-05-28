@@ -9,7 +9,7 @@ using ShareBook.Service;
 namespace ShareBook.Api.Controllers
 {
     [Route("api/[controller]")]
-    public class AccountController : Controller
+    public class AccountController : BaseController
     {
         private readonly IUserService _userService;
         private readonly IApplicationSignInManager _signManager;

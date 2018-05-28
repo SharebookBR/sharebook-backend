@@ -7,7 +7,7 @@ using ShareBook.Service;
 namespace ShareBook.Api.Controllers
 {
     [Route("api/[controller]")]
-    public class BookController : Controller
+    public class BookController : BaseController
     {
         private readonly IBookService _bookService;
 

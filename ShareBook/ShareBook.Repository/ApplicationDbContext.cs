@@ -32,6 +32,11 @@ namespace ShareBook.Repository
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             var logTime = DateTime.Now;
+
+            var user = new Guid();
+            if (!string.IsNullOrEmpty(Thread.CurrentPrincipal?.Identity?.Name))
+                user = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+
             var changes = ChangeTracker.Entries()
                 .Where(x => entityStates.Contains(x.State) && x.Entity.GetType().IsSubclassOf(typeof(BaseEntity)))
                 .Select(t => new LogEntry()
@@ -40,6 +45,7 @@ namespace ShareBook.Repository
                     EntityId = new Guid(t.CurrentValues["Id"].ToString()),
                     LogDateTime = logTime,
                     Operation = t.State.ToString(),
+                    UserId = user,
                     OriginalValues = string.Join("\n", t.OriginalValues.Properties.ToDictionary(pn => pn.Name, pn => t.OriginalValues[pn])),
                     UpdatedValues = string.Join("\n", t.CurrentValues.Properties.ToDictionary(pn => pn.Name, pn => t.CurrentValues[pn])),
                 })
