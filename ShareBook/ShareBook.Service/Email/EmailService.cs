@@ -1,8 +1,6 @@
 ﻿using MailKit.Net.Smtp;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using MimeKit;
-using ShareBook.Service.Email;
 
 namespace ShareBook.Service
 {

@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ShareBook.Api.AutoMapper;
 using ShareBook.Api.Configuration;
 using ShareBook.Repository;
-using ShareBook.Service.Email;
+using ShareBook.Service;
 using Swashbuckle.AspNetCore.Swagger;
 using System.Collections.Generic;
 using System.Linq;
