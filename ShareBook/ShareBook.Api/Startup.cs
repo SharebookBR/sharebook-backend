@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ShareBook.Api.AutoMapper;
 using ShareBook.Api.Configuration;
 using ShareBook.Repository;
+using ShareBook.Service.Email;
 using Swashbuckle.AspNetCore.Swagger;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,6 +30,9 @@ namespace ShareBook.Api
             AutoMapperConfig.RegisterMappings();
 
             services.AddMvc();
+
+            services.Configure<EmailSettings>(
+          options => Configuration.GetSection("EmailSettings").Bind(options));
 
             JWTConfig.RegisterJWT(services, Configuration);
 

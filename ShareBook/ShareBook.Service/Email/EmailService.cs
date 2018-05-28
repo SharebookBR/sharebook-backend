@@ -1,29 +1,35 @@
 ﻿using MailKit.Net.Smtp;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using MimeKit;
+using ShareBook.Service.Email;
 
 namespace ShareBook.Service
 {
     public class EmailService : IEmailService
     {
+        private readonly EmailSettings _settings;
+
+
+        public EmailService(IOptions<EmailSettings> emailSettings)
+        {
+            _settings = emailSettings.Value;
+        }
+
+
         public void Send(string emailRecipient, string nameRecipient, string messageText, string subject)
         {
             var message = FormatEmail(emailRecipient, nameRecipient, messageText, subject);
 
             using (var client = new SmtpClient())
-            {
-                // TODO - passar os valores por variaveis de ambiente, ou arquivos de configuração...
-                string hostSMTP = string.Empty;
-                string userNameSMTP = string.Empty;
-                string passwordSMTP = string.Empty;
-                int portSMTP = 527;
-
-               
+            { 
+            
                 client.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
-                client.Connect(hostSMTP, portSMTP, false);
+                client.Connect(_settings.HostName, _settings.Port, false);
 
               
-                client.Authenticate(userNameSMTP, passwordSMTP);
+                client.Authenticate(_settings.Username, _settings.Password);
 
                 client.Send(message);
                 client.Disconnect(true);

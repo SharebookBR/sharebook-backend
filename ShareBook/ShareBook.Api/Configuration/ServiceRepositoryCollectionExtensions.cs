@@ -30,6 +30,9 @@ namespace ShareBook.Api.Configuration
             //Auth
             services.AddTransient<IApplicationSignInManager, ApplicationSignInManager>();
 
+            //Email 
+            services.AddTransient<IEmailService, EmailService>();
+
             //UnitOfWork
             services.AddTransient<IUnitOfWork, UnitOfWork>();
 
