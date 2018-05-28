@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ShareBook.Domain;
+using ShareBook.Domain.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
