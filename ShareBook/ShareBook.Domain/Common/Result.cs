@@ -4,6 +4,11 @@ using System.Linq;
 
 namespace ShareBook.Domain.Common
 {
+    public class Result : Result<object>
+    {
+        public Result() : base(null) { }
+    }
+
     public class Result<T> where T : class
     {
         public Result(T value) : this(null, value) { }

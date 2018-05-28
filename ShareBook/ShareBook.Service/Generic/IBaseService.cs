@@ -10,6 +10,6 @@ namespace ShareBook.Service.Generic
         PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage);
         Result<TEntity> Insert(TEntity entity);
         Result<TEntity> Update(TEntity entity);
-        void Delete(params object[] keyValues);
+        Result Delete(params object[] keyValues);
     }
 }
