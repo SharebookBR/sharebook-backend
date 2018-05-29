@@ -27,10 +27,10 @@ namespace ShareBook.Repository
             new UserMap(modelBuilder.Entity<User>());
         }
 
-        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            this.LogChanges();
-            return base.SaveChangesAsync(cancellationToken);
+            await this.LogChanges();
+            return await base.SaveChangesAsync(cancellationToken);
         }
     }
 }

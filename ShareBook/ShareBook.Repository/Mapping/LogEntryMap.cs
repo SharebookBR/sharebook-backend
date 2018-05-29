@@ -13,8 +13,7 @@ namespace ShareBook.Repository.Mapping
             entityBuilder.Property(t => t.EntityId);
             entityBuilder.Property(t => t.Operation);
             entityBuilder.Property(t => t.LogDateTime);
-            entityBuilder.Property(t => t.OriginalValues);
-            entityBuilder.Property(t => t.UpdatedValues);
+            entityBuilder.Property(t => t.ValuesChanges);
         }
     }
 }

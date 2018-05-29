@@ -1,7 +1,5 @@
 ﻿using ShareBook.Domain.Common;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ShareBook.Domain
 {
@@ -12,7 +10,6 @@ namespace ShareBook.Domain
         public Guid EntityId { get; set; }
         public string Operation { get; set; }
         public DateTime LogDateTime { get; set; }
-        public string OriginalValues { get; set; }
-        public string UpdatedValues { get; set; }
+        public string ValuesChanges { get; set; }
     }
 }

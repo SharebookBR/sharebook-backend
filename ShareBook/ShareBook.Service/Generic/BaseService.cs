@@ -41,6 +41,10 @@ namespace ShareBook.Service.Generic
 
             return result;
         }
-        public void Delete(params object[] keyValues) => _repository.Delete(keyValues);
+        public Result Delete(params object[] keyValues)
+        {
+            _repository.Delete(keyValues);
+            return new Result();
+        }
     }
 }
