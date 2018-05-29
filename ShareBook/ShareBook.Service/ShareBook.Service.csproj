@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MailKit" Version="2.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ShareBook.Helper\ShareBook.Helper.csproj" />
     <ProjectReference Include="..\ShareBook.Repository\ShareBook.Repository.csproj" />
   </ItemGroup>
