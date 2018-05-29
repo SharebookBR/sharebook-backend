@@ -12,10 +12,13 @@ namespace ShareBook.Repository.Infra.CrossCutting.Identity.Configurations
     {
         public object GenerateTokenAndSetIdentity(User user, SigningConfigurations signingConfigurations, TokenConfigurations tokenConfigurations)
         {
+            var userProfile = user.GetProfile();
+
             ClaimsIdentity identity = new ClaimsIdentity(
                     new[] {
                         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString("N")),
-                        new Claim(JwtRegisteredClaimNames.UniqueName, user.Id.ToString())
+                        new Claim(JwtRegisteredClaimNames.UniqueName, user.Id.ToString()),
+                        new Claim(ClaimTypes.Role, userProfile, ClaimValueTypes.String, tokenConfigurations.Issuer)
                     }
                 );
 
