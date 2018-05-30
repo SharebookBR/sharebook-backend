@@ -8,16 +8,7 @@ namespace ShareBook.Domain
         public string Email { get; set; }
         public string Password { get; set; }
         public string PasswordSalt { get; set; }
-        public bool IsAdministrator { get; private set; } = false;
-        
-        public void UpdateUserRole(bool isAdmin)
-        {
-            IsAdministrator = isAdmin;
-        }
-
-        public string GetProfile()
-        {
-            return IsAdministrator ? EProfile.ADMINISTRATOR.ToString() : EProfile.USER.ToString();
-        }
+        public Profile Profile { get;  set; } = Profile.User;
+       
     }
 }
