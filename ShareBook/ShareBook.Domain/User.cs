@@ -1,4 +1,5 @@
 ﻿using ShareBook.Domain.Common;
+using ShareBook.Domain.Enums;
 
 namespace ShareBook.Domain
 {
@@ -7,5 +8,7 @@ namespace ShareBook.Domain
         public string Email { get; set; }
         public string Password { get; set; }
         public string PasswordSalt { get; set; }
+        public Profile Profile { get;  set; } = Profile.User;
+       
     }
 }

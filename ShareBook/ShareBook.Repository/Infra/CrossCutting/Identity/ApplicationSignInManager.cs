@@ -11,11 +11,12 @@ namespace ShareBook.Repository.Infra.CrossCutting.Identity.Configurations
     public class ApplicationSignInManager : IApplicationSignInManager
     {
         public object GenerateTokenAndSetIdentity(User user, SigningConfigurations signingConfigurations, TokenConfigurations tokenConfigurations)
-        {
+        { 
             ClaimsIdentity identity = new ClaimsIdentity(
                     new[] {
                         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString("N")),
-                        new Claim(JwtRegisteredClaimNames.UniqueName, user.Id.ToString())
+                        new Claim(JwtRegisteredClaimNames.UniqueName, user.Id.ToString()),
+                        new Claim(ClaimTypes.Role, user.Profile.ToString(), ClaimValueTypes.String, tokenConfigurations.Issuer)
                     }
                 );
 

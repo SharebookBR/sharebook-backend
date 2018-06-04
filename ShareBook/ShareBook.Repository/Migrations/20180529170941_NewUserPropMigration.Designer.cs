@@ -5,16 +5,16 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
-using ShareBook.Domain.Enums;
 using ShareBook.Repository;
 using System;
 
 namespace ShareBook.Repository.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180529170941_NewUserPropMigration")]
+    partial class NewUserPropMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -65,6 +65,8 @@ namespace ShareBook.Repository.Migrations
                         .HasColumnType("varchar(100)")
                         .HasMaxLength(100);
 
+                    b.Property<bool>("IsAdministrator");
+
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("varchar(50)")
@@ -74,8 +76,6 @@ namespace ShareBook.Repository.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(50)")
                         .HasMaxLength(50);
-
-                    b.Property<int>("Profile");
 
                     b.HasKey("Id");
 
