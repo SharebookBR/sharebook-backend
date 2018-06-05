@@ -10,6 +10,11 @@ namespace ShareBook.Repository.Mapping
         {
             entityBuilder.HasKey(t => t.Id);
 
+            entityBuilder.Property(t => t.Name)
+                .HasColumnType("varchar(100)")
+                .HasMaxLength(100)
+                .IsRequired();
+
             entityBuilder.Property(t => t.Email)
                 .HasColumnType("varchar(100)")
                 .HasMaxLength(100)
@@ -24,6 +29,16 @@ namespace ShareBook.Repository.Mapping
                     .HasColumnType("varchar(50)")
                     .HasMaxLength(50)
                     .IsRequired();
+
+            entityBuilder.Property(t => t.Cep)
+                .HasColumnType("varchar(15)")
+                .HasMaxLength(15)
+                .IsRequired();
+
+            entityBuilder.Property(t => t.Linkedin)
+                .HasColumnType("varchar(100)")
+                .HasMaxLength(100);
+
         }
     }
 }
