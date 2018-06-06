@@ -9,6 +9,7 @@ namespace ShareBook.Domain.Validators
         public const string Password = "A senha é obrigatória";
         public const string Name = "O nome é obrigatório";
         public const string Cep = "O cep é obrigatório";
+        public const string Linkedin = "O seu endereço do linkedin é obrigatório";
         #endregion
 
         public UserValidator()
@@ -29,6 +30,10 @@ namespace ShareBook.Domain.Validators
             RuleFor(u => u.Cep)
                 .NotEmpty()
                 .WithMessage(Cep);
+
+            RuleFor(u => u.Linkedin)
+                .NotEmpty()
+                .WithMessage(Linkedin);
         }
     }
 }

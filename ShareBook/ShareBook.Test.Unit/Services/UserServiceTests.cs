@@ -123,7 +123,7 @@ namespace ShareBook.Test.Unit.Services
             var service = new UserService(userRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator());
             Result<User> result = service.AuthenticationByEmailAndPassword(new User()
             {
-                Email = "joao@sharebook.com",
+                Email = "joaosharebook.com",
                 Password = "wrongpassword"
             });
             Assert.Equal("Email ou senha incorretos", result.Messages[0]);

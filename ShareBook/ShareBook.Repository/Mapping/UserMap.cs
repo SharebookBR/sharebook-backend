@@ -37,7 +37,8 @@ namespace ShareBook.Repository.Mapping
 
             entityBuilder.Property(t => t.Linkedin)
                 .HasColumnType("varchar(100)")
-                .HasMaxLength(100);
+                .HasMaxLength(100)
+                .IsRequired();
 
         }
     }
