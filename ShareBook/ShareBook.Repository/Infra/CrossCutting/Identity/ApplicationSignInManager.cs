@@ -41,6 +41,7 @@ namespace ShareBook.Repository.Infra.CrossCutting.Identity.Configurations
                 created = creationDate.ToString("yyyy-MM-dd HH:mm:ss"),
                 expiration = expireDate.ToString("yyyy-MM-dd HH:mm:ss"),
                 accessToken = token,
+                name = user.Name,
                 email = user.Email,
                 userId = user.Id,
                 message = "OK"
