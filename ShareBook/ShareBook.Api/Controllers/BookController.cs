@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ShareBook.Domain;
+using ShareBook.Domain.Common;
 using ShareBook.Service;
+using System;
 
 namespace ShareBook.Api.Controllers
 {
@@ -11,5 +14,9 @@ namespace ShareBook.Api.Controllers
         {
             SetDefault(x => x.Name);
         }
+
+        [Authorize("Bearer")]
+        [HttpPost("Approve/{id}")]
+        public Result<Book> Approve(string id) => ((IBookService)_service).Approve(new Guid(id));
     }
 }
