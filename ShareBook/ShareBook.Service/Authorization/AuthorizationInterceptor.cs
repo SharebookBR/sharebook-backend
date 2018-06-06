@@ -1,6 +1,7 @@
 ﻿using PostSharp.Aspects;
 using PostSharp.Serialization;
 using ShareBook.Domain;
+using ShareBook.Service.CustomExceptions;
 using System;
 using System.Linq;
 using System.Security.Claims;
@@ -22,16 +23,16 @@ namespace ShareBook.Service.Authorization
         {
             var isAdministrator = false;
             var user = Thread.CurrentPrincipal?.Identity;
-            var accessViolationException = new AccessViolationException("Usuário não tem permissão para esta chamada.");
+            var notAuthorizedException = new ShareBookException(ShareBookException.Error.NotAuthorized);
 
             if (user == null)
-                throw accessViolationException;
+                throw notAuthorizedException;
 
             isAdministrator = ((ClaimsIdentity)Thread.CurrentPrincipal?.Identity).Claims
                 .Any(x => x.Type == ClaimsIdentity.DefaultRoleClaimType.ToString() && x.Value == Domain.Enums.Profile.Administrator.ToString());
 
             if (NecessaryPermissions.Any(x => Permissions.AdminPermissions.Contains(x)) && !isAdministrator)
-                throw accessViolationException;
+                throw notAuthorizedException;
 
             base.OnInvoke(args);
         }

@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using ShareBook.Service.CustomExceptions;
 
 namespace ShareBook.Api.Middleware
 {
@@ -24,10 +25,10 @@ namespace ShareBook.Api.Middleware
             {
                 await _next(httpContext);
             }
-            catch (AccessViolationException ex)
+            catch (ShareBookException ex)
             {
                 httpContext.Response.Clear();
-                httpContext.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                httpContext.Response.StatusCode = (int)ex.ErrorType;
                 await httpContext.Response.WriteAsync(ex.Message);
                 return;
             }
@@ -37,9 +38,6 @@ namespace ShareBook.Api.Middleware
     // Extension method used to add the middleware to the HTTP request pipeline.
     public static class ExceptionHandlerMiddlewareExtensions
     {
-        public static IApplicationBuilder UseExceptionHandlerMiddleware(this IApplicationBuilder builder)
-        {
-            return builder.UseMiddleware<ExceptionHandlerMiddleware>();
-        }
+        public static IApplicationBuilder UseExceptionHandlerMiddleware(this IApplicationBuilder builder) => builder.UseMiddleware<ExceptionHandlerMiddleware>();
     }
 }

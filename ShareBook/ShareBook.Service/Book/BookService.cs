@@ -5,6 +5,7 @@ using ShareBook.Domain.Common;
 using ShareBook.Repository;
 using ShareBook.Repository.Infra;
 using ShareBook.Service.Authorization;
+using ShareBook.Service.CustomExceptions;
 using ShareBook.Service.Generic;
 
 namespace ShareBook.Service
@@ -18,7 +19,7 @@ namespace ShareBook.Service
         {
             var book = _repository.Get(bookId);
             if (book == null)
-                throw new IndexOutOfRangeException("Livro não encontrado.");
+                throw new ShareBookException(ShareBookException.Error.NotFound);
 
             book.Approved = true;
             _repository.Update(book);
