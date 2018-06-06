@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ShareBook.Domain;
+using ShareBook.Domain.Enums;
 
 namespace ShareBook.Repository.Mapping
 {
@@ -41,7 +42,7 @@ namespace ShareBook.Repository.Mapping
                 .IsRequired();
 
             entityBuilder.Property(t => t.Profile)
-                .HasDefaultValue(1);
+                .HasDefaultValue(Profile.User);
 
         }
     }
