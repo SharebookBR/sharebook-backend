@@ -36,7 +36,10 @@ namespace ShareBook.Test.Unit.Services
                 return new User()
                 {
                     Email = "jose@sharebook.com",
-                    Password = "123456"
+                    Password = "123456",
+                    Name = "José da Silva",
+                    Linkedin = "linkedin.com/jose",
+                    Cep = "04473-190"
                 };
             });
 
@@ -49,7 +52,10 @@ namespace ShareBook.Test.Unit.Services
                             Id = Guid.NewGuid(),
                             Email = "jose@sharebook.com",
                             Password = PASSWORD_HASH,
-                            PasswordSalt = PASSWORD_SALT
+                            PasswordSalt = PASSWORD_SALT,
+                             Name = "José da Silva",
+                            Linkedin = "linkedin.com/jose",
+                            Cep = "04473-190"
                         }
                 }.AsQueryable();
             });
@@ -105,6 +111,7 @@ namespace ShareBook.Test.Unit.Services
             Assert.NotNull(result);
             Assert.Empty(result.Value.Password);
             Assert.Empty(result.Value.PasswordSalt);
+            Assert.NotEmpty(result.Value.Name);
             Assert.True(result.Success);
         }
 
