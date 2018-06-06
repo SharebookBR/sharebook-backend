@@ -9,14 +9,16 @@ namespace ShareBook.Test.Unit.Validators
     {
         UserValidator userValidation = new UserValidator();
 
-        [Theory]
-        [InlineData("lionel.messi@gmail.com", "barcelona")]
-        public void ValidEntities(string email, string password)
+        [Fact]
+        public void ValidEntities()
         {
-            User user = new User()
-            {
-                Email = email,
-                Password = password
+			User user = new User()
+			{
+				Email = "joão@sharebook.com",
+				Password = "password",
+				Name = "João da Silva",
+				Linkedin = "linkedin.com/joao-silva",
+				Cep = "04473-190"
             };
 
             ValidationResult result = userValidation.Validate(user);
@@ -24,15 +26,17 @@ namespace ShareBook.Test.Unit.Validators
             Assert.True(result.IsValid);
         }
 
-        [Theory]
-        [InlineData("emailinvalido", "")]
-        public void InvalidEntities(string email, string password)
+		[Fact]
+		public void InvalidEntities()
         {
             User user = new User()
             {
-                Email = email,
-                Password = password
-            };
+                Email = "joão@sharebook.com",
+                Password = null,
+				Name = null,
+				Linkedin = "linkedin.com/joao-silva",
+				Cep = "04473-190"
+			};
 
             ValidationResult result = userValidation.Validate(user);
 
