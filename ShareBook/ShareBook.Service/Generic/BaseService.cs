@@ -24,8 +24,7 @@ namespace ShareBook.Service.Generic
         public TEntity Get(params object[] keyValues) => _repository.Get(keyValues);
         public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage) => _repository.Get(filter, order, page, itemsPerPage);
         protected Result<TEntity> Validate(TEntity entity) => new Result<TEntity>(_validator.Validate(entity));
-
-        protected Result<TEntity> Validate(TEntity entity, Expression<Func<TEntity, object>>[] filter)  => new Result<TEntity>(_validator.Validate(entity, filter));
+        protected Result<TEntity> Validate(TEntity entity, params Expression<Func<TEntity, object>>[] filter)  => new Result<TEntity>(_validator.Validate(entity, filter));
 
 
         public virtual Result<TEntity> Insert(TEntity entity)
