@@ -1,6 +1,8 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
+using ShareBook.Domain.Common;
 using ShareBook.Service.CustomExceptions;
 
 namespace ShareBook.Api.Middleware
@@ -23,9 +25,13 @@ namespace ShareBook.Api.Middleware
             }
             catch (ShareBookException ex)
             {
+                var result = new Result();
+                result.Messages.Add(ex.Message);
+                var jsonResponse = JsonConvert.SerializeObject(result);
+
                 httpContext.Response.Clear();
                 httpContext.Response.StatusCode = (int)ex.ErrorType;
-                await httpContext.Response.WriteAsync(ex.Message);
+                await httpContext.Response.WriteAsync(jsonResponse);
                 return;
             }
         }
