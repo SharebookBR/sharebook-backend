@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Linq.Expressions;
 using FluentValidation;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
@@ -17,12 +18,16 @@ namespace ShareBook.Service
 
         public Result<User> AuthenticationByEmailAndPassword(User user)
         {
-            var result = Validate(user);
+
+            var result = Validate(user, x => x.Email, x => x.Password);
+ 
             string decryptedPass = user.Password;
 
             user = _repository.Get()
                 .Where(e => e.Email.Equals(user.Email, StringComparison.InvariantCultureIgnoreCase))
                 .FirstOrDefault();
+
+           
 
             if (user == null || !IsValidPassword(user, decryptedPass))
             {

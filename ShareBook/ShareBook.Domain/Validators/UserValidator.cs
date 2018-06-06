@@ -7,6 +7,9 @@ namespace ShareBook.Domain.Validators
         #region Messages
         public const string Email = "O email é obrigatório";
         public const string Password = "A senha é obrigatória";
+        public const string Name = "O nome é obrigatório";
+        public const string Cep = "O cep é obrigatório";
+        public const string Linkedin = "O seu endereço do linkedin é obrigatório";
         #endregion
 
         public UserValidator()
@@ -16,9 +19,21 @@ namespace ShareBook.Domain.Validators
                .NotEmpty()
                .WithMessage(Email);
 
+            RuleFor(u => u.Name)
+                .NotEmpty()
+                .WithMessage(Name);
+
             RuleFor(u => u.Password)
               .NotEmpty()
               .WithMessage(Password);
+
+            RuleFor(u => u.Cep)
+                .NotEmpty()
+                .WithMessage(Cep);
+
+            RuleFor(u => u.Linkedin)
+                .NotEmpty()
+                .WithMessage(Linkedin);
         }
     }
 }

@@ -66,7 +66,11 @@ namespace ShareBook.Test.Unit.Services
             Result<User> result = service.Insert(new User()
             {
                 Email = "jose@sharebook.com",
-                Password = "123456"
+                Password = "123456",
+				Name = "José da Silva",
+				Linkedin = @"linkedin.com\jose-silva",
+				Cep = "04473-190"
+
             });
             Assert.NotNull(result);
             Assert.True(result.Success);
