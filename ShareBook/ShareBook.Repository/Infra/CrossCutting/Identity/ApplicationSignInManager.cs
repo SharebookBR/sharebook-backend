@@ -4,7 +4,6 @@ using ShareBook.Repository.Infra.CrossCutting.Identity.Interfaces;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Principal;
 
 namespace ShareBook.Repository.Infra.CrossCutting.Identity.Configurations
 {

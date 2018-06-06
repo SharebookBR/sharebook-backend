@@ -1,8 +1,6 @@
 ﻿using PostSharp.Aspects;
 using PostSharp.Serialization;
-using ShareBook.Domain;
 using ShareBook.Service.CustomExceptions;
-using System;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading;
