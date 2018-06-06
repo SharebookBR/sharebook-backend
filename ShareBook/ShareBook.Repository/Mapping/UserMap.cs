@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ShareBook.Domain;
+using ShareBook.Domain.Enums;
 
 namespace ShareBook.Repository.Mapping
 {
@@ -39,6 +40,9 @@ namespace ShareBook.Repository.Mapping
                 .HasColumnType("varchar(100)")
                 .HasMaxLength(100)
                 .IsRequired();
+
+            entityBuilder.Property(t => t.Profile)
+                .HasDefaultValue(Profile.User);
 
         }
     }
