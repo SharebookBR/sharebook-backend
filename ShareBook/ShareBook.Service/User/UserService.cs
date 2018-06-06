@@ -19,7 +19,7 @@ namespace ShareBook.Service
         public Result<User> AuthenticationByEmailAndPassword(User user)
         {
 
-            var result = Validate(user, x => x.Email);
+            var result = Validate(user, x => x.Email, x => x.Password);
  
             string decryptedPass = user.Password;
 
