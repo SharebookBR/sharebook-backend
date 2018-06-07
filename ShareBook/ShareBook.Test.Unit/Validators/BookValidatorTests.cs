@@ -20,7 +20,8 @@ namespace ShareBook.Test.Unit.Validators
             {
                Title = "Lord of the Rings",
                Author = "J. R. R. Tolkien",
-               Image = "lotr.png"
+               Image = "lotr.png",
+               UserId = new Guid("5489A967-9320-4350-E6FC-08D5CC8498F3")
             };
 
             ValidationResult result = bookValidator.Validate(book);

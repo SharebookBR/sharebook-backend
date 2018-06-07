@@ -30,13 +30,13 @@ namespace ShareBook.Service
 
         public override Result<Book> Insert(Book entity)
         {
-            var result = Validate(entity);
-
             entity.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+
+            var result = Validate(entity);
 
             //TODO - Criar módulo para upload do imageBytes
 
-            if(result.Success)
+            if (result.Success)
                   result.Value = _repository.Insert(entity);
 
             return result;
