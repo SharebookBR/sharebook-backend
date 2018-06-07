@@ -4,6 +4,7 @@ using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Service;
 using System;
+using System.Threading;
 
 namespace ShareBook.Api.Controllers
 {
@@ -18,5 +19,13 @@ namespace ShareBook.Api.Controllers
         [Authorize("Bearer")]
         [HttpPost("Approve/{id}")]
         public Result<Book> Approve(string id) => ((IBookService)_service).Approve(new Guid(id));
+
+        [Authorize("Bearer")]
+        [HttpPost]
+        public override Result<Book> Create([FromBody] Book entity)
+        {
+           entity.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+           return  ((IBookService)_service).Insert(entity);
+        }
     }
 }

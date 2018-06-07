@@ -37,10 +37,7 @@ namespace ShareBook.Service
 
         public override Result<Book> Insert(Book entity)
         {
-            entity.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-
             var result = Validate(entity);
-
             if (result.Success)
             {
                 result.Value = _repository.Insert(entity);
