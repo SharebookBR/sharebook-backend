@@ -7,7 +7,8 @@ namespace ShareBook.Domain.Validators
         #region Messages
         public const string Title = "Titulo do livro é obrigatório";
         public const string Author = "Autor do livro é obrigatório";
-        public const string Image = "Imagem do livro é obrigatório";
+        public const string Image = "Imagem do livro é obrigatória";
+        public const string HasNotImageExtension = "A extensão da imagem é obrigatória";
         #endregion
 
         public BookValidator()
@@ -22,7 +23,16 @@ namespace ShareBook.Domain.Validators
 
             RuleFor(u => u.Image)
                .NotEmpty()
-               .WithMessage(Image);
+               .WithMessage(Image)
+               .Must(HasImageExtension)
+               .WithMessage(HasNotImageExtension);
+
+        }
+
+
+        private bool HasImageExtension(string image)
+        {
+            return (image.EndsWith(".png") || image.EndsWith(".jpg"));
         }
     }
 }
