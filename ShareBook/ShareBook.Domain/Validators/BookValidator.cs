@@ -14,21 +14,25 @@ namespace ShareBook.Domain.Validators
 
         public BookValidator()
         {
-            RuleFor(u => u.Title)
+            RuleFor(b => b.Title)
                 .NotEmpty()
                 .WithMessage(Title);
 
-            RuleFor(u => u.Author)
+            RuleFor(b => b.Author)
                .NotEmpty()
                .WithMessage(Author);
 
-            RuleFor(u => u.Image)
+            RuleFor(b => b.Image)
                .NotEmpty()
                .WithMessage(Image)
                .Must(HasImageExtension)
                .WithMessage(HasNotImageExtension);
 
-            RuleFor(u => u.UserId)
+            RuleFor(b => b.ImageBytes)
+                .NotEmpty()
+                .WithMessage(Image);
+
+            RuleFor(b => b.UserId)
                 .NotEmpty()
                 .WithMessage(User);
         }
