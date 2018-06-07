@@ -5,9 +5,9 @@ namespace ShareBook.Domain.Validators
     public class BookValidator : AbstractValidator<Book>
     {
         #region Messages
-        public const string Title = "Nome do livro é obrigatório";
-        public const string Author = "Nome do livro é obrigatório";
-        public const string Image = "Nome do livro é obrigatório";
+        public const string Title = "Titulo do livro é obrigatório";
+        public const string Author = "Autor do livro é obrigatório";
+        public const string Image = "Imagem do livro é obrigatório";
         #endregion
 
         public BookValidator()
