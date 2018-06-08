@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
-using ShareBook.Service.CustomExceptions;
+using System;
 using System.IO;
 
 
@@ -16,16 +16,13 @@ namespace ShareBook.Service.Upload
 
         public void UploadImage(byte[] imageBytes, string imageName)
         {
-            if (Directory.Exists(_imageSettings.Directory))
-            {
-                var imagePath = Path.Combine(_imageSettings.Directory, imageName);
-                File.WriteAllBytes(imagePath, imageBytes);
-            }    
-            else
-            {
-                var directoryNotExistsException = new ShareBookException(ShareBookException.Error.NotFound, "Diretório da imagem não existe");
-                throw directoryNotExistsException;
-            }
+            var directory = Path.Combine(_imageSettings.Directory, DateTime.UtcNow.Year.ToString() + DateTime.UtcNow.Month.ToString()); 
+            
+            if (!Directory.Exists(directory))
+                Directory.CreateDirectory(directory);                  
+
+            var imagePath = Path.Combine(directory, imageName);
+            File.WriteAllBytes(imagePath, imageBytes);
         }
     }
 }
