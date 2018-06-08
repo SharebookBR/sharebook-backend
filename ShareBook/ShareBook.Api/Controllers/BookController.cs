@@ -12,7 +12,7 @@ namespace ShareBook.Api.Controllers
     {
         public BookController(IBookService bookService) : base(bookService)
         {
-            SetDefault(x => x.Name);
+            SetDefault(x => x.Title);
         }
 
         [Authorize("Bearer")]

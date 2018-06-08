@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using FluentValidation;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
@@ -25,6 +26,20 @@ namespace ShareBook.Service
             _repository.Update(book);
 
             return new Result<Book>(book);
+        }
+
+        public override Result<Book> Insert(Book entity)
+        {
+            entity.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+
+            var result = Validate(entity);
+
+            //TODO - Criar módulo para upload do imageBytes
+
+            if (result.Success)
+                  result.Value = _repository.Insert(entity);
+
+            return result;
         }
     }
 }
