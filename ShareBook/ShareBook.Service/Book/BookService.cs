@@ -15,11 +15,13 @@ namespace ShareBook.Service
     public class BookService : BaseService<Book>, IBookService
     {
         private readonly IUploadService _uploadService;
+        private readonly IBooksEmailService _booksEmailService;
 
-        public BookService(IBookRepository bookRepository, IUnitOfWork unitOfWork, IValidator<Book> validator, IUploadService uploadService) 
+        public BookService(IBookRepository bookRepository, IUnitOfWork unitOfWork, IValidator<Book> validator, IUploadService uploadService, IBooksEmailService booksEmailService)
             : base(bookRepository, unitOfWork, validator)
         {
             _uploadService = uploadService;
+            _booksEmailService = booksEmailService;
         }
 
         [AuthorizationInterceptor(Permissions.Permission.AprovarLivro)]
@@ -42,8 +44,9 @@ namespace ShareBook.Service
             {
                 result.Value = _repository.Insert(entity);
                 _uploadService.UploadImage(entity.ImageBytes, entity.Image);
+                _booksEmailService.SendEmailNewBookInserted(entity).Wait();
             }
-                  
+
             return result;
         }
     }
