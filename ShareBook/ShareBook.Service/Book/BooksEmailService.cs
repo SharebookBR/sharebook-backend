@@ -3,7 +3,7 @@ using ShareBook.Domain;
 
 namespace ShareBook.Service
 {
-    public class BooksEmailService
+    public class BooksEmailService : IBooksEmailService
     {
         private const string NewBookInsertedTemplate = "NewBookInsertedTemplate";
         private const string NewBookInsertedTitle = "Novo livro incluído - Sharebook";
