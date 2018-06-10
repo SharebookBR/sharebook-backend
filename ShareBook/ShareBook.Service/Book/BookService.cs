@@ -3,6 +3,7 @@ using System.Threading;
 using FluentValidation;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
+using ShareBook.Helper.Image;
 using ShareBook.Repository;
 using ShareBook.Repository.Infra;
 using ShareBook.Service.Authorization;
@@ -42,11 +43,18 @@ namespace ShareBook.Service
             var result = Validate(entity);
             if (result.Success)
             {
+                var imageExtension = ImageHelper.GetExtension(entity.Image);
+
+                var imageName = ImageHelper.FormatImageName(entity.Id.ToString(), imageExtension);
+
+                _uploadService.UploadImage(entity.ImageBytes, imageName);
                 result.Value = _repository.Insert(entity);
-                _uploadService.UploadImage(entity.ImageBytes, entity.Image);
+               
             }
                   
             return result;
         }
+
+
     }
 }
