@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading;
 using FluentValidation;
 using ShareBook.Domain;
@@ -43,9 +44,7 @@ namespace ShareBook.Service
             var result = Validate(entity);
             if (result.Success)
             {
-                var imageExtension = ImageHelper.GetExtension(entity.Image);
-
-                var imageName = ImageHelper.FormatImageName(entity.Id.ToString(), imageExtension);
+                var imageName = ImageHelper.FormatImageName(entity.Image, entity.Id.ToString());
 
                 _uploadService.UploadImage(entity.ImageBytes, imageName);
                 result.Value = _repository.Insert(entity);
