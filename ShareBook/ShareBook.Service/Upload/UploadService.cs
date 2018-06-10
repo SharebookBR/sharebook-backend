@@ -15,13 +15,11 @@ namespace ShareBook.Service.Upload
         }
 
         public void UploadImage(byte[] imageBytes, string imageName)
-        {
-            var directory = Path.Combine(_imageSettings.Directory, DateTime.UtcNow.Year.ToString() + DateTime.UtcNow.Month.ToString()); 
-            
-            if (!Directory.Exists(directory))
-                Directory.CreateDirectory(directory);                  
+        {          
+            if (!Directory.Exists(_imageSettings.Directory))
+                Directory.CreateDirectory(_imageSettings.Directory);                  
 
-            var imagePath = Path.Combine(directory, imageName);
+            var imagePath = Path.Combine(_imageSettings.Directory, imageName);
             File.WriteAllBytes(imagePath, imageBytes);
         }
     }
