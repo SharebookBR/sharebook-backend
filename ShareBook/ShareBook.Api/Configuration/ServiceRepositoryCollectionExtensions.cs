@@ -17,29 +17,30 @@ namespace ShareBook.Api.Configuration
            this IServiceCollection services)
         {
             //services
-            services.AddTransient<IBookService, BookService>();
-            services.AddTransient<IUserService, UserService>();
+            services.AddScoped<IBooksEmailService, BooksEmailService>();
+            services.AddScoped<IBookService, BookService>();
+            services.AddScoped<IUserService, UserService>();
 
             //repositories
-            services.AddTransient<IBookRepository, BookRepository>();
-            services.AddTransient<IUserRepository, UserRepository>();
+            services.AddScoped<IBookRepository, BookRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
 
             //validators
             services.AddScoped<IValidator<User>, UserValidator>();
             services.AddScoped<IValidator<Book>, BookValidator>();
 
             //Auth
-            services.AddTransient<IApplicationSignInManager, ApplicationSignInManager>();
+            services.AddScoped<IApplicationSignInManager, ApplicationSignInManager>();
 
             //Email 
-            services.AddTransient<IEmailService, EmailService>();
+            services.AddScoped<IEmailService, EmailService>();
             services.AddSingleton<IEmailTemplate, EmailTemplate>();
 
             //Upload 
-            services.AddTransient<IUploadService, UploadService>();
+            services.AddScoped<IUploadService, UploadService>();
 
             //UnitOfWork
-            services.AddTransient<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             return services;
         }
