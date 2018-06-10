@@ -33,6 +33,7 @@ namespace ShareBook.Api.Configuration
 
             //Email 
             services.AddTransient<IEmailService, EmailService>();
+            services.AddSingleton<IEmailTemplate, EmailTemplate>();
 
             //Upload 
             services.AddTransient<IUploadService, UploadService>();

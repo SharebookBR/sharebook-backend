@@ -5,18 +5,17 @@ namespace ShareBook.Service
 {
     public class BooksEmailService
     {
-        public class BookEmailViewModel
-        {
-            public Book Book { get; set; }
-            public User Administrator { get; set; }
-        }
+        private const string NewBookInsertedTemplate = "NewBookInsertedTemplate";
+        private const string NewBookInsertedTitle = "Novo livro incluído - Sharebook";
 
         private readonly IEmailService _emailService;
         private readonly IUserService _userService;
-        public BooksEmailService(IEmailService emailService, IUserService userService)
+        private readonly IEmailTemplate _emailTemplate;
+        public BooksEmailService(IEmailService emailService, IUserService userService, IEmailTemplate emailTemplate)
         {
             _emailService = emailService;
             _userService = userService;
+            _emailTemplate = emailTemplate;
         }
 
         public async Task SendEmailNewBookInserted(Book book)
@@ -38,8 +37,8 @@ namespace ShareBook.Service
                 Administrator = administrator
             };
 
-            var html = await EmailTemplate.GenerateHtmlFromTemplate("NewBookInsertedTemplate", vm);
-            _emailService.Send(administrator.Email, administrator.Name, html, "Novo livro incluído - Sharebook");
+            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(NewBookInsertedTemplate, vm);
+            _emailService.Send(administrator.Email, administrator.Name, html, NewBookInsertedTitle);
         }
     }
 }
