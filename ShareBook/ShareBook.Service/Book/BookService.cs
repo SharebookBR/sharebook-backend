@@ -44,9 +44,9 @@ namespace ShareBook.Service
             var result = Validate(entity);
             if (result.Success)
             {
-                var imageName = ImageHelper.FormatImageName(entity.Image, entity.Id.ToString());
+                entity.Image = ImageHelper.FormatImageName(entity.Image, entity.Id.ToString());
 
-                _uploadService.UploadImage(entity.ImageBytes, imageName);
+                _uploadService.UploadImage(entity.ImageBytes, entity.Image);
                 result.Value = _repository.Insert(entity);
                
             }
