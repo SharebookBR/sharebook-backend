@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service
 {
+    //TODO: transformar de static para singleton
     public static class EmailTemplate
     {
         const string TemplatesFolder = "Email\\Templates\\{0}.html";
