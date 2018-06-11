@@ -4,6 +4,7 @@ using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Service;
 using System;
+using System.Threading;
 
 namespace ShareBook.Api.Controllers
 {

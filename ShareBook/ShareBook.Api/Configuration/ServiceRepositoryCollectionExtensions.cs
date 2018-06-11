@@ -7,6 +7,7 @@ using ShareBook.Repository.Infra;
 using ShareBook.Repository.Infra.CrossCutting.Identity.Configurations;
 using ShareBook.Repository.Infra.CrossCutting.Identity.Interfaces;
 using ShareBook.Service;
+using ShareBook.Service.Upload;
 
 namespace ShareBook.Api.Configuration
 {
@@ -32,6 +33,9 @@ namespace ShareBook.Api.Configuration
 
             //Email 
             services.AddTransient<IEmailService, EmailService>();
+
+            //Upload 
+            services.AddTransient<IUploadService, UploadService>();
 
             //UnitOfWork
             services.AddTransient<IUnitOfWork, UnitOfWork>();

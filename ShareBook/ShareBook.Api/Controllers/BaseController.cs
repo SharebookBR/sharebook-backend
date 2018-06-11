@@ -34,7 +34,7 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpPost]
-        public Result<T> Create([FromBody]T entity) => _service.Insert(entity);
+        public virtual Result<T> Create([FromBody]T entity) => _service.Insert(entity);
 
         [Authorize("Bearer")]
         [HttpPut]

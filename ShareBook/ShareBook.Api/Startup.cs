@@ -8,6 +8,7 @@ using ShareBook.Api.Configuration;
 using ShareBook.Api.Middleware;
 using ShareBook.Repository;
 using ShareBook.Service;
+using ShareBook.Service.Upload;
 using Swashbuckle.AspNetCore.Swagger;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,6 +34,7 @@ namespace ShareBook.Api
             services.AddMvc();
 
             services.Configure<EmailSettings>(options => Configuration.GetSection("EmailSettings").Bind(options));
+            services.Configure<ImageSettings>(options => Configuration.GetSection("ImageSettings").Bind(options));
 
             JWTConfig.RegisterJWT(services, Configuration);
 

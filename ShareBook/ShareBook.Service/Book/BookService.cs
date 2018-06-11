@@ -1,19 +1,28 @@
 ﻿using System;
+using System.IO;
 using System.Threading;
 using FluentValidation;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
+using ShareBook.Helper.Image;
 using ShareBook.Repository;
 using ShareBook.Repository.Infra;
 using ShareBook.Service.Authorization;
 using ShareBook.Service.CustomExceptions;
 using ShareBook.Service.Generic;
+using ShareBook.Service.Upload;
 
 namespace ShareBook.Service
 {
     public class BookService : BaseService<Book>, IBookService
     {
-        public BookService(IBookRepository bookRepository, IUnitOfWork unitOfWork, IValidator<Book> validator) : base(bookRepository, unitOfWork, validator) { }
+        private readonly IUploadService _uploadService;
+
+        public BookService(IBookRepository bookRepository, IUnitOfWork unitOfWork, IValidator<Book> validator, IUploadService uploadService) 
+            : base(bookRepository, unitOfWork, validator)
+        {
+            _uploadService = uploadService;
+        }
 
         [AuthorizationInterceptor(Permissions.Permission.AprovarLivro)]
         public Result<Book> Approve(Guid bookId)
@@ -33,13 +42,18 @@ namespace ShareBook.Service
             entity.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
 
             var result = Validate(entity);
-
-            //TODO - Criar módulo para upload do imageBytes
-
             if (result.Success)
-                  result.Value = _repository.Insert(entity);
+            {
+                entity.Image = ImageHelper.FormatImageName(entity.Image, entity.Id.ToString());
 
+                _uploadService.UploadImage(entity.ImageBytes, entity.Image);
+                result.Value = _repository.Insert(entity);
+               
+            }
+                  
             return result;
         }
+
+
     }
 }
