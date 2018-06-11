@@ -21,7 +21,17 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpPost("Register")]
-        public Result<User> Post([FromBody]User user) => _userService.Insert(user);
+        public object Post([FromBody]User user, 
+            [FromServices]SigningConfigurations signingConfigurations,
+            [FromServices]TokenConfigurations tokenConfigurations)
+        {
+            var result = _userService.Insert(user);
+
+            if (result.Success)
+                return _signManager.GenerateTokenAndSetIdentity(result.Value, signingConfigurations, tokenConfigurations);
+
+            return result;
+        }
 
         [HttpPost("Login")]
         public object Login([FromBody]User user,
