@@ -13,6 +13,8 @@ namespace ShareBook.Domain
 
         public string Image { get; set; }
 
+        public string FreightOption { get; set; }
+
         public Guid UserId { get; set; }
 
         public User User { get; set; }

@@ -27,6 +27,10 @@ namespace ShareBook.Repository.Mapping
 
             entityBuilder.Ignore(t => t.ImageBytes);
 
+            entityBuilder.Property(t => t.FreightOption)
+                .HasColumnType("varchar(100)")
+                .HasMaxLength(100);
+
             entityBuilder.HasOne(t => t.User);
                 
         }

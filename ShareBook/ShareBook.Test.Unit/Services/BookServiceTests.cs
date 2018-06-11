@@ -59,7 +59,8 @@ namespace ShareBook.Test.Unit.Services
                 Title = "Lord of the Rings",
                 Author = "J. R. R. Tolkien",
                 Image = "lotr.png",
-                ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64")
+                ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
+                FreightOption = "Frente para todo Brasil"
             });
             Assert.NotNull(result);
             Assert.True(result.Success);

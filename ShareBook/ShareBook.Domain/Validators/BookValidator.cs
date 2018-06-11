@@ -9,6 +9,7 @@ namespace ShareBook.Domain.Validators
         public const string Author = "Autor do livro é obrigatório";
         public const string Image = "Imagem do livro é obrigatória";
         public const string User = "O usuário deve ter vinculo com o livro";
+        public const string FreightOption = "A opção de frente é obrigatória";
         public const string HasNotImageExtension = "A extensão da imagem é obrigatória";
         #endregion
 
@@ -31,6 +32,10 @@ namespace ShareBook.Domain.Validators
             RuleFor(b => b.ImageBytes)
                 .NotEmpty()
                 .WithMessage(Image);
+
+            RuleFor(b => b.FreightOption)
+                .NotEmpty()
+                .WithMessage(FreightOption);
 
             RuleFor(b => b.UserId)
                 .NotEmpty()
