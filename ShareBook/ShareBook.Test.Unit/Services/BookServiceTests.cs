@@ -1,6 +1,7 @@
 ﻿using Moq;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
+using ShareBook.Domain.Enums;
 using ShareBook.Domain.Validators;
 using ShareBook.Repository;
 using ShareBook.Repository.Infra;
@@ -60,7 +61,7 @@ namespace ShareBook.Test.Unit.Services
                 Author = "J. R. R. Tolkien",
                 Image = "lotr.png",
                 ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
-                FreightOption = "Frente para todo Brasil"
+                FreightOption = FreightOption.City
             });
             Assert.NotNull(result);
             Assert.True(result.Success);

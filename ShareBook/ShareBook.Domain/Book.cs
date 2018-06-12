@@ -1,4 +1,5 @@
 ﻿using ShareBook.Domain.Common;
+using ShareBook.Domain.Enums;
 using System;
 
 namespace ShareBook.Domain
@@ -13,7 +14,7 @@ namespace ShareBook.Domain
 
         public string Image { get; set; }
 
-        public string FreightOption { get; set; }
+        public FreightOption FreightOption { get; set; }
 
         public Guid UserId { get; set; }
 
