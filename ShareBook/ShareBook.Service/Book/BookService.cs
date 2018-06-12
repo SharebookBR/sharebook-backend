@@ -1,9 +1,13 @@
 ﻿using System;
-using System.IO;
+using System.Collections.Generic;
+using System.Dynamic;
+using System.Linq;
 using System.Threading;
 using FluentValidation;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
+using ShareBook.Domain.Enums;
+using ShareBook.Helper.Extensions;
 using ShareBook.Helper.Image;
 using ShareBook.Repository;
 using ShareBook.Repository.Infra;
@@ -37,6 +41,11 @@ namespace ShareBook.Service
             return new Result<Book>(book);
         }
 
+        public List<ExpandoObject> GetAllFreightOptions()
+        {
+            return FillAndGetFreightOptionKeysAndValues();
+        }
+
         public override Result<Book> Insert(Book entity)
         {
             entity.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
@@ -50,10 +59,41 @@ namespace ShareBook.Service
                 result.Value = _repository.Insert(entity);
                
             }
-                  
+                 
             return result;
         }
 
+        #region Private 
+        private List<string[]> FillAndGetFreightOptionValues()
+        {
+            List<string[]> enumValues = new List<string[]>();
+
+            foreach (FreightOption freightOption in Enum.GetValues(typeof(FreightOption)))
+            {
+                enumValues.Add(new[] { freightOption.ToString(), freightOption.Description() });
+            }
+
+            return enumValues;
+        }
+
+        private List<ExpandoObject> FillAndGetFreightOptionKeysAndValues()
+        {
+            var enumValues = FillAndGetFreightOptionValues();
+            var enumList = new List<ExpandoObject>();
+            string[] keys = { "Value", "Text" };
+
+            foreach (string[] enumValue in enumValues)
+            {
+                dynamic data = new ExpandoObject();
+                for (int j = 0; j < keys.Count(); j++)
+                {
+                    ((IDictionary<String, Object>)data).Add(keys[j], enumValue[j]);
+                }
+                enumList.Add(data);
+            }
+            return enumList;
+        }
+        #endregion
 
     }
 }
