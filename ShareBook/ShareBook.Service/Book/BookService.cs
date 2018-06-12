@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Dynamic;
-using System.Linq;
 using System.Threading;
 using FluentValidation;
 using ShareBook.Domain;
@@ -41,9 +39,18 @@ namespace ShareBook.Service
             return new Result<Book>(book);
         }
 
-        public List<ExpandoObject> GetAllFreightOptions()
+        public IList<dynamic> GetAllFreightOptions()
         {
-            return FillAndGetFreightOptionKeysAndValues();
+            var enumValues = new List<dynamic>();
+            foreach (FreightOption freightOption in Enum.GetValues(typeof(FreightOption)))
+            {
+                enumValues.Add(new
+                {
+                    Value = freightOption.ToString(),
+                    Text = freightOption.Description()
+                });
+            }
+            return enumValues;
         }
 
         public override Result<Book> Insert(Book entity)
@@ -63,37 +70,7 @@ namespace ShareBook.Service
             return result;
         }
 
-        #region Private 
-        private List<string[]> FillAndGetFreightOptionValues()
-        {
-            List<string[]> enumValues = new List<string[]>();
-
-            foreach (FreightOption freightOption in Enum.GetValues(typeof(FreightOption)))
-            {
-                enumValues.Add(new[] { freightOption.ToString(), freightOption.Description() });
-            }
-
-            return enumValues;
-        }
-
-        private List<ExpandoObject> FillAndGetFreightOptionKeysAndValues()
-        {
-            var enumValues = FillAndGetFreightOptionValues();
-            var enumList = new List<ExpandoObject>();
-            string[] keys = { "Value", "Text" };
-
-            foreach (string[] enumValue in enumValues)
-            {
-                dynamic data = new ExpandoObject();
-                for (int j = 0; j < keys.Count(); j++)
-                {
-                    ((IDictionary<String, Object>)data).Add(keys[j], enumValue[j]);
-                }
-                enumList.Add(data);
-            }
-            return enumList;
-        }
-        #endregion
+        
 
     }
 }

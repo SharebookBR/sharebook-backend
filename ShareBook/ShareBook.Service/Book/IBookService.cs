@@ -3,7 +3,7 @@ using ShareBook.Domain.Common;
 using ShareBook.Service.Generic;
 using System;
 using System.Collections.Generic;
-using System.Dynamic;
+
 
 namespace ShareBook.Service
 {
@@ -11,6 +11,6 @@ namespace ShareBook.Service
     {
         Result<Book> Approve(Guid bookId);
 
-        List<ExpandoObject> GetAllFreightOptions();
+        IList<dynamic> GetAllFreightOptions();
     }
 }

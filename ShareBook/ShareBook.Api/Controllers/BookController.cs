@@ -4,7 +4,7 @@ using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Service;
 using System;
-using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace ShareBook.Api.Controllers
 {
@@ -22,10 +22,10 @@ namespace ShareBook.Api.Controllers
 
 
         [HttpGet("FreightOptions")]
-        public string FreightOptions()
+        public IList<dynamic> FreightOptions()
         {
             var freightOptions = ((IBookService)_service).GetAllFreightOptions();
-            return JsonConvert.SerializeObject(freightOptions);
+            return freightOptions;
         }
     }
 }
