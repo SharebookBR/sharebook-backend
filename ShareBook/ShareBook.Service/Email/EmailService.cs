@@ -8,12 +8,10 @@ namespace ShareBook.Service
     {
         private readonly EmailSettings _settings;
 
-
         public EmailService(IOptions<EmailSettings> emailSettings)
         {
             _settings = emailSettings.Value;
         }
-
 
         public void Send(string emailRecipient, string nameRecipient, string messageText, string subject)
         {
@@ -21,11 +19,9 @@ namespace ShareBook.Service
 
             using (var client = new SmtpClient())
             { 
-            
                 client.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
                 client.Connect(_settings.HostName, _settings.Port, false);
-
               
                 client.Authenticate(_settings.Username, _settings.Password);
 

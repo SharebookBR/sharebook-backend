@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using FluentValidation;
 using ShareBook.Domain;
@@ -19,14 +20,14 @@ namespace ShareBook.Service
         {
 
             var result = Validate(user, x => x.Email, x => x.Password);
- 
+
             string decryptedPass = user.Password;
 
             user = _repository.Get()
                 .Where(e => e.Email.Equals(user.Email, StringComparison.InvariantCultureIgnoreCase))
                 .FirstOrDefault();
 
-           
+
 
             if (user == null || !IsValidPassword(user, decryptedPass))
             {
@@ -52,6 +53,11 @@ namespace ShareBook.Service
                 result.Value = UserCleanup(_repository.Insert(user));
             }
             return result;
+        }
+
+        public IEnumerable<User> GetAllAdministrators()
+        {
+            return _repository.Get().Where(x => x.Profile == Domain.Enums.Profile.Administrator);
         }
         #endregion
 
