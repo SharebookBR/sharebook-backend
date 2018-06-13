@@ -37,6 +37,11 @@ namespace ShareBook.Repository
                 var original = emptyJson;
                 var updated = JsonConvert.SerializeObject(item.CurrentValues.Properties.ToDictionary(pn => pn.Name, pn => item.CurrentValues[pn]));
 
+                if (item.State == EntityState.Added)
+                {
+                    item.Property("CreationDate").CurrentValue = DateTime.UtcNow;
+                }
+
                 if (item.State == EntityState.Modified)
                 {
                     var dbValues = await item.GetDatabaseValuesAsync();
