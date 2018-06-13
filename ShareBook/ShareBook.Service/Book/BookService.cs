@@ -68,11 +68,7 @@ namespace ShareBook.Service
                 result.Value = _repository.Insert(entity);
                 _booksEmailService.SendEmailNewBookInserted(entity).Wait();
             }
-
             return result;
         }
-
-        
-
     }
 }
