@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ShareBook.Domain;
-using ShareBook.Domain.Common;
 using ShareBook.Repository.Infra.CrossCutting.Identity;
 using ShareBook.Repository.Infra.CrossCutting.Identity.Configurations;
 using ShareBook.Repository.Infra.CrossCutting.Identity.Interfaces;

@@ -1,9 +1,6 @@
-﻿using Moq;
-using ShareBook.Domain;
+﻿using ShareBook.Domain;
 using ShareBook.Service;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using Xunit;
 
