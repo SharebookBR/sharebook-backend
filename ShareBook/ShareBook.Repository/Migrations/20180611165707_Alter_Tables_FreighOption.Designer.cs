@@ -12,9 +12,10 @@ using System;
 namespace ShareBook.Repository.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180611165707_Alter_Tables_FreighOption")]
+    partial class Alter_Tables_FreighOption
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -33,7 +34,9 @@ namespace ShareBook.Repository.Migrations
                         .HasColumnType("varchar(50)")
                         .HasMaxLength(50);
 
-                    b.Property<int>("FreightOption");
+                    b.Property<string>("FreightOption")
+                        .HasColumnType("varchar(100)")
+                        .HasMaxLength(100);
 
                     b.Property<string>("Image")
                         .IsRequired()

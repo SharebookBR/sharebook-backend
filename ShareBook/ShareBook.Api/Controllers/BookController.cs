@@ -4,7 +4,7 @@ using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Service;
 using System;
-using System.Threading;
+using System.Collections.Generic;
 
 namespace ShareBook.Api.Controllers
 {
@@ -19,5 +19,13 @@ namespace ShareBook.Api.Controllers
         [Authorize("Bearer")]
         [HttpPost("Approve/{id}")]
         public Result<Book> Approve(string id) => ((IBookService)_service).Approve(new Guid(id));
+
+
+        [HttpGet("FreightOptions")]
+        public IList<dynamic> FreightOptions()
+        {
+            var freightOptions = ((IBookService)_service).GetAllFreightOptions();
+            return freightOptions;
+        }
     }
 }

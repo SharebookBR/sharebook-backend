@@ -1,9 +1,11 @@
 ﻿using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Threading;
 using FluentValidation;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
+using ShareBook.Domain.Enums;
+using ShareBook.Helper.Extensions;
 using ShareBook.Helper.Image;
 using ShareBook.Repository;
 using ShareBook.Repository.Infra;
@@ -37,6 +39,20 @@ namespace ShareBook.Service
             return new Result<Book>(book);
         }
 
+        public IList<dynamic> GetAllFreightOptions()
+        {
+            var enumValues = new List<dynamic>();
+            foreach (FreightOption freightOption in Enum.GetValues(typeof(FreightOption)))
+            {
+                enumValues.Add(new
+                {
+                    Value = freightOption.ToString(),
+                    Text = freightOption.Description()
+                });
+            }
+            return enumValues;
+        }
+
         public override Result<Book> Insert(Book entity)
         {
             entity.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
@@ -50,10 +66,11 @@ namespace ShareBook.Service
                 result.Value = _repository.Insert(entity);
                
             }
-                  
+                 
             return result;
         }
 
+        
 
     }
 }
