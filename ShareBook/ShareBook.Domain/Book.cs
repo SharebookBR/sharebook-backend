@@ -1,6 +1,7 @@
 ﻿using ShareBook.Domain.Common;
 using ShareBook.Domain.Enums;
 using System;
+using System.Collections.Generic;
 
 namespace ShareBook.Domain
 {
@@ -21,5 +22,7 @@ namespace ShareBook.Domain
         public User User { get; set; }
 
         public bool Approved { get; set; } = false;
+
+        public virtual ICollection<BookUser> BookUsers { get; set; }
     }
 }
