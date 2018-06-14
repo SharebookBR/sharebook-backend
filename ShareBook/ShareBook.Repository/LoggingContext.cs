@@ -42,6 +42,10 @@ namespace ShareBook.Repository
                     var dbValues = await item.GetDatabaseValuesAsync();
                     original = JsonConvert.SerializeObject(dbValues.Properties.ToDictionary(pn => pn.Name, pn => dbValues[pn]));
                 }
+                else if(item.State == EntityState.Added)
+                {
+                    item.Property("CreationDate").CurrentValue = DateTime.UtcNow;
+                }
 
                 var EntityDiff = JToken.Parse(jdp.Diff(original, updated)).ToString(Formatting.None);
 
