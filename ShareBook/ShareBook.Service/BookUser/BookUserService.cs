@@ -6,23 +6,36 @@ using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Repository;
 using ShareBook.Repository.Infra;
+using ShareBook.Service.CustomExceptions;
 using ShareBook.Service.Generic;
 
 namespace ShareBook.Service
 {
-    public class BookUserService :  IBookUserService
+    public class BookUserService : IBookUserService
     {
 
         private readonly IBookUserRepository _bookUserRepository;
-        public BookUserService(IBookUserRepository bookUserRepository, IUnitOfWork unitOfWork)            
+        private readonly IBookRepository _bookRepository;
+
+        public BookUserService(IBookUserRepository bookUserRepository, IBookRepository bookRepository, IUnitOfWork unitOfWork)
         {
             _bookUserRepository = bookUserRepository;
+            _bookRepository = bookRepository;
         }
 
-        public void Insert(BookUser entity)
+        public void Insert(Guid idBook)
         {
-            entity.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            _bookUserRepository.Insert(entity);
+            var bookUser = new BookUser()
+            {
+                BookId = idBook
+            };
+
+            bookUser.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+
+            if (_bookRepository.Get(bookUser.BookId) == null)
+                throw new ShareBookException(ShareBookException.Error.NotFound);
+
+            _bookUserRepository.Insert(bookUser);
         }
     }
 }

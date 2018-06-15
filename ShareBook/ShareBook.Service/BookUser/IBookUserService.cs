@@ -9,6 +9,6 @@ namespace ShareBook.Service
 {
     public interface IBookUserService 
     {
-        void Insert(BookUser entity);
+        void Insert(Guid idBook);
     }
 }

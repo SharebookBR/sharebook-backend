@@ -33,14 +33,11 @@ namespace ShareBook.Api.Controllers
 
 
         [Authorize("Bearer")]
-        [HttpPost("Solicit/{id}")]
-        public void Solicit(string id)
-        {
-            var bookUser = new BookUser(){
-                BookId = new Guid(id)
-            };
-
-            _bookUserService.Insert(bookUser);
+        [HttpPost("RequestBook/{id}")]
+        public IActionResult RequestBook(string id)
+        {         
+            _bookUserService.Insert(new Guid(id));
+            return Ok();
         }
     }
 }
