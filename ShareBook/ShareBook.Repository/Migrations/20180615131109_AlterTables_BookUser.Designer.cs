@@ -12,8 +12,8 @@ using System;
 namespace ShareBook.Repository.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20180614190009_BookUser")]
-    partial class BookUser
+    [Migration("20180615131109_AlterTables_BookUser")]
+    partial class AlterTables_BookUser
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -34,7 +34,7 @@ namespace ShareBook.Repository.Migrations
                         .HasColumnType("varchar(50)")
                         .HasMaxLength(50);
 
-                    b.Property<DateTime>("CreationDate");
+                    b.Property<DateTime?>("CreationDate");
 
                     b.Property<int>("FreightOption");
 
@@ -63,11 +63,7 @@ namespace ShareBook.Repository.Migrations
 
                     b.Property<Guid>("UserId");
 
-                    b.Property<Guid?>("BookId1");
-
                     b.HasKey("BookId", "UserId");
-
-                    b.HasIndex("BookId1");
 
                     b.HasIndex("UserId");
 
@@ -79,7 +75,7 @@ namespace ShareBook.Repository.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<DateTime>("CreationDate");
+                    b.Property<DateTime?>("CreationDate");
 
                     b.Property<Guid>("EntityId");
 
@@ -108,7 +104,7 @@ namespace ShareBook.Repository.Migrations
                         .HasColumnType("varchar(15)")
                         .HasMaxLength(15);
 
-                    b.Property<DateTime>("CreationDate");
+                    b.Property<DateTime?>("CreationDate");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -156,7 +152,8 @@ namespace ShareBook.Repository.Migrations
                 {
                     b.HasOne("ShareBook.Domain.Book", "Book")
                         .WithMany("BookUsers")
-                        .HasForeignKey("BookId1");
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("ShareBook.Domain.User", "User")
                         .WithMany("BookUsers")

@@ -44,7 +44,7 @@ namespace ShareBook.Repository
                 }
                 else if(item.State == EntityState.Added)
                 {
-                    item.Property("CreationDate").CurrentValue = DateTime.UtcNow;
+                    item.Property("CreationDate").CurrentValue = DateTime.Now;
                 }
 
                 var EntityDiff = JToken.Parse(jdp.Diff(original, updated)).ToString(Formatting.None);

@@ -16,7 +16,7 @@ namespace ShareBook.Repository.Mapping
              .HasKey(bu => new { bu.BookId, bu.UserId });
 
             entityBuilder
-                 .HasOne(bu => bu.User)
+                .HasOne(bu => bu.Book)
                 .WithMany(b => b.BookUsers)
                 .HasForeignKey(bu => bu.BookId);
 

@@ -33,7 +33,7 @@ namespace ShareBook.Repository.Migrations
                         .HasColumnType("varchar(50)")
                         .HasMaxLength(50);
 
-                    b.Property<DateTime>("CreationDate");
+                    b.Property<DateTime?>("CreationDate");
 
                     b.Property<int>("FreightOption");
 
@@ -66,6 +66,8 @@ namespace ShareBook.Repository.Migrations
 
                     b.HasIndex("UserId");
 
+                    b.HasIndex("BookId");
+
                     b.ToTable("BookUser");
                 });
 
@@ -74,7 +76,7 @@ namespace ShareBook.Repository.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<DateTime>("CreationDate");
+                    b.Property<DateTime?>("CreationDate");
 
                     b.Property<Guid>("EntityId");
 
@@ -103,7 +105,7 @@ namespace ShareBook.Repository.Migrations
                         .HasColumnType("varchar(15)")
                         .HasMaxLength(15);
 
-                    b.Property<DateTime>("CreationDate");
+                    b.Property<DateTime?>("CreationDate");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -151,7 +153,8 @@ namespace ShareBook.Repository.Migrations
                 {
                     b.HasOne("ShareBook.Domain.Book", "Book")
                         .WithMany("BookUsers")
-                        .HasForeignKey("BookId");
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("ShareBook.Domain.User", "User")
                         .WithMany("BookUsers")

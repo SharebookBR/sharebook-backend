@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace ShareBook.Repository.Migrations
 {
-    public partial class BookUser : Migration
+    public partial class AlterTables_BookUser : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -23,24 +23,26 @@ namespace ShareBook.Repository.Migrations
                         column: x => x.BookId,
                         principalTable: "Books",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_BookUser_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BookUser_UserId",
+                table: "BookUser",
+                column: "UserId");
+
 
             migrationBuilder.CreateIndex(
                 name: "IX_BookUser_BookId",
                 table: "BookUser",
                 column: "BookId");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_BookUser_UserId",
-                table: "BookUser",
-                column: "UserId");
+
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

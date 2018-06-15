@@ -11,8 +11,11 @@ namespace ShareBook.Api.Controllers
     [Route("api/[controller]")]
     public class BookController : BaseController<Book>
     {
-        public BookController(IBookService bookService) : base(bookService)
+        private readonly IBookUserService _bookUserService;
+
+        public BookController(IBookService bookService, IBookUserService bookUserService) : base(bookService)
         {
+            _bookUserService = bookUserService;
             SetDefault(x => x.Title);
         }
 
@@ -26,6 +29,18 @@ namespace ShareBook.Api.Controllers
         {
             var freightOptions = ((IBookService)_service).GetAllFreightOptions();
             return freightOptions;
+        }
+
+
+        [Authorize("Bearer")]
+        [HttpPost("Solicit/{id}")]
+        public void Solicit(string id)
+        {
+            var bookUser = new BookUser(){
+                BookId = new Guid(id)
+            };
+
+            _bookUserService.Insert(bookUser);
         }
     }
 }
