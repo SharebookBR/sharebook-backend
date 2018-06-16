@@ -76,8 +76,11 @@ namespace ShareBook.Api
 
             using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
             {
+                var scopeServiceProvider = serviceScope.ServiceProvider;
                 var context = serviceScope.ServiceProvider.GetService<ApplicationDbContext>();
                 context.Database.Migrate();
+                var sharebookSeeder = new ShareBookSeeder(context);
+                sharebookSeeder.Seed();
             }
 
         }
