@@ -86,6 +86,7 @@ namespace ShareBook.Repository
                     Title = "Clean Code",
                     FreightOption = FreightOption.State,
                     Image = "cleancode.jpeg",
+                    User = donor,
                     Approved = true,
                     CreationDate = DateTime.Now.AddDays(-2)
                 };
@@ -136,8 +137,15 @@ namespace ShareBook.Repository
                     CreationDate = DateTime.Now.AddDays(-5)
                 };
 
+                var request = new BookUser()
+                {
+                    User = grantee,
+                    Book = lordTheRings
+                };
+
                 _context.Users.AddRange(grantee, @operator);
                 _context.Books.AddRange(agile, cleanCode, got, lordTheRings, ddd, investimentos, hp1);
+                _context.BookUser.Add(request);
                 _context.SaveChanges();
             }
 
