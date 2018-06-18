@@ -63,7 +63,9 @@ namespace ShareBook.Repository
                     Title = "The Lord of the Rings: The Fellowship of the Ring",
                     FreightOption = FreightOption.World,
                     Image = "Fellowship.jpeg",
-                    User = donor
+                    User = donor,
+                    Approved = true,
+                    CreationDate = DateTime.Now.AddDays(-1)
                 };
 
 
@@ -73,7 +75,9 @@ namespace ShareBook.Repository
                     Title = "Game of Thrones",
                     FreightOption = FreightOption.State,
                     Image = "got.jpeg",
-                    User = donor
+                    User = donor,
+                    Approved = true,
+                    CreationDate = DateTime.Now.AddDays(-2)
                 };
 
                 var cleanCode = new Book()
@@ -82,7 +86,8 @@ namespace ShareBook.Repository
                     Title = "Clean Code",
                     FreightOption = FreightOption.State,
                     Image = "cleancode.jpeg",
-                    User = donor
+                    Approved = true,
+                    CreationDate = DateTime.Now.AddDays(-2)
                 };
 
                 var agile = new Book()
@@ -91,7 +96,9 @@ namespace ShareBook.Repository
                     Title = "Robert Cecil Martin",
                     FreightOption = FreightOption.WithoutFreight,
                     Image = "agile.jpeg",
-                    User = donor
+                    User = donor,
+                    Approved = false,
+                    CreationDate = DateTime.Now.AddDays(-3)
                 };
 
 
@@ -101,7 +108,9 @@ namespace ShareBook.Repository
                     Title = "Eric Evans",
                     FreightOption = FreightOption.WithoutFreight,
                     Image = "ddd.jpeg",
-                    User = donor
+                    User = donor,
+                    Approved = true,
+                    CreationDate = DateTime.Now.AddDays(-4)
                 };
 
                 var hp1 = new Book()
@@ -110,7 +119,9 @@ namespace ShareBook.Repository
                     Title = "J. K. Rowling",
                     FreightOption = FreightOption.Country,
                     Image = "hp1.jpeg",
-                    User = donor
+                    User = donor,
+                    Approved = true,
+                    CreationDate = DateTime.Now.AddDays(-5)
                 };
 
 
@@ -120,7 +131,9 @@ namespace ShareBook.Repository
                     Title = "Gustavo Cerbasi",
                     FreightOption = FreightOption.City,
                     Image = "investimentos.jpeg",
-                    User = donor
+                    User = donor,
+                    Approved = false,
+                    CreationDate = DateTime.Now.AddDays(-5)
                 };
 
                 _context.Users.AddRange(grantee, @operator);
