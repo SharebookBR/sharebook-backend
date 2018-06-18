@@ -12,9 +12,10 @@ using System;
 namespace ShareBook.Repository.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180615131109_AlterTables_BookUser")]
+    partial class AlterTables_BookUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -65,8 +66,6 @@ namespace ShareBook.Repository.Migrations
                     b.HasKey("BookId", "UserId");
 
                     b.HasIndex("UserId");
-
-                    b.HasIndex("BookId");
 
                     b.ToTable("BookUser");
                 });

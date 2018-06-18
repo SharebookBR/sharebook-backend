@@ -1,5 +1,6 @@
 ﻿using ShareBook.Domain.Common;
 using ShareBook.Domain.Enums;
+using System.Collections.Generic;
 
 namespace ShareBook.Domain
 {
@@ -12,6 +13,7 @@ namespace ShareBook.Domain
         public string Linkedin { get; set; }
         public string Cep { get; set; }
         public Profile Profile { get;  set; } = Profile.User;
-       
+        public virtual ICollection<BookUser> BookUsers { get; set; }
+
     }
 }
