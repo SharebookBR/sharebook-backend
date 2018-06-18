@@ -41,9 +41,6 @@ namespace ShareBook.Repository.Mapping
                 .HasMaxLength(100)
                 .IsRequired();
 
-            entityBuilder.Property(t => t.Profile)
-                .HasDefaultValue(Profile.User);
-
         }
     }
 }
