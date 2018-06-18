@@ -27,7 +27,7 @@ namespace ShareBook.Service
                 UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name)
             };          
 
-            if (!_bookRepository.Any(x => x.UserId == bookUser.UserId))
+            if (!_bookRepository.Any(x => x.Id == bookUser.BookId))
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
             if (_bookUserRepository.Any(x => x.UserId == bookUser.UserId && x.BookId == bookUser.BookId))
