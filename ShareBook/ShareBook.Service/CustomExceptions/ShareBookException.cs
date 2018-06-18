@@ -13,8 +13,9 @@ namespace ShareBook.Service.CustomExceptions
 
         public enum Error
         {
+            BadRequest = 400,
             NotAuthorized = 401,
-            NotFound = 404
+            NotFound = 404         
         }
 
         public Error ErrorType { get; set; }
@@ -24,5 +25,10 @@ namespace ShareBook.Service.CustomExceptions
         {
             ErrorType = error;
         }
+        public ShareBookException(string message) : base(message)
+        {
+            ErrorType = Error.BadRequest;
+        }
+
     }
 }

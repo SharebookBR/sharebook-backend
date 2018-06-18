@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Linq.Expressions;
 using System.Threading;
-using FluentValidation;
 using ShareBook.Domain;
-using ShareBook.Domain.Common;
 using ShareBook.Repository;
 using ShareBook.Repository.Infra;
 using ShareBook.Service.CustomExceptions;
-using ShareBook.Service.Generic;
 
 namespace ShareBook.Service
 {
@@ -27,13 +23,15 @@ namespace ShareBook.Service
         {
             var bookUser = new BookUser()
             {
-                BookId = idBook
-            };
+                BookId = idBook,
+                UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name)
+            };          
 
-            bookUser.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-
-            if (_bookRepository.Get(bookUser.BookId) == null)
+            if (!_bookRepository.Any(x => x.UserId == bookUser.UserId))
                 throw new ShareBookException(ShareBookException.Error.NotFound);
+
+            if (_bookUserRepository.Any(x => x.UserId == bookUser.UserId && x.BookId == bookUser.BookId))
+                throw new ShareBookException("O usuário já possui uma requisição para o mesmo livro.");
 
             _bookUserRepository.Insert(bookUser);
         }
