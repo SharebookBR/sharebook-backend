@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using FluentValidation;
 using ShareBook.Domain;
@@ -20,12 +21,17 @@ namespace ShareBook.Service
     {
         private readonly IUploadService _uploadService;
         private readonly IBooksEmailService _booksEmailService;
+        private readonly IBookUserRepository _bookUserRepository;
 
-        public BookService(IBookRepository bookRepository, IUnitOfWork unitOfWork, IValidator<Book> validator, IUploadService uploadService, IBooksEmailService booksEmailService)
+        public BookService(IBookRepository bookRepository, 
+            IUnitOfWork unitOfWork, IValidator<Book> validator, 
+            IUploadService uploadService, IBooksEmailService booksEmailService,
+            IBookUserRepository bookUserRepository)
             : base(bookRepository, unitOfWork, validator)
         {
             _uploadService = uploadService;
             _booksEmailService = booksEmailService;
+            _bookUserRepository = bookUserRepository;
         }
 
         [AuthorizationInterceptor(Permissions.Permission.AprovarLivro)]
@@ -53,6 +59,22 @@ namespace ShareBook.Service
                 });
             }
             return enumValues;
+        }
+
+        public object GetTop15NewBooks()
+        {
+
+            var listBookUsers = _bookUserRepository.Get().ToList();
+
+            var query = (from b in _repository.Get()
+                         where !(from bu in listBookUsers
+                                 select bu.BookId)
+                                 .Contains(b.Id)
+                         where b.Approved == true
+                         select b).OrderByDescending(x => x.CreationDate);
+                        
+            var books = query.Take(4).ToList();
+            return books;
         }
 
         public override Result<Book> Insert(Book entity)

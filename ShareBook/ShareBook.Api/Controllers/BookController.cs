@@ -32,6 +32,14 @@ namespace ShareBook.Api.Controllers
         }
 
 
+        [HttpGet("GetTop15")]
+        public object GetTop15()
+        {
+            var books = ((IBookService)_service).GetTop15NewBooks();
+            return books;
+        }
+
+
         [Authorize("Bearer")]
         [HttpPost("RequestBook/{id}")]
         public IActionResult RequestBook(string id)
