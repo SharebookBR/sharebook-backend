@@ -32,12 +32,9 @@ namespace ShareBook.Api.Controllers
         }
 
 
-        [HttpGet("GetTop15")]
-        public object GetTop15()
-        {
-            var books = ((IBookService)_service).GetTop15NewBooks();
-            return books;
-        }
+        [HttpGet("GetTop15NewBooks")]
+        public IList<Book> GetTop15NewBooks() => ((IBookService)_service).GetTop15NewBooks();
+
 
 
         [Authorize("Bearer")]

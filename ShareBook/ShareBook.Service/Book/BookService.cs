@@ -61,19 +61,18 @@ namespace ShareBook.Service
             return enumValues;
         }
 
-        public object GetTop15NewBooks()
+        public IList<Book> GetTop15NewBooks()
         {
-
             var listBookUsers = _bookUserRepository.Get().ToList();
 
-            var query = (from b in _repository.Get()
-                         where !(from bu in listBookUsers
-                                 select bu.BookId)
-                                 .Contains(b.Id)
-                         where b.Approved == true
-                         select b).OrderByDescending(x => x.CreationDate);
-                        
-            var books = query.Take(4).ToList();
+            var query = (from book in _repository.Get()
+                         where !(from booUser in listBookUsers
+                                 select booUser.BookId)
+                                 .Contains(book.Id)
+                         where book.Approved == true
+                         select book).OrderByDescending(x => x.CreationDate);
+
+            var books = query.Take(15).ToList();
             return books;
         }
 

@@ -13,6 +13,6 @@ namespace ShareBook.Service
 
         IList<dynamic> GetAllFreightOptions();
 
-        object GetTop15NewBooks();
+        IList<Book> GetTop15NewBooks();
     }
 }
