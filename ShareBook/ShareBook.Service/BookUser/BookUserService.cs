@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using ShareBook.Domain;
 using ShareBook.Repository;
@@ -18,6 +20,8 @@ namespace ShareBook.Service
             _bookUserRepository = bookUserRepository;
             _bookRepository = bookRepository;
         }
+
+        public IQueryable<BookUser> Get() => _bookUserRepository.Get();
 
         public void Insert(Guid idBook)
         {
