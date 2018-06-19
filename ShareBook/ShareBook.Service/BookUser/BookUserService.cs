@@ -11,12 +11,12 @@ namespace ShareBook.Service
     {
 
         private readonly IBookUserRepository _bookUserRepository;
-        private readonly IBookRepository _bookRepository;
+        private readonly IBookService _bookService;
 
-        public BookUserService(IBookUserRepository bookUserRepository, IBookRepository bookRepository, IUnitOfWork unitOfWork)
+        public BookUserService(IBookUserRepository bookUserRepository, IBookService bookService, IUnitOfWork unitOfWork)
         {
             _bookUserRepository = bookUserRepository;
-            _bookRepository = bookRepository;
+            _bookService = bookService;
         }
 
         public void Insert(Guid idBook)
@@ -27,7 +27,7 @@ namespace ShareBook.Service
                 UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name)
             };          
 
-            if (!_bookRepository.Any(x => x.Id == bookUser.BookId))
+            if (!_bookService.Any(x => x.Id == bookUser.BookId))
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
             if (_bookUserRepository.Any(x => x.UserId == bookUser.UserId && x.BookId == bookUser.BookId))
