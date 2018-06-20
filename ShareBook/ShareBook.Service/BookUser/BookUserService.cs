@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using ShareBook.Domain;
 using ShareBook.Repository;
@@ -13,12 +11,15 @@ namespace ShareBook.Service
     {
 
         private readonly IBookUserRepository _bookUserRepository;
-        private readonly IBookRepository _bookRepository;
+        private readonly IBookService _bookService;
+        private readonly IBookUsersEmailService _bookUsersEmailService;
 
-        public BookUserService(IBookUserRepository bookUserRepository, IBookRepository bookRepository, IUnitOfWork unitOfWork)
+        public BookUserService(IBookUserRepository bookUserRepository, IBookService bookService, 
+            IBookUsersEmailService bookUsersEmailService, IUnitOfWork unitOfWork)
         {
             _bookUserRepository = bookUserRepository;
-            _bookRepository = bookRepository;
+            _bookService = bookService;
+            _bookUsersEmailService = bookUsersEmailService;
         }
 
         public void Insert(Guid idBook)
@@ -29,13 +30,14 @@ namespace ShareBook.Service
                 UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name)
             };          
 
-            if (!_bookRepository.Any(x => x.Id == bookUser.BookId))
+            if (!_bookService.Any(x => x.Id == bookUser.BookId))
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
             if (_bookUserRepository.Any(x => x.UserId == bookUser.UserId && x.BookId == bookUser.BookId))
                 throw new ShareBookException("O usuário já possui uma requisição para o mesmo livro.");
 
             _bookUserRepository.Insert(bookUser);
+            _bookUsersEmailService.SendEmailBookRequested(bookUser);
         }
     }
 }
