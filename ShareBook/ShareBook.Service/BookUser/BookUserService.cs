@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using ShareBook.Domain;
 using ShareBook.Repository;
@@ -14,11 +12,14 @@ namespace ShareBook.Service
 
         private readonly IBookUserRepository _bookUserRepository;
         private readonly IBookService _bookService;
+        private readonly IBookUsersEmailService _bookUsersEmailService;
 
-        public BookUserService(IBookUserRepository bookUserRepository, IBookService bookService, IUnitOfWork unitOfWork)
+        public BookUserService(IBookUserRepository bookUserRepository, IBookService bookService, 
+            IBookUsersEmailService bookUsersEmailService, IUnitOfWork unitOfWork)
         {
             _bookUserRepository = bookUserRepository;
             _bookService = bookService;
+            _bookUsersEmailService = bookUsersEmailService;
         }
 
         public void Insert(Guid idBook)
@@ -36,6 +37,7 @@ namespace ShareBook.Service
                 throw new ShareBookException("O usuário já possui uma requisição para o mesmo livro.");
 
             _bookUserRepository.Insert(bookUser);
+            _bookUsersEmailService.SendEmailBookRequested(bookUser);
         }
     }
 }
