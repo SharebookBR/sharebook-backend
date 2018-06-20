@@ -3,7 +3,7 @@ using ShareBook.Domain.Common;
 using ShareBook.Service.Generic;
 using System;
 using System.Collections.Generic;
-
+using System.Linq;
 
 namespace ShareBook.Service
 {

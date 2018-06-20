@@ -12,5 +12,7 @@ namespace ShareBook.Service
         Result<Book> Approve(Guid bookId);
 
         IList<dynamic> GetAllFreightOptions();
+
+        IList<Book> GetTop15NewBooks(int page);
     }
 }

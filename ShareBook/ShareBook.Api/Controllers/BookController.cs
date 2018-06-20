@@ -31,6 +31,8 @@ namespace ShareBook.Api.Controllers
             return freightOptions;
         }
 
+        [HttpGet("GetTop15NewBooks/{page}")]
+        public IList<Book> GetTop15NewBooks(int page) => ((IBookService)_service).GetTop15NewBooks(page);
 
         [Authorize("Bearer")]
         [HttpPost("RequestBook/{id}")]
