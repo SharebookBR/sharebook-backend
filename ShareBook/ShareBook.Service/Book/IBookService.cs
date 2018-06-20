@@ -14,5 +14,9 @@ namespace ShareBook.Service
         IList<dynamic> GetAllFreightOptions();
 
         IList<Book> GetTop15NewBooks(int page);
+
+        IList<Book> GetByTitle(string title);
+
+        IList<Book> GetByAuthor(string author);
     }
 }

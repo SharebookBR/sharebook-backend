@@ -41,5 +41,13 @@ namespace ShareBook.Api.Controllers
             _bookUserService.Insert(new Guid(id));
             return Ok();
         }
+
+        [Authorize("Bearer")]
+        [HttpGet("GetByTitle/{title}")]
+        public IList<Book> GetByTitle(string title) => ((IBookService)_service).GetByTitle(title);
+
+        [Authorize("Bearer")]
+        [HttpGet("GetByAuthor/{author}")]
+        public IList<Book> GetByAuthor(string author) => ((IBookService)_service).GetByAuthor(author);
     }
 }

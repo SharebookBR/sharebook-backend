@@ -85,5 +85,10 @@ namespace ShareBook.Service
             return result;
         }
 
+        public IList<Book> GetByTitle(string title) => _repository.Get().Where(x => x.Title.Contains(title)).ToList();
+
+        public IList<Book> GetByAuthor(string author) => _repository.Get().Where(x => x.Author.Contains(author)).ToList();
+   
+
     }
 }

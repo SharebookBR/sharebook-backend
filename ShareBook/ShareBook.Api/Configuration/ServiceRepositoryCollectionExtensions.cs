@@ -18,6 +18,7 @@ namespace ShareBook.Api.Configuration
         {
             //services
             services.AddScoped<IBooksEmailService, BooksEmailService>();
+            services.AddScoped<IBookUsersEmailService, BookUserEmailService>();
             services.AddScoped<IBookService, BookService>();
             services.AddScoped<IBookUserService, BookUserService>();
             services.AddScoped<IUserService, UserService>();
