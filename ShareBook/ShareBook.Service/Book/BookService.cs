@@ -21,17 +21,14 @@ namespace ShareBook.Service
     {
         private readonly IUploadService _uploadService;
         private readonly IBooksEmailService _booksEmailService;
-        private readonly IBookUserService _bookUserService;
 
         public BookService(IBookRepository bookRepository, 
             IUnitOfWork unitOfWork, IValidator<Book> validator, 
-            IUploadService uploadService, IBooksEmailService booksEmailService,
-            IBookUserService bookUserService)
+            IUploadService uploadService, IBooksEmailService booksEmailService)
             : base(bookRepository, unitOfWork, validator)
         {
             _uploadService = uploadService;
             _booksEmailService = booksEmailService;
-            _bookUserService = bookUserService;
         }
 
         [AuthorizationInterceptor(Permissions.Permission.AprovarLivro)]
@@ -61,18 +58,14 @@ namespace ShareBook.Service
             return enumValues;
         }
 
-        public IList<Book> GetTop15NewBooks()
-        {
-            var listBookUsers = _bookUserService.Get();
-
-            var query = (from book in _repository.Get()
-                         where !(from booUser in listBookUsers
-                                 select booUser.BookId)
-                                 .Contains(book.Id)
-                         where book.Approved == true
-                         select book).OrderByDescending(x => x.CreationDate);
-
-            var books = query.Take(15).ToList();
+        public IList<Book> GetTop15NewBooks(int page)
+        { 
+            var books = _repository.Get()
+                .Where(x => x.Approved)
+                .OrderByDescending(x => x.CreationDate)
+                .Skip((page - 1) * 15)
+                .Take(15)
+                .ToList();
             return books;
         }
 

@@ -21,8 +21,6 @@ namespace ShareBook.Service
             _bookService = bookService;
         }
 
-        public IQueryable<BookUser> Get() => _bookUserRepository.Get();
-
         public void Insert(Guid idBook)
         {
             var bookUser = new BookUser()
