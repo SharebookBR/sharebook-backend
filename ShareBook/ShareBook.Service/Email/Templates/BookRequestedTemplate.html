@@ -1,0 +1,25 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Um livro foi solicitado - Sharebook</title>
+</head>
+<body>
+    <p>
+        Olá {Administrator.Name},
+    </p>
+    <p>
+        Um livro foi solicitado. Veja mais informações abaixo:
+    </p>
+
+    <ul>
+        <li><strong>Livro: </strong>{Book.Title}</li>
+        <li><strong>Donatario: </strong>{RequestingUser.Name}</li>
+        <li><strong>Linkedin Donatario:</strong>{RequestingUser.Linkedin}</li>
+        <li><strong>Doador: </strong>{Book.User.Name}</li>
+        <li><strong>Linkedin Doador:</strong>{Book.User.Linkedin}</li>
+    </ul>
+
+    <p>Sharebook</p>
+</body>
+</html>  
