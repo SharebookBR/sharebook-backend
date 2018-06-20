@@ -8,7 +8,7 @@ namespace ShareBook.Service
 {
     public class BookUserEmailService : IBookUsersEmailService
     {
-        private const string BookRequestedTemplate = "BookRequestedInsertedTemplate";
+        private const string BookRequestedTemplate = "BookRequestedTemplate";
         private const string BookRequestedTitle = "Um livro foi solicitado - Sharebook";
 
 
