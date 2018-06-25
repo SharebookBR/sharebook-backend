@@ -7,6 +7,10 @@
 - SQL SERVER.
 - SWAGGER.
 
+#### Documentação das apis - Swagger
+
+http://www.sharebook.com.br/swagger/
+
 #### Como rodar o projeto ?
 
 - Não se esquecer de mudar a connection string para a sua base de dados no arquivo appsettings.json que se encontra na camada da API do projeto.
