@@ -22,7 +22,7 @@ namespace ShareBook.Repository.Migrations
             migrationBuilder.AddColumn<Guid>(
                 name: "CategoryId",
                 table: "Books",
-                nullable: false,
+                nullable: true,
                 defaultValue: new Guid("00000000-0000-0000-0000-000000000000"));
 
             migrationBuilder.CreateTable(

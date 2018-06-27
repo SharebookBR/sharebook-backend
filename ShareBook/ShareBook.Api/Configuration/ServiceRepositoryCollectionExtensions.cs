@@ -22,15 +22,18 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<IBookService, BookService>();
             services.AddScoped<IBookUserService, BookUserService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<ICategoryService, CategoryService>();
 
             //repositories
             services.AddScoped<IBookRepository, BookRepository>();
             services.AddScoped<IBookUserRepository, BookUserRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<ICategoryRepository, CategoryRepository>();
 
             //validators
             services.AddScoped<IValidator<User>, UserValidator>();
             services.AddScoped<IValidator<Book>, BookValidator>();
+            services.AddScoped<IValidator<Category>, CategoryValidator>();
 
             //Auth
             services.AddScoped<IApplicationSignInManager, ApplicationSignInManager>();

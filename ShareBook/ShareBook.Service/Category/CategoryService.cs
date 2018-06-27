@@ -14,7 +14,7 @@ namespace ShareBook.Service
         public CategoryService(ICategoryRepository categoryRepository, IUnitOfWork unitOfWork, IValidator<Category> validator)
             : base(categoryRepository, unitOfWork, validator)
         {
-
+            
         }
     }
 }
