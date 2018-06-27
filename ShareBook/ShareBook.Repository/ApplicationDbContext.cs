@@ -15,6 +15,7 @@ namespace ShareBook.Repository
         public DbSet<User> Users { get; set; }
         public DbSet<LogEntry> LogEntries { get; set; }
         public DbSet<BookUser> BookUser { get; set; }
+        public DbSet<Category> Categories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -23,6 +24,7 @@ namespace ShareBook.Repository
             new BookMap(modelBuilder.Entity<Book>());
             new UserMap(modelBuilder.Entity<User>());
             new BookUserMap(modelBuilder.Entity<BookUser>());
+            new CategoryMap(modelBuilder.Entity<Category>());
         }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken))

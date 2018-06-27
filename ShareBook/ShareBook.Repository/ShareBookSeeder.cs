@@ -24,7 +24,9 @@ namespace ShareBook.Repository
         {
             _context.Database.EnsureCreated();
 
-            if ( !(_context.Users.Any() && _context.Books.Any()))
+            if ( !(_context.Users.Any() 
+                && _context.Books.Any()
+                && _context.Categories.Any()))
             {
                 var grantee = new User()
                 {
@@ -57,6 +59,18 @@ namespace ShareBook.Repository
                     PasswordSalt = PASSWORD_SALT
                 };
 
+                var dir = new Category() { Name = "Direito" };
+                var psico = new Category() { Name = "Psicologia" };
+                var adm = new Category() { Name = "Administração" };
+                var adv = new Category() { Name = "Aventura" };
+                var eng = new Category() { Name = "Engenharia" };
+                var cien = new Category() { Name = "Ciências Biógicas" };
+                var geo_his = new Category() { Name = "Geografia e História" };
+                var art = new Category() { Name = "Artes" };
+                var med = new Category() { Name = "Medicina" };
+                var eco = new Category() { Name = "Economia" };
+                var inf = new Category() { Name = "Informática" };
+
                 var lordTheRings = new Book()
                 {
                     Author = "J. R. R. Tolkien",
@@ -65,6 +79,7 @@ namespace ShareBook.Repository
                     Image = "Fellowship.jpeg",
                     User = donor,
                     Approved = true,
+                    Category = adv,
                     CreationDate = DateTime.Now.AddDays(-1)
                 };
 
@@ -77,6 +92,7 @@ namespace ShareBook.Repository
                     Image = "got.jpeg",
                     User = donor,
                     Approved = true,
+                    Category = adv,
                     CreationDate = DateTime.Now.AddDays(-2)
                 };
 
@@ -88,6 +104,7 @@ namespace ShareBook.Repository
                     Image = "cleancode.jpeg",
                     User = donor,
                     Approved = true,
+                    Category = inf,
                     CreationDate = DateTime.Now.AddDays(-2)
                 };
 
@@ -99,6 +116,7 @@ namespace ShareBook.Repository
                     Image = "agile.jpeg",
                     User = donor,
                     Approved = false,
+                    Category = inf,
                     CreationDate = DateTime.Now.AddDays(-3)
                 };
 
@@ -111,6 +129,7 @@ namespace ShareBook.Repository
                     Image = "ddd.jpeg",
                     User = donor,
                     Approved = true,
+                    Category = inf,
                     CreationDate = DateTime.Now.AddDays(-4)
                 };
 
@@ -122,6 +141,7 @@ namespace ShareBook.Repository
                     Image = "hp1.jpeg",
                     User = donor,
                     Approved = true,
+                    Category = inf,
                     CreationDate = DateTime.Now.AddDays(-5)
                 };
 
@@ -134,6 +154,7 @@ namespace ShareBook.Repository
                     Image = "investimentos.jpeg",
                     User = donor,
                     Approved = false,
+                    Category = eco,
                     CreationDate = DateTime.Now.AddDays(-5)
                 };
 
@@ -143,9 +164,10 @@ namespace ShareBook.Repository
                     Book = lordTheRings
                 };
 
+                _context.Categories.AddRange(adm, dir, psico, med, eng, geo_his, cien, art);
                 _context.Users.AddRange(grantee, @operator);
                 _context.Books.AddRange(agile, cleanCode, got, lordTheRings, ddd, investimentos, hp1);
-                _context.BookUser.Add(request);
+                _context.BookUser.Add(request);               
                 _context.SaveChanges();
             }
 
