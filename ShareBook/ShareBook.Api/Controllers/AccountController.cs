@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Mvc;
 using ShareBook.Domain;
 using ShareBook.Repository.Infra.CrossCutting.Identity;
 using ShareBook.Repository.Infra.CrossCutting.Identity.Configurations;
@@ -8,6 +9,7 @@ using ShareBook.Service;
 namespace ShareBook.Api.Controllers
 {
     [Route("api/[controller]")]
+    [EnableCors("AllowAllHeaders")]
     public class AccountController : Controller
     {
         private readonly IUserService _userService;

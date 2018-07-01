@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using ShareBook.Api.Filters;
 using ShareBook.Domain.Common;
@@ -9,6 +10,7 @@ using System.Linq.Expressions;
 namespace ShareBook.Api.Controllers
 {
     [GetClaimsFilter]
+    [EnableCors("AllowAllHeaders")]
     public class BaseController<T> : Controller where T : BaseEntity
     {
         protected readonly IBaseService<T> _service;
