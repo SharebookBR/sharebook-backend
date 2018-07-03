@@ -30,10 +30,6 @@ namespace ShareBook.Domain.Validators
             RuleFor(u => u.Cep)
                 .NotEmpty()
                 .WithMessage(Cep);
-
-            RuleFor(u => u.Linkedin)
-                .NotEmpty()
-                .WithMessage(Linkedin);
         }
     }
 }
