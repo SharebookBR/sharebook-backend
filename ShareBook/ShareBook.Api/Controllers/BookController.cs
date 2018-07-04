@@ -49,5 +49,12 @@ namespace ShareBook.Api.Controllers
         [Authorize("Bearer")]
         [HttpGet("GetByAuthor/{author}")]
         public IList<Book> GetByAuthor(string author) => ((IBookService)_service).GetByAuthor(author);
+
+        [Authorize("Bearer")]
+        [HttpGet("{page}/{items}")]
+        public override PagedList<Book> GetPaged(int page, int items)
+        {
+            return ((IBookService)_service).GetAll(page, items);
+        }
     }
 }

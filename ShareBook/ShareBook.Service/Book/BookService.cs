@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.Enums;
@@ -67,6 +68,18 @@ namespace ShareBook.Service
                 .Take(15)
                 .ToList();
             return books;
+        }
+
+     
+        public PagedList<Book> GetAll(int page, int items)
+        {
+            var result =  _repository.Get().Include(b => b.User).Skip((page - 1) * items).Take(items).ToList();
+            return new PagedList<Book>()
+            {
+                Page = page,
+                ItemsPerPage = items,
+                Items = result
+            };
         }
 
         public override Result<Book> Insert(Book entity)

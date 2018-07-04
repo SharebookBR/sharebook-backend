@@ -18,5 +18,7 @@ namespace ShareBook.Service
         IList<Book> GetByTitle(string title);
 
         IList<Book> GetByAuthor(string author);
+
+        PagedList<Book> GetAll(int page, int items);
     }
 }
