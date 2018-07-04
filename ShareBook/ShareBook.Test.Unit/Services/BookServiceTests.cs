@@ -64,7 +64,9 @@ namespace ShareBook.Test.Unit.Services
                 Author = "J. R. R. Tolkien",
                 Image = "lotr.png",
                 ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
-                FreightOption = FreightOption.City
+                FreightOption = FreightOption.City,
+                CategoryId = Guid.NewGuid()
+                
             });
             Assert.NotNull(result);
             Assert.True(result.Success);
