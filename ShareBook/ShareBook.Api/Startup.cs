@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Internal;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,7 +12,9 @@ using ShareBook.Repository;
 using ShareBook.Service;
 using ShareBook.Service.Upload;
 using Swashbuckle.AspNetCore.Swagger;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace ShareBook.Api
@@ -28,13 +32,13 @@ namespace ShareBook.Api
         public void ConfigureServices(IServiceCollection services)
         {
             services.RegisterRepositoryServices();
-            //auto mapper start
+            //auto mapper start 
             AutoMapperConfig.RegisterMappings();
 
             services.AddMvc();
-
+            var directory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"Images","Book");
             services.Configure<EmailSettings>(options => Configuration.GetSection("EmailSettings").Bind(options));
-            services.Configure<ImageSettings>(options => Configuration.GetSection("ImageSettings").Bind(options));
+            services.Configure<ImageSettings>(options => Configuration.GetSection("ImageSettings").Bind(options.Directory = directory));
 
             JWTConfig.RegisterJWT(services, Configuration);
 
