@@ -8,6 +8,7 @@ namespace ShareBook.Domain.Validators
         public const string Title = "Titulo do livro é obrigatório";
         public const string Author = "Autor do livro é obrigatório";
         public const string Image = "Imagem do livro é obrigatória";
+        public const string Categoria = "Categoria do livro é obrigatória";
         public const string User = "O usuário deve ter vinculo com o livro";
         public const string FreightOption = "A opção de frente é obrigatória";
         public const string HasNotImageExtension = "A extensão da imagem é obrigatória";
@@ -40,6 +41,10 @@ namespace ShareBook.Domain.Validators
             RuleFor(b => b.UserId)
                 .NotEmpty()
                 .WithMessage(User);
+
+            RuleFor(b => b.CategoryId)
+               .NotEmpty()
+               .WithMessage(Categoria);
         }
 
 

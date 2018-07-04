@@ -29,7 +29,7 @@ namespace ShareBook.Api.Controllers
         public PagedList<T> GetAll() => GetPaged(1, 15);
 
         [HttpGet("{page}/{items}")]
-        public PagedList<T> GetPaged(int page, int items) => _service.Get(x => true, _defaultOrder, page, items);
+        public virtual PagedList<T> GetPaged(int page, int items) => _service.Get(x => true, _defaultOrder, page, items);
 
         [HttpGet("{id}")]
         public T GetById(string id) => _service.Get(new Guid(id));
