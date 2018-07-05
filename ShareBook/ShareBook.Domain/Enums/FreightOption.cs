@@ -7,19 +7,19 @@ namespace ShareBook.Domain.Enums
     [JsonConverter(typeof(StringEnumConverter))]
     public enum FreightOption
     {
-        [Description("Não desejo pagar frete")]
-        WithoutFreight,
-
-        [Description("Sim, para toda cidade")]
+        [Description("Cidade")]
         City,
 
-        [Description("Sim, para todo estado")]
+        [Description("Estado")]
         State,
 
-        [Description("Sim, para todo o Brasil")]
+        [Description("País")]
         Country,
 
-        [Description("Sim, para todo o Mundo")]
-        World
+        [Description("Mundo")]
+        World,
+
+        [Description("Não")]
+        WithoutFreight,
     }
 }
