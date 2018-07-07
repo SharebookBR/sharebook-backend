@@ -76,6 +76,7 @@ namespace ShareBook.Service
             var result =  _repository.Get().Include(b => b.User).Skip((page - 1) * items).Take(items)
                 .Select(u => new Book
                 {
+                    Id = u.Id,
                     Title = u.Title,
                     Author = u.Author,
                     Approved = u.Approved,

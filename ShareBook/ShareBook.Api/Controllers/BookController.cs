@@ -56,5 +56,12 @@ namespace ShareBook.Api.Controllers
         {
             return ((IBookService)_service).GetAll(page, items);
         }
+
+        [Authorize("Bearer")]
+        [HttpGet()]
+        public override PagedList<Book>GetAll()
+        {
+            return ((IBookService)_service).GetAll(1, 15);
+        }
     }
 }
