@@ -18,7 +18,7 @@ namespace ShareBook.Test.Unit.Validators
 				Password = "password",
 				Name = "João da Silva",
 				Linkedin = "linkedin.com/joao-silva",
-				Cep = "04473-190"
+                PostalCode = "04473-190"
             };
 
             ValidationResult result = userValidation.Validate(user);
@@ -35,7 +35,7 @@ namespace ShareBook.Test.Unit.Validators
                 Password = null,
 				Name = null,
 				Linkedin = "linkedin.com/joao-silva",
-				Cep = "04473-190"
+                PostalCode = "04473-190"
 			};
 
             ValidationResult result = userValidation.Validate(user);

@@ -39,7 +39,7 @@ namespace ShareBook.Test.Unit.Services
                     Password = "123456",
                     Name = "José da Silva",
                     Linkedin = "linkedin.com/jose",
-                    Cep = "04473-190"
+                    PostalCode = "04473-190"
                 };
             });
 
@@ -55,7 +55,7 @@ namespace ShareBook.Test.Unit.Services
                             PasswordSalt = PASSWORD_SALT,
                              Name = "José da Silva",
                             Linkedin = "linkedin.com/jose",
-                            Cep = "04473-190"
+                            PostalCode = "04473-190"
                         }
                 }.AsQueryable();
             });
@@ -75,7 +75,7 @@ namespace ShareBook.Test.Unit.Services
                 Password = "123456",
 				Name = "José da Silva",
 				Linkedin = @"linkedin.com\jose-silva",
-				Cep = "04473-190"
+                PostalCode = "04473-190"
 
             });
             Assert.NotNull(result);

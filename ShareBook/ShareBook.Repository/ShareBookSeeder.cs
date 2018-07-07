@@ -32,7 +32,7 @@ namespace ShareBook.Repository
                 {
                     Name = "Walter Vinicius Lopes Cardoso",
                     Email = "walter@sharebook.com",
-                    Cep = "04473-190",
+                    PostalCode = "04473-190",
                     Linkedin = "linkedin.com/walter.cardoso",
                     Password = PASSWORD_HASH,
                     PasswordSalt = PASSWORD_SALT
@@ -42,7 +42,7 @@ namespace ShareBook.Repository
                 {
                     Name = "Vagner",
                     Email = "vagner@sharebook.com",
-                    Cep = "04516-190",
+                    PostalCode = "04516-190",
                     Linkedin = "linkedin.com/vagner",
                     Profile = Profile.Administrator,
                     Password = PASSWORD_HASH,
@@ -53,7 +53,7 @@ namespace ShareBook.Repository
                 {
                     Name = "Rodrigo",
                     Email = "rodrigo@sharebook.com",
-                    Cep = "017672-100",
+                    PostalCode = "017672-100",
                     Linkedin = "linkedin.com/rodrigo",
                     Password = PASSWORD_HASH,
                     PasswordSalt = PASSWORD_SALT

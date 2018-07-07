@@ -12,9 +12,10 @@ using System;
 namespace ShareBook.Repository.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180707211307_Alter_User_Cep_to_PostalCode")]
+    partial class Alter_User_Cep_to_PostalCode
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
