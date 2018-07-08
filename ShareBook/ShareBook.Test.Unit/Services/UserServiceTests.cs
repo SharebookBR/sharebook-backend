@@ -97,6 +97,59 @@ namespace ShareBook.Test.Unit.Services
         }
         #endregion
 
+        #region Update User
+
+        [Fact]
+        public void UpdateValidUser()
+        {
+            var service = new UserService(userRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator());
+
+            Result<User> result = service.Update(new User()
+            {
+                Email = "teste@teste.com.br",
+                Linkedin = "linkedin",
+                Name = "Teste",
+                Phone = "584558999",
+                PostalCode = "111547899",
+                Profile=Domain.Enums.Profile.User
+            });
+
+            Assert.NotNull(result);
+            Assert.False(result.Success);
+        }
+
+
+        [Fact]
+        public void UpdateInvalidUser()
+        {
+            var service = new UserService(userRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator());
+
+            Result<User> result = service.Update(new User()
+            {
+                Email = "",
+                Linkedin = ""
+            });
+
+            Assert.NotNull(result);
+            Assert.False(result.Success);
+        }
+
+        [Fact]
+        public void UpdateUserNotExists()
+        {
+            var service = new UserService(userRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator());
+
+            Result<User> result = service.Update(new User()
+            {
+                Email = "sss@sss.com",
+                Linkedin = ""
+            });
+
+            Assert.NotNull(result);
+            Assert.False(result.Success);
+        }
+
+        #endregion
 
         #region Login User
         [Fact]

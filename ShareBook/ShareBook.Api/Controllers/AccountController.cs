@@ -46,5 +46,18 @@ namespace ShareBook.Api.Controllers
 
             return result;
         }
+
+        [HttpPost("Update")]
+        public object Update([FromBody]User user,
+           [FromServices]SigningConfigurations signingConfigurations,
+           [FromServices]TokenConfigurations tokenConfigurations)
+        {
+            var result = _userService.Update(user);
+
+            if (result.Success)
+                return _signManager.GenerateTokenAndSetIdentity(result.Value, signingConfigurations, tokenConfigurations);
+
+            return result;
+        }
     }
 }
