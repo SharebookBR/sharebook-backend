@@ -37,7 +37,7 @@ namespace ShareBook.Service.Generic
 
             return result;
         }
-        public Result<TEntity> Update(TEntity entity)
+        public virtual Result<TEntity> Update(TEntity entity)
         {
             var result = Validate(entity);
 

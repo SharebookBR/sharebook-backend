@@ -55,6 +55,34 @@ namespace ShareBook.Service
             return result;
         }
 
+        public override Result<User> Update(User user)
+        {
+            var result = Validate(user, x => 
+                x.Email, 
+                x => x.Linkedin,
+                x => x.Name,
+                x => x.Phone,
+                x => x.PostalCode);
+
+            user.Email = user.Email.ToLowerInvariant();
+
+            var userAux = _repository.Get().FirstOrDefault(x => x.Email == user.Email);
+
+            if (userAux == null)
+                result.Messages.Add("Usuário não existe.");
+            
+            if (result.Success)
+            {
+                userAux.Name = user.Name;
+                userAux.Linkedin = user.Linkedin;
+                userAux.PostalCode = user.PostalCode;
+                userAux.Phone = user.Phone;
+                result.Value = UserCleanup(_repository.Update(userAux));
+            }
+
+            return result;
+        }
+
         public IEnumerable<User> GetAllAdministrators()
         {
             return _repository.Get().Where(x => x.Profile == Domain.Enums.Profile.Administrator);
