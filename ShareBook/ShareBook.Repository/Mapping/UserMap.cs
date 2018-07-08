@@ -31,7 +31,7 @@ namespace ShareBook.Repository.Mapping
                     .HasMaxLength(50)
                     .IsRequired();
 
-            entityBuilder.Property(t => t.Cep)
+            entityBuilder.Property(t => t.PostalCode)
                 .HasColumnType("varchar(15)")
                 .HasMaxLength(15)
                 .IsRequired();
