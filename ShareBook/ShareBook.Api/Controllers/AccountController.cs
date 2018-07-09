@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Cors;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using ShareBook.Api.ViewModels;
 using ShareBook.Domain;
 using ShareBook.Repository.Infra.CrossCutting.Identity;
 using ShareBook.Repository.Infra.CrossCutting.Identity.Configurations;
@@ -48,11 +50,13 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpPost("Update")]
-        public object Update([FromBody]User user,
+        public object Update([FromBody]UpdateUserVM userVM,
            [FromServices]SigningConfigurations signingConfigurations,
            [FromServices]TokenConfigurations tokenConfigurations)
         {
-            var result = _userService.Update(user);
+            var user = Mapper.Map<UpdateUserVM, User>(userVM);
+
+            var result = _userService.Update(user, userVM.OldPassword);
 
             if (result.Success)
                 return _signManager.GenerateTokenAndSetIdentity(result.Value, signingConfigurations, tokenConfigurations);

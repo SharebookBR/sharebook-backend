@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using ShareBook.Api.ViewModels;
+using ShareBook.Domain;
 
 namespace ShareBook.Api.AutoMapper
 {
@@ -16,6 +18,8 @@ namespace ShareBook.Api.AutoMapper
             //CreateMap<UserVM, User>()
             //    .BeforeMap((src, dest) =>
             //    dest.Email = src.Email.ToLower());
+
+            CreateMap<UpdateUserVM, User>();
             #endregion
         }
     }

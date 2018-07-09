@@ -43,6 +43,18 @@ namespace ShareBook.Test.Unit.Services
                 };
             });
 
+            userRepositoryMock.Setup(repo => repo.Update(It.IsAny<User>())).Returns(() =>
+            {
+                return new User()
+                {
+                    Email = "jose@sharebook.com",
+                    Password = "123456",
+                    Name = "José da Silva",
+                    Linkedin = "linkedin.com/jose",
+                    PostalCode = "04473-190"
+                };
+            });
+
             userRepositoryMock.Setup(repo => repo.Get()).Returns(() =>
             {
                 return new List<User>()
@@ -56,6 +68,17 @@ namespace ShareBook.Test.Unit.Services
                              Name = "José da Silva",
                             Linkedin = "linkedin.com/jose",
                             PostalCode = "04473-190"
+                        },
+                    new User()
+                        {
+                           Email = "sergioprates.student@gmail.com",
+                           Linkedin = "https://www.linkedin.com/in/sergiopratesdossantos/",
+                           Name = "Sergio",
+                           Phone = "584558999",
+                           PostalCode = "111547899",
+                           Password = "6sQwTaExa3mdpFWK1xLV1qb/bMs/GpB097MaNRXRbn0=",
+                           PasswordSalt = "Qs1P9F2aeh8CMf9AedbSDg==",
+                           Profile = Domain.Enums.Profile.User
                         }
                 }.AsQueryable();
             });
@@ -73,8 +96,8 @@ namespace ShareBook.Test.Unit.Services
             {
                 Email = "jose@sharebook.com",
                 Password = "123456",
-				Name = "José da Silva",
-				Linkedin = @"linkedin.com\jose-silva",
+                Name = "José da Silva",
+                Linkedin = @"linkedin.com\jose-silva",
                 PostalCode = "04473-190"
 
             });
@@ -100,22 +123,62 @@ namespace ShareBook.Test.Unit.Services
         #region Update User
 
         [Fact]
+        public void UpdateValidUserNewPassword()
+        {
+            var service = new UserService(userRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator());
+
+            Result<User> result = service.Update(new User()
+            {
+                Email = "sergioprates.student@gmail.com",
+                Linkedin = "https://www.linkedin.com/in/sergiopratesdossantos/",
+                Name = "Sergio",
+                Phone = "584558999",
+                PostalCode = "111547899",
+                Password = "mudar@123",
+                Profile = Domain.Enums.Profile.User
+            }, "mudar@123");
+
+            Assert.NotNull(result);
+            Assert.True(result.Success);
+        }
+
+        [Fact]
+        public void UpdateInvalidUserNewPassword()
+        {
+            var service = new UserService(userRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator());
+
+            Result<User> result = service.Update(new User()
+            {
+                Email = "sergioprates.student@gmail.com",
+                Linkedin = "https://www.linkedin.com/in/sergiopratesdossantos/",
+                Name = "Sergio",
+                Phone = "584558999",
+                PostalCode = "111547899",
+                Password = "mudar@1234",
+                Profile = Domain.Enums.Profile.User
+            }, "teste");
+
+            Assert.NotNull(result);
+            Assert.False(result.Success);
+        }
+
+        [Fact]
         public void UpdateValidUser()
         {
             var service = new UserService(userRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator());
 
             Result<User> result = service.Update(new User()
             {
-                Email = "teste@teste.com.br",
-                Linkedin = "linkedin",
-                Name = "Teste",
+                Email = "sergioprates.student@gmail.com",
+                Linkedin = "https://www.linkedin.com/in/sergiopratesdossantos/",
+                Name = "Sergio1",
                 Phone = "584558999",
                 PostalCode = "111547899",
-                Profile=Domain.Enums.Profile.User
+                Profile = Domain.Enums.Profile.User
             });
 
             Assert.NotNull(result);
-            Assert.False(result.Success);
+            Assert.True(result.Success);
         }
 
 
@@ -127,7 +190,10 @@ namespace ShareBook.Test.Unit.Services
             Result<User> result = service.Update(new User()
             {
                 Email = "",
-                Linkedin = ""
+                Linkedin = "",
+                Name = "",
+                Phone = "",
+                PostalCode = "",
             });
 
             Assert.NotNull(result);
@@ -192,7 +258,7 @@ namespace ShareBook.Test.Unit.Services
             });
             Assert.Equal("Email ou senha incorretos", result.Messages[0]);
             Assert.False(result.Success);
-        } 
+        }
         #endregion
     }
 }

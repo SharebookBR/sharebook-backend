@@ -55,28 +55,41 @@ namespace ShareBook.Service
             return result;
         }
 
-        public override Result<User> Update(User user)
+        public Result<User> Update(User user, string oldPassword = null)
         {
-            var result = Validate(user, x => 
-                x.Email, 
+            Result<User> result = Validate(user, x =>
+                x.Email,
                 x => x.Linkedin,
                 x => x.Name,
                 x => x.Phone,
                 x => x.PostalCode);
 
-            user.Email = user.Email.ToLowerInvariant();
+            if (result.Success == false)
+            {
+                return result;
+            }
 
-            var userAux = _repository.Get().FirstOrDefault(x => x.Email == user.Email);
+            User userAux = null;
 
-            if (userAux == null)
-                result.Messages.Add("Usuário não existe.");
-            
+            if (string.IsNullOrWhiteSpace(oldPassword) == false)
+            {
+                result = ChangeUserPassword(user, oldPassword);
+                userAux = result.Value;
+            }
+            else
+            {
+                userAux = _repository.Get().FirstOrDefault(x => x.Email.Equals(user.Email, StringComparison.InvariantCultureIgnoreCase));
+
+                if (userAux == null)
+                    result.Messages.Add("Usuário não existe.");
+            }
+
             if (result.Success)
             {
-                userAux.Name = user.Name;
-                userAux.Linkedin = user.Linkedin;
-                userAux.PostalCode = user.PostalCode;
-                userAux.Phone = user.Phone;
+                userAux.ChangeName(user.Name);
+                userAux.ChangeLinkedin(user.Linkedin);
+                userAux.ChangePostalCode(user.PostalCode);
+                userAux.ChangePhone(user.Phone);
                 result.Value = UserCleanup(_repository.Update(userAux));
             }
 
@@ -90,6 +103,29 @@ namespace ShareBook.Service
         #endregion
 
         #region Private
+
+        private Result<User> ChangeUserPassword(User user, string oldPassword)
+        {
+            Result<User> result = Validate(user, x =>  x.Password);
+
+            if (result.Success == false)
+            {
+                return result;
+            }
+
+            var resultUserAuth = this.AuthenticationByEmailAndPassword(new User() { Email = user.Email, Password = oldPassword });
+
+            if (resultUserAuth.Success == true)
+            {
+                var userAuth = resultUserAuth.Value;
+                userAuth.ChangePassword(user.Password);
+                userAuth = GetUserEncryptedPass(userAuth);
+                resultUserAuth.Value = userAuth;               
+            }
+
+            return resultUserAuth;
+        }
+
         private bool IsValidPassword(User user, string decryptedPass)
         {
             return user.Password == Hash.Create(decryptedPass, user.PasswordSalt);
