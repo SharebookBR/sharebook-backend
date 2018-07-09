@@ -6,11 +6,6 @@ namespace ShareBook.Domain
 {
     public class User : BaseEntity
     {
-        public User()
-        {
-            this.BookUsers = new List<BookUser>();
-        }
-
         public string Name { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
