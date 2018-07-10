@@ -28,5 +28,7 @@ namespace ShareBook.Domain
         public bool Approved { get; set; } = false;
 
         public virtual ICollection<BookUser> BookUsers { get; set; }
+
+        public string ImageUrl { get; set; }
     }
 }

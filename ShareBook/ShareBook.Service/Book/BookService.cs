@@ -107,7 +107,7 @@ namespace ShareBook.Service
             {
                 entity.Image = ImageHelper.FormatImageName(entity.Image, entity.Id.ToString());
 
-                _uploadService.UploadImage(entity.ImageBytes, entity.Image);
+                result.Value.Image =_uploadService.UploadImage(entity.ImageBytes, entity.Image);
                 result.Value = _repository.Insert(entity);
                 _booksEmailService.SendEmailNewBookInserted(entity).Wait();
             }
