@@ -2,6 +2,6 @@
 {
     public interface IUploadService
     {
-        void UploadImage(byte[] imageBytes, string imageName);
+        string UploadImage(byte[] imageBytes, string imageName);
     }
 }

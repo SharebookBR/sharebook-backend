@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using ShareBook.Domain.Enums;
 
 namespace ShareBook.Domain.Validators
 {
@@ -10,7 +11,7 @@ namespace ShareBook.Domain.Validators
         public const string Image = "Imagem do livro é obrigatória";
         public const string Categoria = "Categoria do livro é obrigatória";
         public const string User = "O usuário deve ter vinculo com o livro";
-        public const string FreightOption = "A opção de frente é obrigatória";
+        public const string FreightOption = "A opção de frete é obrigatória";
         public const string HasNotImageExtension = "A extensão da imagem é obrigatória";
         #endregion
 
@@ -35,7 +36,7 @@ namespace ShareBook.Domain.Validators
                 .WithMessage(Image);
 
             RuleFor(b => b.FreightOption)
-                .NotEmpty()
+                .Must(FreightOptionIsValid)
                 .WithMessage(FreightOption);
 
             RuleFor(b => b.UserId)
@@ -51,6 +52,11 @@ namespace ShareBook.Domain.Validators
         private bool HasImageExtension(string image)
         {
             return (image.EndsWith(".png") || image.EndsWith(".jpg"));
+        }
+
+        private bool FreightOptionIsValid(FreightOption freightOption)
+        {
+            return !string.IsNullOrEmpty(freightOption.ToString());
         }
     }
 }

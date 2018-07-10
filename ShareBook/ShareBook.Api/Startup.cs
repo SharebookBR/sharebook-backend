@@ -36,9 +36,13 @@ namespace ShareBook.Api
             AutoMapperConfig.RegisterMappings();
 
             services.AddMvc();
-            var directory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"Images","Book");
-            services.Configure<EmailSettings>(options => Configuration.GetSection("EmailSettings").Bind(options));
+
+            var directory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"wwwroot", "images");
             services.Configure<ImageSettings>(options => Configuration.GetSection("ImageSettings").Bind(options.Directory = directory));
+
+
+            services.Configure<EmailSettings>(options => Configuration.GetSection("EmailSettings").Bind(options));
+          
 
             JWTConfig.RegisterJWT(services, Configuration);
 
