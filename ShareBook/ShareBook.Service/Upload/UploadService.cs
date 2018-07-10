@@ -12,14 +12,16 @@ namespace ShareBook.Service.Upload
         {
             _imageSettings = imageSettings.Value;
         }
-
-        public void UploadImage(byte[] imageBytes, string imageName)
-        {          
+         
+        public string UploadImage(byte[] imageBytes, string imageName)
+        {
+            _imageSettings.Directory = Path.Combine(_imageSettings.Directory, "Books");
             if (!Directory.Exists(_imageSettings.Directory))
                 Directory.CreateDirectory(_imageSettings.Directory);                  
 
             var imagePath = Path.Combine(_imageSettings.Directory, imageName);
             File.WriteAllBytes(imagePath, imageBytes);
+            return imagePath;
         }
     }
 }

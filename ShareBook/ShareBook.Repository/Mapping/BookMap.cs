@@ -27,6 +27,8 @@ namespace ShareBook.Repository.Mapping
 
             entityBuilder.Ignore(t => t.ImageBytes);
 
+            entityBuilder.Ignore(t => t.ImageUrl);
+
             entityBuilder.HasOne(t => t.User);
 
             entityBuilder.HasOne(t => t.Category);

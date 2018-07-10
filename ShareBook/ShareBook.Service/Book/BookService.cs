@@ -106,10 +106,10 @@ namespace ShareBook.Service
             if (result.Success)
             {
                 entity.Image = ImageHelper.FormatImageName(entity.Image, entity.Id.ToString());
-
-                _uploadService.UploadImage(entity.ImageBytes, entity.Image);
-                result.Value = _repository.Insert(entity);
-                _booksEmailService.SendEmailNewBookInserted(entity).Wait();
+                
+               result.Value = _repository.Insert(entity);
+               result.Value.ImageUrl = _uploadService.UploadImage(entity.ImageBytes, entity.Image);
+               _booksEmailService.SendEmailNewBookInserted(entity).Wait();
             }
             return result;
         }
