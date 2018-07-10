@@ -55,6 +55,47 @@ namespace ShareBook.Service
             return result;
         }
 
+        public Result<User> Update(User user, string oldPassword = null)
+        {
+            Result<User> result = Validate(user, x =>
+                x.Email,
+                x => x.Linkedin,
+                x => x.Name,
+                x => x.Phone,
+                x => x.PostalCode);
+
+            if (result.Success == false)
+            {
+                return result;
+            }
+
+            User userAux = null;
+
+            if (string.IsNullOrWhiteSpace(oldPassword) == false)
+            {
+                result = ChangeUserPassword(user, oldPassword);
+                userAux = result.Value;
+            }
+            else
+            {
+                userAux = _repository.Get().FirstOrDefault(x => x.Email.Equals(user.Email, StringComparison.InvariantCultureIgnoreCase));
+
+                if (userAux == null)
+                    result.Messages.Add("Usuário não existe.");
+            }
+
+            if (result.Success)
+            {
+                userAux.ChangeName(user.Name);
+                userAux.ChangeLinkedin(user.Linkedin);
+                userAux.ChangePostalCode(user.PostalCode);
+                userAux.ChangePhone(user.Phone);
+                result.Value = UserCleanup(_repository.Update(userAux));
+            }
+
+            return result;
+        }
+
         public IEnumerable<User> GetAllAdministrators()
         {
             return _repository.Get().Where(x => x.Profile == Domain.Enums.Profile.Administrator);
@@ -62,6 +103,29 @@ namespace ShareBook.Service
         #endregion
 
         #region Private
+
+        private Result<User> ChangeUserPassword(User user, string oldPassword)
+        {
+            Result<User> result = Validate(user, x =>  x.Password);
+
+            if (result.Success == false)
+            {
+                return result;
+            }
+
+            var resultUserAuth = this.AuthenticationByEmailAndPassword(new User() { Email = user.Email, Password = oldPassword });
+
+            if (resultUserAuth.Success == true)
+            {
+                var userAuth = resultUserAuth.Value;
+                userAuth.ChangePassword(user.Password);
+                userAuth = GetUserEncryptedPass(userAuth);
+                resultUserAuth.Value = userAuth;               
+            }
+
+            return resultUserAuth;
+        }
+
         private bool IsValidPassword(User user, string decryptedPass)
         {
             return user.Password == Hash.Create(decryptedPass, user.PasswordSalt);

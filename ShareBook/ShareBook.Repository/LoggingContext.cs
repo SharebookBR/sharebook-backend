@@ -47,19 +47,26 @@ namespace ShareBook.Repository
                     item.Property("CreationDate").CurrentValue = DateTime.Now;
                 }
 
-                var EntityDiff = JToken.Parse(jdp.Diff(original, updated)).ToString(Formatting.None);
 
-                var logEntry = new LogEntry()
+                string jsonDiff = jdp.Diff(original, updated);
+
+                if (string.IsNullOrWhiteSpace(jsonDiff) == false)
                 {
-                    EntityName = item.Entity.GetType().Name,
-                    EntityId = new Guid(item.CurrentValues[idColumn].ToString()),
-                    LogDateTime = logTime,
-                    Operation = item.State.ToString(),
-                    UserId = user,
-                    ValuesChanges = EntityDiff,
-                };
+                    var EntityDiff = JToken.Parse(jsonDiff).ToString(Formatting.None);
 
-                context.LogEntries.Add(logEntry);
+                    var logEntry = new LogEntry()
+                    {
+                        EntityName = item.Entity.GetType().Name,
+                        EntityId = new Guid(item.CurrentValues[idColumn].ToString()),
+                        LogDateTime = logTime,
+                        Operation = item.State.ToString(),
+                        UserId = user,
+                        ValuesChanges = EntityDiff,
+                    };
+
+                    context.LogEntries.Add(logEntry);
+                }
+                
             }
         }
     }
