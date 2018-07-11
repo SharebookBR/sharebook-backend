@@ -109,7 +109,9 @@ namespace ShareBook.Service
                 
                result.Value = _repository.Insert(entity);
                result.Value.ImageUrl = _uploadService.UploadImage(entity.ImageBytes, entity.Image);
-               _booksEmailService.SendEmailNewBookInserted(entity).Wait();
+
+                // TODO - BUG CAMINHO DO TEMPLATE DE EMAIL
+               //_booksEmailService.SendEmailNewBookInserted(entity).Wait();
             }
             return result;
         }
