@@ -2,6 +2,8 @@
 {
     public class ImageSettings
     {
-        public string Directory { get; set; }
+        public string BaseDirectory { get; set; }
+
+        public string ImagePath { get; set; }
     }
 }

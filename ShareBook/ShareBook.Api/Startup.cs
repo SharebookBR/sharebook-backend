@@ -10,6 +10,7 @@ using ShareBook.Api.Configuration;
 using ShareBook.Api.Middleware;
 using ShareBook.Repository;
 using ShareBook.Service;
+using ShareBook.Service.Server;
 using ShareBook.Service.Upload;
 using Swashbuckle.AspNetCore.Swagger;
 using System;
@@ -36,13 +37,12 @@ namespace ShareBook.Api
             AutoMapperConfig.RegisterMappings();
 
             services.AddMvc();
-
-            var directory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"wwwroot", "images");
-            services.Configure<ImageSettings>(options => Configuration.GetSection("ImageSettings").Bind(options.Directory = directory));
-
+            services.Configure<ImageSettings>(options => Configuration.GetSection("ImageSettings").Bind(options));
 
             services.Configure<EmailSettings>(options => Configuration.GetSection("EmailSettings").Bind(options));
-          
+
+            services.Configure<ServerSettings>(options => Configuration.GetSection("ServerSettings").Bind(options));
+
 
             JWTConfig.RegisterJWT(services, Configuration);
 
