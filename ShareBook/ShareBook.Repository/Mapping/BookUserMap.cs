@@ -1,9 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ShareBook.Domain;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ShareBook.Repository.Mapping
 {

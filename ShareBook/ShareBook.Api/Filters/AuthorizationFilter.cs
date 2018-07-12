@@ -1,11 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc.Filters;
 using ShareBook.Domain.Exceptions;
 using ShareBook.Service.Authorization;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace ShareBook.Api.Filters
 {

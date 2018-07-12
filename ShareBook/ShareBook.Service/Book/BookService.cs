@@ -12,7 +12,6 @@ using ShareBook.Helper.Extensions;
 using ShareBook.Helper.Image;
 using ShareBook.Repository;
 using ShareBook.Repository.Infra;
-using ShareBook.Service.Authorization;
 using ShareBook.Service.Generic;
 using ShareBook.Service.Upload;
 

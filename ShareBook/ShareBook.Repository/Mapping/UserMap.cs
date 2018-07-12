@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ShareBook.Domain;
-using ShareBook.Domain.Enums;
 
 namespace ShareBook.Repository.Mapping
 {
