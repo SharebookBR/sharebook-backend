@@ -21,7 +21,6 @@
 
   <ItemGroup>
     <PackageReference Include="MailKit" Version="2.0.4" />
-    <PackageReference Include="PostSharp" Version="5.0.51" />
   </ItemGroup>
 
   <ItemGroup>

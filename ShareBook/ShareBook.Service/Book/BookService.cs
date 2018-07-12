@@ -7,12 +7,12 @@ using Microsoft.EntityFrameworkCore;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.Enums;
+using ShareBook.Domain.Exceptions;
 using ShareBook.Helper.Extensions;
 using ShareBook.Helper.Image;
 using ShareBook.Repository;
 using ShareBook.Repository.Infra;
 using ShareBook.Service.Authorization;
-using ShareBook.Service.CustomExceptions;
 using ShareBook.Service.Generic;
 using ShareBook.Service.Upload;
 
@@ -32,7 +32,6 @@ namespace ShareBook.Service
             _booksEmailService = booksEmailService;
         }
 
-        [AuthorizationInterceptor(Permissions.Permission.AprovarLivro)]
         public Result<Book> Approve(Guid bookId)
         {
             var book = _repository.Get(bookId);
@@ -69,7 +68,6 @@ namespace ShareBook.Service
                 .ToList();
             return books;
         }
-
      
         public PagedList<Book> GetAll(int page, int items)
         {
@@ -119,7 +117,5 @@ namespace ShareBook.Service
         public IList<Book> GetByTitle(string title) => _repository.Get().Where(x => x.Title.Contains(title) && x.Approved == true).ToList();
 
         public IList<Book> GetByAuthor(string author) => _repository.Get().Where(x => x.Author.Contains(author) &&  x.Approved == true).ToList();
-   
-
     }
 }

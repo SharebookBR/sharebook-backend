@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ShareBook.Api.Filters;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Service;
+using ShareBook.Service.Authorization;
 using System;
 using System.Collections.Generic;
 
@@ -21,8 +23,8 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpPost("Approve/{id}")]
+        [AuthorizationFilter(Permissions.Permission.AprovarLivro)]
         public Result<Book> Approve(string id) => ((IBookService)_service).Approve(new Guid(id));
-
 
         [HttpGet("FreightOptions")]
         public IList<dynamic> FreightOptions()

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using ShareBook.Domain.Common;
-using ShareBook.Service.CustomExceptions;
+using ShareBook.Domain.Exceptions;
 
 namespace ShareBook.Api.Middleware
 {

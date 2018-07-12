@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading;
 using ShareBook.Domain;
+using ShareBook.Domain.Exceptions;
 using ShareBook.Repository;
 using ShareBook.Repository.Infra;
-using ShareBook.Service.CustomExceptions;
 
 namespace ShareBook.Service
 {
