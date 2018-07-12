@@ -13,7 +13,8 @@ namespace ShareBook.Service
 
         IList<dynamic> GetAllFreightOptions();
 
-        IList<Book> GetTop15NewBooks(int page);
+        IList<Book> GetTop15NewBooks();
+        IList<Book> Random15Books();
 
         IList<Book> GetByTitle(string title);
 

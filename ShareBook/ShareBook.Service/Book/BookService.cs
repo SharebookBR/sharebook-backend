@@ -22,8 +22,8 @@ namespace ShareBook.Service
         private readonly IUploadService _uploadService;
         private readonly IBooksEmailService _booksEmailService;
 
-        public BookService(IBookRepository bookRepository, 
-            IUnitOfWork unitOfWork, IValidator<Book> validator, 
+        public BookService(IBookRepository bookRepository,
+            IUnitOfWork unitOfWork, IValidator<Book> validator,
             IUploadService uploadService, IBooksEmailService booksEmailService)
             : base(bookRepository, unitOfWork, validator)
         {
@@ -57,20 +57,13 @@ namespace ShareBook.Service
             return enumValues;
         }
 
-        public IList<Book> GetTop15NewBooks(int page)
-        { 
-            var books = _repository.Get()
-                .Where(x => x.Approved)
-                .OrderByDescending(x => x.CreationDate)
-                .Skip((page - 1) * 15)
-                .Take(15)
-                .ToList();
-            return books;
-        }
-     
+        public IList<Book> GetTop15NewBooks() => _repository.Get().Where(x => x.Approved).OrderByDescending(x => x.CreationDate).Take(15).ToList();
+
+        public IList<Book> Random15Books() => _repository.Get().Where(x => x.Approved).OrderBy(x => Guid.NewGuid()).Take(15).ToList();
+
         public PagedList<Book> GetAll(int page, int items)
         {
-            var result =  _repository.Get().Include(b => b.User).Skip((page - 1) * items).Take(items)
+            var result = _repository.Get().Include(b => b.User).Skip((page - 1) * items).Take(items)
                 .Select(u => new Book
                 {
                     Id = u.Id,
@@ -103,18 +96,18 @@ namespace ShareBook.Service
             if (result.Success)
             {
                 entity.Image = ImageHelper.FormatImageName(entity.Image, entity.Id.ToString());
-                
-               result.Value = _repository.Insert(entity);
-               result.Value.ImageUrl = _uploadService.UploadImage(entity.ImageBytes, entity.Image);
+
+                result.Value = _repository.Insert(entity);
+                result.Value.ImageUrl = _uploadService.UploadImage(entity.ImageBytes, entity.Image);
 
                 // TODO - BUG CAMINHO DO TEMPLATE DE EMAIL
-               //_booksEmailService.SendEmailNewBookInserted(entity).Wait();
+                //_booksEmailService.SendEmailNewBookInserted(entity).Wait();
             }
             return result;
         }
 
         public IList<Book> GetByTitle(string title) => _repository.Get().Where(x => x.Title.Contains(title) && x.Approved == true).ToList();
 
-        public IList<Book> GetByAuthor(string author) => _repository.Get().Where(x => x.Author.Contains(author) &&  x.Approved == true).ToList();
+        public IList<Book> GetByAuthor(string author) => _repository.Get().Where(x => x.Author.Contains(author) && x.Approved == true).ToList();
     }
 }
