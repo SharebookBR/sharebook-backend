@@ -43,6 +43,7 @@ namespace ShareBook.Repository.Infra.CrossCutting.Identity.Configurations
                 name = user.Name,
                 email = user.Email,
                 userId = user.Id,
+                profile = user.Profile.ToString(),
                 message = "OK"
             };
         }
