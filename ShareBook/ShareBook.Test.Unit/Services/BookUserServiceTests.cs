@@ -1,12 +1,9 @@
 ﻿using Moq;
-using ShareBook.Domain;
 using ShareBook.Repository;
 using ShareBook.Repository.Infra;
 using ShareBook.Service;
 using ShareBook.Test.Unit.Mocks;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using Xunit;
 

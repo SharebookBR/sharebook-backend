@@ -11,13 +11,14 @@ namespace ShareBook.Service
     {
         Result<Book> Approve(Guid bookId);
 
-        IList<dynamic> GetAllFreightOptions();
+        IList<dynamic> FreightOptions();
 
-        IList<Book> GetTop15NewBooks(int page);
+        IList<Book> Top15NewBooks();
+        IList<Book> Random15Books();
 
-        IList<Book> GetByTitle(string title);
+        IList<Book> ByTitle(string title);
 
-        IList<Book> GetByAuthor(string author);
+        IList<Book> ByAuthor(string author);
 
         PagedList<Book> GetAll(int page, int items);
     }

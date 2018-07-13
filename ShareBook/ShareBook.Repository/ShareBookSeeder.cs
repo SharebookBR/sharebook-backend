@@ -1,9 +1,7 @@
 ﻿using ShareBook.Domain;
 using ShareBook.Domain.Enums;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace ShareBook.Repository
 {
