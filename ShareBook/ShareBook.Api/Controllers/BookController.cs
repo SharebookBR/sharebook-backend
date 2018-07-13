@@ -29,18 +29,18 @@ namespace ShareBook.Api.Controllers
         [HttpGet("FreightOptions")]
         public IList<dynamic> FreightOptions()
         {
-            var freightOptions = ((IBookService)_service).GetAllFreightOptions();
+            var freightOptions = ((IBookService)_service).FreightOptions();
             return freightOptions;
         }
 
-        [HttpGet("GetTop15NewBooks")]
-        public IList<Book> GetTop15NewBooks() => ((IBookService)_service).GetTop15NewBooks();
+        [HttpGet("Top15NewBooks")]
+        public IList<Book> Top15NewBooks() => ((IBookService)_service).Top15NewBooks();
 
         [HttpGet("Random15Books")]
         public IList<Book> Random15Books() => ((IBookService)_service).Random15Books();
 
         [Authorize("Bearer")]
-        [HttpPost("RequestBook/{id}")]
+        [HttpPost("Request/{id}")]
         public IActionResult RequestBook(string id)
         {         
             _bookUserService.Insert(new Guid(id));
@@ -48,16 +48,16 @@ namespace ShareBook.Api.Controllers
         }
 
         [Authorize("Bearer")]
-        [HttpGet("GetByTitle/{title}")]
-        public IList<Book> GetByTitle(string title) => ((IBookService)_service).GetByTitle(title);
+        [HttpGet("ByTitle/{title}")]
+        public IList<Book> ByTitle(string title) => ((IBookService)_service).ByTitle(title);
 
         [Authorize("Bearer")]
-        [HttpGet("GetByAuthor/{author}")]
-        public IList<Book> GetByAuthor(string author) => ((IBookService)_service).GetByAuthor(author);
+        [HttpGet("ByAuthor/{author}")]
+        public IList<Book> ByAuthor(string author) => ((IBookService)_service).ByAuthor(author);
 
         [Authorize("Bearer")]
         [HttpGet("{page}/{items}")]
-        public override PagedList<Book> GetPaged(int page, int items)
+        public override PagedList<Book> Paged(int page, int items)
         {
             return ((IBookService)_service).GetAll(page, items);
         }

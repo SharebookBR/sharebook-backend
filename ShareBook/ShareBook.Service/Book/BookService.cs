@@ -43,7 +43,7 @@ namespace ShareBook.Service
             return new Result<Book>(book);
         }
 
-        public IList<dynamic> GetAllFreightOptions()
+        public IList<dynamic> FreightOptions()
         {
             var enumValues = new List<dynamic>();
             foreach (FreightOption freightOption in Enum.GetValues(typeof(FreightOption)))
@@ -57,7 +57,7 @@ namespace ShareBook.Service
             return enumValues;
         }
 
-        public IList<Book> GetTop15NewBooks() => _repository.Get().Where(x => x.Approved).OrderByDescending(x => x.CreationDate).Take(15).ToList();
+        public IList<Book> Top15NewBooks() => _repository.Get().Where(x => x.Approved).OrderByDescending(x => x.CreationDate).Take(15).ToList();
 
         public IList<Book> Random15Books() => _repository.Get().Where(x => x.Approved).OrderBy(x => Guid.NewGuid()).Take(15).ToList();
 
@@ -106,8 +106,8 @@ namespace ShareBook.Service
             return result;
         }
 
-        public IList<Book> GetByTitle(string title) => _repository.Get().Where(x => x.Title.Contains(title) && x.Approved == true).ToList();
+        public IList<Book> ByTitle(string title) => _repository.Get().Where(x => x.Title.Contains(title) && x.Approved == true).ToList();
 
-        public IList<Book> GetByAuthor(string author) => _repository.Get().Where(x => x.Author.Contains(author) && x.Approved == true).ToList();
+        public IList<Book> ByAuthor(string author) => _repository.Get().Where(x => x.Author.Contains(author) && x.Approved == true).ToList();
     }
 }
