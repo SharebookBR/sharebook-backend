@@ -7,6 +7,7 @@ using ShareBook.Repository.Infra.CrossCutting.Identity;
 using ShareBook.Repository.Infra.CrossCutting.Identity.Configurations;
 using ShareBook.Repository.Infra.CrossCutting.Identity.Interfaces;
 using ShareBook.Service;
+using System;
 
 namespace ShareBook.Api.Controllers
 {
@@ -47,6 +48,12 @@ namespace ShareBook.Api.Controllers
                 return _signManager.GenerateTokenAndSetIdentity(result.Value, signingConfigurations, tokenConfigurations);
 
             return result;
+        }
+
+        [HttpGet("UserById/{id}")]
+        public User UserById(string id)
+        {
+           return _userService.Get(new Guid(id));
         }
 
         [HttpPost("Update")]

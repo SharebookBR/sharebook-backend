@@ -96,6 +96,8 @@ namespace ShareBook.Service
             return result;
         }
 
+        public override User Get(params object[] keyValues) => UserCleanup(_repository.Get(keyValues));
+
         public IEnumerable<User> GetAllAdministrators()
         {
             return _repository.Get().Where(x => x.Profile == Domain.Enums.Profile.Administrator);
