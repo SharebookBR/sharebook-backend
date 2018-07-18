@@ -55,7 +55,7 @@ namespace ShareBook.Service
             return result;
         }
 
-        public Result<User> Update(User user, string oldPassword = null)
+        public override Result<User> Update(User user)
         {
             Result<User> result = Validate(user, x =>
                 x.Email,
@@ -64,25 +64,11 @@ namespace ShareBook.Service
                 x => x.Phone,
                 x => x.PostalCode);
 
-            if (result.Success == false)
-            {
-                return result;
-            }
+            if (result.Success == false) return result;
 
-            User userAux = null;
+            User userAux = _repository.Get(user.Id);
 
-            if (string.IsNullOrWhiteSpace(oldPassword) == false)
-            {
-                result = ChangeUserPassword(user, oldPassword);
-                userAux = result.Value;
-            }
-            else
-            {
-                userAux = _repository.Get().FirstOrDefault(x => x.Email.Equals(user.Email, StringComparison.InvariantCultureIgnoreCase));
-
-                if (userAux == null)
-                    result.Messages.Add("Usuário não existe.");
-            }
+            if (userAux == null) result.Messages.Add("Usuário não existe.");
 
             if (result.Success)
             {
@@ -92,7 +78,6 @@ namespace ShareBook.Service
                 userAux.ChangePhone(user.Phone);
                 result.Value = UserCleanup(_repository.Update(userAux));
             }
-
             return result;
         }
 

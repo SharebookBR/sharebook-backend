@@ -9,6 +9,6 @@ namespace ShareBook.Service
     {
         Result<User> AuthenticationByEmailAndPassword(User user);
         IEnumerable<User> GetAllAdministrators();
-        Result<User> Update(User user, string oldPassword = null);
+        Result<User> Update(User user);
     }
 }

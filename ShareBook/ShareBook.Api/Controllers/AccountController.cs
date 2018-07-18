@@ -56,14 +56,15 @@ namespace ShareBook.Api.Controllers
            return _userService.Get(new Guid(id));
         }
 
-        [HttpPost("Update")]
-        public object Update([FromBody]UpdateUserVM userVM,
+        [HttpPost("Update/{id}")]
+        public object Update(string id, [FromBody]UpdateUserVM userVM,
            [FromServices]SigningConfigurations signingConfigurations,
            [FromServices]TokenConfigurations tokenConfigurations)
         {
             var user = Mapper.Map<UpdateUserVM, User>(userVM);
+            user.Id = new Guid(id);
 
-            var result = _userService.Update(user, userVM.OldPassword);
+            var result = _userService.Update(user);
 
             if (result.Success)
                 return _signManager.GenerateTokenAndSetIdentity(result.Value, signingConfigurations, tokenConfigurations);
