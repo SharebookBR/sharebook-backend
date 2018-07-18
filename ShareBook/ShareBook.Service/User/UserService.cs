@@ -66,7 +66,7 @@ namespace ShareBook.Service
 
             if (result.Success == false) return result;
 
-            User userAux = _repository.Get().FirstOrDefault(x => x.Id.Equals(user.Id));
+            User userAux = _repository.Get(user.Id);
 
             if (userAux == null) result.Messages.Add("Usuário não existe.");
 
