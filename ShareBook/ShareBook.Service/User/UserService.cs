@@ -72,6 +72,7 @@ namespace ShareBook.Service
 
             if (result.Success)
             {
+                userAux.ChangeEmail(user.Email);
                 userAux.ChangeName(user.Name);
                 userAux.ChangeLinkedin(user.Linkedin);
                 userAux.ChangePostalCode(user.PostalCode);

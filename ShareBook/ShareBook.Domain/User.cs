@@ -16,6 +16,10 @@ namespace ShareBook.Domain
         public Profile Profile { get;  set; } = Profile.User;
         public virtual ICollection<BookUser> BookUsers { get; set; }
 
+        public void ChangeEmail(string email)
+        {
+            this.Email = email;
+        }
 
         public void ChangeName(string name)
         {

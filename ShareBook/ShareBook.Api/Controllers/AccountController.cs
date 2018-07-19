@@ -56,7 +56,7 @@ namespace ShareBook.Api.Controllers
            return _userService.Get(new Guid(id));
         }
 
-        [HttpPost("Update/{id}")]
+        [HttpPut("Update/{id}")]
         public object Update(string id, [FromBody]UpdateUserVM userVM,
            [FromServices]SigningConfigurations signingConfigurations,
            [FromServices]TokenConfigurations tokenConfigurations)
