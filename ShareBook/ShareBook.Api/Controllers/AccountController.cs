@@ -25,10 +25,12 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpPost("Register")]
-        public object Post([FromBody]User user, 
+        public object Post([FromBody]RegisterUserVM registerUserVM, 
             [FromServices]SigningConfigurations signingConfigurations,
             [FromServices]TokenConfigurations tokenConfigurations)
         {
+            var user = Mapper.Map<RegisterUserVM, User>(registerUserVM);
+           
             var result = _userService.Insert(user);
 
             if (result.Success)
@@ -38,10 +40,13 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpPost("Login")]
-        public object Login([FromBody]User user,
+        public object Login([FromBody]LoginUserVM loginUserVM,
             [FromServices]SigningConfigurations signingConfigurations,
             [FromServices]TokenConfigurations tokenConfigurations)
         {
+
+            var user = Mapper.Map<LoginUserVM, User>(loginUserVM);
+
             var result = _userService.AuthenticationByEmailAndPassword(user);
 
             if (result.Success)
@@ -57,11 +62,11 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpPut("Update/{id}")]
-        public object Update(string id, [FromBody]UpdateUserVM userVM,
+        public object Update(string id, [FromBody]UpdateUserVM updateUserVM,
            [FromServices]SigningConfigurations signingConfigurations,
            [FromServices]TokenConfigurations tokenConfigurations)
         {
-            var user = Mapper.Map<UpdateUserVM, User>(userVM);
+            var user = Mapper.Map<UpdateUserVM, User>(updateUserVM);
             user.Id = new Guid(id);
 
             var result = _userService.Update(user);
