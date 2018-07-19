@@ -17,6 +17,8 @@ namespace ShareBook.Api.AutoMapper
             #region [ User ]
             CreateMap<LoginUserVM, User>();
 
+            CreateMap<RegisterUserVM, User>();
+
             CreateMap<UpdateUserVM, User>();
             #endregion
         }
