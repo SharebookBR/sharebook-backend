@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using ShareBook.Helper.Extensions;
+using System.IO;
 
 namespace ShareBook.Helper.Image
 {
@@ -6,10 +7,9 @@ namespace ShareBook.Helper.Image
     {
         public static string FormatImageName(string originalName, string newName)
         {
-            var newFileName = originalName.Replace(Path.GetFileNameWithoutExtension(originalName), newName);
+            var newFileName = originalName.Replace(Path.GetFileNameWithoutExtension(originalName), newName.GenerateSlug());
 
             return Path.GetFileName(newFileName);
-
         }
     }
 }

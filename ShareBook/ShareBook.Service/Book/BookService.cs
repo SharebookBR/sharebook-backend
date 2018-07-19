@@ -95,7 +95,7 @@ namespace ShareBook.Service
             var result = Validate(entity);
             if (result.Success)
             {
-                entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageSlug, entity.Id.ToString());
+                entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, entity.Title);
 
                 result.Value = _repository.Insert(entity);
                 result.Value.ImageUrl = _uploadService.UploadImage(entity.ImageBytes, entity.ImageSlug);
