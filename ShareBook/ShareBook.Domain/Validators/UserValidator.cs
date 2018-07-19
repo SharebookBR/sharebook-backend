@@ -32,16 +32,17 @@ namespace ShareBook.Domain.Validators
               .WithMessage(Password);
 
             RuleFor(u => u.PostalCode)
-                .Must(PostalCodeIsValid)
-                .WithMessage(PostalCodeInvalid)
                 .NotEmpty()
-                .WithMessage(PostalCode);
+                .WithMessage(PostalCode)
+                .Must(PostalCodeIsValid)
+                .WithMessage(PostalCodeInvalid);
+                
         }
 
         private bool PostalCodeIsValid(string postalCode)
         {
             Regex Rgx = new Regex(@"^\d{5}-\d{3}$");
-            if (!Rgx.IsMatch(postalCode)) return false;
+            if (string.IsNullOrEmpty(postalCode) || !Rgx.IsMatch(postalCode)) return false;
 
             return true;
         }
