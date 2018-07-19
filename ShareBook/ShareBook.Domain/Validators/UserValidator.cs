@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using System.Text.RegularExpressions;
 
 namespace ShareBook.Domain.Validators
 {
@@ -6,9 +7,11 @@ namespace ShareBook.Domain.Validators
     {
         #region Messages
         public const string Email = "O email é obrigatório";
+        public const string EmailFormat = "O formato do email está inválido";
         public const string Password = "A senha é obrigatória";
         public const string Name = "O nome é obrigatório";
         public const string PostalCode = "O cep é obrigatório";
+        public const string PostalCodeInvalid = "O formato do cep está inválido";
         public const string Linkedin = "O seu endereço do linkedin é obrigatório";
         #endregion
 
@@ -16,6 +19,7 @@ namespace ShareBook.Domain.Validators
         {
             RuleFor(u => u.Email)
                .EmailAddress()
+               .WithMessage(EmailFormat)
                .NotEmpty()
                .WithMessage(Email);
 
@@ -28,8 +32,18 @@ namespace ShareBook.Domain.Validators
               .WithMessage(Password);
 
             RuleFor(u => u.PostalCode)
+                .Must(PostalCodeIsValid)
+                .WithMessage(PostalCodeInvalid)
                 .NotEmpty()
                 .WithMessage(PostalCode);
+        }
+
+        private bool PostalCodeIsValid(string postalCode)
+        {
+            Regex Rgx = new Regex(@"^\d{5}-\d{3}$");
+            if (!Rgx.IsMatch(postalCode)) return false;
+
+            return true;
         }
     }
 }
