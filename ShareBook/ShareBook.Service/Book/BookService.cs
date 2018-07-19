@@ -95,10 +95,10 @@ namespace ShareBook.Service
             var result = Validate(entity);
             if (result.Success)
             {
-                entity.Image = ImageHelper.FormatImageName(entity.Image, entity.Id.ToString());
+                entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageSlug, entity.Id.ToString());
 
                 result.Value = _repository.Insert(entity);
-                result.Value.ImageUrl = _uploadService.UploadImage(entity.ImageBytes, entity.Image);
+                result.Value.ImageUrl = _uploadService.UploadImage(entity.ImageBytes, entity.ImageSlug);
 
                 // TODO - BUG CAMINHO DO TEMPLATE DE EMAIL
                 //_booksEmailService.SendEmailNewBookInserted(entity).Wait();

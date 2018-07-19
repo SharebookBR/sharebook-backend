@@ -32,7 +32,7 @@ namespace ShareBook.Test.Unit.Services
             {
                 Title = "Lord of the Rings",
                 Author = "J. R. R. Tolkien",
-                Image = "lotr.png",
+                ImageSlug = "lotr.png",
                 ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
                 User = user
             };

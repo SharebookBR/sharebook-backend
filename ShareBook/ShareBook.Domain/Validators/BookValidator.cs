@@ -25,7 +25,7 @@ namespace ShareBook.Domain.Validators
                .NotEmpty()
                .WithMessage(Author);
 
-            RuleFor(b => b.Image)
+            RuleFor(b => b.ImageSlug)
                .NotEmpty()
                .WithMessage(Image)
                .Must(HasImageExtension)

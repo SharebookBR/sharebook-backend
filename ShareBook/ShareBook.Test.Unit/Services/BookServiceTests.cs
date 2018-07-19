@@ -40,7 +40,7 @@ namespace ShareBook.Test.Unit.Services
                 {
                     Title = "Lord of the Rings",
                     Author = "J. R. R. Tolkien",
-                    Image = "lotr.png",
+                    ImageSlug = "lotr.png",
                     ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
                     UserId = new Guid("5489A967-9320-4350-E6FC-08D5CC8498F3"),
                 };
@@ -62,7 +62,7 @@ namespace ShareBook.Test.Unit.Services
             {
                 Title = "Lord of the Rings",
                 Author = "J. R. R. Tolkien",
-                Image = "lotr.png",
+                ImageSlug = "lotr.png",
                 ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
                 FreightOption = FreightOption.City,
                 CategoryId = Guid.NewGuid()
