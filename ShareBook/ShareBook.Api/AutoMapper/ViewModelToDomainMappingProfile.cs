@@ -15,9 +15,7 @@ namespace ShareBook.Api.AutoMapper
             #endregion
 
             #region [ User ]
-            //CreateMap<UserVM, User>()
-            //    .BeforeMap((src, dest) =>
-            //    dest.Email = src.Email.ToLower());
+            CreateMap<LoginUserVM, User>();
 
             CreateMap<UpdateUserVM, User>();
             #endregion

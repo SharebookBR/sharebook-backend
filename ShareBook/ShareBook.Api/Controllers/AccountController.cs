@@ -38,10 +38,13 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpPost("Login")]
-        public object Login([FromBody]User user,
+        public object Login([FromBody]LoginUserVM userVM,
             [FromServices]SigningConfigurations signingConfigurations,
             [FromServices]TokenConfigurations tokenConfigurations)
         {
+
+            var user = Mapper.Map<LoginUserVM, User>(userVM);
+
             var result = _userService.AuthenticationByEmailAndPassword(user);
 
             if (result.Success)
