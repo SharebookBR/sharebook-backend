@@ -25,7 +25,7 @@ namespace ShareBook.Domain.Validators
                .NotEmpty()
                .WithMessage(Author);
 
-            RuleFor(b => b.Image)
+            RuleFor(b => b.ImageName)
                .NotEmpty()
                .WithMessage(Image)
                .Must(HasImageExtension)
@@ -51,7 +51,7 @@ namespace ShareBook.Domain.Validators
 
         private bool HasImageExtension(string image)
         {
-            return (image.EndsWith(".png") || image.EndsWith(".jpg"));
+            return (!string.IsNullOrEmpty(image) && ( image.ToLower().EndsWith(".png") || image.ToLower().EndsWith(".jpg")));
         }
 
         private bool FreightOptionIsValid(FreightOption freightOption)

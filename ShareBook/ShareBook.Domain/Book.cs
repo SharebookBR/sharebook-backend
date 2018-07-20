@@ -13,7 +13,7 @@ namespace ShareBook.Domain
 
         public byte[] ImageBytes { get; set; }
 
-        public string Image { get; set; }
+        public string ImageSlug { get; set; }
 
         public FreightOption FreightOption { get; set; }
 
@@ -30,5 +30,7 @@ namespace ShareBook.Domain
         public virtual ICollection<BookUser> BookUsers { get; set; }
 
         public string ImageUrl { get; set; }
+
+        public string ImageName { get; set; }
     }
 }

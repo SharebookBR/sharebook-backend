@@ -20,7 +20,7 @@ namespace ShareBook.Repository.Mapping
                 .HasMaxLength(50)
                 .IsRequired();
 
-            entityBuilder.Property(t => t.Image)
+            entityBuilder.Property(t => t.ImageSlug)
                 .HasColumnType("varchar(100)")
                 .HasMaxLength(100)
                 .IsRequired();
@@ -28,6 +28,8 @@ namespace ShareBook.Repository.Mapping
             entityBuilder.Ignore(t => t.ImageBytes);
 
             entityBuilder.Ignore(t => t.ImageUrl);
+
+            entityBuilder.Ignore(t => t.ImageName);
 
             entityBuilder.HasOne(t => t.User);
 
