@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using ShareBook.Api.Filters;
@@ -16,23 +15,15 @@ namespace ShareBook.Api.Controllers
     [Route("api/[controller]")]
     [GetClaimsFilter]
     [EnableCors("AllowAllHeaders")]
-    public class BookController : Controller
+    public class BookController : BaseController<Book, CreateBookVM>
     {
         private readonly IBookUserService _bookUserService;
         private readonly IBookService _bookService;
 
-        public BookController(IBookService bookService, IBookUserService bookUserService) 
+        public BookController(IBookService bookService, IBookUserService bookUserService) : base(bookService)
         {
             _bookService = bookService;
             _bookUserService = bookUserService;
-        }
-
-        [Authorize("Bearer")]
-        [HttpPost]
-        public  Result<Book> Create([FromBody] CreateBookVM createBookVM)
-        {
-            var book = Mapper.Map<CreateBookVM, Book>(createBookVM);
-            return _bookService.Insert(book);
         }
 
         [Authorize("Bearer")]
@@ -40,6 +31,7 @@ namespace ShareBook.Api.Controllers
         [AuthorizationFilter(Permissions.Permission.AprovarLivro)]
         public Result<Book> Approve(string id) => _bookService.Approve(new Guid(id));
 
+        [Authorize("Bearer")]
         [HttpGet("FreightOptions")]
         public IList<dynamic> FreightOptions()
         {
@@ -54,14 +46,6 @@ namespace ShareBook.Api.Controllers
         public IList<Book> Random15Books() => _bookService.Random15Books();
 
         [Authorize("Bearer")]
-        [HttpPost("Request/{id}")]
-        public IActionResult RequestBook(string id)
-        {         
-            _bookUserService.Insert(new Guid(id));
-            return Ok();
-        }
-
-        [Authorize("Bearer")]
         [HttpGet("ByTitle/{title}")]
         public IList<Book> ByTitle(string title) => _bookService.ByTitle(title);
 
@@ -70,17 +54,11 @@ namespace ShareBook.Api.Controllers
         public IList<Book> ByAuthor(string author) => _bookService.ByAuthor(author);
 
         [Authorize("Bearer")]
-        [HttpGet("{page}/{items}")]
-        public PagedList<Book> Paged(int page, int items)
+        [HttpPost("Request/{id}")]
+        public IActionResult RequestBook(string id)
         {
-            return _bookService.GetAll(page, items);
-        }
-
-        [Authorize("Bearer")]
-        [HttpGet()]
-        public  PagedList<Book>GetAll()
-        {
-            return _bookService.GetAll(1, 15);
+            _bookUserService.Insert(new Guid(id));
+            return Ok();
         }
     }
 }
