@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using ShareBook.Api.Filters;
+using ShareBook.Api.ViewModels;
 using ShareBook.Domain.Common;
 using ShareBook.Service.Generic;
 using System;
@@ -10,34 +11,17 @@ using System.Linq.Expressions;
 
 namespace ShareBook.Api.Controllers
 {
-    public class BaseController<T> : BaseController<T, T, T>
+    public class BaseController<T> : Controller
         where T : BaseEntity
-    {
-        public BaseController(IBaseService<T> service) : base(service) { }
-    }
-
-    public class BaseController<T, R> : BaseController<T, R, T>
-        where T : BaseEntity
-        where R : class
-    {
-        public BaseController(IBaseService<T> service) : base(service) { }
-    }
-
-    [GetClaimsFilter]
-    [EnableCors("AllowAllHeaders")]
-    public class BaseController<T, R, A> : Controller
-        where T : BaseEntity
-        where R : class
-        where A : class
     {
         protected readonly IBaseService<T> _service;
-        private Expression<Func<T, object>> _defaultOrder = x => x.Id;
-        private bool HasRequestViewModel { get { return typeof(R) != typeof(T); } }
+        protected Expression<Func<T, object>> _defaultOrder = x => x.Id;
 
         public BaseController(IBaseService<T> service)
         {
             _service = service;
         }
+
         protected void SetDefault(Expression<Func<T, object>> defaultOrder)
         {
             _defaultOrder = defaultOrder;
@@ -54,6 +38,41 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpPost]
+        public virtual Result<T> Create([FromBody] T entity) => _service.Insert(entity);
+
+        [Authorize("Bearer")]
+        [HttpPut("{id}")]
+        public virtual Result<T> Update(Guid id, [FromBody] T entity)
+        {
+            entity.Id = id;
+            return _service.Update(entity);
+        }
+
+        [Authorize("Bearer")]
+        [HttpDelete("{id}")]
+        public Result Delete(Guid id) => _service.Delete(id);
+    }
+
+    public class BaseController<T, R> : BaseController<T, R, T>
+        where T : BaseEntity
+        where R : BaseViewModel
+    {
+        public BaseController(IBaseService<T> service) : base(service) { }
+    }
+
+    [GetClaimsFilter]
+    [EnableCors("AllowAllHeaders")]
+    public class BaseController<T, R, A> : BaseController<T>
+        where T : BaseEntity
+        where R : BaseViewModel
+        where A : class
+    {
+        private bool HasRequestViewModel { get { return typeof(R) != typeof(T); } }
+
+        public BaseController(IBaseService<T> service) : base(service) { }
+
+        [Authorize("Bearer")]
+        [HttpPost]
         public Result<A> Create([FromBody] R viewModel)
         {
             if (!HasRequestViewModel)
@@ -66,9 +85,11 @@ namespace ShareBook.Api.Controllers
         }
 
         [Authorize("Bearer")]
-        [HttpPut]
-        public Result<A> Update([FromBody] R viewModel)
+        [HttpPut("{id}")]
+        public Result<A> Update(Guid id, [FromBody] R viewModel)
         {
+            viewModel.Id = id;
+
             if (!HasRequestViewModel)
                 return Mapper.Map<Result<A>>(_service.Update(viewModel as T));
 
@@ -77,9 +98,5 @@ namespace ShareBook.Api.Controllers
             var resultVM = Mapper.Map<A>(result);
             return new Result<A>(resultVM);
         }
-
-        [Authorize("Bearer")]
-        [HttpDelete("{id}")]
-        public Result Delete(string id) => _service.Delete(new Guid(id));
     }
 }
