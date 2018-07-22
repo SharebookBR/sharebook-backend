@@ -36,17 +36,17 @@ namespace ShareBook.Repository
             {
                 var original = emptyJson;
                 var updated = JsonConvert.SerializeObject(item.CurrentValues.Properties.ToDictionary(pn => pn.Name, pn => item.CurrentValues[pn]));
+                var creationDate = DateTime.Now;
 
                 if (item.State == EntityState.Modified)
                 {
                     var dbValues = await item.GetDatabaseValuesAsync();
                     original = JsonConvert.SerializeObject(dbValues.Properties.ToDictionary(pn => pn.Name, pn => dbValues[pn]));
-                }
-                else if(item.State == EntityState.Added)
-                {
-                    item.Property("CreationDate").CurrentValue = DateTime.Now;
+
+                    creationDate = dbValues.GetValue<DateTime>("CreationDate");
                 }
 
+                item.Property("CreationDate").CurrentValue = creationDate;
 
                 string jsonDiff = jdp.Diff(original, updated);
 
