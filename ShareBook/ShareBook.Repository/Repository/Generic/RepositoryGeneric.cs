@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ShareBook.Domain.Common;
+using ShareBook.Domain.Exceptions;
 using System;
 using System.Linq;
 using System.Linq.Expressions;
@@ -58,6 +59,8 @@ namespace ShareBook.Repository
         public async Task DeleteAsync(params object[] keyValues)
         {
             var entity = await GetAsync(keyValues);
+            if (entity == null)
+                throw new ShareBookException(ShareBookException.Error.NotFound);
             await DeleteAsync(entity);
         }
         public async Task DeleteAsync(TEntity entity)

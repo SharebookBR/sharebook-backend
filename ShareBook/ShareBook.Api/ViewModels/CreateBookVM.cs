@@ -3,7 +3,7 @@ using System;
 
 namespace ShareBook.Api.ViewModels
 {
-    public class CreateBookVM
+    public class CreateBookVM : BaseViewModel
     {
         public string Title { get; set; }
 

@@ -45,6 +45,7 @@ namespace ShareBook.Api
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new Info { Title = "SHAREBOOK API", Version = "v1" });
+                c.ResolveConflictingActions(x => x.First());
                 c.AddSecurityDefinition("Bearer", new ApiKeyScheme
                 {
                     Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",

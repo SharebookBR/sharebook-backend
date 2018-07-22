@@ -1,8 +1,10 @@
-﻿using ShareBook.Domain.Enums;
+﻿using Newtonsoft.Json;
+using ShareBook.Domain.Enums;
+using System;
 
 namespace ShareBook.Api.ViewModels
 {
-    public class UpdateUserVM
+    public class UpdateUserVM : BaseViewModel
     {
         public string Name { get; set; }
         public string Email { get; set; }
