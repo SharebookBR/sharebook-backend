@@ -55,7 +55,7 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpPost]
-        public Result<A> Create([FromBody] R viewModel)
+        public virtual Result<A> Create([FromBody] R viewModel)
         {
             if (!HasRequestViewModel)
                 return Mapper.Map<Result<A>>(_service.Insert(viewModel as T));
@@ -68,7 +68,7 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpPut("{id}")]
-        public Result<A> Update(Guid id, [FromBody] R viewModel)
+        public virtual Result<A> Update(Guid id, [FromBody] R viewModel)
         {
             viewModel.Id = id;
 
