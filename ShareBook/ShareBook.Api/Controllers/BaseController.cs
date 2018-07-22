@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using ShareBook.Api.Filters;
+using ShareBook.Api.ViewModels;
 using ShareBook.Domain.Common;
 using ShareBook.Service.Generic;
 using System;
@@ -18,7 +19,7 @@ namespace ShareBook.Api.Controllers
 
     public class BaseController<T, R> : BaseController<T, R, T>
         where T : BaseEntity
-        where R : class
+        where R : BaseViewModel
     {
         public BaseController(IBaseService<T> service) : base(service) { }
     }
@@ -27,7 +28,7 @@ namespace ShareBook.Api.Controllers
     [EnableCors("AllowAllHeaders")]
     public class BaseController<T, R, A> : Controller
         where T : BaseEntity
-        where R : class
+        where R : IIdProperty
         where A : class
     {
         protected readonly IBaseService<T> _service;
@@ -66,9 +67,11 @@ namespace ShareBook.Api.Controllers
         }
 
         [Authorize("Bearer")]
-        [HttpPut]
-        public Result<A> Update([FromBody] R viewModel)
+        [HttpPut("{id}")]
+        public Result<A> Update(Guid id, [FromBody] R viewModel)
         {
+            viewModel.Id = id;
+
             if (!HasRequestViewModel)
                 return Mapper.Map<Result<A>>(_service.Update(viewModel as T));
 
@@ -80,6 +83,6 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpDelete("{id}")]
-        public Result Delete(string id) => _service.Delete(new Guid(id));
+        public Result Delete(Guid id) => _service.Delete(id);
     }
 }
