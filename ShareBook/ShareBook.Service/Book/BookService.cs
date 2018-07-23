@@ -99,7 +99,7 @@ namespace ShareBook.Service
 
                 result.Value = _repository.Insert(entity);
                 
-                result.Value.ImageUrl = _uploadService.UploadImage(entity.ImageBytes, entity.ImageSlug);
+                result.Value.ImageUrl = _uploadService.UploadImage(entity.ImageBytes, entity.ImageSlug, "Books");
                 result.Value.ImageBytes = null;
 
                 // TODO - BUG CAMINHO DO TEMPLATE DE EMAIL

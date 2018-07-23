@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
+using ShareBook.Helper.Image;
 using ShareBook.Service.Server;
 using System;
 using System.IO;
@@ -17,21 +18,18 @@ namespace ShareBook.Service.Upload
             _serverSettings = serverSettings.Value;
         }
          
-        public string UploadImage(byte[] imageBytes, string imageName)
+        public string UploadImage(byte[] imageBytes, string imageName, string lastDirectory)
         {
-            var directory = AppDomain.CurrentDomain.BaseDirectory + _imageSettings.ImagePath;
-            if (!Directory.Exists(directory))
-                Directory.CreateDirectory(directory);                  
+            var dinamicDirectory = Path.Combine(_imageSettings.ImagePath, lastDirectory);
 
-            var imageCompletePath = Path.Combine(directory, imageName);
+            var directoryBase = AppDomain.CurrentDomain.BaseDirectory + dinamicDirectory;
+            if (!Directory.Exists(directoryBase))
+                Directory.CreateDirectory(directoryBase);                  
+
+            var imageCompletePath = Path.Combine(directoryBase, imageName);
             File.WriteAllBytes(imageCompletePath, imageBytes);
 
-            return GetImageUrl(_serverSettings.DefaultUrl, _imageSettings.ImagePath, imageName);
-        }
-
-        private string GetImageUrl(string serverUrl, string imagePath, string imageName)
-        {
-            return serverUrl + imagePath.Replace("wwwroot", "") + "/" + imageName;
-        }
+            return ImageHelper.GetImageUrl(imageName, dinamicDirectory, _serverSettings.DefaultUrl);
+        }      
     }
 }
