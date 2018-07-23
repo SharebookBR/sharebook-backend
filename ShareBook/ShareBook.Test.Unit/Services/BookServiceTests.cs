@@ -46,7 +46,7 @@ namespace ShareBook.Test.Unit.Services
                 };
             });
 
-            uploadServiceMock.Setup(service => service.UploadImage(null, null));
+            uploadServiceMock.Setup(service => service.UploadImage(null, null, null));
 
             bookServiceMock.Setup(service => service.Insert(It.IsAny<Book>())).Verifiable();
         }

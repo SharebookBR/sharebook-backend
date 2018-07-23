@@ -11,5 +11,10 @@ namespace ShareBook.Helper.Image
 
             return Path.GetFileName(newFileName);
         }
+
+        public static string GetImageUrl(string imageName, string directory, string serverUrl)
+        {
+            return serverUrl + directory.Replace("wwwroot", "") + "/" + imageName;
+        }
     }
 }
