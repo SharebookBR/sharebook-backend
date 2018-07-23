@@ -26,12 +26,12 @@ namespace ShareBook.Service.Upload
             var imageCompletePath = Path.Combine(directory, imageName);
             File.WriteAllBytes(imageCompletePath, imageBytes);
 
-            return GetImageUrl(_serverSettings.DefaultUrl, _imageSettings.ImagePath, imageName);
+            return GetImageUrl(imageName);
         }
 
-        private string GetImageUrl(string serverUrl, string imagePath, string imageName)
+        public string GetImageUrl(string imageName)
         {
-            return serverUrl + imagePath.Replace("wwwroot", "") + "/" + imageName;
+            return _serverSettings.DefaultUrl + _imageSettings.ImagePath.Replace("wwwroot", "") + "/" + imageName;
         }
     }
 }
