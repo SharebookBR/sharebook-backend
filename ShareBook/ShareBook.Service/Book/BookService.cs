@@ -67,6 +67,7 @@ namespace ShareBook.Service
                     Id = u.Id,
                     Title = u.Title,
                     Author = u.Author,
+                    Approved = u.Approved,
                     FreightOption = u.FreightOption,
                     ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
                     User = new User()
@@ -87,6 +88,7 @@ namespace ShareBook.Service
                     Title = u.Title,
                     Author = u.Author,
                     FreightOption = u.FreightOption,
+                    Approved = u.Approved,
                     ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
                     User = new User()
                     {
