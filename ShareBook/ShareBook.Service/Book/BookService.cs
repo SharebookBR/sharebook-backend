@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.Enums;
@@ -59,7 +61,24 @@ namespace ShareBook.Service
 
         public IList<Book> Top15NewBooks() => _repository.Get().Where(x => x.Approved).OrderByDescending(x => x.CreationDate).Take(15).ToList();
 
-        public IList<Book> Random15Books() => _repository.Get().Where(x => x.Approved).OrderBy(x => Guid.NewGuid()).Take(15).ToList();
+        public IList<Book> Random15Books()
+        {
+           return _repository.Get().Where(x => x.Approved).OrderBy(x => Guid.NewGuid()).Take(15)
+                .Select(u => new Book
+                {
+                    Id = u.Id,
+                    Title = u.Title,
+                    Author = u.Author,
+                    FreightOption = u.FreightOption,
+                    ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
+                    User = new User()
+                    {
+                        Id = u.User.Id,
+                        Email = u.User.Email,
+                        Name = u.User.Name
+                    }
+                }).ToList();
+        }
 
         public PagedList<Book> GetAll(int page, int items)
         {
