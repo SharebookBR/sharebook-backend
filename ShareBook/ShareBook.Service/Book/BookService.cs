@@ -59,11 +59,28 @@ namespace ShareBook.Service
             return enumValues;
         }
 
-        public IList<Book> Top15NewBooks() => _repository.Get().Where(x => x.Approved).OrderByDescending(x => x.CreationDate).Take(15).ToList();
+        public IList<Book> Top15NewBooks()
+        {
+           return  _repository.Get().Where(x => x.Approved).OrderByDescending(x => x.CreationDate).Take(15)
+                .Select(u => new Book
+                {
+                    Id = u.Id,
+                    Title = u.Title,
+                    Author = u.Author,
+                    FreightOption = u.FreightOption,
+                    ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
+                    User = new User()
+                    {
+                        Id = u.User.Id,
+                        Email = u.User.Email,
+                        Name = u.User.Name
+                    }
+                }).ToList();
+        }
 
         public IList<Book> Random15Books()
         {
-           return _repository.Get().Where(x => x.Approved).OrderBy(x => Guid.NewGuid()).Take(15)
+           return _repository.Get().Where(x => x.Approved).OrderByDescending(x => x.CreationDate).Skip(15).Take(15)
                 .Select(u => new Book
                 {
                     Id = u.Id,
