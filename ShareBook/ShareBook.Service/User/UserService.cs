@@ -13,8 +13,12 @@ namespace ShareBook.Service
 {
     public class UserService : BaseService<User>, IUserService
     {
+        private readonly IUserRepository _userRepository;
         #region Public
-        public UserService(IUserRepository userRepository, IUnitOfWork unitOfWork, IValidator<User> validator) : base(userRepository, unitOfWork, validator) { }
+        public UserService(IUserRepository userRepository, IUnitOfWork unitOfWork, IValidator<User> validator) : base(userRepository, unitOfWork, validator)
+        {
+            _userRepository = userRepository;
+        }
 
         public Result<User> AuthenticationByEmailAndPassword(User user)
         {
@@ -88,31 +92,31 @@ namespace ShareBook.Service
         {
             return _repository.Get().Where(x => x.Profile == Domain.Enums.Profile.Administrator);
         }
-        #endregion
 
-        #region Private
-
-        private Result<User> ChangeUserPassword(User user, string oldPassword)
+        public Result<User> ChangeUserPassword(User user, string oldPassword)
         {
-            Result<User> result = Validate(user, x =>  x.Password);
+            Result<User> result = Validate(user, x => x.Password, x => x.Email);
 
-            if (result.Success == false)
-            {
-                return result;
-            }
+            if (result.Success == false) return result;
 
-            var resultUserAuth = this.AuthenticationByEmailAndPassword(new User() { Email = user.Email, Password = oldPassword });
+            var resultUserAuth = this.AuthenticationByEmailAndPassword(new User() { Email = user.Email, Password = user.Password });
 
-            if (resultUserAuth.Success == true)
+            if (resultUserAuth.Success)
             {
                 var userAuth = resultUserAuth.Value;
-                userAuth.ChangePassword(user.Password);
+                userAuth.ChangePassword(oldPassword);
                 userAuth = GetUserEncryptedPass(userAuth);
-                resultUserAuth.Value = userAuth;               
+                userAuth = _userRepository.UpdatePassword(userAuth);
+                resultUserAuth.Value = UserCleanup(userAuth);
+
             }
 
             return resultUserAuth;
         }
+        #endregion
+
+
+        #region Private
 
         private bool IsValidPassword(User user, string decryptedPass)
         {

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using ShareBook.Api.ViewModels;
 using ShareBook.Domain;
+using ShareBook.Domain.Common;
 using ShareBook.Repository.Infra.CrossCutting.Identity;
 using ShareBook.Repository.Infra.CrossCutting.Identity.Configurations;
 using ShareBook.Repository.Infra.CrossCutting.Identity.Interfaces;
@@ -75,6 +76,17 @@ namespace ShareBook.Api.Controllers
                 return _signManager.GenerateTokenAndSetIdentity(result.Value, signingConfigurations, tokenConfigurations);
 
             return result;
+        }
+
+        [HttpPut("ChangePassword")]
+        public Result<User> ChangePassword([FromBody]ChangePasswordUserVM changePasswordUserVM)
+        {
+            var user = new User(){
+                Email = changePasswordUserVM.Email,
+                Password = changePasswordUserVM.NewPassword
+            };
+
+           return  _userService.ChangeUserPassword(user, changePasswordUserVM.OldPassword);
         }
     }
 }
