@@ -10,28 +10,28 @@ using System;
 
 namespace ShareBook.Api.Controllers
 {
-    public class BaseCRUDController<T> : BaseCRUDController<T, T, T>
+    public class BaseCrudController<T> : BaseCrudController<T, T, T>
         where T : BaseEntity
     {
-        public BaseCRUDController(IBaseService<T> service) : base(service) { }
+        public BaseCrudController(IBaseService<T> service) : base(service) { }
     }
 
-    public class BaseCRUDController<T, R> : BaseDeleteController<T, R, T>
+    public class BaseCrudController<T, R> : BaseDeleteController<T, R, T>
        where T : BaseEntity
        where R : BaseViewModel
     {
-        public BaseCRUDController(IBaseService<T> service) : base(service) { }
+        public BaseCrudController(IBaseService<T> service) : base(service) { }
     }
 
     [GetClaimsFilter]
     [EnableCors("AllowAllHeaders")]
-    public class BaseCRUDController<T, R, A> : BaseDeleteController<T, R, A>
+    public class BaseCrudController<T, R, A> : BaseDeleteController<T, R, A>
         where T : BaseEntity
         where R : IIdProperty
         where A : class
     {
 
-        public BaseCRUDController(IBaseService<T> service) : base(service) { }
+        public BaseCrudController(IBaseService<T> service) : base(service) { }
 
         [Authorize("Bearer")]
         [HttpPost]

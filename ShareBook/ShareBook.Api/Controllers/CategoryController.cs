@@ -6,7 +6,7 @@ using ShareBook.Service;
 namespace ShareBook.Api.Controllers
 {
     [Route("api/[controller]")]
-    public class CategoryController : BaseCRUDController<Category>
+    public class CategoryController : BaseCrudController<Category>
     {
         public CategoryController(ICategoryService categoryService) : base(categoryService)
         {
