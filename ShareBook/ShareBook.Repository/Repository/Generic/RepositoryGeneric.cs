@@ -49,7 +49,7 @@ namespace ShareBook.Repository
 
             return entity;
         }
-        public async Task<TEntity> UpdateAsync(TEntity entity)
+        public virtual async Task<TEntity> UpdateAsync(TEntity entity)
         {
             _context.Update(entity);
             await _context.SaveChangesAsync();

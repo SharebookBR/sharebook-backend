@@ -144,6 +144,23 @@ namespace ShareBook.Service
             return result;
         }
 
+        public override Result<Book> Update(Book entity)
+        {
+
+            Result<Book> result = Validate(entity, x =>
+                x.Title,
+                x => x.Author,
+                x => x.Approved,
+                x => x.FreightOption,
+                x => x.Id);
+
+            if (!result.Success) return result;
+
+            result.Value = _repository.UpdateAsync(entity).Result;
+
+            return result;
+        }
+
         public IList<Book> ByTitle(string title) => _repository.Get().Where(x => x.Title.Contains(title) && x.Approved == true).ToList();
 
         public IList<Book> ByAuthor(string author) => _repository.Get().Where(x => x.Author.Contains(author) && x.Approved == true).ToList();

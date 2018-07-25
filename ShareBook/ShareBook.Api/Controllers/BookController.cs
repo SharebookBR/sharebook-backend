@@ -64,7 +64,7 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpPost]
-        public virtual Result<Book> Create([FromBody] CreateBookVM createBookVM)
+        public Result<Book> Create([FromBody] CreateBookVM createBookVM)
         {
             var book = Mapper.Map<Book>(createBookVM);
             return _service.Insert(book);
@@ -72,7 +72,7 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpPut("{id}")]
-        public virtual Result<Book> Update(Guid id, [FromBody] UpdateBookVM updateBookVM)
+        public Result<Book> Update(Guid id, [FromBody] UpdateBookVM updateBookVM)
         {
             updateBookVM.Id = id;
             var book = Mapper.Map<Book>(updateBookVM);
