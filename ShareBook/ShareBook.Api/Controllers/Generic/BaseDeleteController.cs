@@ -15,7 +15,7 @@ namespace ShareBook.Api.Controllers
         public BaseDeleteController(IBaseService<T> service) : base(service) { }
     }
 
-    public class BaseDeleteController<T, R> : BaseController<T, R, T>
+    public class BaseDeleteController<T, R> : BaseDeleteController<T, R, T>
        where T : BaseEntity
        where R : BaseViewModel
     {

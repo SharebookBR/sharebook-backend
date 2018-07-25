@@ -12,6 +12,7 @@ namespace ShareBook.Api.AutoMapper
         {
             #region [ Book ]
             CreateMap<CreateBookVM, Book>().ReverseMap();
+            CreateMap<UpdateBookVM, Book>().ReverseMap();
             #endregion
 
             #region [ User ]
