@@ -50,7 +50,7 @@ namespace ShareBook.Test.Unit.Helpers
         public void ImageUrlValid()
         {
             var expected = @"http://dev.sharebook.com.br/Images/Books/image.jpg";
-            var actual = ImageHelper.GetImageUrl("image.jpg", "wwwroot/Images/Books", "http://dev.sharebook.com.br");
+            var actual = ImageHelper.GenerateImageUrl("image.jpg", "wwwroot/Images/Books", "http://dev.sharebook.com.br");
 
             Assert.Equal(expected, actual);
         }

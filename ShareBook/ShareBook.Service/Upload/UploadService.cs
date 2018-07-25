@@ -29,7 +29,13 @@ namespace ShareBook.Service.Upload
             var imageCompletePath = Path.Combine(directoryBase, imageName);
             File.WriteAllBytes(imageCompletePath, imageBytes);
 
-            return ImageHelper.GetImageUrl(imageName, dinamicDirectory, _serverSettings.DefaultUrl);
-        }      
+            return GetImageUrl(imageName, lastDirectory);
+        }
+        
+        public string GetImageUrl(string imageName, string lastDirectory)
+        {
+            var dinamicDirectory = _imageSettings.ImagePath + "/" + lastDirectory;
+            return ImageHelper.GenerateImageUrl(imageName, dinamicDirectory, _serverSettings.DefaultUrl);
+        }
     }
 }
