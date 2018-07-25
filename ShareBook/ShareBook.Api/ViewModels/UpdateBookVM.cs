@@ -1,4 +1,5 @@
-﻿using ShareBook.Domain.Enums;
+﻿using Newtonsoft.Json;
+using ShareBook.Domain.Enums;
 using System;
 
 namespace ShareBook.Api.ViewModels
@@ -14,6 +15,9 @@ namespace ShareBook.Api.ViewModels
         public bool Approved { get; set; }
 
         public string ImageName { get; set; }
+
+        [JsonIgnore]
+        public byte[] ImageBytes { get; set; }
 
         public FreightOption FreightOption { get; set; }
     }
