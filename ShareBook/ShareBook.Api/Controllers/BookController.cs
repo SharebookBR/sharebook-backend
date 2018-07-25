@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using ShareBook.Api.Filters;
@@ -15,7 +16,7 @@ namespace ShareBook.Api.Controllers
     [Route("api/[controller]")]
     [GetClaimsFilter]
     [EnableCors("AllowAllHeaders")]
-    public class BookController : BaseController<Book, CreateBookVM>
+    public class BookController : BaseDeleteController<Book, BaseViewModel>
     {
         private readonly IBookUserService _bookUserService;
         private readonly IBookService _bookService;
@@ -59,6 +60,25 @@ namespace ShareBook.Api.Controllers
         {
             _bookUserService.Insert(new Guid(id));
             return Ok();
+        }
+
+        [Authorize("Bearer")]
+        [HttpPost]
+        public Result<Book> Create([FromBody] CreateBookVM createBookVM)
+        {
+            var book = Mapper.Map<Book>(createBookVM);
+            return _service.Insert(book);
+        }
+
+        [Authorize("Bearer")]
+        [HttpPut("{id}")]
+        [AuthorizationFilter(Permissions.Permission.AprovarLivro)]
+        public Result<Book> Update(Guid id, [FromBody] UpdateBookVM updateBookVM)
+        {
+            updateBookVM.Id = id;
+            var book = Mapper.Map<Book>(updateBookVM);
+
+            return _service.Update(book);
         }
     }
 }

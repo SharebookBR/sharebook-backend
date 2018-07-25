@@ -67,6 +67,7 @@ namespace ShareBook.Service
                     Id = u.Id,
                     Title = u.Title,
                     Author = u.Author,
+                    Approved = u.Approved,
                     FreightOption = u.FreightOption,
                     ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
                     User = new User()
@@ -87,6 +88,7 @@ namespace ShareBook.Service
                     Title = u.Title,
                     Author = u.Author,
                     FreightOption = u.FreightOption,
+                    Approved = u.Approved,
                     ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
                     User = new User()
                     {
@@ -141,6 +143,23 @@ namespace ShareBook.Service
                 // TODO - BUG CAMINHO DO TEMPLATE DE EMAIL
                 //_booksEmailService.SendEmailNewBookInserted(entity).Wait();
             }
+            return result;
+        }
+
+        public override Result<Book> Update(Book entity)
+        {
+
+            Result<Book> result = Validate(entity, x =>
+                x.Title,
+                x => x.Author,
+                x => x.Approved,
+                x => x.FreightOption,
+                x => x.Id);
+
+            if (!result.Success) return result;
+
+            result.Value = _repository.UpdateAsync(entity).Result;
+
             return result;
         }
 

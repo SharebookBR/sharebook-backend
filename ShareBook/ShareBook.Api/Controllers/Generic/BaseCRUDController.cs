@@ -7,51 +7,31 @@ using ShareBook.Api.ViewModels;
 using ShareBook.Domain.Common;
 using ShareBook.Service.Generic;
 using System;
-using System.Linq.Expressions;
 
 namespace ShareBook.Api.Controllers
 {
-    public class BaseController<T> : BaseController<T, T, T>
+    public class BaseCrudController<T> : BaseCrudController<T, T, T>
         where T : BaseEntity
     {
-        public BaseController(IBaseService<T> service) : base(service) { }
+        public BaseCrudController(IBaseService<T> service) : base(service) { }
     }
 
-    public class BaseController<T, R> : BaseController<T, R, T>
-        where T : BaseEntity
-        where R : BaseViewModel
+    public class BaseCrudController<T, R> : BaseDeleteController<T, R, T>
+       where T : BaseEntity
+       where R : BaseViewModel
     {
-        public BaseController(IBaseService<T> service) : base(service) { }
+        public BaseCrudController(IBaseService<T> service) : base(service) { }
     }
 
     [GetClaimsFilter]
     [EnableCors("AllowAllHeaders")]
-    public class BaseController<T, R, A> : Controller
+    public class BaseCrudController<T, R, A> : BaseDeleteController<T, R, A>
         where T : BaseEntity
         where R : IIdProperty
         where A : class
     {
-        protected readonly IBaseService<T> _service;
-        private Expression<Func<T, object>> _defaultOrder = x => x.Id;
-        private bool HasRequestViewModel { get { return typeof(R) != typeof(T); } }
 
-        public BaseController(IBaseService<T> service)
-        {
-            _service = service;
-        }
-        protected void SetDefault(Expression<Func<T, object>> defaultOrder)
-        {
-            _defaultOrder = defaultOrder;
-        }
-
-        [HttpGet()]
-        public virtual PagedList<T> GetAll() => Paged(1, 15);
-
-        [HttpGet("{page}/{items}")]
-        public virtual PagedList<T> Paged(int page, int items) => _service.Get(x => true, _defaultOrder, page, items);
-
-        [HttpGet("{id}")]
-        public T GetById(string id) => _service.Get(new Guid(id));
+        public BaseCrudController(IBaseService<T> service) : base(service) { }
 
         [Authorize("Bearer")]
         [HttpPost]
@@ -80,9 +60,5 @@ namespace ShareBook.Api.Controllers
             var resultVM = Mapper.Map<A>(result);
             return new Result<A>(resultVM);
         }
-
-        [Authorize("Bearer")]
-        [HttpDelete("{id}")]
-        public Result Delete(Guid id) => _service.Delete(id);
     }
 }
