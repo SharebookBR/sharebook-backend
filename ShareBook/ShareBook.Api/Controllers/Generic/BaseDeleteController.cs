@@ -9,7 +9,7 @@ using System;
 
 namespace ShareBook.Api.Controllers
 {
-    public class BaseDeleteController<T> :  BaseController<T>
+    public class BaseDeleteController<T> : BaseDeleteController<T, T, T>
         where T : BaseEntity
     {
         public BaseDeleteController(IBaseService<T> service) : base(service) { }
