@@ -1,8 +1,6 @@
-﻿using ShareBook.Domain.Enums;
+﻿using Newtonsoft.Json;
+using ShareBook.Domain.Enums;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace ShareBook.Api.ViewModels
 {
@@ -18,6 +16,7 @@ namespace ShareBook.Api.ViewModels
 
         public string ImageName { get; set; }
 
+        [JsonIgnore]
         public byte[] ImageBytes { get; set; }
 
         public FreightOption FreightOption { get; set; }
