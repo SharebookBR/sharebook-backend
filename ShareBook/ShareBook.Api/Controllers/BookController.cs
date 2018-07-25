@@ -72,6 +72,7 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpPut("{id}")]
+        [AuthorizationFilter(Permissions.Permission.AprovarLivro)]
         public Result<Book> Update(Guid id, [FromBody] UpdateBookVM updateBookVM)
         {
             updateBookVM.Id = id;
