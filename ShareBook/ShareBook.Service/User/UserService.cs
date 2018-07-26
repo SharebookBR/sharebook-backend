@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using FluentValidation;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
@@ -45,6 +46,8 @@ namespace ShareBook.Service
 
         public override Result<User> Insert(User user)
         {
+            user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+
             var result = Validate(user);
 
             if (_repository.Any(x => x.Email == user.Email))
@@ -61,12 +64,14 @@ namespace ShareBook.Service
 
         public override Result<User> Update(User user)
         {
+            user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             Result<User> result = Validate(user, x =>
                 x.Email,
                 x => x.Linkedin,
                 x => x.Name,
                 x => x.Phone,
-                x => x.PostalCode);
+                x => x.PostalCode,
+                x => x.Id);
 
             if (result.Success == false) return result;
 
@@ -93,30 +98,45 @@ namespace ShareBook.Service
             return _repository.Get().Where(x => x.Profile == Domain.Enums.Profile.Administrator);
         }
 
-        public Result<User> ChangeUserPassword(User user, string oldPassword)
+        public Result<User> ChangeUserPassword(User user, string newPassword)
         {
-            Result<User> result = Validate(user, x => x.Password, x => x.Email);
-
-            if (result.Success == false) return result;
-
-            var resultUserAuth = this.AuthenticationByEmailAndPassword(new User() { Email = user.Email, Password = user.Password });
+            user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);       
+            var resultUserAuth = this.AuthenticationByIdAndPassword(user);
 
             if (resultUserAuth.Success)
             {
                 var userAuth = resultUserAuth.Value;
-                userAuth.ChangePassword(oldPassword);
+                userAuth.ChangePassword(newPassword);
                 userAuth = GetUserEncryptedPass(userAuth);
                 userAuth = _userRepository.UpdatePassword(userAuth);
                 resultUserAuth.Value = UserCleanup(userAuth);
-
             }
-
             return resultUserAuth;
         }
         #endregion
 
 
         #region Private
+
+        private Result<User> AuthenticationByIdAndPassword(User user)
+        {
+            var result = Validate(user, x => x.Id, x => x.Password);
+
+            string decryptedPass = user.Password;
+
+            user = _repository.Get()
+                .Where(e => e.Id == user.Id)
+                .FirstOrDefault();
+
+            if (user == null || !IsValidPassword(user, decryptedPass))
+            {
+                result.Messages.Add("Senha incorreta");
+                return result;
+            }
+
+            result.Value = UserCleanup(user);
+            return result;
+        }
 
         private bool IsValidPassword(User user, string decryptedPass)
         {
