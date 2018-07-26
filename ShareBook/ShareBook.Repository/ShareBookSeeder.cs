@@ -69,12 +69,12 @@ namespace ShareBook.Repository
                 var eco = new Category() { Name = "Economia" };
                 var inf = new Category() { Name = "Informática" };
 
-                var lordTheRings = new Book()
+                var book1 = new Book()
                 {
-                    Author = "J. R. R. Tolkien",
-                    Title = "The Lord of the Rings: The Fellowship of the Ring",
+                    Author = "Julio Verne",
+                    Title = "Volta ao mundo em 80 dias",
                     FreightOption = FreightOption.World,
-                    ImageSlug = "Fellowship.jpeg",
+                    ImageSlug = "volta-ao-mundo-em-80-dias.jpg",
                     User = donor,
                     Approved = true,
                     Category = adv,
@@ -82,90 +82,286 @@ namespace ShareBook.Repository
                 };
 
 
-                var got = new Book()
+                var book2 = new Book()
                 {
-                    Author = "George R.R. Martin",
-                    Title = "Game of Thrones",
+                    Author = "Robert Aley",
+                    Title = "Teoria discursiva do direito",
                     FreightOption = FreightOption.State,
-                    ImageSlug = "got.jpeg",
+                    ImageSlug = "teoria-discursiva-do-direito.jpg",
+                    User = donor,
+                    Approved = true,
+                    Category = dir,
+                    CreationDate = DateTime.Now.AddDays(-2)
+                };
+
+                var book3 = new Book()
+                {
+                    Author = "J. R. R. Tolkien",
+                    Title = "The book of jonah",
+                    FreightOption = FreightOption.State,
+                    ImageSlug = "the-book-of-jonah.jpg",
                     User = donor,
                     Approved = true,
                     Category = adv,
                     CreationDate = DateTime.Now.AddDays(-2)
                 };
 
-                var cleanCode = new Book()
+                var book4 = new Book()
                 {
-                    Author = "Robert Cecil Martin",
-                    Title = "Clean Code",
+                    Author = "J. R. R. Tolkien",
+                    Title = "The Hobbit",
                     FreightOption = FreightOption.State,
-                    ImageSlug = "cleancode.jpeg",
+                    ImageSlug = "the-hobbit.jpg",
                     User = donor,
                     Approved = true,
-                    Category = inf,
+                    Category = adv,
                     CreationDate = DateTime.Now.AddDays(-2)
                 };
 
-                var agile = new Book()
+                var book5 = new Book()
                 {
-                    Author = "Agile Principles, Patterns, and Practices in C#",
-                    Title = "Robert Cecil Martin",
-                    FreightOption = FreightOption.WithoutFreight,
-                    ImageSlug = "agile.jpeg",
+                    Author = "J. R. R. Tolkien",
+                    Title = "The Hobbit The And Back Again",
+                    FreightOption = FreightOption.State,
+                    ImageSlug = "the-hobbit-there-and-back-again.jpg",
                     User = donor,
-                    Approved = false,
+                    Approved = true,
+                    Category = adv,
+                    CreationDate = DateTime.Now.AddDays(-2)
+                };
+
+                var book6 = new Book()
+                {
+                    Author = "Zigurds",
+                    Title = "Programando o Android",
+                    FreightOption = FreightOption.State,
+                    ImageSlug = "programando-o-android.jpg",
+                    User = donor,
+                    Approved = true,
                     Category = inf,
+                    CreationDate = DateTime.Now.AddDays(-1)
+                };
+
+                var book7 = new Book()
+                {
+                    Author = "J. R. R. Tolkien",
+                    Title = "Senhor dos Aneis",
+                    FreightOption = FreightOption.Country,
+                    ImageSlug = "senhor-dos-aneis.jpg",
+                    User = donor,
+                    Approved = true,
+                    Category = adv,
+                    CreationDate = DateTime.Now.AddDays(-5)
+                };
+
+                var book8 = new Book()
+                {
+                    Author = "Esphyr",
+                    Title = "Se Venden Gorras",
+                    FreightOption = FreightOption.City,
+                    ImageSlug = "se-venden-gorras.jpg",
+                    User = donor,
+                    Approved = true,
+                    Category = adv,
+                    CreationDate = DateTime.Now.AddDays(-6)
+                };
+
+                var book9 = new Book()
+                {
+                    Author = "Adam",
+                    Title = "Star Wars",
+                    FreightOption = FreightOption.World,
+                    ImageSlug = "star-wars.jpg",
+                    User = donor,
+                    Approved = true,
+                    Category = adv,
+                    CreationDate = DateTime.Now.AddDays(-8)
+                };
+
+
+                var book10 = new Book()
+                {
+                    Author = "Brandon Rhodes",
+                    Title = "Programação de Redes com Python",
+                    FreightOption = FreightOption.State,
+                    ImageSlug = "programacao-de-redes-com-python.jpg",
+                    User = donor,
+                    Approved = true,
+                    Category = inf,
+                    CreationDate = DateTime.Now.AddDays(-5)
+                };
+
+                var book11 = new Book()
+                {
+                    Author = "Edgard",
+                    Title = "Programação de jogo Android",
+                    FreightOption = FreightOption.WithoutFreight,
+                    ImageSlug = "programacao-de-jogo-android.jpg",
+                    User = donor,
+                    Approved = true,
+                    Category = inf,
+                    CreationDate = DateTime.Now.AddDays(-10)
+                };
+
+                var book12 = new Book()
+                {
+                    Author = "Rick Riordan",
+                    Title = "Percy Jackson e os Olimpianos",
+                    FreightOption = FreightOption.State,
+                    ImageSlug = "percy-jackson-e-os-olimpianos.jpg",
+                    User = donor,
+                    Approved = true,
+                    Category = adv,
+                    CreationDate = DateTime.Now.AddDays(-2)
+                };
+
+                var book13 = new Book()
+                {
+                    Author = "Bendis",
+                    Title = "Os Vingadores",
+                    FreightOption = FreightOption.Country,
+                    ImageSlug = "os-vingadores.jpg",
+                    User = donor,
+                    Approved = true,
+                    Category = adv,
+                    CreationDate = DateTime.Now.AddDays(-9)
+                };
+
+                var book14 = new Book()
+                {
+                    Author = "André Vianco",
+                    Title = "Os Sete",
+                    FreightOption = FreightOption.State,
+                    ImageSlug = "os-sete.jpg",
+                    User = donor,
+                    Approved = true,
+                    Category = adv,
+                    CreationDate = DateTime.Now.AddDays(-1)
+                };
+
+                var book16 = new Book()
+                {
+                    Author = "Shaxnom",
+                    Title = "O Segredo das Sombras",
+                    FreightOption = FreightOption.State,
+                    ImageSlug = "o-segredo-das-sombras.jpg",
+                    User = donor,
+                    Approved = true,
+                    Category = adv,
+                    CreationDate = DateTime.Now.AddDays(-2)
+                };
+
+                var book17 = new Book()
+                {
+                    Author = "Jane Austen",
+                    Title = "Orgulho e Preconceito ",
+                    FreightOption = FreightOption.Country,
+                    ImageSlug = "orgulho-e-preconceito.jpg",
+                    User = donor,
+                    Approved = true,
+                    Category = adv,
                     CreationDate = DateTime.Now.AddDays(-3)
                 };
 
-
-                var ddd = new Book()
+                var book18 = new Book()
                 {
-                    Author = "Domain Driven Design",
-                    Title = "Eric Evans",
+                    Author = "J. R. R. Tolkien",
+                    Title = "O Retorno do Rei",
                     FreightOption = FreightOption.WithoutFreight,
-                    ImageSlug = "ddd.jpeg",
+                    ImageSlug = "o-retorno-do-rei.png",
                     User = donor,
                     Approved = true,
-                    Category = inf,
+                    Category = adv,
+                    CreationDate = DateTime.Now.AddDays(-1)
+                };
+
+                var book19 = new Book()
+                {
+                    Author = "Antoine",
+                    Title = "O Pequeno Principe",
+                    FreightOption = FreightOption.State,
+                    ImageSlug = "o-pequeno-principe.jpg",
+                    User = donor,
+                    Approved = true,
+                    Category = adv,
+                    CreationDate = DateTime.Now.AddDays(-3)
+                };
+
+                var book20 = new Book()
+                {
+                    Author = "Aloisio Azevedo",
+                    Title = "O cortiço",
+                    FreightOption = FreightOption.State,
+                    ImageSlug = "o-cortico.jpg",
+                    User = donor,
+                    Approved = true,
+                    Category = adv,
                     CreationDate = DateTime.Now.AddDays(-4)
                 };
 
-                var hp1 = new Book()
+                var book21 = new Book()
                 {
-                    Author = "Harry Potter and the Philosopher's Stone",
-                    Title = "J. K. Rowling",
-                    FreightOption = FreightOption.Country,
-                    ImageSlug = "hp1.jpeg",
+                    Author = "Collen Hoover",
+                    Title = "Nunca Jamais",
+                    FreightOption = FreightOption.State,
+                    ImageSlug = "nunca-jamais.jpg",
                     User = donor,
                     Approved = true,
-                    Category = inf,
+                    Category = adv,
                     CreationDate = DateTime.Now.AddDays(-5)
                 };
 
-
-                var investimentos = new Book()
+                var book22 = new Book()
                 {
-                    Author = "Investimentos Inteligentes",
-                    Title = "Gustavo Cerbasi",
-                    FreightOption = FreightOption.City,
-                    ImageSlug = "investimentos.jpeg",
+                    Author = "David Neves",
+                    Title = "100 Segredos das Pessoas Felizes",
+                    FreightOption = FreightOption.State,
+                    ImageSlug = "100-segredos-das-pessoas-felizes.jpg",
                     User = donor,
-                    Approved = false,
-                    Category = eco,
-                    CreationDate = DateTime.Now.AddDays(-5)
+                    Approved = true,
+                    Category = psico,
+                    CreationDate = DateTime.Now.AddDays(-2)
                 };
+
+
+                var book23 = new Book()
+                {
+                    Author = "George R. R. Martin",
+                    Title = "A Fúria dos Reis",
+                    FreightOption = FreightOption.World,
+                    ImageSlug = "a-furia-dos-reis.jpg",
+                    User = donor,
+                    Approved = true,
+                    Category = adv,
+                    CreationDate = DateTime.Now.AddDays(-4)
+                };
+
+                var book15 = new Book()
+                {
+                    Author = "Maskus Suzak",
+                    Title = "A Menina que Roubava Livros",
+                    FreightOption = FreightOption.City,
+                    ImageSlug = "a-menina-que-roubava-livros.jpg",
+                    User = donor,
+                    Approved = true,
+                    Category = adv,
+                    CreationDate = DateTime.Now.AddDays(-2)
+                };
+
 
                 var request = new BookUser()
                 {
                     User = grantee,
-                    Book = lordTheRings
+                    Book = book5
                 };
 
                 _context.Categories.AddRange(adm, dir, psico, med, eng, geo_his, cien, art);
                 _context.Users.AddRange(grantee, @operator);
-                _context.Books.AddRange(agile, cleanCode, got, lordTheRings, ddd, investimentos, hp1);
-                _context.BookUser.Add(request);               
+                _context.Books.AddRange(book1, book2, book3, book4, book5, book6, book7,
+                    book8, book9, book10, book11, book12, book13, book14, book15, book16,
+                    book16, book18, book19, book20 , book21 , book22 , book23);
+
+                _context.BookUser.Add(request);
                 _context.SaveChanges();
             }
 
