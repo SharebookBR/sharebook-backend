@@ -109,6 +109,7 @@ namespace ShareBook.Service
                     Author = u.Author,
                     Approved = u.Approved,
                     FreightOption = u.FreightOption,
+                    ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
                     User = new User()
                     {
                         Id = u.User.Id,
@@ -124,6 +125,16 @@ namespace ShareBook.Service
                 ItemsPerPage = items,
                 Items = result
             };
+        }
+
+        public override Book Get(params object[] keyValues)
+        {
+            var result = _repository.Get(keyValues);
+
+            result.ImageUrl = _uploadService.GetImageUrl(result.ImageSlug, "Books");
+            result.UserId = null;
+
+            return result;
         }
 
         public override Result<Book> Insert(Book entity)
