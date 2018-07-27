@@ -1,9 +1,10 @@
 ﻿using ShareBook.Domain;
+using System.Threading.Tasks;
 
 namespace ShareBook.Repository
 {
     public interface IUserRepository : IRepositoryGeneric<User>
     {
-        User UpdatePassword(User user);
+        Task<User> UpdatePassword(User user);
     }
 }

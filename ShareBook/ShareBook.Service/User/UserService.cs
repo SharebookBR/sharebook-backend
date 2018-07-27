@@ -108,7 +108,7 @@ namespace ShareBook.Service
                 var userAuth = resultUserAuth.Value;
                 userAuth.ChangePassword(newPassword);
                 userAuth = GetUserEncryptedPass(userAuth);
-                userAuth = _userRepository.UpdatePassword(userAuth);
+                userAuth = _userRepository.UpdatePassword(userAuth).Result;
                 resultUserAuth.Value = UserCleanup(userAuth);
             }
             return resultUserAuth;

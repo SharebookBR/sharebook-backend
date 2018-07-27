@@ -1,4 +1,5 @@
 ﻿using ShareBook.Domain;
+using System.Threading.Tasks;
 
 namespace ShareBook.Repository
 {
@@ -8,12 +9,13 @@ namespace ShareBook.Repository
         {
         }
 
-        public User UpdatePassword(User user)
+        public async Task<User> UpdatePassword(User user)
         {
             _dbSet.Update(user);
             _context.Entry(user).Property(x => x.Password).IsModified = true;
             _context.Entry(user).Property(x => x.PasswordSalt).IsModified = true;
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
+
             return user;
         }
     }
