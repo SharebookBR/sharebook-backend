@@ -6,9 +6,11 @@ using ShareBook.Repository;
 using ShareBook.Repository.Infra;
 using ShareBook.Repository.Infra.CrossCutting.Identity.Interfaces;
 using ShareBook.Service;
+using ShareBook.Test.Unit.Mocks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Xunit;
 
 namespace ShareBook.Test.Unit.Services
@@ -30,6 +32,9 @@ namespace ShareBook.Test.Unit.Services
             signManagerMock = new Mock<IApplicationSignInManager>();
             unitOfWorkMock = new Mock<IUnitOfWork>();
             userRepositoryMock = new Mock<IUserRepository>();
+
+            //Simula login do usuario
+            Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
 
             userRepositoryMock.Setup(repo => repo.Insert(It.IsAny<User>())).Returns(() =>
             {
@@ -54,7 +59,6 @@ namespace ShareBook.Test.Unit.Services
                     PostalCode = "04473-190"
                 };
             });
-
 
             userRepositoryMock.Setup(repo => repo.Get(It.IsAny<Guid>())).Returns(() =>
             {
@@ -124,6 +128,7 @@ namespace ShareBook.Test.Unit.Services
         [Fact]
         public void RegisterInvalidUser()
         {
+           
             var service = new UserService(userRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator());
 
             Result<User> result = service.Insert(new User()
@@ -137,44 +142,6 @@ namespace ShareBook.Test.Unit.Services
         #endregion
 
         #region Update User
-
-        //[Fact]
-        //public void UpdateValidUserNewPassword()
-        //{
-        //    var service = new UserService(userRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator());
-
-        //    Result<User> result = service.Update(new User()
-        //    {
-        //        Email = "sergioprates.student@gmail.com",
-        //        Linkedin = "https://www.linkedin.com/in/sergiopratesdossantos/",
-        //        Name = "Sergio",
-        //        Phone = "584558999",
-        //        PostalCode = "111547899",
-        //        Profile = Domain.Enums.Profile.User
-        //    });
-
-        //    Assert.NotNull(result);
-        //    Assert.True(result.Success);
-        //}
-
-        //[Fact]
-        //public void UpdateInvalidUserNewPassword()
-        //{
-        //    var service = new UserService(userRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator());
-
-        //    Result<User> result = service.Update(new User()
-        //    {
-        //        Email = "sergioprates.student@gmail.com",
-        //        Linkedin = "https://www.linkedin.com/in/sergiopratesdossantos/",
-        //        Name = "Sergio",
-        //        Phone = "584558999",
-        //        PostalCode = "111547899",
-        //        Profile = Domain.Enums.Profile.User
-        //    });
-
-        //    Assert.NotNull(result);
-        //    Assert.False(result.Success);
-        //}
 
         [Fact]
         public void UpdateValidUser()
@@ -194,7 +161,6 @@ namespace ShareBook.Test.Unit.Services
             Assert.NotNull(result);
             Assert.True(result.Success);
         }
-
 
         [Fact]
         public void UpdateInvalidUser()
