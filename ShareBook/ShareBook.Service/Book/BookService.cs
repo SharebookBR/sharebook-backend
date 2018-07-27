@@ -81,7 +81,7 @@ namespace ShareBook.Service
 
         public IList<Book> Random15Books()
         {
-           return _repository.Get().Where(x => x.Approved).OrderByDescending(x => x.CreationDate).Skip(15).Take(15)
+           return _repository.Get().Where(x => x.Approved).OrderBy(x => Guid.NewGuid()).Take(15)
                 .Select(u => new Book
                 {
                     Id = u.Id,
