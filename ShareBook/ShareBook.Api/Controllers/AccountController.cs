@@ -66,13 +66,12 @@ namespace ShareBook.Api.Controllers
         }
 
         [Authorize("Bearer")]
-        [HttpPut("Update/{id}")]
-        public object Update(string id, [FromBody]UpdateUserVM updateUserVM,
+        [HttpPut("Update")]
+        public object Update([FromBody]UpdateUserVM updateUserVM,
            [FromServices]SigningConfigurations signingConfigurations,
            [FromServices]TokenConfigurations tokenConfigurations)
         {
             var user = Mapper.Map<UpdateUserVM, User>(updateUserVM);
-            user.Id = new Guid(id);
 
             var result = _userService.Update(user);
 
