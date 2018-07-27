@@ -17,7 +17,7 @@ namespace ShareBook.Domain
 
         public FreightOption FreightOption { get; set; }
 
-        public Guid UserId { get; set; }
+        public Guid? UserId { get; set; }
 
         public Guid CategoryId { get; set; }
 

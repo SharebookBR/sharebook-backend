@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using ShareBook.Api.Filters;
 using ShareBook.Api.ViewModels;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
@@ -14,6 +16,7 @@ namespace ShareBook.Api.Controllers
 {
     [Route("api/[controller]")]
     [EnableCors("AllowAllHeaders")]
+    [GetClaimsFilter]
     public class AccountController : Controller
     {
         private readonly IUserService _userService;
@@ -62,6 +65,7 @@ namespace ShareBook.Api.Controllers
            return _userService.Get(new Guid(id));
         }
 
+        [Authorize("Bearer")]
         [HttpPut("Update/{id}")]
         public object Update(string id, [FromBody]UpdateUserVM updateUserVM,
            [FromServices]SigningConfigurations signingConfigurations,
@@ -78,15 +82,13 @@ namespace ShareBook.Api.Controllers
             return result;
         }
 
+        [Authorize("Bearer")]
         [HttpPut("ChangePassword")]
         public Result<User> ChangePassword([FromBody]ChangePasswordUserVM changePasswordUserVM)
         {
-            var user = new User(){
-                Email = changePasswordUserVM.Email,
-                Password = changePasswordUserVM.NewPassword
-            };
+           var user = new User() { Password = changePasswordUserVM.OldPassword };
 
-           return  _userService.ChangeUserPassword(user, changePasswordUserVM.OldPassword);
+           return  _userService.ChangeUserPassword(user, changePasswordUserVM.NewPassword);
         }
     }
 }
