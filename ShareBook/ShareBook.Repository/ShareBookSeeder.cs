@@ -33,7 +33,8 @@ namespace ShareBook.Repository
                     PostalCode = "04473-190",
                     Linkedin = "linkedin.com/walter.cardoso",
                     Password = PASSWORD_HASH,
-                    PasswordSalt = PASSWORD_SALT
+                    PasswordSalt = PASSWORD_SALT,
+                    CreationDate = DateTime.Now
                 };
 
                 var @operator = new User()
@@ -44,7 +45,8 @@ namespace ShareBook.Repository
                     Linkedin = "linkedin.com/vagner",
                     Profile = Profile.Administrator,
                     Password = PASSWORD_HASH,
-                    PasswordSalt = PASSWORD_SALT
+                    PasswordSalt = PASSWORD_SALT,
+                    CreationDate = DateTime.Now
                 };
 
                 var donor = new User()
@@ -54,20 +56,21 @@ namespace ShareBook.Repository
                     PostalCode = "017672-100",
                     Linkedin = "linkedin.com/rodrigo",
                     Password = PASSWORD_HASH,
-                    PasswordSalt = PASSWORD_SALT
+                    PasswordSalt = PASSWORD_SALT,
+                    CreationDate = DateTime.Now
                 };
 
-                var dir = new Category() { Name = "Direito" };
-                var psico = new Category() { Name = "Psicologia" };
-                var adm = new Category() { Name = "Administração" };
+                var dir = new Category() { Name = "Direito", CreationDate = DateTime.Now };
+                var psico = new Category() { Name = "Psicologia", CreationDate = DateTime.Now };
+                var adm = new Category() { Name = "Administração", CreationDate = DateTime.Now };
                 var adv = new Category() { Name = "Aventura" };
-                var eng = new Category() { Name = "Engenharia" };
-                var cien = new Category() { Name = "Ciências Biógicas" };
-                var geo_his = new Category() { Name = "Geografia e História" };
-                var art = new Category() { Name = "Artes" };
-                var med = new Category() { Name = "Medicina" };
-                var eco = new Category() { Name = "Economia" };
-                var inf = new Category() { Name = "Informática" };
+                var eng = new Category() { Name = "Engenharia", CreationDate = DateTime.Now };
+                var cien = new Category() { Name = "Ciências Biógicas", CreationDate = DateTime.Now };
+                var geo_his = new Category() { Name = "Geografia e História", CreationDate = DateTime.Now };
+                var art = new Category() { Name = "Artes", CreationDate = DateTime.Now };
+                var med = new Category() { Name = "Medicina", CreationDate = DateTime.Now };
+                var eco = new Category() { Name = "Economia", CreationDate = DateTime.Now };
+                var inf = new Category() { Name = "Informática", CreationDate = DateTime.Now };
 
                 var book1 = new Book()
                 {

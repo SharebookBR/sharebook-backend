@@ -11,6 +11,7 @@ using ShareBook.Repository.Infra.CrossCutting.Identity.Configurations;
 using ShareBook.Repository.Infra.CrossCutting.Identity.Interfaces;
 using ShareBook.Service;
 using System;
+using System.Threading;
 
 namespace ShareBook.Api.Controllers
 {
@@ -59,20 +60,21 @@ namespace ShareBook.Api.Controllers
             return result;
         }
 
-        [HttpGet("UserById/{id}")]
-        public User UserById(string id)
+        [Authorize("Bearer")]
+        [HttpGet]
+        public User Get()
         {
-           return _userService.Get(new Guid(id));
+            var id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+            return _userService.Get(id);
         }
 
         [Authorize("Bearer")]
-        [HttpPut("Update/{id}")]
-        public object Update(string id, [FromBody]UpdateUserVM updateUserVM,
+        [HttpPut]
+        public object Update([FromBody]UpdateUserVM updateUserVM,
            [FromServices]SigningConfigurations signingConfigurations,
            [FromServices]TokenConfigurations tokenConfigurations)
         {
             var user = Mapper.Map<UpdateUserVM, User>(updateUserVM);
-            user.Id = new Guid(id);
 
             var result = _userService.Update(user);
 
