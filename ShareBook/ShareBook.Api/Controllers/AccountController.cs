@@ -62,7 +62,7 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpGet]
-        public User UserById()
+        public User Get()
         {
             var id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             return _userService.Get(id);
