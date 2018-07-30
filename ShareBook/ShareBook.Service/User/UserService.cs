@@ -46,7 +46,6 @@ namespace ShareBook.Service
 
         public override Result<User> Insert(User user)
         {
-            user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
 
             var result = Validate(user);
 
