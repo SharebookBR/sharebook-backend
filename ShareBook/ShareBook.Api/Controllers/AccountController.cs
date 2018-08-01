@@ -37,6 +37,9 @@ namespace ShareBook.Api.Controllers
             [FromServices]SigningConfigurations signingConfigurations,
             [FromServices]TokenConfigurations tokenConfigurations)
         {
+            if (!ModelState.IsValid)
+                return BadRequest();
+
             var user = Mapper.Map<RegisterUserVM, User>(registerUserVM);
            
             var result = _userService.Insert(user);
