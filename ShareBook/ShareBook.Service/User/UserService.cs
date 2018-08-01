@@ -78,6 +78,9 @@ namespace ShareBook.Service
 
             if (userAux == null) result.Messages.Add("Usuário não existe.");
 
+            if (_repository.Any(u => u.Email == user.Email && u.Id != user.Id))
+                result.Messages.Add("Email já existe.");
+
             if (result.Success)
             {
                 userAux.ChangeEmail(user.Email);
