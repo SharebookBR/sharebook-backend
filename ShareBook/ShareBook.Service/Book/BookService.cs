@@ -177,5 +177,7 @@ namespace ShareBook.Service
         public IList<Book> ByTitle(string title) => _repository.Get().Where(x => x.Title.Contains(title) && x.Approved == true).ToList();
 
         public IList<Book> ByAuthor(string author) => _repository.Get().Where(x => x.Author.Contains(author) && x.Approved == true).ToList();
+
+        public Book BySlug(string slug) => _repository.Get().Where(x => x.ImageSlug.Contains(slug)).FirstOrDefault();
     }
 }

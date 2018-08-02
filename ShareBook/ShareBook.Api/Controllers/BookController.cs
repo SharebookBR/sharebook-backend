@@ -40,6 +40,10 @@ namespace ShareBook.Api.Controllers
             return freightOptions;
         }
 
+
+        [HttpGet("BySlug/{slug}")]
+        public Book Get(string slug) => _bookService.BySlug(slug);
+
         [HttpGet("Top15NewBooks")]
         public IList<Book> Top15NewBooks() => _bookService.Top15NewBooks();
 
