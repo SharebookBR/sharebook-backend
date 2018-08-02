@@ -21,5 +21,7 @@ namespace ShareBook.Service
         IList<Book> ByAuthor(string author);
 
         PagedList<Book> GetAll(int page, int items);
+
+        Book BySlug(string slug);
     }
 }
