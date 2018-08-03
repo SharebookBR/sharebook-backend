@@ -15,6 +15,7 @@ namespace ShareBook.Service
     public class UserService : BaseService<User>, IUserService
     {
         private readonly IUserRepository _userRepository;
+        private const string PASSWORD_IS_WEAK = "A senha não atende os requisitos. Mínimo oito caracteres, um caractere especial, um caractere numérico e uma letra em maiúsculo.";
         #region Public
         public UserService(IUserRepository userRepository, IUnitOfWork unitOfWork, IValidator<User> validator) : base(userRepository, unitOfWork, validator)
         {
@@ -48,8 +49,8 @@ namespace ShareBook.Service
         {
             var result = Validate(user);
 
-            if(!user.PasswordIsValid())
-                result.Messages.Add("A senha não atende os requisitos. Minimo oito caracteres, um caracter especial, um caracter númerico e uma letra em maíusculo.");
+            if(!user.PasswordIsStrong())
+                result.Messages.Add(PASSWORD_IS_WEAK);
 
             if (_repository.Any(x => x.Email == user.Email))
                 result.Messages.Add("Usuário já possui email cadastrado.");
@@ -112,9 +113,9 @@ namespace ShareBook.Service
                 var userAuth = resultUserAuth.Value;
                 userAuth.ChangePassword(newPassword);
                 
-                if(!userAuth.PasswordIsValid())
+                if(!userAuth.PasswordIsStrong())
                 {
-                    resultUserAuth.Messages.Add("A senha não atende os requisitos. Minimo oito caracteres, um caracter especial, um caracter númerico e uma letra em maíusculo.");
+                    resultUserAuth.Messages.Add(PASSWORD_IS_WEAK);
                     resultUserAuth.Value = null;
                     return resultUserAuth;
                 }
