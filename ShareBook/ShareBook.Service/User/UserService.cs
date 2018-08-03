@@ -46,8 +46,10 @@ namespace ShareBook.Service
 
         public override Result<User> Insert(User user)
         {
-
             var result = Validate(user);
+
+            if(!user.PasswordIsValid())
+                result.Messages.Add("A senha não atende os requisitos. Minimo oito caracteres, um caracter especial, um caracter númerico e uma letra em maíusculo.");
 
             if (_repository.Any(x => x.Email == user.Email))
                 result.Messages.Add("Usuário já possui email cadastrado.");
@@ -109,6 +111,14 @@ namespace ShareBook.Service
             {
                 var userAuth = resultUserAuth.Value;
                 userAuth.ChangePassword(newPassword);
+                
+                if(!userAuth.PasswordIsValid())
+                {
+                    resultUserAuth.Messages.Add("A senha não atende os requisitos. Minimo oito caracteres, um caracter especial, um caracter númerico e uma letra em maíusculo.");
+                    resultUserAuth.Value = null;
+                    return resultUserAuth;
+                }
+                    
                 userAuth = GetUserEncryptedPass(userAuth);
                 userAuth = _userRepository.UpdatePassword(userAuth).Result;
                 resultUserAuth.Value = UserCleanup(userAuth);

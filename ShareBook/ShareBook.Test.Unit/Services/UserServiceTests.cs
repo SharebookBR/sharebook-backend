@@ -114,7 +114,7 @@ namespace ShareBook.Test.Unit.Services
             Result<User> result = service.Insert(new User()
             {
                 Email = "jose@sharebook.com",
-                Password = "123456",
+                Password = "Password.123",
                 Name = "José da Silva",
                 Linkedin = @"linkedin.com\jose-silva",
                 PostalCode = "04473-190",
