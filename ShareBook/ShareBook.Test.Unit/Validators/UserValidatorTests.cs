@@ -94,7 +94,7 @@ namespace ShareBook.Test.Unit.Validators
         [Fact]
         public void PasswordValid()
         {
-            userPasswordTest.Password =  "Password.123";
+            userPasswordTest.Password = "QweRty@123!";
 
             var result = userPasswordTest.PasswordIsStrong();
 
