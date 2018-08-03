@@ -17,7 +17,7 @@ namespace ShareBook.Domain
         public Profile Profile { get;  set; } = Profile.User;
         public virtual ICollection<BookUser> BookUsers { get; set; }
 
-        public bool PasswordIsValid()
+        public bool PasswordIsStrong()
         {
             Regex rgx = new Regex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,15}$");
             if (string.IsNullOrEmpty(Password) || !rgx.IsMatch(Password)) return false;

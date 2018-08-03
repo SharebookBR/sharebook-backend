@@ -56,7 +56,7 @@ namespace ShareBook.Test.Unit.Validators
         {
             userPasswordTest.Password = "123456";
 
-            var result = userPasswordTest.PasswordIsValid();
+            var result = userPasswordTest.PasswordIsStrong();
 
             Assert.False(result);
         }
@@ -66,7 +66,7 @@ namespace ShareBook.Test.Unit.Validators
         {
             userPasswordTest.Password = "password";
 
-            var result = userPasswordTest.PasswordIsValid();
+            var result = userPasswordTest.PasswordIsStrong();
 
             Assert.False(result);
         }
@@ -76,7 +76,7 @@ namespace ShareBook.Test.Unit.Validators
         {
             userPasswordTest.Password = "password123";
 
-            var result = userPasswordTest.PasswordIsValid();
+            var result = userPasswordTest.PasswordIsStrong();
 
             Assert.False(result);
         }
@@ -86,7 +86,7 @@ namespace ShareBook.Test.Unit.Validators
         {
             userPasswordTest.Password = "password.123";
 
-            var result = userPasswordTest.PasswordIsValid();
+            var result = userPasswordTest.PasswordIsStrong();
 
             Assert.False(result);
         }
@@ -96,7 +96,7 @@ namespace ShareBook.Test.Unit.Validators
         {
             userPasswordTest.Password =  "Password.123";
 
-            var result = userPasswordTest.PasswordIsValid();
+            var result = userPasswordTest.PasswordIsStrong();
 
             Assert.True(result);
         }
