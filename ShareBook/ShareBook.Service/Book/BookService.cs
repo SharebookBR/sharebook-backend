@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.Enums;
@@ -152,7 +150,7 @@ namespace ShareBook.Service
                 result.Value.ImageBytes = null;
 
                 // TODO - BUG CAMINHO DO TEMPLATE DE EMAIL
-                //_booksEmailService.SendEmailNewBookInserted(entity).Wait();
+                _booksEmailService.SendEmailNewBookInserted(entity).Wait();
             }
             return result;
         }
