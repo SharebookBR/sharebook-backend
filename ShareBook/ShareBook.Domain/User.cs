@@ -1,6 +1,7 @@
 ﻿using ShareBook.Domain.Common;
 using ShareBook.Domain.Enums;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace ShareBook.Domain
 {
@@ -15,6 +16,14 @@ namespace ShareBook.Domain
         public  string Phone{ get; set; }
         public Profile Profile { get;  set; } = Profile.User;
         public virtual ICollection<BookUser> BookUsers { get; set; }
+
+        public bool PasswordIsStrong()
+        {
+            Regex rgx = new Regex(@"(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[$@$!%*?&.,])[A-Za-z\d$@$!%*?&].{8,}");
+            if (string.IsNullOrEmpty(Password) || !rgx.IsMatch(Password)) return false;
+
+            return true;
+        }
 
         public User Cleanup()
         {
