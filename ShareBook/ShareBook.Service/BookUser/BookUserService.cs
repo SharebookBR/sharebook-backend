@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
+using Microsoft.EntityFrameworkCore;
 using ShareBook.Domain;
 using ShareBook.Domain.Exceptions;
 using ShareBook.Repository;
@@ -21,6 +24,9 @@ namespace ShareBook.Service
             _bookService = bookService;
             _bookUsersEmailService = bookUsersEmailService;
         }
+
+        public IList<User> GetGranteeUsersByBookId(Guid bookId) =>
+            _bookUserRepository.Get().Include(x => x.User).Where(x => x.BookId == bookId).Select(x => x.User).ToList();
 
         public void Insert(Guid idBook)
         {
