@@ -25,6 +25,13 @@ namespace ShareBook.Domain
             return true;
         }
 
+        public User Cleanup()
+        {
+            this.Password = string.Empty;
+            this.PasswordSalt = string.Empty;
+            return this;
+        }
+
         public void ChangeEmail(string email)
         {
             this.Email = email;

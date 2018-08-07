@@ -355,7 +355,8 @@ namespace ShareBook.Repository
                 var request = new BookUser()
                 {
                     User = grantee,
-                    Book = book5
+                    Book = book5,
+                    CreationDate = DateTime.Now
                 };
 
                 _context.Categories.AddRange(adm, dir, psico, med, eng, geo_his, cien, art);
