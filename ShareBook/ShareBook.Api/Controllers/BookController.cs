@@ -40,6 +40,8 @@ namespace ShareBook.Api.Controllers
             return freightOptions;
         }
 
+        [HttpGet("GetGranteeUsersByBookId/{bookId}")]
+        public IList<User> GetGranteeUsersByBookId(string bookId) => _bookUserService.GetGranteeUsersByBookId(new Guid(bookId));
 
         [HttpGet("BySlug/{slug}")]
         public Book Get(string slug) => _bookService.BySlug(slug);

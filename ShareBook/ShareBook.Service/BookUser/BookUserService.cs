@@ -26,7 +26,7 @@ namespace ShareBook.Service
         }
 
         public IList<User> GetGranteeUsersByBookId(Guid bookId) =>
-            _bookUserRepository.Get().Include(x => x.User).Where(x => x.BookId == bookId).Select(x => x.User).ToList();
+            _bookUserRepository.Get().Include(x => x.User).Where(x => x.BookId == bookId).Select(x => x.User.Cleanup()).ToList();
 
         public void Insert(Guid idBook)
         {
