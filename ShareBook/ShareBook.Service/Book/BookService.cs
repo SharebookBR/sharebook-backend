@@ -59,42 +59,56 @@ namespace ShareBook.Service
 
         public IList<Book> Top15NewBooks()
         {
-           return  _repository.Get().Where(x => x.Approved).OrderByDescending(x => x.CreationDate).Take(15)
-                .Select(u => new Book
-                {
-                    Id = u.Id,
-                    Title = u.Title,
-                    Author = u.Author,
-                    Approved = u.Approved,
-                    FreightOption = u.FreightOption,
-                    ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
-                    User = new User()
-                    {
-                        Id = u.User.Id,
-                        Email = u.User.Email,
-                        Name = u.User.Name
-                    }
-                }).ToList();
+            return _repository.Get().Where(x => x.Approved).OrderByDescending(x => x.CreationDate).Take(15)
+                 .Select(u => new Book
+                 {
+                     Id = u.Id,
+                     Title = u.Title,
+                     Author = u.Author,
+                     Approved = u.Approved,
+                     FreightOption = u.FreightOption,
+                     ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
+                     Slug = u.Slug,
+                     User = new User()
+                     {
+                         Id = u.User.Id,
+                         Email = u.User.Email,
+                         Name = u.User.Name,
+                         Linkedin = u.User.Linkedin,
+                         PostalCode = u.User.PostalCode
+                     },
+                     Category = new Category()
+                     {
+                         Name = u.Category.Name
+                     }
+                 }).ToList();
         }
 
         public IList<Book> Random15Books()
         {
-           return _repository.Get().Where(x => x.Approved).OrderBy(x => Guid.NewGuid()).Take(15)
-                .Select(u => new Book
-                {
-                    Id = u.Id,
-                    Title = u.Title,
-                    Author = u.Author,
-                    FreightOption = u.FreightOption,
-                    Approved = u.Approved,
-                    ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
-                    User = new User()
-                    {
-                        Id = u.User.Id,
-                        Email = u.User.Email,
-                        Name = u.User.Name
-                    }
-                }).ToList();
+            return _repository.Get().Where(x => x.Approved).OrderBy(x => Guid.NewGuid()).Take(15)
+                 .Select(u => new Book
+                 {
+                     Id = u.Id,
+                     Title = u.Title,
+                     Author = u.Author,
+                     FreightOption = u.FreightOption,
+                     Approved = u.Approved,
+                     ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
+                     Slug = u.Slug,
+                     User = new User()
+                     {
+                         Id = u.User.Id,
+                         Email = u.User.Email,
+                         Name = u.User.Name,
+                         Linkedin = u.User.Linkedin,
+                         PostalCode = u.User.PostalCode
+                     },
+                     Category = new Category()
+                     {
+                         Name = u.Category.Name
+                     }
+                 }).ToList();
         }
 
         public PagedList<Book> GetAll(int page, int items)
@@ -108,6 +122,7 @@ namespace ShareBook.Service
                     Approved = u.Approved,
                     FreightOption = u.FreightOption,
                     ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
+                    Slug = u.Slug,
                     User = new User()
                     {
                         Id = u.User.Id,
@@ -144,12 +159,14 @@ namespace ShareBook.Service
             {
                 entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, entity.Title);
 
+                entity.Slug = entity.Title.GenerateSlug();
+
                 result.Value = _repository.Insert(entity);
-                
+
                 result.Value.ImageUrl = _uploadService.UploadImage(entity.ImageBytes, entity.ImageSlug, "Books");
+
                 result.Value.ImageBytes = null;
 
-                // TODO - BUG CAMINHO DO TEMPLATE DE EMAIL
                 _booksEmailService.SendEmailNewBookInserted(entity).Wait();
             }
             return result;
@@ -172,10 +189,85 @@ namespace ShareBook.Service
             return result;
         }
 
-        public IList<Book> ByTitle(string title) => _repository.Get().Where(x => x.Title.Contains(title) && x.Approved == true).ToList();
+        public IList<Book> ByTitle(string title)
+        {
+            return _repository.Get().Where(x => x.Title.Contains(title) && x.Approved == true)
+                  .Select(u => new Book
+                  {
+                      Id = u.Id,
+                      Title = u.Title,
+                      Author = u.Author,
+                      Approved = u.Approved,
+                      FreightOption = u.FreightOption,
+                      ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
+                      Slug = u.Slug,
+                      User = new User()
+                      {
+                          Id = u.User.Id,
+                          Email = u.User.Email,
+                          Name = u.User.Name,
+                          Linkedin = u.User.Linkedin,
+                          PostalCode = u.User.PostalCode                        
+                      },
+                      Category = new Category()
+                      {
+                          Name = u.Category.Name
+                      }                    
+                  }).ToList();
+        }
 
-        public IList<Book> ByAuthor(string author) => _repository.Get().Where(x => x.Author.Contains(author) && x.Approved == true).ToList();
+        public IList<Book> ByAuthor(string author)
+        {
+           return  _repository.Get().Where(x => x.Author.Contains(author) && x.Approved == true)
+                .Select(u => new Book
+                {
+                    Id = u.Id,
+                    Title = u.Title,
+                    Author = u.Author,
+                    Approved = u.Approved,
+                    FreightOption = u.FreightOption,
+                    ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
+                    Slug = u.Slug,
+                    User = new User()
+                    {
+                        Id = u.User.Id,
+                        Email = u.User.Email,
+                        Name = u.User.Name,
+                        Linkedin = u.User.Linkedin,
+                        PostalCode = u.User.PostalCode
+                    },
+                    Category = new Category()
+                    {
+                        Name = u.Category.Name
+                    }
+                }).ToList();
+        }
 
-        public Book BySlug(string slug) => _repository.Get().Where(x => x.ImageSlug.Contains(slug)).FirstOrDefault();
+        public Book BySlug(string slug)
+        {
+           return  _repository.Get().Where(x => x.Slug.Contains(slug))
+                .Select(u => new Book
+                {
+                    Id = u.Id,
+                    Title = u.Title,
+                    Author = u.Author,
+                    Approved = u.Approved,
+                    FreightOption = u.FreightOption,
+                    ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
+                    Slug = u.Slug,
+                    User = new User()
+                    {
+                        Id = u.User.Id,
+                        Email = u.User.Email,
+                        Name = u.User.Name,
+                        Linkedin = u.User.Linkedin,
+                        PostalCode = u.User.PostalCode
+                    },
+                    Category = new Category()
+                    {
+                        Name = u.Category.Name
+                    }
+                }).FirstOrDefault();
+        }
     }
 }

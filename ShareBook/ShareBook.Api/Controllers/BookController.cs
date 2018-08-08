@@ -40,10 +40,10 @@ namespace ShareBook.Api.Controllers
             return freightOptions;
         }
 
-        [HttpGet("GetGranteeUsersByBookId/{bookId}")]
+        [HttpGet("GranteeUsersByBookId/{bookId}")]
         public IList<User> GetGranteeUsersByBookId(string bookId) => _bookUserService.GetGranteeUsersByBookId(new Guid(bookId));
 
-        [HttpGet("BySlug/{slug}")]
+        [HttpGet("Slug/{slug}")]
         public Book Get(string slug) => _bookService.BySlug(slug);
 
         [HttpGet("Top15NewBooks")]
@@ -53,11 +53,11 @@ namespace ShareBook.Api.Controllers
         public IList<Book> Random15Books() => _bookService.Random15Books();
 
         [Authorize("Bearer")]
-        [HttpGet("ByTitle/{title}")]
+        [HttpGet("Title/{title}")]
         public IList<Book> ByTitle(string title) => _bookService.ByTitle(title);
 
         [Authorize("Bearer")]
-        [HttpGet("ByAuthor/{author}")]
+        [HttpGet("Author/{author}")]
         public IList<Book> ByAuthor(string author) => _bookService.ByAuthor(author);
 
         [Authorize("Bearer")]
