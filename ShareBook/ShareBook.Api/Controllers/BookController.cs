@@ -89,7 +89,7 @@ namespace ShareBook.Api.Controllers
         }
 
         [Authorize("Bearer")]
-        [HttpPut("{bookId}")]
+        [HttpPut("Donate/{bookId}")]
         [AuthorizationFilter(Permissions.Permission.DonateBook)]
         public IActionResult DonateBook(Guid bookId, [FromBody] DonateBookUserVM donateBookUserVM)
         {
