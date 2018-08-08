@@ -59,7 +59,8 @@ namespace ShareBook.Service
 
         public IList<Book> Top15NewBooks()
         {
-            return _repository.Get().Where(x => x.Approved).OrderByDescending(x => x.CreationDate).Take(15)
+            return _repository.Get().Where(x => x.Approved
+             && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated)).OrderByDescending(x => x.CreationDate).Take(15)
                  .Select(u => new Book
                  {
                      Id = u.Id,
@@ -86,7 +87,8 @@ namespace ShareBook.Service
 
         public IList<Book> Random15Books()
         {
-            return _repository.Get().Where(x => x.Approved).OrderBy(x => Guid.NewGuid()).Take(15)
+            return _repository.Get().Where(x => x.Approved 
+            && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated)).OrderBy(x => Guid.NewGuid()).Take(15)
                  .Select(u => new Book
                  {
                      Id = u.Id,
@@ -191,7 +193,8 @@ namespace ShareBook.Service
 
         public IList<Book> ByTitle(string title)
         {
-            return _repository.Get().Where(x => x.Title.Contains(title) && x.Approved == true)
+            return _repository.Get().Where(x => x.Title.Contains(title) 
+            && x.Approved && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated))
                   .Select(u => new Book
                   {
                       Id = u.Id,
@@ -218,7 +221,8 @@ namespace ShareBook.Service
 
         public IList<Book> ByAuthor(string author)
         {
-           return  _repository.Get().Where(x => x.Author.Contains(author) && x.Approved == true)
+           return  _repository.Get().Where(x => x.Author.Contains(author) 
+           && x.Approved && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated))
                 .Select(u => new Book
                 {
                     Id = u.Id,
@@ -245,7 +249,8 @@ namespace ShareBook.Service
 
         public Book BySlug(string slug)
         {
-           return  _repository.Get().Where(x => x.Slug.Contains(slug))
+           return  _repository.Get().Where(x => x.Slug.Contains(slug)
+            && x.Approved && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated) )
                 .Select(u => new Book
                 {
                     Id = u.Id,
