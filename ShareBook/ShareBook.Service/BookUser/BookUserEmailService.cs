@@ -7,6 +7,7 @@ namespace ShareBook.Service
     {
         private const string BookRequestedTemplate = "BookRequestedTemplate";
         private const string BookDonatedTemplate = "BookDonatedTemplate";
+        private const string BookDonatedTitle = "Parabéns você foi selecionado!";
         private const string BookRequestedTitle = "Um livro foi solicitado - Sharebook";
 
 
@@ -25,16 +26,20 @@ namespace ShareBook.Service
 
         public async Task SendEmailBookDonated(BookUser bookUser)
         {
-            var bookDonated = _bookService.Get(bookUser.BookId);
+            var bookDonated = bookUser.Book;
+            bookDonated.User = _userService.Get(bookUser.Book.UserId);
 
-            var grantee = _userService.Get(bookUser.UserId);
+            var grantee = bookUser.User;
 
             await SendEmailBookDonatedToGrantee(bookDonated, grantee);
         }
 
         public async Task SendEmailBookRequested(BookUser bookUser)
         {
+            // TODO - Ajustar para apenas um SELECT 
             var bookRequested = _bookService.Get(bookUser.BookId);
+
+            bookRequested.User = _userService.Get(bookUser.UserId);
 
             var requestingUser = _userService.Get(bookUser.UserId);
 
@@ -66,6 +71,7 @@ namespace ShareBook.Service
             };
 
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookDonatedTemplate, vm);
+            _emailService.Send(grantee.Email, grantee.Name, html, BookDonatedTitle);
         }
     }
 }

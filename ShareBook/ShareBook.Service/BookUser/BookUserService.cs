@@ -49,8 +49,11 @@ namespace ShareBook.Service
 
         public void DonateBook(Guid bookId, Guid userId, string note)
         {
-            var bookUserAccepted = _bookUserRepository.Get().Where(x => x.UserId == userId 
-            && x.BookId == bookId && x.Status == DonationStatus.WaitingAction).FirstOrDefault();
+            var bookUserAccepted = _bookUserRepository.Get().Include(u => u.Book).Include( u => u.User)
+                .Where(x => x.UserId == userId 
+                    && x.BookId == bookId 
+                    && x.Status == DonationStatus.WaitingAction)
+                    .FirstOrDefault();
 
             if(bookUserAccepted == null) 
                 throw new ShareBookException("Não existe a relação de usuário e livro para a doação.");
