@@ -144,12 +144,14 @@ namespace ShareBook.Service
             {
                 entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, entity.Title);
 
+                entity.Slug = entity.Title.GenerateSlug();
+
                 result.Value = _repository.Insert(entity);
                 
                 result.Value.ImageUrl = _uploadService.UploadImage(entity.ImageBytes, entity.ImageSlug, "Books");
+
                 result.Value.ImageBytes = null;
 
-                // TODO - BUG CAMINHO DO TEMPLATE DE EMAIL
                 _booksEmailService.SendEmailNewBookInserted(entity).Wait();
             }
             return result;
