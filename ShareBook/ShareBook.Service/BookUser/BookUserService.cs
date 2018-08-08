@@ -60,7 +60,7 @@ namespace ShareBook.Service
 
         public void DeniedBookUsers(Guid bookId)
         {
-            var bookUsersDenied = _bookUserRepository.Get().Where(x => x.BookId == bookId).ToList();
+            var bookUsersDenied = _bookUserRepository.Get().Where(x => x.BookId == bookId && x.Status == DonationStatus.WaitingAction).ToList();
             foreach (var item in bookUsersDenied)
             {
                 item.Status = DonationStatus.Denied;
