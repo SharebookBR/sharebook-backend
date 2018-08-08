@@ -12,9 +12,10 @@ using System;
 namespace ShareBook.Repository.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180808175130_AlterTables_DonationStatus")]
+    partial class AlterTables_DonationStatus
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -73,10 +74,6 @@ namespace ShareBook.Repository.Migrations
                     b.Property<Guid>("UserId");
 
                     b.Property<DateTime?>("CreationDate");
-
-                    b.Property<string>("Note")
-                        .HasColumnType("varchar(200)")
-                        .HasMaxLength(200);
 
                     b.Property<int>("Status");
 

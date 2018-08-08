@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ShareBook.Domain;
 
 namespace ShareBook.Repository.Mapping
@@ -20,6 +21,10 @@ namespace ShareBook.Repository.Mapping
                  .HasOne(bu => bu.User)
                 .WithMany(u => u.BookUsers)
                 .HasForeignKey(bu => bu.UserId);
+
+            entityBuilder.Property(bu => bu.Note)
+               .HasColumnType("varchar(200)")
+               .HasMaxLength(200);
         }
     }
 }
