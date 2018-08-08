@@ -60,6 +60,8 @@ namespace ShareBook.Service
             _bookUserRepository.Update(bookUserAccepted);
 
             DeniedBookUsers(bookId);
+
+            _bookUsersEmailService.SendEmailBookDonated(bookUserAccepted);
         }
 
         public void DeniedBookUsers(Guid bookId)
