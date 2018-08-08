@@ -73,7 +73,13 @@ namespace ShareBook.Service
                      {
                          Id = u.User.Id,
                          Email = u.User.Email,
-                         Name = u.User.Name
+                         Name = u.User.Name,
+                         Linkedin = u.User.Linkedin,
+                         PostalCode = u.User.PostalCode
+                     },
+                     Category = new Category()
+                     {
+                         Name = u.Category.Name
                      }
                  }).ToList();
         }
@@ -94,7 +100,13 @@ namespace ShareBook.Service
                      {
                          Id = u.User.Id,
                          Email = u.User.Email,
-                         Name = u.User.Name
+                         Name = u.User.Name,
+                         Linkedin = u.User.Linkedin,
+                         PostalCode = u.User.PostalCode
+                     },
+                     Category = new Category()
+                     {
+                         Name = u.Category.Name
                      }
                  }).ToList();
         }
@@ -193,8 +205,14 @@ namespace ShareBook.Service
                       {
                           Id = u.User.Id,
                           Email = u.User.Email,
-                          Name = u.User.Name
-                      }
+                          Name = u.User.Name,
+                          Linkedin = u.User.Linkedin,
+                          PostalCode = u.User.PostalCode                        
+                      },
+                      Category = new Category()
+                      {
+                          Name = u.Category.Name
+                      }                    
                   }).ToList();
         }
 
@@ -214,7 +232,13 @@ namespace ShareBook.Service
                     {
                         Id = u.User.Id,
                         Email = u.User.Email,
-                        Name = u.User.Name
+                        Name = u.User.Name,
+                        Linkedin = u.User.Linkedin,
+                        PostalCode = u.User.PostalCode
+                    },
+                    Category = new Category()
+                    {
+                        Name = u.Category.Name
                     }
                 }).ToList();
         }
@@ -235,7 +259,13 @@ namespace ShareBook.Service
                     {
                         Id = u.User.Id,
                         Email = u.User.Email,
-                        Name = u.User.Name
+                        Name = u.User.Name,
+                        Linkedin = u.User.Linkedin,
+                        PostalCode = u.User.PostalCode
+                    },
+                    Category = new Category()
+                    {
+                        Name = u.Category.Name
                     }
                 }).FirstOrDefault();
         }
