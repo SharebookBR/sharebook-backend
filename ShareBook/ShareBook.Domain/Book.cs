@@ -11,6 +11,8 @@ namespace ShareBook.Domain
 
         public string Author { get; set; }
 
+        public string Slug { get; set; }
+
         public byte[] ImageBytes { get; set; }
 
         public string ImageSlug { get; set; }
