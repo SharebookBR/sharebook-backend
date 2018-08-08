@@ -47,12 +47,15 @@ namespace ShareBook.Service
             _bookUsersEmailService.SendEmailBookRequested(bookUser);
         }
 
-        public void DonateBook(Guid bookId, Guid userId)
+        public void DonateBook(Guid bookId, Guid userId, string note)
         {
             var bookUserAccepted = _bookUserRepository.Get().Where(x => x.UserId == userId 
             && x.BookId == bookId && x.Status == DonationStatus.WaitingAction).FirstOrDefault();
 
-            bookUserAccepted.Status = DonationStatus.Donated;
+            if(bookUserAccepted == null) 
+                throw new ShareBookException("Não existe a relação de usuário e livro para a doação.");
+
+            bookUserAccepted.UpdateBookUser(DonationStatus.Donated, note);
 
             _bookUserRepository.Update(bookUserAccepted);
 
@@ -65,7 +68,8 @@ namespace ShareBook.Service
             && x.Status == DonationStatus.WaitingAction).ToList();
             foreach (var item in bookUsersDenied)
             {
-                item.Status = DonationStatus.Denied;
+                string note = string.Empty;
+                item.UpdateBookUser(DonationStatus.Denied, note);
                 _bookUserRepository.Update(item);
             }
         }

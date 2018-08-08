@@ -88,11 +88,11 @@ namespace ShareBook.Api.Controllers
         }
 
         [Authorize("Bearer")]
-        [HttpPut("{bookId}/User/{userId}")]
+        [HttpPut("{bookId}")]
         [AuthorizationFilter(Permissions.Permission.DonateBook)]
-        public IActionResult DonateBook(Guid bookId, Guid userId)
+        public IActionResult DonateBook(Guid bookId, [FromBody] DonateBookUserVM donateBookUserVM)
         {
-            _bookUserService.DonateBook(bookId, userId);
+            _bookUserService.DonateBook(bookId, donateBookUserVM.UserId, donateBookUserVM.Note);
 
             var jsonResult = "{\"message\":Livro doado com sucesso!\" }";
             return Ok(jsonResult);
