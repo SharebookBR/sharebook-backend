@@ -29,7 +29,7 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpPost("Approve/{id}")]
-        [AuthorizationFilter(Permissions.Permission.AprovarLivro)]
+        [AuthorizationFilter(Permissions.Permission.ApproveBook)]
         public Result<Book> Approve(string id) => _bookService.Approve(new Guid(id));
 
         [Authorize("Bearer")]
@@ -78,13 +78,24 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpPut("{id}")]
-        [AuthorizationFilter(Permissions.Permission.AprovarLivro)]
+        [AuthorizationFilter(Permissions.Permission.ApproveBook)]
         public Result<Book> Update(Guid id, [FromBody] UpdateBookVM updateBookVM)
         {
             updateBookVM.Id = id;
             var book = Mapper.Map<Book>(updateBookVM);
 
             return _service.Update(book);
+        }
+
+        [Authorize("Bearer")]
+        [HttpPut("{bookId}/User/{userId}")]
+        [AuthorizationFilter(Permissions.Permission.DonateBook)]
+        public IActionResult DonateBook(Guid bookId, Guid userId)
+        {
+            _bookUserService.DonateBook(bookId, userId);
+
+            var jsonResult = "{\"message\":Livro doado com sucesso!\" }";
+            return Ok(jsonResult);
         }
     }
 }

@@ -6,12 +6,13 @@ namespace ShareBook.Service.Authorization
     {
         public enum Permission
         {
-            CriarLivro,
-            EditarLivro,
-            ExcluirLivro,
-            AprovarLivro,
+            CreateBook,
+            UpdateBook,
+            DeleteBook,
+            ApproveBook,
+            DonateBook
         }
 
-        public static List<Permission> AdminPermissions { get; } = new List<Permission>() { Permission.AprovarLivro };
+        public static List<Permission> AdminPermissions { get; } = new List<Permission>() { Permission.ApproveBook, Permission.DonateBook };
     }
 }
