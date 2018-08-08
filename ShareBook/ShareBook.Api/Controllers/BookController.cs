@@ -65,7 +65,8 @@ namespace ShareBook.Api.Controllers
         public IActionResult RequestBook(string id)
         {
             _bookUserService.Insert(new Guid(id));
-            return Ok();
+            var jsonResult = "{\"message\":Pedido realizo com sucesso!\" }";
+            return Ok(jsonResult);
         }
 
         [Authorize("Bearer")]
