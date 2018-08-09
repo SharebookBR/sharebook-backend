@@ -40,7 +40,9 @@ namespace ShareBook.Api.Controllers
             return freightOptions;
         }
 
+        [Authorize("Bearer")]
         [HttpGet("GranteeUsersByBookId/{bookId}")]
+        [AuthorizationFilter(Permissions.Permission.DonateBook)]
         public IList<User> GetGranteeUsersByBookId(string bookId) => _bookUserService.GetGranteeUsersByBookId(new Guid(bookId));
 
         [HttpGet("Slug/{slug}")]
