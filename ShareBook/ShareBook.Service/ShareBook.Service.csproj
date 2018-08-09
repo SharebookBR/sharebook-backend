@@ -6,11 +6,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Email\Templates\BookDonatedTemplate.html" />
     <None Remove="Email\Templates\BookRequestedTemplate.html" />
     <None Remove="Email\Templates\NewBookInsertedTemplate.html" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Email\Templates\BookDonatedTemplate.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Email\Templates\BookRequestedTemplate.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

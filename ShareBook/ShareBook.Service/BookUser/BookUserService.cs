@@ -27,7 +27,9 @@ namespace ShareBook.Service
         }
 
         public IList<User> GetGranteeUsersByBookId(Guid bookId) =>
-            _bookUserRepository.Get().Include(x => x.User).Where(x => x.BookId == bookId).Select(x => x.User.Cleanup()).ToList();
+            _bookUserRepository.Get().Include(x => x.User)
+            .Where(x => x.BookId == bookId && x.Status == DonationStatus.WaitingAction)
+            .Select(x => x.User.Cleanup()).ToList();
 
         public void Insert(Guid bookId)
         {
@@ -49,8 +51,11 @@ namespace ShareBook.Service
 
         public void DonateBook(Guid bookId, Guid userId, string note)
         {
-            var bookUserAccepted = _bookUserRepository.Get().Where(x => x.UserId == userId 
-            && x.BookId == bookId && x.Status == DonationStatus.WaitingAction).FirstOrDefault();
+            var bookUserAccepted = _bookUserRepository.Get().Include(u => u.Book).Include( u => u.User)
+                .Where(x => x.UserId == userId 
+                    && x.BookId == bookId 
+                    && x.Status == DonationStatus.WaitingAction)
+                    .FirstOrDefault();
 
             if(bookUserAccepted == null) 
                 throw new ShareBookException("Não existe a relação de usuário e livro para a doação.");
@@ -60,6 +65,8 @@ namespace ShareBook.Service
             _bookUserRepository.Update(bookUserAccepted);
 
             DeniedBookUsers(bookId);
+
+            _bookUsersEmailService.SendEmailBookDonated(bookUserAccepted);
         }
 
         public void DeniedBookUsers(Guid bookId)
