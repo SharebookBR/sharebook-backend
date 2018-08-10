@@ -63,12 +63,13 @@ namespace ShareBook.Api.Controllers
         public IList<Book> ByAuthor(string author) => _bookService.ByAuthor(author);
 
         [Authorize("Bearer")]
+        [ProducesResponseType(typeof(object), 200)]
         [HttpPost("Request/{id}")]
         public IActionResult RequestBook(string id)
         {
             _bookUserService.Insert(new Guid(id));
-            var jsonResult = "{\"message\":Pedido realizo com sucesso!\" }";
-            return Ok(jsonResult);
+            object result = new { message = "Pedido realizo com sucesso!" };
+            return Ok(result);
         }
 
         [Authorize("Bearer")]
@@ -92,13 +93,14 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpPut("Donate/{bookId}")]
+        [ProducesResponseType(typeof(object), 200)]
         [AuthorizationFilter(Permissions.Permission.DonateBook)]
         public IActionResult DonateBook(Guid bookId, [FromBody] DonateBookUserVM donateBookUserVM)
         {
             _bookUserService.DonateBook(bookId, donateBookUserVM.UserId, donateBookUserVM.Note);
 
-            var jsonResult = "{\"message\":Livro doado com sucesso!\" }";
-            return Ok(jsonResult);
+            object result = new { message = "Livro doado com sucesso!" };
+            return Ok(result);
         }
     }
 }
