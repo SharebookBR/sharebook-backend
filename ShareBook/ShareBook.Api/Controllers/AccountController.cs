@@ -88,7 +88,14 @@ namespace ShareBook.Api.Controllers
             var result = _userService.AuthenticationByEmailAndPassword(user);
 
             if (result.Success)
-                return Ok(_signManager.GenerateTokenAndSetIdentity(result.Value, signingConfigurations, tokenConfigurations));
+            {
+                var response = new Result
+                {
+                    Value = _signManager.GenerateTokenAndSetIdentity(result.Value, signingConfigurations, tokenConfigurations)
+                };
+
+                return Ok(response);
+            }
 
             return NotFound(result);
         }
