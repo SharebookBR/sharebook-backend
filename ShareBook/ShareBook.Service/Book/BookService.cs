@@ -113,34 +113,8 @@ namespace ShareBook.Service
                  }).ToList();
         }
 
-        public PagedList<Book> GetAll(int page, int items)
-        {
-            var result = _repository.Get().Include(b => b.User).Skip((page - 1) * items).Take(items)
-                .Select(u => new Book
-                {
-                    Id = u.Id,
-                    Title = u.Title,
-                    Author = u.Author,
-                    Approved = u.Approved,
-                    FreightOption = u.FreightOption,
-                    ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
-                    Slug = u.Slug,
-                    User = new User()
-                    {
-                        Id = u.User.Id,
-                        Email = u.User.Email,
-                        Name = u.User.Name
-                    }
-                }).ToList();
-
-            return new PagedList<Book>()
-            {
-                Page = page,
-                TotalItems = result.Count,
-                ItemsPerPage = items,
-                Items = result
-            };
-        }
+        public IList<Book> GetAll(int page, int items)
+            => _repository.Get().Include(b => b.User).Include(b => b.BookUsers).Skip((page - 1) * items).Take(items).ToList();
 
         public override Book Get(params object[] keyValues)
         {
