@@ -2,6 +2,7 @@
 using ShareBook.Domain.Enums;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ShareBook.Domain
 {
@@ -34,5 +35,8 @@ namespace ShareBook.Domain
         public string ImageUrl { get; set; }
 
         public string ImageName { get; set; }
+
+        public bool Donated()
+            => !BookUsers.Any(x => x.Status == DonationStatus.WaitingAction);
     }
 }

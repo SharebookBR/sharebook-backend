@@ -10,33 +10,60 @@ using ShareBook.Service;
 using ShareBook.Service.Authorization;
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 
 namespace ShareBook.Api.Controllers
 {
     [Route("api/[controller]")]
     [GetClaimsFilter]
     [EnableCors("AllowAllHeaders")]
-    public class BookController : BaseDeleteController<Book, BaseViewModel>
+    public class BookController : Controller
     {
         private readonly IBookUserService _bookUserService;
-        private readonly IBookService _bookService;
+        private readonly IBookService _service;
+        private Expression<Func<Book, object>> _defaultOrder = x => x.Id;
 
-        public BookController(IBookService bookService, IBookUserService bookUserService) : base(bookService)
+        public BookController(IBookService bookService, IBookUserService bookUserService)
         {
-            _bookService = bookService;
+            _service = bookService;
             _bookUserService = bookUserService;
         }
+
+        protected void SetDefault(Expression<Func<Book, object>> defaultOrder)
+        {
+            _defaultOrder = defaultOrder;
+        }
+
+        [HttpGet()]
+        public  PagedList<BooksVM> GetAll() => Paged(1, 15);
+
+        [HttpGet("{page}/{items}")]
+        public PagedList<BooksVM> Paged(int page, int items)
+        {
+            var books = _service.GetAll(page, items);
+            var response = Mapper.Map<List<BooksVM>>(books);
+            return new PagedList<BooksVM>()
+            {
+                Page = page,
+                TotalItems = books.Count,
+                ItemsPerPage = items,
+                Items = response
+            };
+        }
+
+        [HttpGet("{id}")]
+        public Book GetById(string id) => _service.Get(new Guid(id));
 
         [Authorize("Bearer")]
         [HttpPost("Approve/{id}")]
         [AuthorizationFilter(Permissions.Permission.ApproveBook)]
-        public Result<Book> Approve(string id) => _bookService.Approve(new Guid(id));
+        public Result<Book> Approve(string id) => _service.Approve(new Guid(id));
 
         [Authorize("Bearer")]
         [HttpGet("FreightOptions")]
         public IList<dynamic> FreightOptions()
         {
-            var freightOptions = _bookService.FreightOptions();
+            var freightOptions = _service.FreightOptions();
             return freightOptions;
         }
 
@@ -46,21 +73,21 @@ namespace ShareBook.Api.Controllers
         public IList<User> GetGranteeUsersByBookId(string bookId) => _bookUserService.GetGranteeUsersByBookId(new Guid(bookId));
 
         [HttpGet("Slug/{slug}")]
-        public Book Get(string slug) => _bookService.BySlug(slug);
+        public Book Get(string slug) => _service.BySlug(slug);
 
         [HttpGet("Top15NewBooks")]
-        public IList<Book> Top15NewBooks() => _bookService.Top15NewBooks();
+        public IList<Book> Top15NewBooks() => _service.Top15NewBooks();
 
         [HttpGet("Random15Books")]
-        public IList<Book> Random15Books() => _bookService.Random15Books();
+        public IList<Book> Random15Books() => _service.Random15Books();
 
         [Authorize("Bearer")]
         [HttpGet("Title/{title}")]
-        public IList<Book> ByTitle(string title) => _bookService.ByTitle(title);
+        public IList<Book> ByTitle(string title) => _service.ByTitle(title);
 
         [Authorize("Bearer")]
         [HttpGet("Author/{author}")]
-        public IList<Book> ByAuthor(string author) => _bookService.ByAuthor(author);
+        public IList<Book> ByAuthor(string author) => _service.ByAuthor(author);
 
         [Authorize("Bearer")]
         [ProducesResponseType(typeof(Result), 200)]
@@ -109,5 +136,9 @@ namespace ShareBook.Api.Controllers
 
             return Ok(result);
         }
+
+        [Authorize("Bearer")]
+        [HttpDelete("{id}")]
+        public Result Delete(Guid id) => _service.Delete(id);
     }
 }

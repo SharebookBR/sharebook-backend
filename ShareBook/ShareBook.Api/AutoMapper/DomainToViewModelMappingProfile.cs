@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using ShareBook.Api.ViewModels;
+using ShareBook.Domain;
 
 namespace ShareBook.Api.AutoMapper
 {
@@ -9,7 +11,10 @@ namespace ShareBook.Api.AutoMapper
         protected DomainToViewModelMappingProfile(string profileName) : base(profileName)
         {
             #region [ Book ]
-            //CreateMap<Book, BookVM>();
+            CreateMap<Book, BooksVM>()
+                 .ForMember(dest => dest.Donor, opt => opt.MapFrom(src => src.User.Name))
+                 .ForMember(dest => dest.Donated, opt => opt.MapFrom(src => src.Donated()))
+                 .ForMember(dest => dest.PhoneDonor, opt => opt.MapFrom(src => src.User.Phone));
             #endregion
 
             #region [ User ]
