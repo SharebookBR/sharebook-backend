@@ -102,8 +102,12 @@ namespace ShareBook.Api
                 var scopeServiceProvider = serviceScope.ServiceProvider;
                 var context = serviceScope.ServiceProvider.GetService<ApplicationDbContext>();
                 context.Database.Migrate();
-                var sharebookSeeder = new ShareBookSeeder(context);
-                sharebookSeeder.Seed();
+                if (env.IsDevelopment() || env.IsStaging())
+                {
+                    var sharebookSeeder = new ShareBookSeeder(context);
+                    sharebookSeeder.Seed();
+                }
+               
             }
 
         }

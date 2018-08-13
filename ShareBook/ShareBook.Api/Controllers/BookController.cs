@@ -35,9 +35,13 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpGet()]
+        [Authorize("Bearer")]
+        [AuthorizationFilter(Permissions.Permission.DonateBook)]
         public  PagedList<BooksVM> GetAll() => Paged(1, 15);
 
         [HttpGet("{page}/{items}")]
+        [Authorize("Bearer")]
+        [AuthorizationFilter(Permissions.Permission.DonateBook)]
         public PagedList<BooksVM> Paged(int page, int items)
         {
             var books = _service.GetAll(page, items);
@@ -139,6 +143,7 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpDelete("{id}")]
+        [AuthorizationFilter(Permissions.Permission.DonateBook)]
         public Result Delete(Guid id) => _service.Delete(id);
     }
 }
