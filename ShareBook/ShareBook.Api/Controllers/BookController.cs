@@ -147,7 +147,7 @@ namespace ShareBook.Api.Controllers
         public Result Delete(Guid id) => _service.Delete(id);
 
         [Authorize("Bearer")]
-        [HttpGet("Requested/{id}")]
+        [HttpGet("Requested/{bookId}")]
         public Result Requested(Guid bookId)
         {
             var result = new Result

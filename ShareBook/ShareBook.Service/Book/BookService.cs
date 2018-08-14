@@ -253,12 +253,12 @@ namespace ShareBook.Service
         {
             var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             return _repository.Any(x => 
-                    x.UserId == userId && 
                     x.Id == bookId &&
                     x.BookUsers
                     .Any(y => 
                     y.Status == DonationStatus.WaitingAction
-            ));
+                    && y.UserId == userId
+              ));
         }
     }
 }
