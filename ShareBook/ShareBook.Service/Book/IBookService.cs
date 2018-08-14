@@ -23,5 +23,7 @@ namespace ShareBook.Service
         IList<Book> GetAll(int page, int items);
 
         Book BySlug(string slug);
+
+        bool UserRequestedBook(Guid bookId);
     }
 }

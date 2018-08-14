@@ -145,5 +145,17 @@ namespace ShareBook.Api.Controllers
         [HttpDelete("{id}")]
         [AuthorizationFilter(Permissions.Permission.DonateBook)]
         public Result Delete(Guid id) => _service.Delete(id);
+
+        [Authorize("Bearer")]
+        [HttpGet("Requested/{bookId}")]
+        public Result Requested(Guid bookId)
+        {
+            var result = new Result
+            {
+                Value = new { bookRequested = _service.UserRequestedBook(bookId) },
+            };
+
+            return result;
+        }
     }
 }
