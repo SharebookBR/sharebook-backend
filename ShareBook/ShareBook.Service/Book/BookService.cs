@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -260,5 +261,8 @@ namespace ShareBook.Service
                     && y.UserId == userId
               ));
         }
+
+        public override PagedList<Book> Get<TKey>(Expression<Func<Book, bool>> filter, Expression<Func<Book, TKey>> order, int page, int itemsPerPage)
+            =>   base.Get(filter, order, page, itemsPerPage);
     }
 }

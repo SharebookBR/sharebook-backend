@@ -21,7 +21,7 @@ namespace ShareBook.Repository
 
         #region Asynchronous
         public async Task<TEntity> GetAsync(params object[] keyValues) => await _dbSet.FindAsync(keyValues);
-        public async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage)
+        public virtual async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage)
         {
             var skip = (page - 1) * itemsPerPage;
             var query = _dbSet.Where(filter);
