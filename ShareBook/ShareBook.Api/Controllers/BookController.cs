@@ -39,19 +39,20 @@ namespace ShareBook.Api.Controllers
         [AuthorizationFilter(Permissions.Permission.DonateBook)]
         public  PagedList<BooksVM> GetAll() => Paged(1, 15);
 
-        [HttpGet("{page}/{items}")]
-        [Authorize("Bearer")]
-        [AuthorizationFilter(Permissions.Permission.DonateBook)]
+       [HttpGet("{page}/{items}")]
+       [Authorize("Bearer")]
+       [AuthorizationFilter(Permissions.Permission.DonateBook)]
         public PagedList<BooksVM> Paged(int page, int items)
         {
-            var books = _service.GetAll(page, items);
-            var response = Mapper.Map<List<BooksVM>>(books);
+            // corrigir para o parametro filter ser opcional
+            var books = _service.Get<object>(x => x.Approved || !x.Approved, x => x.Title, page, items);
+            var responseVM = Mapper.Map<List<BooksVM>>(books.Items);
             return new PagedList<BooksVM>()
             {
                 Page = page,
-                TotalItems = books.Count,
+                TotalItems = books.TotalItems,
                 ItemsPerPage = items,
-                Items = response
+                Items = responseVM
             };
         }
 

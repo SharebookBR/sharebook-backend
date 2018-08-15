@@ -1,5 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using ShareBook.Domain;
+using ShareBook.Domain.Common;
 
 namespace ShareBook.Repository
 {
@@ -19,6 +24,26 @@ namespace ShareBook.Repository
             await _context.SaveChangesAsync();
 
             return entity;
+        }
+
+        public override async Task<PagedList<Book>> GetAsync<TKey>(Expression<Func<Book, bool>> filter, Expression<Func<Book, TKey>> order, int page, int itemsPerPage)
+        {
+            var skip = (page - 1) * itemsPerPage;
+            var query = _dbSet.Where(filter);
+            var total = await query.CountAsync();
+            var result = await query.Include(x => x.BookUsers)
+                .OrderBy(order)
+                .Skip(skip)
+                .Take(itemsPerPage)
+                .ToListAsync();
+
+            return new PagedList<Book>()
+            {
+                Page = page,
+                ItemsPerPage = itemsPerPage,
+                TotalItems = total,
+                Items = result
+            };
         }
     }
 }
