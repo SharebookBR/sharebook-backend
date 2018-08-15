@@ -64,7 +64,6 @@ namespace ShareBook.Api.Controllers
         [AuthorizationFilter(Permissions.Permission.ApproveBook)]
         public Result<Book> Approve(string id) => _service.Approve(new Guid(id));
 
-        [Authorize("Bearer")]
         [HttpGet("FreightOptions")]
         public IList<dynamic> FreightOptions()
         {
