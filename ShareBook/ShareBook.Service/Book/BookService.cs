@@ -161,6 +161,7 @@ namespace ShareBook.Service
 
             if (!result.Success) return result;
 
+            entity.Slug = entity.Title.GenerateSlug();
             result.Value = _repository.UpdateAsync(entity).Result;
 
             return result;
