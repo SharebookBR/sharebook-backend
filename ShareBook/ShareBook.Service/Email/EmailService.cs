@@ -17,17 +17,25 @@ namespace ShareBook.Service
         public async void Send(string emailRecipient, string nameRecipient, string messageText, string subject)
         {
             var message = FormatEmail(emailRecipient, nameRecipient, messageText, subject);
-
-            using (var client = new SmtpClient())
+            try
             {
-                client.ServerCertificateValidationCallback = (s, c, h, e) => true;
-                client.Connect(_settings.HostName, _settings.Port, true);
+                using (var client = new SmtpClient())
+                {
+                    client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+                    client.Connect(_settings.HostName, _settings.Port, true);
 
-                client.Authenticate(_settings.Username, _settings.Password);
+                    client.Authenticate(_settings.Username, _settings.Password);
 
-                await client.SendAsync(message);
-                client.Disconnect(true);
+                    await client.SendAsync(message);
+                    client.Disconnect(true);
+                }
             }
+            catch (System.Exception)
+            {
+
+               //v2 implementar log para exceptions
+            }
+            
 
         }
 
