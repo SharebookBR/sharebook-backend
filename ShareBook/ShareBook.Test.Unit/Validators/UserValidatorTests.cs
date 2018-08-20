@@ -100,5 +100,15 @@ namespace ShareBook.Test.Unit.Validators
 
             Assert.True(result);
         }
+
+        [Fact]
+        public void PasswordTwoValid()
+        {
+            userPasswordTest.Password = "601jFy0IN#";
+
+            var result = userPasswordTest.PasswordIsStrong();
+
+            Assert.True(result);
+        }
     }
 }
