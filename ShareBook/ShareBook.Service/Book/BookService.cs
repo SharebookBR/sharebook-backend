@@ -122,7 +122,7 @@ namespace ShareBook.Service
             var result = _repository.Get(keyValues);
 
             result.ImageUrl = _uploadService.GetImageUrl(result.ImageSlug, "Books");
-            result.UserId = null;
+           
 
             return result;
         }

@@ -39,7 +39,7 @@ namespace ShareBook.Service
             // TODO - Ajustar para apenas um SELECT 
             var bookRequested = _bookService.Get(bookUser.BookId);
 
-            bookRequested.User = _userService.Get(bookUser.UserId);
+            bookRequested.User = _userService.Get(bookRequested.UserId);
 
             var requestingUser = _userService.Get(bookUser.UserId);
 

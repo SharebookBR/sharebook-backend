@@ -37,6 +37,6 @@ namespace ShareBook.Domain
         public string ImageName { get; set; }
 
         public bool Donated()
-            => !BookUsers.Any(x => x.Status == DonationStatus.WaitingAction);
+            => BookUsers.Any(x => x.Status == DonationStatus.Donated);
     }
 }
