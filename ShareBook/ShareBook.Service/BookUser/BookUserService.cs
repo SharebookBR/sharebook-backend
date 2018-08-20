@@ -46,10 +46,10 @@ namespace ShareBook.Service
                 throw new ShareBookException("O usuário já possui uma requisição para o mesmo livro.");
 
             _bookUserRepository.Insert(bookUser);
-            _bookUsersEmailService.SendEmailBookRequested(bookUser);
+             _bookUsersEmailService.SendEmailBookRequested(bookUser);
         }
 
-        public void DonateBook(Guid bookId, Guid userId, string note)
+        public async void DonateBook(Guid bookId, Guid userId, string note)
         {
             var bookUserAccepted = _bookUserRepository.Get().Include(u => u.Book).Include( u => u.User)
                 .Where(x => x.UserId == userId 
@@ -66,7 +66,7 @@ namespace ShareBook.Service
 
             DeniedBookUsers(bookId);
 
-            _bookUsersEmailService.SendEmailBookDonated(bookUserAccepted);
+            await _bookUsersEmailService.SendEmailBookDonated(bookUserAccepted);
         }
 
         public void DeniedBookUsers(Guid bookId)

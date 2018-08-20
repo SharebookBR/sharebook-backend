@@ -31,7 +31,7 @@ namespace ShareBook.Repository
             var skip = (page - 1) * itemsPerPage;
             var query = _dbSet.Where(filter);
             var total = await query.CountAsync();
-            var result = await query.Include(x => x.BookUsers)
+            var result = await query.Include(x => x.BookUsers).Include(x => x.User)
                 .OrderBy(order)
                 .Skip(skip)
                 .Take(itemsPerPage)
