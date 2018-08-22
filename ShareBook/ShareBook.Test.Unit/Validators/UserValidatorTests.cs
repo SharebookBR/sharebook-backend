@@ -110,5 +110,15 @@ namespace ShareBook.Test.Unit.Validators
 
             Assert.True(result);
         }
+
+        [Fact]
+        public void PasswordThreeValid()
+        {
+            userPasswordTest.Password = "Anu-P2017";
+
+            var result = userPasswordTest.PasswordIsStrong();
+
+            Assert.True(result);
+        }
     }
 }
