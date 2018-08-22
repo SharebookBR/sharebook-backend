@@ -167,89 +167,37 @@ namespace ShareBook.Service
             return result;
         }
 
-        public IList<Book> ByTitle(string title)
-        {
-            return _repository.Get().Where(x => x.Title.Contains(title)
-            && x.Approved && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated))
-                  .Select(u => new Book
-                  {
-                      Id = u.Id,
-                      Title = u.Title,
-                      Author = u.Author,
-                      Approved = u.Approved,
-                      FreightOption = u.FreightOption,
-                      ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
-                      Slug = u.Slug,
-                      User = new User()
-                      {
-                          Id = u.User.Id,
-                          Email = u.User.Email,
-                          Name = u.User.Name,
-                          Linkedin = u.User.Linkedin,
-                          PostalCode = u.User.PostalCode
-                      },
-                      Category = new Category()
-                      {
-                          Name = u.Category.Name
-                      }
-                  }).ToList();
-        }
+        public IList<Book> ByTitle(string title) => SearchBooks(x => x.Title.Contains(title));
+        public IList<Book> ByAuthor(string author) => SearchBooks(x => x.Author.Contains(author));
+        public IList<Book> FullSearch(string criteria) => SearchBooks(x => x.Author.Contains(criteria) || x.Title.Contains(criteria) || x.Category.Name.Contains(criteria));
 
-        public IList<Book> ByAuthor(string author)
+        private IList<Book> SearchBooks(Expression<Func<Book, bool>> filter)
         {
-            return _repository.Get().Where(x => x.Author.Contains(author)
-            && x.Approved && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated))
-                 .Select(u => new Book
-                 {
-                     Id = u.Id,
-                     Title = u.Title,
-                     Author = u.Author,
-                     Approved = u.Approved,
-                     FreightOption = u.FreightOption,
-                     ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
-                     Slug = u.Slug,
-                     User = new User()
-                     {
-                         Id = u.User.Id,
-                         Email = u.User.Email,
-                         Name = u.User.Name,
-                         Linkedin = u.User.Linkedin,
-                         PostalCode = u.User.PostalCode
-                     },
-                     Category = new Category()
-                     {
-                         Name = u.Category.Name
-                     }
-                 }).ToList();
-        }
-
-        public IList<Book> FullSearch(string criteria)
-        {
-            return _repository.Get().Where(x => 
-            (x.Author.Contains(criteria) || x.Title.Contains(criteria) || x.Category.Name.Contains(criteria))
-            && x.Approved && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated))
-                 .Select(u => new Book
-                 {
-                     Id = u.Id,
-                     Title = u.Title,
-                     Author = u.Author,
-                     Approved = u.Approved,
-                     FreightOption = u.FreightOption,
-                     ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
-                     Slug = u.Slug,
-                     User = new User()
-                     {
-                         Id = u.User.Id,
-                         Email = u.User.Email,
-                         Name = u.User.Name,
-                         Linkedin = u.User.Linkedin,
-                         PostalCode = u.User.PostalCode
-                     },
-                     Category = new Category()
-                     {
-                         Name = u.Category.Name
-                     }
-                 }).ToList();
+            return _repository.Get()
+                .Where(x => x.Approved && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated))
+                .Where(filter)
+                .Select(u => new Book
+                {
+                    Id = u.Id,
+                    Title = u.Title,
+                    Author = u.Author,
+                    Approved = u.Approved,
+                    FreightOption = u.FreightOption,
+                    ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
+                    Slug = u.Slug,
+                    User = new User()
+                    {
+                        Id = u.User.Id,
+                        Email = u.User.Email,
+                        Name = u.User.Name,
+                        Linkedin = u.User.Linkedin,
+                        PostalCode = u.User.PostalCode
+                    },
+                    Category = new Category()
+                    {
+                        Name = u.Category.Name
+                    }
+                }).ToList();
         }
 
         public Book BySlug(string slug)
