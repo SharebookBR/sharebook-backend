@@ -94,6 +94,10 @@ namespace ShareBook.Api.Controllers
         public IList<Book> ByAuthor(string author) => _service.ByAuthor(author);
 
         [Authorize("Bearer")]
+        [HttpGet("FullSearch/{criteria}")]
+        public IList<Book> FullSearch(string criteria) => _service.FullSearch(criteria);
+
+        [Authorize("Bearer")]
         [ProducesResponseType(typeof(Result), 200)]
         [HttpPost("Request/{id}")]
         public IActionResult RequestBook(string id)
