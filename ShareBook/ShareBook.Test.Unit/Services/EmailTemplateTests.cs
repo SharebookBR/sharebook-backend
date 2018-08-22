@@ -89,10 +89,14 @@ namespace ShareBook.Test.Unit.Services
 
             Assert.Contains("Olá Cussa Mitre,", result);
             Assert.Contains("<li><strong>Livro: </strong>Lord of the Rings</li>", result);
-            Assert.Contains("<li><strong>Donatario: </strong>Walter Vinicius</li>", result);
-            Assert.Contains("<li><strong>Linkedin Donatario:</strong>linkedin.com/walter</li>", result);
+            Assert.Contains("<li><strong>Donatário: </strong>Walter Vinicius</li>", result);
+            Assert.Contains("<li><strong>Linkedin Donatário: </strong>linkedin.com/walter</li>", result);
+            Assert.Contains("<li><strong>Telefone Donatário: </strong></li>", result);
+            Assert.Contains("<li><strong>Email Donatário: </strong>walter@sharebook.com</li>", result);
             Assert.Contains("<li><strong>Doador: </strong>Rodrigo</li>", result);
-            Assert.Contains("<li><strong>Linkedin Doador:</strong>linkedin.com/rodrigo</li>", result);
+            Assert.Contains("<li><strong>Linkedin Doador: </strong>linkedin.com/rodrigo</li>", result);
+            Assert.Contains("<li><strong>Telefone Doador: </strong></li>", result);
+            Assert.Contains("<li><strong>Email Doador: </strong>rodrigo@sharebook.com</li>", result);
         }
     }
 }
