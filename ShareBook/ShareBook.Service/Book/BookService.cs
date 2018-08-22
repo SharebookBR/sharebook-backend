@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading;
-using FluentValidation;
+﻿using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
@@ -15,6 +10,11 @@ using ShareBook.Repository;
 using ShareBook.Repository.Infra;
 using ShareBook.Service.Generic;
 using ShareBook.Service.Upload;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading;
 
 namespace ShareBook.Service
 {
@@ -88,7 +88,7 @@ namespace ShareBook.Service
 
         public IList<Book> Random15Books()
         {
-            return _repository.Get().Where(x => x.Approved 
+            return _repository.Get().Where(x => x.Approved
             && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated)).OrderBy(x => Guid.NewGuid()).Take(15)
                  .Select(u => new Book
                  {
@@ -122,7 +122,7 @@ namespace ShareBook.Service
             var result = _repository.Get(keyValues);
 
             result.ImageUrl = _uploadService.GetImageUrl(result.ImageSlug, "Books");
-           
+
 
             return result;
         }
@@ -167,38 +167,15 @@ namespace ShareBook.Service
             return result;
         }
 
-        public IList<Book> ByTitle(string title)
-        {
-            return _repository.Get().Where(x => x.Title.Contains(title) 
-            && x.Approved && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated))
-                  .Select(u => new Book
-                  {
-                      Id = u.Id,
-                      Title = u.Title,
-                      Author = u.Author,
-                      Approved = u.Approved,
-                      FreightOption = u.FreightOption,
-                      ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
-                      Slug = u.Slug,
-                      User = new User()
-                      {
-                          Id = u.User.Id,
-                          Email = u.User.Email,
-                          Name = u.User.Name,
-                          Linkedin = u.User.Linkedin,
-                          PostalCode = u.User.PostalCode                        
-                      },
-                      Category = new Category()
-                      {
-                          Name = u.Category.Name
-                      }                    
-                  }).ToList();
-        }
+        public IList<Book> ByTitle(string title) => SearchBooks(x => x.Title.Contains(title));
+        public IList<Book> ByAuthor(string author) => SearchBooks(x => x.Author.Contains(author));
+        public IList<Book> FullSearch(string criteria) => SearchBooks(x => x.Author.Contains(criteria) || x.Title.Contains(criteria) || x.Category.Name.Contains(criteria));
 
-        public IList<Book> ByAuthor(string author)
+        private IList<Book> SearchBooks(Expression<Func<Book, bool>> filter)
         {
-           return  _repository.Get().Where(x => x.Author.Contains(author) 
-           && x.Approved && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated))
+            return _repository.Get()
+                .Where(x => x.Approved && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated))
+                .Where(filter)
                 .Select(u => new Book
                 {
                     Id = u.Id,
@@ -225,45 +202,45 @@ namespace ShareBook.Service
 
         public Book BySlug(string slug)
         {
-           return  _repository.Get().Where(x => x.Slug.Contains(slug)
-            && x.Approved && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated) )
-                .Select(u => new Book
-                {
-                    Id = u.Id,
-                    Title = u.Title,
-                    Author = u.Author,
-                    Approved = u.Approved,
-                    FreightOption = u.FreightOption,
-                    ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
-                    Slug = u.Slug,
-                    User = new User()
-                    {
-                        Id = u.User.Id,
-                        Email = u.User.Email,
-                        Name = u.User.Name,
-                        Linkedin = u.User.Linkedin,
-                        PostalCode = u.User.PostalCode
-                    },
-                    Category = new Category()
-                    {
-                        Name = u.Category.Name
-                    }
-                }).FirstOrDefault();
+            return _repository.Get().Where(x => x.Slug.Contains(slug)
+            && x.Approved && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated))
+                 .Select(u => new Book
+                 {
+                     Id = u.Id,
+                     Title = u.Title,
+                     Author = u.Author,
+                     Approved = u.Approved,
+                     FreightOption = u.FreightOption,
+                     ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
+                     Slug = u.Slug,
+                     User = new User()
+                     {
+                         Id = u.User.Id,
+                         Email = u.User.Email,
+                         Name = u.User.Name,
+                         Linkedin = u.User.Linkedin,
+                         PostalCode = u.User.PostalCode
+                     },
+                     Category = new Category()
+                     {
+                         Name = u.Category.Name
+                     }
+                 }).FirstOrDefault();
         }
 
         public bool UserRequestedBook(Guid bookId)
         {
             var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            return _repository.Any(x => 
+            return _repository.Any(x =>
                     x.Id == bookId &&
                     x.BookUsers
-                    .Any(y => 
+                    .Any(y =>
                     y.Status == DonationStatus.WaitingAction
                     && y.UserId == userId
               ));
         }
 
         public override PagedList<Book> Get<TKey>(Expression<Func<Book, bool>> filter, Expression<Func<Book, TKey>> order, int page, int itemsPerPage)
-            =>   base.Get(filter, order, page, itemsPerPage);
+            => base.Get(filter, order, page, itemsPerPage);
     }
 }

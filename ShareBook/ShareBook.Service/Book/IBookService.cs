@@ -20,6 +20,8 @@ namespace ShareBook.Service
 
         IList<Book> ByAuthor(string author);
 
+        IList<Book> FullSearch(string criteria);
+
         IList<Book> GetAll(int page, int items);
 
         Book BySlug(string slug);
