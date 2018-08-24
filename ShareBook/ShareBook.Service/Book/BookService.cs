@@ -115,7 +115,9 @@ namespace ShareBook.Service
         }
 
         public IList<Book> GetAll(int page, int items)
-            => _repository.Get().Include(b => b.User).Include(b => b.BookUsers).Skip((page - 1) * items).Take(items).ToList();
+            => _repository.Get().Include(b => b.User).Include(b => b.BookUsers)
+            .Skip((page - 1) * items)
+            .Take(items).ToList();
 
         public override Book Get(params object[] keyValues)
         {
@@ -167,37 +169,29 @@ namespace ShareBook.Service
             return result;
         }
 
-        public IList<Book> ByTitle(string title) => SearchBooks(x => x.Title.Contains(title));
-        public IList<Book> ByAuthor(string author) => SearchBooks(x => x.Author.Contains(author));
-        public IList<Book> FullSearch(string criteria) => SearchBooks(x => x.Author.Contains(criteria) || x.Title.Contains(criteria) || x.Category.Name.Contains(criteria));
+        public PagedList<Book> ByTitle(string title, int page, int itemsPerPage)
+            => SearchBooks(x => (x.Approved
+                                && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated))
+                                && x.Title.Contains(title), page, itemsPerPage);
 
-        private IList<Book> SearchBooks(Expression<Func<Book, bool>> filter)
+        public PagedList<Book> ByAuthor(string author, int page, int itemsPerPage)
+            => SearchBooks(x => (x.Approved
+                                 && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated))
+                                 && x.Author.Contains(author), page, itemsPerPage);
+
+        public PagedList<Book> FullSearch(string criteria, int page, int itemsPerPage, bool isAdmin)
         {
-            return _repository.Get()
-                .Where(x => x.Approved && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated))
-                .Where(filter)
-                .Select(u => new Book
-                {
-                    Id = u.Id,
-                    Title = u.Title,
-                    Author = u.Author,
-                    Approved = u.Approved,
-                    FreightOption = u.FreightOption,
-                    ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
-                    Slug = u.Slug,
-                    User = new User()
-                    {
-                        Id = u.User.Id,
-                        Email = u.User.Email,
-                        Name = u.User.Name,
-                        Linkedin = u.User.Linkedin,
-                        PostalCode = u.User.PostalCode
-                    },
-                    Category = new Category()
-                    {
-                        Name = u.Category.Name
-                    }
-                }).ToList();
+            Expression<Func<Book, bool>> filter = x => (x.Author.Contains(criteria)
+                                                        || x.Title.Contains(criteria)
+                                                        || x.Category.Name.Contains(criteria))
+                                                        && x.Approved
+                                                        && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated);
+
+            if (!isAdmin) filter = x => x.Author.Contains(criteria)
+                                        || x.Title.Contains(criteria)
+                                        || x.Category.Name.Contains(criteria);
+
+            return SearchBooks(filter, page, itemsPerPage);
         }
 
         public Book BySlug(string slug)
@@ -242,5 +236,50 @@ namespace ShareBook.Service
 
         public override PagedList<Book> Get<TKey>(Expression<Func<Book, bool>> filter, Expression<Func<Book, TKey>> order, int page, int itemsPerPage)
             => base.Get(filter, order, page, itemsPerPage);
+
+        #region Private
+        private PagedList<Book> SearchBooks(Expression<Func<Book, bool>> filter, int page, int itemsPerPage)
+        {
+            var result = _repository.Get()
+                .Where(filter)
+                .Select(u => new Book
+                {
+                    Id = u.Id,
+                    Title = u.Title,
+                    Author = u.Author,
+                    Approved = u.Approved,
+                    FreightOption = u.FreightOption,
+                    ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
+                    Slug = u.Slug,
+                    User = new User()
+                    {
+                        Id = u.User.Id,
+                        Email = u.User.Email,
+                        Name = u.User.Name,
+                        Linkedin = u.User.Linkedin,
+                        PostalCode = u.User.PostalCode
+                    },
+                    Category = new Category()
+                    {
+                        Name = u.Category.Name
+
+                    }
+                });
+
+            return FormatPagedList(result, page, itemsPerPage, result.Count());
+        }
+
+        private PagedList<Book> FormatPagedList(IQueryable<Book> list, int page, int itemsPerPage, int total)
+        {
+            var skip = (page - 1) * itemsPerPage;
+            return new PagedList<Book>()
+            {
+                Page = page,
+                ItemsPerPage = itemsPerPage,
+                TotalItems = total,
+                Items = list.Skip(skip).Take(itemsPerPage).ToList()
+            };
+        }
+        #endregion
     }
 }

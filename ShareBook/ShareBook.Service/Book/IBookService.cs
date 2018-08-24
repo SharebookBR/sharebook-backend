@@ -14,13 +14,14 @@ namespace ShareBook.Service
         IList<dynamic> FreightOptions();
 
         IList<Book> Top15NewBooks();
+
         IList<Book> Random15Books();
 
-        IList<Book> ByTitle(string title);
+        PagedList<Book> ByTitle(string title, int page, int itemsPerPage);
 
-        IList<Book> ByAuthor(string author);
+        PagedList<Book> ByAuthor(string author, int page, int itemsPerPage);
 
-        IList<Book> FullSearch(string criteria);
+        PagedList<Book> FullSearch(string criteria, int page, int itemsPerPage, bool isAdmin = false);
 
         IList<Book> GetAll(int page, int items);
 

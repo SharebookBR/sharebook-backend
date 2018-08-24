@@ -86,16 +86,24 @@ namespace ShareBook.Api.Controllers
         public IList<Book> Random15Books() => _service.Random15Books();
 
         [Authorize("Bearer")]
-        [HttpGet("Title/{title}")]
-        public IList<Book> ByTitle(string title) => _service.ByTitle(title);
+        [HttpGet("Title/{title}/{page}/{items}")]
+        public PagedList<Book> ByTitle(string title, int page, int items) => _service.ByTitle(title, page, items);
 
         [Authorize("Bearer")]
-        [HttpGet("Author/{author}")]
-        public IList<Book> ByAuthor(string author) => _service.ByAuthor(author);
+        [HttpGet("Author/{author}/{page}/{items}")]
+        public PagedList<Book> ByAuthor(string author, int page, int items) => _service.ByAuthor(author, page, items);
+
+        [HttpGet("FullSearch/{criteria}/{page}/{items}")]
+        public PagedList<Book> FullSearch(string criteria, int page, int items) => _service.FullSearch(criteria, page, items);
 
         [Authorize("Bearer")]
-        [HttpGet("FullSearch/{criteria}")]
-        public IList<Book> FullSearch(string criteria) => _service.FullSearch(criteria);
+        [HttpGet("FullSearchAdmin/{criteria}")]
+        [AuthorizationFilter(Permissions.Permission.DonateBook)]
+        public PagedList<Book> FullSearchAdmin(string criteria, int page, int items)
+        {
+            var isAdmin = true;
+            return  _service.FullSearch(criteria, page, items, isAdmin);
+        }
 
         [Authorize("Bearer")]
         [ProducesResponseType(typeof(Result), 200)]
