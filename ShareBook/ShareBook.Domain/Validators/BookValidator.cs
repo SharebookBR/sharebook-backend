@@ -12,7 +12,7 @@ namespace ShareBook.Domain.Validators
         public const string Categoria = "Categoria do livro é obrigatória";
         public const string User = "O usuário deve ter vinculo com o livro";
         public const string FreightOption = "A opção de frete é obrigatória";
-        public const string HasNotImageExtension = "A extensão da imagem é obrigatória";
+        public const string HasNotImageExtension = "A extensão da imagem não é válida. É preciso ser png, jpg ou jpeg.";
         #endregion
 
         public BookValidator()
