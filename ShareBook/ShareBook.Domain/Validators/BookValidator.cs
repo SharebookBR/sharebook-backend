@@ -51,7 +51,11 @@ namespace ShareBook.Domain.Validators
 
         private bool HasImageExtension(string image)
         {
-            return (!string.IsNullOrEmpty(image) && ( image.ToLower().EndsWith(".png") || image.ToLower().EndsWith(".jpg")));
+            return (!string.IsNullOrEmpty(image) && 
+                       (image.ToLower().EndsWith(".png") 
+                       || image.ToLower().EndsWith(".jpg")
+                       || image.ToLower().EndsWith(".jpeg"))
+                   );
         }
 
         private bool FreightOptionIsValid(FreightOption freightOption)
