@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace ShareBook.Service
 {
@@ -171,7 +172,11 @@ namespace ShareBook.Service
 
             //Se livro já foi aprovado não enviar e-mail
             if(!bookAlreadyApproved)
-                _booksEmailService.SendEmailBookApproved(entity).Wait();
+            {
+                entity.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+                _booksEmailService.SendEmailBookApproved(entity);
+            }
+               
 
             return result;
         }
