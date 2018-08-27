@@ -59,7 +59,8 @@ namespace ShareBook.Service
             };
 
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookRequestedTemplate, vm);
-            _emailService.Send(admin.Email, admin.Name, html, BookRequestedTitle);
+            bool copyAdmins = false;
+            _emailService.Send(admin.Email, admin.Name, html, BookRequestedTitle, copyAdmins);
         }
 
         private async Task SendEmailBookDonatedToGrantee(Book bookDonated, User grantee)
@@ -69,9 +70,9 @@ namespace ShareBook.Service
                 Book = bookDonated,
                 User = grantee
             };
-
+            bool copyAdmins = true;
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookDonatedTemplate, vm);
-            _emailService.Send(grantee.Email, grantee.Name, html, BookDonatedTitle);
+            _emailService.Send(grantee.Email, grantee.Name, html, BookDonatedTitle, copyAdmins);
         }
     }
 }

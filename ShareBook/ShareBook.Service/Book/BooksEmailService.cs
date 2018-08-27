@@ -7,6 +7,8 @@ namespace ShareBook.Service
     {
         private const string NewBookInsertedTemplate = "NewBookInsertedTemplate";
         private const string NewBookInsertedTitle = "Novo livro incluído - Sharebook";
+        private const string WaitingApprovalTemplate = "WaitingApprovalTemplate";
+        private const string WaitingApprovalTitle = "Aguarde aprovação do livro - Sharebook";
 
         private readonly IEmailService _emailService;
         private readonly IUserService _userService;
@@ -27,6 +29,9 @@ namespace ShareBook.Service
 
             foreach (var admin in administrators)
                 await SendEmailNewBookInsertedToAdministrator(book, admin);
+
+            await SendEmailWaitingApprovalToUser(book);
+
         }
 
         private async Task SendEmailNewBookInsertedToAdministrator(Book book, User administrator)
@@ -38,7 +43,19 @@ namespace ShareBook.Service
             };
 
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(NewBookInsertedTemplate, vm);
-            _emailService.Send(administrator.Email, administrator.Name, html, NewBookInsertedTitle);
+            bool copyAdmins = false;
+            _emailService.Send(administrator.Email, administrator.Name, html, NewBookInsertedTitle, copyAdmins);
+        }
+
+        private async Task SendEmailWaitingApprovalToUser(Book book)
+        {
+            var vm = new
+            {
+                Book = book
+            };
+            bool copyAdmins = true;
+            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(WaitingApprovalTemplate, vm);
+            _emailService.Send(book.User.Email, book.User.Name, html, WaitingApprovalTitle, copyAdmins);
         }
     }
 }
