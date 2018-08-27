@@ -29,6 +29,9 @@ namespace ShareBook.Service
 
             foreach (var admin in administrators)
                 await SendEmailNewBookInsertedToAdministrator(book, admin);
+
+            await SendEmailWaitingApprovalToUser(book);
+
         }
 
         private async Task SendEmailNewBookInsertedToAdministrator(Book book, User administrator)
@@ -40,18 +43,19 @@ namespace ShareBook.Service
             };
 
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(NewBookInsertedTemplate, vm);
-            _emailService.Send(administrator.Email, administrator.Name, html, NewBookInsertedTitle);
+            bool copyAdmins = false;
+            _emailService.Send(administrator.Email, administrator.Name, html, NewBookInsertedTitle, copyAdmins);
         }
 
-        private async Task SendEmailNewBookInsertedToUser(Book book)
+        private async Task SendEmailWaitingApprovalToUser(Book book)
         {
             var vm = new
             {
                 Book = book
             };
-
+            bool copyAdmins = true;
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(WaitingApprovalTemplate, vm);
-            _emailService.Send(book.User.Email, book.User.Name, html, WaitingApprovalTitle);
+            _emailService.Send(book.User.Email, book.User.Name, html, WaitingApprovalTitle, copyAdmins);
         }
     }
 }

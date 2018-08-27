@@ -14,9 +14,9 @@ namespace ShareBook.Service
             _settings = emailSettings.Value;
         }
 
-        public async void Send(string emailRecipient, string nameRecipient, string messageText, string subject)
+        public async void Send(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins)
         {
-            var message = FormatEmail(emailRecipient, nameRecipient, messageText, subject);
+            var message = FormatEmail(emailRecipient, nameRecipient, messageText, subject, copyAdmins);
             try
             {
                 using (var client = new SmtpClient())
@@ -39,11 +39,15 @@ namespace ShareBook.Service
 
         }
 
-        private MimeMessage FormatEmail(string emailRecipient, string nameRecipient, string messageText, string subject)
+        private MimeMessage FormatEmail(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins)
         {
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress("Sharebook", _settings.Username));
             message.To.Add(new MailboxAddress(nameRecipient, emailRecipient));
+
+            if(copyAdmins)
+                message.To.Add(new MailboxAddress("Sharebook", _settings.Username));
+
             message.Subject = subject;
             message.Body = new TextPart("HTML")
             {
