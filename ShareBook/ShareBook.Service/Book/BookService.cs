@@ -171,7 +171,7 @@ namespace ShareBook.Service
             result.Value = _repository.UpdateAsync(entity).Result;
 
             //Se livro já foi aprovado não enviar e-mail
-            if(!bookAlreadyApproved)
+            if(!bookAlreadyApproved && entity.Approved)
             {
                 entity.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
                 _booksEmailService.SendEmailBookApproved(entity);
