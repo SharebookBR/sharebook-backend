@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace ShareBook.Service
 {
@@ -40,6 +41,8 @@ namespace ShareBook.Service
 
             book.Approved = true;
             _repository.Update(book);
+
+            _booksEmailService.SendEmailBookApproved(book).Wait();
 
             return new Result<Book>(book);
         }
@@ -153,7 +156,6 @@ namespace ShareBook.Service
 
         public override Result<Book> Update(Book entity)
         {
-
             Result<Book> result = Validate(entity, x =>
                 x.Title,
                 x => x.Author,
@@ -161,10 +163,20 @@ namespace ShareBook.Service
                 x => x.FreightOption,
                 x => x.Id);
 
+            var bookAlreadyApproved = BookAlreadyApproved(entity.Id);
+
             if (!result.Success) return result;
 
             entity.Slug = entity.Title.GenerateSlug();
             result.Value = _repository.UpdateAsync(entity).Result;
+
+            //Se livro já foi aprovado não enviar e-mail
+            if(!bookAlreadyApproved)
+            {
+                entity.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+                _booksEmailService.SendEmailBookApproved(entity);
+            }
+               
 
             return result;
         }
@@ -280,6 +292,9 @@ namespace ShareBook.Service
                 Items = list.Skip(skip).Take(itemsPerPage).ToList()
             };
         }
+
+        private bool BookAlreadyApproved(Guid bookId)
+            => _repository.Any(x => x.Approved && x.Id == bookId);
         #endregion
     }
 }

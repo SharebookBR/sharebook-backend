@@ -98,5 +98,19 @@ namespace ShareBook.Test.Unit.Services
             Assert.Contains("<li><strong>Telefone Doador: </strong></li>", result);
             Assert.Contains("<li><strong>Email Doador: </strong>rodrigo@sharebook.com</li>", result);
         }
+
+        [Fact]
+        public void VerifyEmailBookApprovedParse()
+        {
+            var vm = new { Book = book };
+
+            var result = emailTemplate.GenerateHtmlFromTemplateAsync("BookApprovedTemplate", vm).Result;
+
+            Assert.Contains("<title>Livro aprovado - Sharebook</title>", result);
+            Assert.Contains("Olá Rodrigo", result);
+            Assert.Contains("O livro Lord of the Rings foi aprovado e já está na nossa vitrine para doação.", result);
+            Assert.Contains("<li><strong>Livro: </strong>Lord of the Rings</li>", result);
+            Assert.Contains("<li><strong>Autor: </strong>J. R. R. Tolkien</li>", result);
+        }
     }
 }
