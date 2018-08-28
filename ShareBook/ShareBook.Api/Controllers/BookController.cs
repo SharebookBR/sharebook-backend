@@ -172,9 +172,12 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpGet("MyRequests")]
-        public IList<BookUser> MyRequests()
+        public IList<MyBooksRequestsVM> MyRequests()
         {
-            return _bookUserService.GetRequestsByUser();
+            var donation = _bookUserService.GetRequestsByUser();
+            var myBooksRequestsVM = Mapper.Map<List<MyBooksRequestsVM>>(donation);
+
+            return myBooksRequestsVM;
         }
     }
 }

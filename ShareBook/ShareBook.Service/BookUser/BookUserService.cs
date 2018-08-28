@@ -84,10 +84,10 @@ namespace ShareBook.Service
         public IList<BookUser> GetRequestsByUser()
         {
             var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            var books =  _bookUserRepository.Get().Include(u => u.Book)
-                            .Where(x => x.UserId == userId).ToList();
-
-            return books;
+            return _bookUserRepository.Get().Include(u => u.Book)
+                            .Where(x => x.UserId == userId &&
+                            (x.Status == DonationStatus.Donated ||
+                            x.Status == DonationStatus.WaitingAction)).ToList();
         }
     }
 }
