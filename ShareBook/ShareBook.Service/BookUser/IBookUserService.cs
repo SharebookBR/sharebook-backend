@@ -13,5 +13,7 @@ namespace ShareBook.Service
         void DonateBook(Guid bookId, Guid userId, string note);
 
         void DeniedBookUsers(Guid bookId);
+
+        IList<BookUser> GetRequestsByUser();
     }
 }

@@ -80,5 +80,12 @@ namespace ShareBook.Service
                 _bookUserRepository.Update(item);
             }
         }
+
+        public IList<BookUser> GetRequestsByUser()
+        {
+            var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+            return _bookUserRepository.Get().Include(u => u.Book)
+                            .Where(x => x.UserId == userId).ToList();
+        }
     }
 }
