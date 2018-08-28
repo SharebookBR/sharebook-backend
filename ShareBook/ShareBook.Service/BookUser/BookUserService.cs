@@ -85,9 +85,7 @@ namespace ShareBook.Service
         {
             var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             return _bookUserRepository.Get().Include(u => u.Book)
-                            .Where(x => x.UserId == userId &&
-                            (x.Status == DonationStatus.Donated ||
-                            x.Status == DonationStatus.WaitingAction)).ToList();
+                            .Where(x => x.UserId == userId).ToList();
         }
     }
 }
