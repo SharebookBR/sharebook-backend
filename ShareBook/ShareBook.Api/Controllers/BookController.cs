@@ -169,5 +169,12 @@ namespace ShareBook.Api.Controllers
 
             return result;
         }
+
+        [Authorize("Bearer")]
+        [HttpGet("MyRequests")]
+        public IList<BookUser> MyRequests()
+        {
+            return _bookUserService.GetRequestsByUser();
+        }
     }
 }
