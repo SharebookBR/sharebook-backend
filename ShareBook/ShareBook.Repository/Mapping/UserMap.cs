@@ -11,7 +11,7 @@ namespace ShareBook.Repository.Mapping
             entityBuilder.HasKey(t => t.Id);
 
             entityBuilder.Property(t => t.Name)
-                .HasColumnType("varchar(100)")
+                .HasColumnType("varchar(200)")
                 .HasMaxLength(100)
                 .IsRequired();
 
