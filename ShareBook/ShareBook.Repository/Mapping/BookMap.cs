@@ -11,12 +11,12 @@ namespace ShareBook.Repository.Mapping
             entityBuilder.HasKey(t => t.Id);
 
             entityBuilder.Property(t => t.Author)
-                .HasColumnType("varchar(50)")
+                .HasColumnType("varchar(200)")
                 .HasMaxLength(50)
                 .IsRequired();
 
             entityBuilder.Property(t => t.Title)
-                .HasColumnType("varchar(50)")
+                .HasColumnType("varchar(200)")
                 .HasMaxLength(50)
                 .IsRequired();
 
