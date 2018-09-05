@@ -19,7 +19,7 @@ namespace ShareBook.Domain
 
         public bool PasswordIsStrong()
         {
-            Regex rgx = new Regex(@"(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[$@$!%*?&#.,-_:;])[A-Za-z0-9\d$@$!%_*_?&#.,-_:;].{8,}");
+            Regex rgx = new Regex(@"(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9])[A-Za-z0-9\d$@$!%_*_?&#.,-_:;]{8,}");
             if (string.IsNullOrEmpty(Password) || !rgx.IsMatch(Password)) return false;
 
             return true;
