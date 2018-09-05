@@ -12,6 +12,7 @@ namespace ShareBook.Domain
         public Guid UserId { get; set; }
         public DonationStatus Status { get; private set; } = DonationStatus.WaitingAction;
         public string Note { get; set; }
+        public string Reason { get; set; }
 
         public void UpdateBookUser(DonationStatus status, string note)
         {
