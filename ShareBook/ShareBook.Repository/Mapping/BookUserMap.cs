@@ -23,12 +23,12 @@ namespace ShareBook.Repository.Mapping
                 .HasForeignKey(bu => bu.UserId);
 
             entityBuilder.Property(bu => bu.Note)
-               .HasColumnType("varchar(200)")
-               .HasMaxLength(200);
+               .HasColumnType("varchar(2000)")
+               .HasMaxLength(2000);
 
             entityBuilder.Property(bu => bu.Reason)
-                .HasColumnType("varchar(200)")
-                .HasMaxLength(200);
+                .HasColumnType("varchar(2000)")
+                .HasMaxLength(2000);
         }
     }
 }
