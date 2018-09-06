@@ -40,8 +40,9 @@ namespace ShareBook.Test.Unit.Services
             Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
             var service = new BookUserService(bookUserRepositoryMock.Object,
                 bookServiceMock.Object, bookUsersEmailService.Object, unitOfWorkMock.Object);
+            string reason = "I need this book because I'm learning a new programming language.";
 
-            service.Insert(bookId);
+            service.Insert(bookId, reason);
 
         }
     }

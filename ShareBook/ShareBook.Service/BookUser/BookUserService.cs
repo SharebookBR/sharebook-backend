@@ -31,12 +31,13 @@ namespace ShareBook.Service
             .Where(x => x.BookId == bookId && x.Status == DonationStatus.WaitingAction)
             .Select(x => x.User.Cleanup()).ToList();
 
-        public void Insert(Guid bookId)
+        public void Insert(Guid bookId, string reason)
         {
             var bookUser = new BookUser()
             {
                 BookId = bookId,
-                UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name)
+                UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name),
+                Reason = reason
             };          
 
             if (!_bookService.Any(x => x.Id == bookUser.BookId))

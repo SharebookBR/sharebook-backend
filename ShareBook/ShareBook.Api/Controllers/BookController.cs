@@ -108,9 +108,9 @@ namespace ShareBook.Api.Controllers
         [Authorize("Bearer")]
         [ProducesResponseType(typeof(Result), 200)]
         [HttpPost("Request/{id}")]
-        public IActionResult RequestBook(string id)
+        public IActionResult RequestBook(RequestBookVM requestBookVM)
         {
-            _bookUserService.Insert(new Guid(id));
+            _bookUserService.Insert(requestBookVM.BookId, requestBookVM.Reason);
             var result = new Result
             {
                 SuccessMessage = "Pedido realizo com sucesso!",
