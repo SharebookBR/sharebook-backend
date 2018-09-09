@@ -108,7 +108,7 @@ namespace ShareBook.Api.Controllers
         [Authorize("Bearer")]
         [ProducesResponseType(typeof(Result), 200)]
         [HttpPost("Request")]
-        public IActionResult RequestBook(RequestBookVM requestBookVM)
+        public IActionResult RequestBook([FromBody] RequestBookVM requestBookVM)
         {
             _bookUserService.Insert(requestBookVM.BookId, requestBookVM.Reason);
             var result = new Result
