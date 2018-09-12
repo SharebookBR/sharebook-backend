@@ -10,7 +10,7 @@ namespace ShareBook.Repository.Infra.CrossCutting.Identity.Configurations
     public class ApplicationSignInManager : IApplicationSignInManager
     {
         public object GenerateTokenAndSetIdentity(User user, SigningConfigurations signingConfigurations, TokenConfigurations tokenConfigurations)
-        { 
+        {
             ClaimsIdentity identity = new ClaimsIdentity(
                     new[] {
                         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString("N")),
@@ -37,8 +37,8 @@ namespace ShareBook.Repository.Infra.CrossCutting.Identity.Configurations
             return new
             {
                 authenticated = true,
-                created = creationDate.ToString("yyyy-MM-dd HH:mm:ss"),
-                expiration = expireDate.ToString("yyyy-MM-dd HH:mm:ss"),
+                created = creationDate,
+                expiration = expireDate,
                 accessToken = token,
                 name = user.Name,
                 email = user.Email,
