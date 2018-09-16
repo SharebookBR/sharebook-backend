@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8" />
@@ -12,19 +12,24 @@
     <p>
         Um livro foi solicitado. Veja mais informações abaixo:
     </p>
-
+    <h2>Interessado</h2>
     <ul>
         <li><strong>Livro: </strong>{Book.Title}</li>
-        <li><strong>Donatário: </strong>{RequestingUser.Name}</li>
-        <li><strong>Linkedin Donatário: </strong>{RequestingUser.Linkedin}</li>
-        <li><strong>Telefone Donatário: </strong>{RequestingUser.Phone}</li>
-        <li><strong>Email Donatário: </strong>{RequestingUser.Email}</li>
-        <li><strong>Doador: </strong>{Book.User.Name}</li>
-        <li><strong>Linkedin Doador: </strong>{Book.User.Linkedin}</li>
-        <li><strong>Telefone Doador: </strong>{Book.User.Phone}</li>
-        <li><strong>Email Doador: </strong>{Book.User.Email}</li>
+        <li><strong>Nome: </strong>{RequestingUser.Name}</li>
+        <li><strong>Linkedin: </strong>{RequestingUser.Linkedin}</li>
+        <li><strong>Telefone: </strong>{RequestingUser.Phone}</li>
+        <li><strong>Email: </strong>{RequestingUser.Email}</li>
     </ul>
 
+    <h2>Motivo</h2>
+    <pre>{Request.Reason}</pre>
+    <h2>Doador</h2>
+    <ul>
+        <li><strong>Nome: </strong>{Book.User.Name}</li>
+        <li><strong>Linkedin: </strong>{Book.User.Linkedin}</li>
+        <li><strong>Telefone: </strong>{Book.User.Phone}</li>
+        <li><strong>Email: </strong>{Book.User.Email}</li>
+    </ul>
     <p>Sharebook</p>
 </body>
 </html>  

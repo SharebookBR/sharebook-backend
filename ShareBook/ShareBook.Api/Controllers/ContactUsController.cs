@@ -1,7 +1,11 @@
-﻿using Microsoft.AspNetCore.Cors;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using ShareBook.Api.Filters;
 using ShareBook.Api.ViewModels;
+using ShareBook.Domain;
+using ShareBook.Domain.Common;
+using ShareBook.Service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,19 +15,33 @@ namespace ShareBook.Api.Controllers
 {
     [Route("api/[controller]")]
     [EnableCors("AllowAllHeaders")]
-    [GetClaimsFilter]
     public class ContactUsController : Controller
     {
+        IContactUsService _contactUsService;
 
-        public ContactUsController()
+        public ContactUsController(IContactUsService contactUsService)
         {
-
+            _contactUsService = contactUsService;
         }
-        [HttpPost("Send")]
-        public IActionResult Send([FromBody]ContactUsVM contactUsVM)
-        {
 
-            return NotFound();
+        [HttpPost("SendMessage")]
+        public IActionResult SendMessage([FromQuery(Name = "Mensagem")] string mensagem,
+                                         [FromBody]ContactUsVM contactUsVM)
+        {
+            
+            if (!ModelState.IsValid)
+                return BadRequest();
+
+            var contactUS = Mapper.Map<ContactUs>(contactUsVM);
+
+            _contactUsService.SendContactUs(contactUS);
+
+            var result = new Result
+            {
+                SuccessMessage = "Mensagem enviada com sucesso!",
+            };
+
+            return Ok(result);
         }
     }
 }
