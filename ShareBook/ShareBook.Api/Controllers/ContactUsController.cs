@@ -25,8 +25,7 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpPost("SendMessage")]
-        public IActionResult SendMessage([FromQuery(Name = "Mensagem")] string mensagem,
-                                         [FromBody]ContactUsVM contactUsVM)
+        public IActionResult SendMessage([FromBody]ContactUsVM contactUsVM)
         {
             
             if (!ModelState.IsValid)

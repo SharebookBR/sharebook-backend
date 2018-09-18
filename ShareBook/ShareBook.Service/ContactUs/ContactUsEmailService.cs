@@ -23,7 +23,6 @@ namespace ShareBook.Service
         }
         public async Task SendEmailContactUs(ContactUs contactUs)
         {
-            
             var administrators = _userService.GetAllAdministrators();
 
             foreach (var admin in administrators)
@@ -45,12 +44,9 @@ namespace ShareBook.Service
         }
         private async Task SendEmailNotificationToUser(ContactUs contactUs)
         {
-            var vm = new
-            {
-                ContactUs = contactUs
-            };
             bool copyAdmins = true;
-            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(ContactUsNotificationTemplate, vm);
+
+            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(ContactUsNotificationTemplate, contactUs);
             _emailService.Send(contactUs.Email, contactUs.Name, html, ContactUsNotificationTitle, copyAdmins);
         }
 

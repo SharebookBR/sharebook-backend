@@ -127,12 +127,14 @@ namespace ShareBook.Test.Unit.Services
         public void VerifyEmailContactUsNotificationParse()
         {
 
-            var vm = new
+            var contactUs = new ContactUs()
             {
-                ContactUs = contactUs
+                Name = "Rafael Rocha",
+                Email = "rafael.rochaoliveira@yahoo.com.br"
             };
+          
 
-            var result = emailTemplate.GenerateHtmlFromTemplateAsync("ContactUsNotificationTemplate", vm).Result;
+            var result = emailTemplate.GenerateHtmlFromTemplateAsync("ContactUsNotificationTemplate", contactUs).Result;
             Assert.Contains("Olá, Rafael Rocha", result);
 
         }
