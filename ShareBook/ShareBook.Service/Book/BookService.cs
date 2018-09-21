@@ -217,8 +217,7 @@ namespace ShareBook.Service
 
         public Book BySlug(string slug)
         {
-            return _repository.Get().Where(x => x.Slug.Contains(slug)
-            && x.Approved && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated))
+            return _repository.Get().Where(x => x.Slug.Contains(slug))
                  .Select(u => new Book
                  {
                      Id = u.Id,
