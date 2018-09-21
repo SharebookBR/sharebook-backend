@@ -9,7 +9,7 @@ namespace ShareBook.Service
 {
     public interface IBookService : IBaseService<Book>
     {
-        Result<Book> Approve(Guid bookId);
+        Result<Book> Approve(Guid bookId, bool approved = true);
 
         IList<dynamic> FreightOptions();
 

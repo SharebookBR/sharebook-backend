@@ -33,13 +33,13 @@ namespace ShareBook.Service
             _booksEmailService = booksEmailService;
         }
 
-        public Result<Book> Approve(Guid bookId)
+        public Result<Book> Approve(Guid bookId, bool approved = true)
         {
             var book = _repository.Get(bookId);
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
-            book.Approved = true;
+            book.Approved = approved;
             _repository.Update(book);
 
             _booksEmailService.SendEmailBookApproved(book).Wait();
