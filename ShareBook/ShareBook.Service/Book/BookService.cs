@@ -216,31 +216,10 @@ namespace ShareBook.Service
         }
 
         public Book BySlug(string slug)
-        {
-            return _repository.Get().Where(x => x.Slug.Contains(slug))
-                 .Select(u => new Book
-                 {
-                     Id = u.Id,
-                     Title = u.Title,
-                     Author = u.Author,
-                     Approved = u.Approved,
-                     FreightOption = u.FreightOption,
-                     ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
-                     Slug = u.Slug,
-                     User = new User()
-                     {
-                         Id = u.User.Id,
-                         Email = u.User.Email,
-                         Name = u.User.Name,
-                         Linkedin = u.User.Linkedin,
-                         PostalCode = u.User.PostalCode
-                     },
-                     Category = new Category()
-                     {
-                         Name = u.Category.Name
-                     }
-                 }).FirstOrDefault();
-        }
+        { 
+            var pagedBook = SearchBooks(x => (x.Slug.Contains(slug)), 1, 1);
+            return pagedBook.Items.Count > 0 ? pagedBook.Items[0] : null;
+        }       
 
         public bool UserRequestedBook(Guid bookId)
         {
