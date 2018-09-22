@@ -218,7 +218,7 @@ namespace ShareBook.Service
         public Book BySlug(string slug)
         { 
             var pagedBook = SearchBooks(x => (x.Slug.Contains(slug)), 1, 1);
-            return pagedBook.Items.Count > 0 ? pagedBook.Items[0] : null;
+            return pagedBook.Items.FirstOrDefault();
         }       
 
         public bool UserRequestedBook(Guid bookId)
