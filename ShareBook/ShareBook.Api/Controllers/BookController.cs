@@ -77,7 +77,11 @@ namespace ShareBook.Api.Controllers
         public IList<User> GetGranteeUsersByBookId(string bookId) => _bookUserService.GetGranteeUsersByBookId(new Guid(bookId));
 
         [HttpGet("Slug/{slug}")]
-        public Book Get(string slug) => _service.BySlug(slug);
+        public IActionResult Get(string slug)
+        {
+            var book = _service.BySlug(slug);
+            return book != null ? (IActionResult) Ok(book) : NotFound();
+        }
 
         [HttpGet("Top15NewBooks")]
         public IList<Book> Top15NewBooks() => _service.Top15NewBooks();
