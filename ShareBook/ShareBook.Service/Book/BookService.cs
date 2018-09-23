@@ -168,10 +168,19 @@ namespace ShareBook.Service
             if (!result.Success) return result;
 
             entity.Slug = entity.Title.GenerateSlug();
+
+            //imagem eh opcional no update
+            if (entity.ImageName != "" && entity.ImageBytes.Length > 0)
+            {
+                entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, entity.Title);
+                _uploadService.UploadImage(entity.ImageBytes, entity.ImageSlug, "Books");
+            }
+            
             result.Value = _repository.UpdateAsync(entity).Result;
+            result.Value.ImageBytes = null;
 
             //Se livro já foi aprovado não enviar e-mail
-            if(!bookAlreadyApproved && entity.Approved)
+            if (!bookAlreadyApproved && entity.Approved)
             {
                 entity.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
                 _booksEmailService.SendEmailBookApproved(entity);

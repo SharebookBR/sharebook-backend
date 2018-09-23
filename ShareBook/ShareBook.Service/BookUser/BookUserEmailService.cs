@@ -46,13 +46,14 @@ namespace ShareBook.Service
             var administrators = _userService.GetAllAdministrators();
 
             foreach (var admin in administrators)
-                await SendEmailBookRequestedToAdministrator(bookRequested, requestingUser, admin);
+                await SendEmailBookRequestedToAdministrator(bookUser, bookRequested, requestingUser, admin);
         }
 
-        private async Task SendEmailBookRequestedToAdministrator(Book bookRequested, User requestingUser, User admin)
+        private async Task SendEmailBookRequestedToAdministrator(BookUser request, Book bookRequested, User requestingUser, User admin)
         {
             var vm = new
             {
+                Request = request,
                 Book = bookRequested,
                 RequestingUser = requestingUser,
                 Administrator = admin

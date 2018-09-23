@@ -16,8 +16,11 @@ namespace ShareBook.Repository
         {
             _context.Update(entity);
 
-            //A imagem será atualizada na V2 do Sharebook
-            _context.Entry(entity).Property(x => x.ImageSlug).IsModified = false;
+            //imagem eh opcional no update
+            if (entity.ImageSlug == null)
+            {
+                _context.Entry(entity).Property(x => x.ImageSlug).IsModified = false;
+            }
 
             _context.Entry(entity).Property(x => x.UserId).IsModified = false;
 
