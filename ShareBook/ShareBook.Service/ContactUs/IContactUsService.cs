@@ -1,12 +1,10 @@
 ﻿using ShareBook.Domain;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using ShareBook.Domain.Common;
 
 namespace ShareBook.Service
 {
     public interface IContactUsService
     {
-        void SendContactUs(ContactUs contactUs);
+        Result<ContactUs> SendContactUs(ContactUs contactUs);
     }
 }

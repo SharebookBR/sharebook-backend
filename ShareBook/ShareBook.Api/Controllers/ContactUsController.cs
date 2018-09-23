@@ -25,22 +25,11 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpPost("SendMessage")]
-        public IActionResult SendMessage([FromBody]ContactUsVM contactUsVM)
-        {
-            
-            if (!ModelState.IsValid)
-                return BadRequest();
-
+        public Result<ContactUs> SendMessage([FromBody]ContactUsVM contactUsVM)
+        { 
             var contactUS = Mapper.Map<ContactUs>(contactUsVM);
 
-            _contactUsService.SendContactUs(contactUS);
-
-            var result = new Result
-            {
-                SuccessMessage = "Mensagem enviada com sucesso!",
-            };
-
-            return Ok(result);
+            return _contactUsService.SendContactUs(contactUS);
         }
     }
 }
