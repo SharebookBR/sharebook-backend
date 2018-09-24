@@ -33,13 +33,13 @@ namespace ShareBook.Service
             _booksEmailService = booksEmailService;
         }
 
-        public Result<Book> Approve(Guid bookId)
+        public Result<Book> Approve(Guid bookId, bool approved = true)
         {
             var book = _repository.Get(bookId);
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
-            book.Approved = true;
+            book.Approved = approved;
             _repository.Update(book);
 
             _booksEmailService.SendEmailBookApproved(book).Wait();
@@ -216,32 +216,10 @@ namespace ShareBook.Service
         }
 
         public Book BySlug(string slug)
-        {
-            return _repository.Get().Where(x => x.Slug.Contains(slug)
-            && x.Approved && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated))
-                 .Select(u => new Book
-                 {
-                     Id = u.Id,
-                     Title = u.Title,
-                     Author = u.Author,
-                     Approved = u.Approved,
-                     FreightOption = u.FreightOption,
-                     ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
-                     Slug = u.Slug,
-                     User = new User()
-                     {
-                         Id = u.User.Id,
-                         Email = u.User.Email,
-                         Name = u.User.Name,
-                         Linkedin = u.User.Linkedin,
-                         PostalCode = u.User.PostalCode
-                     },
-                     Category = new Category()
-                     {
-                         Name = u.Category.Name
-                     }
-                 }).FirstOrDefault();
-        }
+        { 
+            var pagedBook = SearchBooks(x => (x.Slug.Contains(slug)), 1, 1);
+            return pagedBook.Items.FirstOrDefault();
+        }       
 
         public bool UserRequestedBook(Guid bookId)
         {
