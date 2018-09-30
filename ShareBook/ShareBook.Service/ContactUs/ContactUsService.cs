@@ -5,22 +5,19 @@ using ShareBook.Service.Generic;
 
 namespace ShareBook.Service
 {
-    public class ContactUsService : BaseService<ContactUs>, IContactUsService
+    public class ContactUsService : IContactUsService
     {
         IContactUsEmailService _contactUsEmailService;
+        IValidator<ContactUs> _validator;
         public ContactUsService(IContactUsEmailService contactUsEmailService, IValidator<ContactUs> validator)
-            : base(validator)
         {
             _contactUsEmailService = contactUsEmailService;
+            _validator = validator;
         }
         public Result<ContactUs> SendContactUs(ContactUs entity)
         {
 
-            Result<ContactUs> result = Validate(entity, x =>
-               x.Name,
-               x => x.Phone,
-               x => x.Email,
-               x => x.Message);
+            var result = new Result<ContactUs>(_validator.Validate(entity));
 
             if (!result.Success)
                 return result;

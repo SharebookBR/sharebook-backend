@@ -20,11 +20,6 @@ namespace ShareBook.Service.Generic
             _validator = validator;
         }
 
-        public BaseService(IValidator<TEntity> validator)
-        {
-            _validator = validator;
-        }
-
         public bool Any(Expression<Func<TEntity, bool>> filter) => _repository.Any(filter);
         public int Count(Expression<Func<TEntity, bool>> filter) => _repository.Count(filter);
         public virtual TEntity Get(params object[] keyValues) => _repository.Get(keyValues);

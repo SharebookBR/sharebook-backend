@@ -8,6 +8,7 @@ namespace ShareBook.Domain.Validators
         #region Messages
         public const string Name = "Nome é obrigatório";
         public const string Email = "Email é obrigatório";
+        public const string EmailFormat = "O formato do email está inválido";
         public const string Phone = "Telefone é obrigatório";
         public const string Message = "Mensagem é obrigatória";
         #endregion
@@ -19,6 +20,8 @@ namespace ShareBook.Domain.Validators
                 .WithMessage(Name);
 
             RuleFor(c => c.Email)
+               .EmailAddress()
+               .WithMessage(EmailFormat)
                .NotEmpty()
                .WithMessage(Email);
 
