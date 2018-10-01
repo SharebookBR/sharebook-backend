@@ -15,6 +15,7 @@ namespace ShareBook.Domain
         public string PostalCode { get; set; }
         public  string Phone{ get; set; }
         public Profile Profile { get;  set; } = Profile.User;
+        public virtual Address Address { get; set; }
         public virtual ICollection<BookUser> BookUsers { get; set; }
 
         public bool PasswordIsStrong()
