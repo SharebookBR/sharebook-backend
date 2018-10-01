@@ -42,7 +42,10 @@ namespace ShareBook.Service
             book.Approved = approved;
             _repository.Update(book);
 
-            _booksEmailService.SendEmailBookApproved(book).Wait();
+            if (approved)
+            {
+                _booksEmailService.SendEmailBookApproved(book).Wait();
+            }
 
             return new Result<Book>(book);
         }
