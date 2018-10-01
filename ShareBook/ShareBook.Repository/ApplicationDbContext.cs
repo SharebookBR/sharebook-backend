@@ -16,6 +16,7 @@ namespace ShareBook.Repository
         public DbSet<LogEntry> LogEntries { get; set; }
         public DbSet<BookUser> BookUser { get; set; }
         public DbSet<Category> Categories { get; set; }
+        public DbSet<Address> Addresses { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
