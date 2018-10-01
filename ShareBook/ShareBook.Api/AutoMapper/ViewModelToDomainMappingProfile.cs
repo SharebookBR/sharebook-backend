@@ -23,6 +23,10 @@ namespace ShareBook.Api.AutoMapper
 
             CreateMap<UpdateUserVM, User>();
             #endregion
+
+            #region [ ContactUs ]
+            CreateMap<ContactUsVM, ContactUs>();
+            #endregion
         }
     }
 }

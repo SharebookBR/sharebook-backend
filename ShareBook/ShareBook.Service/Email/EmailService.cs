@@ -30,7 +30,7 @@ namespace ShareBook.Service
                     client.Disconnect(true);
                 }
             }
-            catch (System.Exception)
+            catch (System.Exception )
             {
 
                //v2 implementar log para exceptions
