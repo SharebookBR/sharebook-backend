@@ -35,10 +35,13 @@ namespace ShareBook.Api.Controllers
         #region GET
         [Authorize("Bearer")]
         [HttpGet]
-        public User Get()
+        public UserVM Get()
         {
             var id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            return _userService.Get(id);
+            var user = _userService.Get(id);
+
+            var userVM = Mapper.Map<User, UserVM>(user);
+            return userVM;
         }
 
 

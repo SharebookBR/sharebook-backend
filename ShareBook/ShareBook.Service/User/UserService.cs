@@ -96,7 +96,11 @@ namespace ShareBook.Service
             return result;
         }
 
-        public override User Get(params object[] keyValues) => UserCleanup(_repository.Get(keyValues));
+        public override User Get(params object[] keyValues)
+        {
+            var user = _repository.Get().Include(x => x.Address).Where(x => x.Id == (Guid) keyValues.GetValue(0)).FirstOrDefault();
+            return UserCleanup(user);
+         }
 
         public IEnumerable<User> GetAllAdministrators()
         {
