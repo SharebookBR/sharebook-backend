@@ -29,7 +29,15 @@ namespace ShareBook.Api.AutoMapper
                  .ForPath(dest => dest.Address.Country, opt => opt.MapFrom(src => src.Complement))
                  .ForPath(dest => dest.Address.Complement, opt => opt.MapFrom(src => src.Complement));
 
-            CreateMap<UpdateUserVM, User>();
+            CreateMap<UpdateUserVM, User>()
+                .ForPath(dest => dest.Address.Street, opt => opt.MapFrom(src => src.Street))
+                 .ForPath(dest => dest.Address.Number, opt => opt.MapFrom(src => src.Number))
+                 .ForPath(dest => dest.Address.PostalCode, opt => opt.MapFrom(src => src.PostalCode))
+                 .ForPath(dest => dest.Address.State, opt => opt.MapFrom(src => src.State))
+                 .ForPath(dest => dest.Address.City, opt => opt.MapFrom(src => src.City))
+                 .ForPath(dest => dest.Address.Neighborhood, opt => opt.MapFrom(src => src.Neighborhood))
+                 .ForPath(dest => dest.Address.Country, opt => opt.MapFrom(src => src.Complement))
+                 .ForPath(dest => dest.Address.Complement, opt => opt.MapFrom(src => src.Complement));
             #endregion
         }
     }

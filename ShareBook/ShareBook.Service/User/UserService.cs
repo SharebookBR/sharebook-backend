@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Helper.Crypto;
@@ -77,7 +78,7 @@ namespace ShareBook.Service
 
             if (result.Success == false) return result;
 
-            User userAux = _repository.Get(user.Id);
+            var userAux = _repository.Get().Include(x => x.Address).Where(x => x.Id == user.Id).FirstOrDefault();
 
             if (userAux == null) result.Messages.Add("Usuário não existe.");
 
@@ -86,13 +87,12 @@ namespace ShareBook.Service
 
             if (result.Success)
             {
-                userAux.ChangeEmail(user.Email);
-                userAux.ChangeName(user.Name);
-                userAux.ChangeLinkedin(user.Linkedin);
-                userAux.ChangePostalCode(user.PostalCode);
-                userAux.ChangePhone(user.Phone);
+                userAux.Change(user.Email, user.Name, user.Linkedin, user.Phone);
+                userAux.ChangeAddress(user.Address);
+
                 result.Value = UserCleanup(_repository.Update(userAux));
             }
+
             return result;
         }
 
