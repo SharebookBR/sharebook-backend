@@ -5,10 +5,13 @@ using Microsoft.AspNetCore.Mvc;
 using ShareBook.Api.Filters;
 using ShareBook.Api.ViewModels;
 using ShareBook.Domain;
+using ShareBook.Domain.Models;
+using ShareBook.Domain.Entities;
 using ShareBook.Domain.Common;
 using ShareBook.Service;
 using ShareBook.Service.Authorization;
 using System;
+using System.Threading;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
@@ -182,6 +185,14 @@ namespace ShareBook.Api.Controllers
             var myBooksRequestsVM = Mapper.Map<List<MyBookRequestVM>>(donation);
 
             return myBooksRequestsVM;
+        }
+
+        [Authorize("Bearer")]
+        [HttpGet("MyDonations")]
+        public IList<Donation> MyDonations()
+        {
+            Guid userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+            return _service.GetUserDonations(userId);
         }
     }
 }

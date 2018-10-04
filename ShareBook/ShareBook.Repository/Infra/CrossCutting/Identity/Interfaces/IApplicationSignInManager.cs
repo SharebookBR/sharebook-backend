@@ -1,4 +1,4 @@
-﻿using ShareBook.Domain;
+﻿using ShareBook.Domain.Entities;
 using ShareBook.Repository.Infra.CrossCutting.Identity.Configurations;
 
 namespace ShareBook.Repository.Infra.CrossCutting.Identity.Interfaces

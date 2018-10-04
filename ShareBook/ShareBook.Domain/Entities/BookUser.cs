@@ -2,7 +2,7 @@
 using ShareBook.Domain.Enums;
 using System;
 
-namespace ShareBook.Domain
+namespace ShareBook.Domain.Entities
 {
     public class BookUser : BaseEntity
     {

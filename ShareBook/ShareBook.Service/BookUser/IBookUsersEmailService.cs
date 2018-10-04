@@ -1,4 +1,4 @@
-﻿using ShareBook.Domain;
+﻿using ShareBook.Domain.Entities;
 using System.Threading.Tasks;
 
 namespace ShareBook.Service

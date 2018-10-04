@@ -1,5 +1,5 @@
 ﻿using Moq;
-using ShareBook.Domain;
+using ShareBook.Domain.Entities;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.Validators;
 using ShareBook.Repository;

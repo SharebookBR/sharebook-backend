@@ -1,4 +1,4 @@
-﻿using ShareBook.Domain;
+﻿using ShareBook.Domain.Entities;
 using ShareBook.Domain.Enums;
 using System;
 using System.Linq;

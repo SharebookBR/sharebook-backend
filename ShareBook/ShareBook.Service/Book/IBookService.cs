@@ -1,9 +1,9 @@
-﻿using ShareBook.Domain;
+﻿using ShareBook.Domain.Entities;
+using ShareBook.Domain.Models;
 using ShareBook.Domain.Common;
 using ShareBook.Service.Generic;
 using System;
 using System.Collections.Generic;
-
 
 namespace ShareBook.Service
 {
@@ -28,5 +28,7 @@ namespace ShareBook.Service
         Book BySlug(string slug);
 
         bool UserRequestedBook(Guid bookId);
+
+        IList<Donation> GetUserDonations(Guid userId);
     }
 }

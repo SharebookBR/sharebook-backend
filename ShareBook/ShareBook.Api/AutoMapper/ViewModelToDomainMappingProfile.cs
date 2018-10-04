@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using ShareBook.Api.ViewModels;
-using ShareBook.Domain;
+using ShareBook.Domain.Entities;
 
 namespace ShareBook.Api.AutoMapper
 {

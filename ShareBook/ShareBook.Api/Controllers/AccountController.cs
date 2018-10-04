@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using ShareBook.Api.Filters;
 using ShareBook.Api.ViewModels;
-using ShareBook.Domain;
+using ShareBook.Domain.Entities;
 using ShareBook.Domain.Common;
 using ShareBook.Repository.Infra.CrossCutting.Identity;
 using ShareBook.Repository.Infra.CrossCutting.Identity.Configurations;
@@ -23,8 +23,6 @@ namespace ShareBook.Api.Controllers
     {
         private readonly IUserService _userService;
         private readonly IApplicationSignInManager _signManager;
-
-       
 
         public AccountController(IUserService userService, IApplicationSignInManager signManager)
         {

@@ -13,9 +13,16 @@ http://www.sharebook.com.br/swagger/
 
 #### Como rodar o projeto ?
 
-- Não se esquecer de mudar a connection string para a sua base de dados no arquivo appsettings.json que se encontra na camada da API do projeto.
+##### Via terminal:
 
-- Sempre que criar as classes de model e map  rodar o comando:
+- Abra o terminal
+- Acesse a pasta `raiz_do_projeto/Sharebook`
+- Execute: ```dotnet restore``` e na sequencia ```dotnet run --project ShareBook.Api```
+
+
+** Não se esquecer de mudar a connection string para a sua base de dados no arquivo appsettings.json que se encontra na camada da API do projeto.
+
+** Sempre que criar as classes de model e map  rodar o comando:
 "Add-Migration nome-do-migration" na camada BASE do projeto  para criar o novo migration para o  banco de dados.
 
 #### Como rodar os testes ?

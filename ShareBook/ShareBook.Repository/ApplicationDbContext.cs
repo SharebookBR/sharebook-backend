@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using ShareBook.Domain;
+using ShareBook.Domain.Entities;
 using ShareBook.Repository.Mapping;
 
 namespace ShareBook.Repository
