@@ -131,5 +131,7 @@ namespace ShareBook.Api.Controllers
             return _userService.ChangeUserPassword(user, changePasswordUserVM.NewPassword);
         }
         #endregion
+
+
     }
 }

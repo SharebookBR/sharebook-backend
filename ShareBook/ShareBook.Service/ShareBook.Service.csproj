@@ -40,4 +40,13 @@
     <ProjectReference Include="..\ShareBook.Repository\ShareBook.Repository.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Email\Templates\ContactUsNotificationTemplate.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Email\Templates\ContactUsTemplate.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

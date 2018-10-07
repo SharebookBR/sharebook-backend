@@ -15,12 +15,13 @@ namespace ShareBook.Test.Unit.Services
         private Book book;
         private User administrator;
         private User requestingUser;
+        private ContactUs contactUs;
 
         public EmailTemplateTests()
         {
             emailTemplate = new EmailTemplate();
 
-             user = new User()
+            user = new User()
             {
                 Id = new Guid("5489A967-9320-4350-E6FC-08D5CC8498F3"),
                 Name = "Rodrigo",
@@ -29,7 +30,7 @@ namespace ShareBook.Test.Unit.Services
                 Profile = Profile.User
             };
 
-             book = new Book()
+            book = new Book()
             {
                 Title = "Lord of the Rings",
                 Author = "J. R. R. Tolkien",
@@ -55,6 +56,15 @@ namespace ShareBook.Test.Unit.Services
                 Email = "cussa@sharebook.com",
                 Profile = Profile.Administrator
             };
+
+            contactUs = new ContactUs()
+            {
+                Name = "Rafael Rocha",
+                Email = "rafael@sharebook.com.br",
+                Message = "At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident",
+                Phone = "(11) 954422-2765"
+            };
+
         }
 
         [Fact]
@@ -112,6 +122,42 @@ namespace ShareBook.Test.Unit.Services
             Assert.Contains("O livro Lord of the Rings foi aprovado e já está na nossa vitrine para doação.", result);
             Assert.Contains("<li><strong>Livro: </strong>Lord of the Rings</li>", result);
             Assert.Contains("<li><strong>Autor: </strong>J. R. R. Tolkien</li>", result);
+        }
+
+        [Fact]
+        public void VerifyEmailContactUsNotificationParse()
+        {
+
+            var contactUs = new ContactUs()
+            {
+                Name = "Rafael Rocha",
+                Email = "rafael.rochaoliveira@yahoo.com.br"
+            };
+          
+
+            var result = emailTemplate.GenerateHtmlFromTemplateAsync("ContactUsNotificationTemplate", contactUs).Result;
+            Assert.Contains("Olá, Rafael Rocha", result);
+
+        }
+
+        [Fact]
+        public void VerifyEmailContactUsTemplateParse()
+        {
+
+            var vm = new
+            {
+                ContactUs = contactUs,
+                Administrator = administrator
+            };
+
+            var result = emailTemplate.GenerateHtmlFromTemplateAsync("ContactUsTemplate", vm).Result;
+
+            Assert.Contains("Olá, Cussa Mitre!", result);
+            Assert.Contains("Nome: Rafael Rocha", result);
+            Assert.Contains("Email: rafael@sharebook.com.br", result);
+            Assert.Contains("Telefone: (11) 954422-2765", result);
+            Assert.Contains("Mensagem: At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident", result);
+
         }
     }
 }
