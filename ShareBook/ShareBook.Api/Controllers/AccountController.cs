@@ -38,7 +38,7 @@ namespace ShareBook.Api.Controllers
         public UserVM Get()
         {
             var id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            var user = _userService.Get(id);
+            var user = _userService.Find(id);
 
             var userVM = Mapper.Map<User, UserVM>(user);
             return userVM;
@@ -50,7 +50,7 @@ namespace ShareBook.Api.Controllers
         public object Profile()
         {
             var id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            return new { profile = _userService.Get(id).Profile.ToString() };
+            return new { profile = _userService.Find(id).Profile.ToString() };
         }
         #endregion
 

@@ -1,15 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using FluentValidation;
+﻿using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Helper.Crypto;
 using ShareBook.Repository;
 using ShareBook.Repository.Infra;
+using ShareBook.Repository.Repository;
 using ShareBook.Service.Generic;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 
 namespace ShareBook.Service
 {
@@ -34,8 +35,6 @@ namespace ShareBook.Service
                 .Where(e => e.Email.Equals(user.Email, StringComparison.InvariantCultureIgnoreCase))
                 .FirstOrDefault();
 
-
-
             if (user == null || !IsValidPassword(user, decryptedPass))
             {
                 result.Messages.Add("Email ou senha incorretos");
@@ -50,7 +49,7 @@ namespace ShareBook.Service
         {
             var result = Validate(user);
 
-            if(!user.PasswordIsStrong())
+            if (!user.PasswordIsStrong())
                 result.Messages.Add(PASSWORD_IS_WEAK);
 
             if (_repository.Any(x => x.Email == user.Email))
@@ -79,6 +78,7 @@ namespace ShareBook.Service
             if (result.Success == false) return result;
 
             var userAux = _repository.Get().Include(x => x.Address).Where(x => x.Id == user.Id).FirstOrDefault();
+            //var userAux = _repository.GetAsync(x => x.Id == user.Id, x => x.Id, 1, 1, x => x.);// .Get().Include(x => x.Address).Where(x => x.Id == user.Id).FirstOrDefault();
 
             if (userAux == null) result.Messages.Add("Usuário não existe.");
 
@@ -96,11 +96,13 @@ namespace ShareBook.Service
             return result;
         }
 
-        public override User Get(params object[] keyValues)
+        public override User Find(params object[] keyValues)
         {
-            var user = _repository.Get().Include(x => x.Address).Where(x => x.Id == (Guid) keyValues.GetValue(0)).FirstOrDefault();
+            var includes = new IncludeList<User>(x => x.Address);
+            var user = _repository.Find(includes, keyValues);
+
             return UserCleanup(user);
-         }
+        }
 
         public IEnumerable<User> GetAllAdministrators()
         {
@@ -109,21 +111,21 @@ namespace ShareBook.Service
 
         public Result<User> ChangeUserPassword(User user, string newPassword)
         {
-            user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);       
+            user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             var resultUserAuth = this.AuthenticationByIdAndPassword(user);
 
             if (resultUserAuth.Success)
             {
                 var userAuth = resultUserAuth.Value;
                 userAuth.ChangePassword(newPassword);
-                
-                if(!userAuth.PasswordIsStrong())
+
+                if (!userAuth.PasswordIsStrong())
                 {
                     resultUserAuth.Messages.Add(PASSWORD_IS_WEAK);
                     resultUserAuth.Value = null;
                     return resultUserAuth;
                 }
-                    
+
                 userAuth = GetUserEncryptedPass(userAuth);
                 userAuth = _userRepository.UpdatePassword(userAuth).Result;
                 resultUserAuth.Value = UserCleanup(userAuth);
