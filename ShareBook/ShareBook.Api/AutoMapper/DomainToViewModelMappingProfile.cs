@@ -26,16 +26,7 @@ namespace ShareBook.Api.AutoMapper
 
             #region [ User ]
             CreateMap<User, UserVM>()
-                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
-                //.ForPath(dest => dest.Street, opt => opt.MapFrom(src => src.Address.Street))
-                // .ForPath(dest => dest.Number, opt => opt.MapFrom(src => src.Address.Number))
-                // .ForPath(dest => dest.PostalCode, opt => opt.MapFrom(src => src.Address.PostalCode))
-                // .ForPath(dest => dest.State, opt => opt.MapFrom(src => src.Address.State))
-                // .ForPath(dest => dest.City, opt => opt.MapFrom(src => src.Address.City))
-                // .ForPath(dest => dest.Neighborhood, opt => opt.MapFrom(src => src.Address.Neighborhood))
-                // .ForPath(dest => dest.Country, opt => opt.MapFrom(src => src.Address.Complement))
-                // .ForPath(dest => dest.Complement, opt => opt.MapFrom(src => src.Address.Country))
-                ;
+                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address));
             #endregion
         }
     }
