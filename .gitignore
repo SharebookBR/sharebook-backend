@@ -246,4 +246,3 @@ ModelManifest.xml
 .fake/
 
 .DS_Store
-/ShareBook/ShareBook.Repository/Migrations/20181007173327_AlterTables_DropPostalCode.cs
