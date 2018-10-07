@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Repository
 {
-    public partial class RepositoryGeneric<TEntity> : IRepositoryGeneric<TEntity> where TEntity : class
+    public class RepositoryGeneric<TEntity> : IRepositoryGeneric<TEntity> where TEntity : class
     {
         protected readonly ApplicationDbContext _context;
         protected readonly DbSet<TEntity> _dbSet;
