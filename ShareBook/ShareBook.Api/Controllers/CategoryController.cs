@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ShareBook.Api.ViewModels;
-using ShareBook.Domain.Entities;
+using ShareBook.Domain;
 using ShareBook.Service;
 
 namespace ShareBook.Api.Controllers

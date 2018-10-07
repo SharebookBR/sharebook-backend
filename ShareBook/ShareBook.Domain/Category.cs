@@ -1,6 +1,6 @@
 ﻿using ShareBook.Domain.Common;
 
-namespace ShareBook.Domain.Entities
+namespace ShareBook.Domain
 {
     public class Category : BaseEntity
     {

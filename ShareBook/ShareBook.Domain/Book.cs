@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ShareBook.Domain.Entities
+namespace ShareBook.Domain
 {
     public class Book : BaseEntity
     {
@@ -61,7 +61,12 @@ namespace ShareBook.Domain.Entities
         
         public int TotalInterested()
         {
-            return this.BookUsers.Count;
+            int totalInterested = 0;
+            if (this.BookUsers != null) {
+                totalInterested = this.BookUsers.Count;
+            }
+
+            return totalInterested;
         }
 
         public int DaysInShowcase() 
@@ -70,5 +75,4 @@ namespace ShareBook.Domain.Entities
             return diff.Days;
         }
     }
-
 }

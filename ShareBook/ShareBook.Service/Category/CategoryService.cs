@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using ShareBook.Domain.Entities;
+using ShareBook.Domain;
 using ShareBook.Repository;
 using ShareBook.Repository.Infra;
 using ShareBook.Service.Generic;

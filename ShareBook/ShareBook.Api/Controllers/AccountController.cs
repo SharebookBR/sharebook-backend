@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using ShareBook.Api.Filters;
 using ShareBook.Api.ViewModels;
-using ShareBook.Domain.Entities;
+using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Repository.Infra.CrossCutting.Identity;
 using ShareBook.Repository.Infra.CrossCutting.Identity.Configurations;

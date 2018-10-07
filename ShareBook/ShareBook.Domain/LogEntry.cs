@@ -1,7 +1,7 @@
 ﻿using ShareBook.Domain.Common;
 using System;
 
-namespace ShareBook.Domain.Entities
+namespace ShareBook.Domain
 {
     public class LogEntry : BaseEntity
     {

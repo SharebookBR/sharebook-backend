@@ -1,5 +1,6 @@
 ﻿using Moq;
-using ShareBook.Domain.Entities;
+using ShareBook.Domain;
+using ShareBook.Domain.Enums;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.Validators;
 using ShareBook.Repository;
@@ -97,7 +98,7 @@ namespace ShareBook.Test.Unit.Services
                            PostalCode = "111547899",
                            Password = "6sQwTaExa3mdpFWK1xLV1qb/bMs/GpB097MaNRXRbn0=",
                            PasswordSalt = "Qs1P9F2aeh8CMf9AedbSDg==",
-                           Profile = Domain.Enums.Profile.User
+                           Profile = Profile.User
                         }
                 }.AsQueryable();
             });

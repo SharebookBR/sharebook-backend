@@ -3,7 +3,7 @@ using ShareBook.Domain.Enums;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-namespace ShareBook.Domain.Entities
+namespace ShareBook.Domain
 {
     public class User : BaseEntity
     {

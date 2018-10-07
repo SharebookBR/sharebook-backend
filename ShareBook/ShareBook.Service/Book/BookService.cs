@@ -1,7 +1,6 @@
 ﻿using FluentValidation;
 using Microsoft.EntityFrameworkCore;
-using ShareBook.Domain.Entities;
-using ShareBook.Domain.Models;
+using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.Enums;
 using ShareBook.Domain.Exceptions;
@@ -237,19 +236,12 @@ namespace ShareBook.Service
         public override PagedList<Book> Get<TKey>(Expression<Func<Book, bool>> filter, Expression<Func<Book, TKey>> order, int page, int itemsPerPage)
             => base.Get(filter, order, page, itemsPerPage);
 
-        public IList<Donation> GetUserDonations(Guid userId)
+        public IList<Book> GetUserDonations(Guid userId)
         {
             return _repository
                 .Get()
                 .Include(b => b.BookUsers)
                 .Where(book => book.UserId == userId)
-                .Select(b2 => new Donation
-                {
-                    Book            = b2.Title,
-                    DaysInShowcase  = b2.DaysInShowcase(),
-                    TotalInterested = b2.TotalInterested(),
-                    Status          = b2.Status()
-                })
                 .ToList();
         }
 

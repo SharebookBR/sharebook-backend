@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using ShareBook.Domain.Entities;
+using ShareBook.Domain;
 
 namespace ShareBook.Service
 {

@@ -3,7 +3,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using ShareBook.Domain.Entities;
+using ShareBook.Domain;
 using ShareBook.Domain.Common;
 
 namespace ShareBook.Repository

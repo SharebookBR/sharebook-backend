@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
-using ShareBook.Domain.Entities;
+using ShareBook.Domain;
 using ShareBook.Domain.Validators;
 using ShareBook.Repository;
 using ShareBook.Repository.Infra;

@@ -1,6 +1,5 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 using ShareBook.Domain;
-using ShareBook.Domain.Entities;
 using ShareBook.Repository.Infra.CrossCutting.Identity.Interfaces;
 using System;
 using System.IdentityModel.Tokens.Jwt;

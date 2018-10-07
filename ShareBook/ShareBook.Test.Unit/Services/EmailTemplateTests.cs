@@ -1,4 +1,5 @@
-﻿using ShareBook.Domain.Entities;
+﻿using ShareBook.Domain;
+using ShareBook.Domain.Enums;
 using ShareBook.Service;
 using System;
 using System.Text;
@@ -25,7 +26,7 @@ namespace ShareBook.Test.Unit.Services
                 Name = "Rodrigo",
                 Email = "rodrigo@sharebook.com",
                 Linkedin = "linkedin.com/rodrigo",
-                Profile = Domain.Enums.Profile.User
+                Profile = Profile.User
             };
 
              book = new Book()
@@ -44,7 +45,7 @@ namespace ShareBook.Test.Unit.Services
                 Name = "Walter Vinicius",
                 Email = "walter@sharebook.com",
                 Linkedin = "linkedin.com/walter",
-                Profile = Domain.Enums.Profile.User
+                Profile = Profile.User
             };
 
             administrator = new User()
@@ -52,7 +53,7 @@ namespace ShareBook.Test.Unit.Services
                 Id = new Guid("5489A967-AAAA-BBBB-CCCC-08D5CC8498F3"),
                 Name = "Cussa Mitre",
                 Email = "cussa@sharebook.com",
-                Profile = Domain.Enums.Profile.Administrator
+                Profile = Profile.Administrator
             };
         }
 

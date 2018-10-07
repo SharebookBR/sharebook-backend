@@ -1,5 +1,5 @@
 ﻿using FluentValidation.Results;
-using ShareBook.Domain.Entities;
+using ShareBook.Domain;
 using ShareBook.Domain.Validators;
 using Xunit;
 
