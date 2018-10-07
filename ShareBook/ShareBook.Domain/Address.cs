@@ -21,8 +21,6 @@ namespace ShareBook.Domain
 
         public string Country { get; set; }
 
-        //public User User { get; set; }
-
         public Guid UserId { get; set; }
     }
 }
