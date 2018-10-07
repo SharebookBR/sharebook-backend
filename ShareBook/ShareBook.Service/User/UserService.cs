@@ -1,5 +1,4 @@
 ﻿using FluentValidation;
-using Microsoft.EntityFrameworkCore;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Helper.Crypto;
@@ -31,9 +30,7 @@ namespace ShareBook.Service
 
             string decryptedPass = user.Password;
 
-            user = _repository.Get()
-                .Where(e => e.Email.Equals(user.Email, StringComparison.InvariantCultureIgnoreCase))
-                .FirstOrDefault();
+            user = _repository.Find(e => e.Email.Equals(user.Email, StringComparison.InvariantCultureIgnoreCase));
 
             if (user == null || !IsValidPassword(user, decryptedPass))
             {
@@ -77,8 +74,7 @@ namespace ShareBook.Service
 
             if (result.Success == false) return result;
 
-            var userAux = _repository.Get().Include(x => x.Address).Where(x => x.Id == user.Id).FirstOrDefault();
-            //var userAux = _repository.GetAsync(x => x.Id == user.Id, x => x.Id, 1, 1, x => x.);// .Get().Include(x => x.Address).Where(x => x.Id == user.Id).FirstOrDefault();
+            var userAux = _repository.Find(new IncludeList<User>(x => x.Address), user.Id);
 
             if (userAux == null) result.Messages.Add("Usuário não existe.");
 
@@ -106,7 +102,7 @@ namespace ShareBook.Service
 
         public IEnumerable<User> GetAllAdministrators()
         {
-            return _repository.Get().Where(x => x.Profile == Domain.Enums.Profile.Administrator);
+            return _repository.Get(x => x.Profile == Domain.Enums.Profile.Administrator).Items;
         }
 
         public Result<User> ChangeUserPassword(User user, string newPassword)

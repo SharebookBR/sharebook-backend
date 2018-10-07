@@ -131,6 +131,8 @@ namespace ShareBook.Repository
 
         public TEntity Find(IncludeList<TEntity> includes, params object[] keyValues) => FindAsync(includes, keyValues).Result;
 
+        public TEntity Find(Expression<Func<TEntity, bool>> filter) => FindAsync(null, filter).Result;
+
         public TEntity Find(IncludeList<TEntity> includes, Expression<Func<TEntity, bool>> filter) => FindAsync(includes, filter).Result;
 
         public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, TKey>> order)
