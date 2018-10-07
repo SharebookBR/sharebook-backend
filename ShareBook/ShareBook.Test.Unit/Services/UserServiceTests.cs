@@ -60,7 +60,7 @@ namespace ShareBook.Test.Unit.Services
                 };
             });
 
-            userRepositoryMock.Setup(repo => repo.Get(It.IsAny<Guid>())).Returns(() =>
+            userRepositoryMock.Setup(repo => repo.Find(It.IsAny<Guid>())).Returns(() =>
             {
                 return new User()
                 {
