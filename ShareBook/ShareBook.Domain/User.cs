@@ -12,7 +12,6 @@ namespace ShareBook.Domain
         public string Password { get; set; }
         public string PasswordSalt { get; set; }
         public string Linkedin { get; set; }
-        public string PostalCode { get; set; }
         public  string Phone{ get; set; }
         public Profile Profile { get;  set; } = Profile.User;
         public virtual Address Address { get; set; }

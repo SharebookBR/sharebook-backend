@@ -80,7 +80,6 @@ namespace ShareBook.Service
                          Email = u.User.Email,
                          Name = u.User.Name,
                          Linkedin = u.User.Linkedin,
-                         PostalCode = u.User.PostalCode
                      },
                      Category = new Category()
                      {
@@ -108,7 +107,6 @@ namespace ShareBook.Service
                          Email = u.User.Email,
                          Name = u.User.Name,
                          Linkedin = u.User.Linkedin,
-                         PostalCode = u.User.PostalCode
                      },
                      Category = new Category()
                      {
@@ -256,7 +254,6 @@ namespace ShareBook.Service
                         Email = u.User.Email,
                         Name = u.User.Name,
                         Linkedin = u.User.Linkedin,
-                        PostalCode = u.User.PostalCode
                     },
                     Category = new Category()
                     {

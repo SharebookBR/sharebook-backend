@@ -26,7 +26,6 @@ namespace ShareBook.Test.Unit.Validators
 				Password = "Password.123",
 				Name = "João da Silva",
 				Linkedin = "linkedin.com/joao-silva",
-                PostalCode = "04473-190"
             };
 
             ValidationResult result = userValidation.Validate(user);
@@ -43,7 +42,6 @@ namespace ShareBook.Test.Unit.Validators
                 Password = null,
 				Name = null,
 				Linkedin = "linkedin.com/joao-silva",
-                PostalCode = "04473-190"
 			};
 
             ValidationResult result = userValidation.Validate(user);

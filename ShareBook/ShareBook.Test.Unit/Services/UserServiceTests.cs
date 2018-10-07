@@ -44,7 +44,6 @@ namespace ShareBook.Test.Unit.Services
                     Password = "123456",
                     Name = "José da Silva",
                     Linkedin = "linkedin.com/jose",
-                    PostalCode = "04473-190"
                 };
             });
 
@@ -56,7 +55,6 @@ namespace ShareBook.Test.Unit.Services
                     Password = "123456",
                     Name = "José da Silva",
                     Linkedin = "linkedin.com/jose",
-                    PostalCode = "04473-190"
                 };
             });
 
@@ -70,7 +68,6 @@ namespace ShareBook.Test.Unit.Services
                     PasswordSalt = PASSWORD_SALT,
                     Name = "José da Silva",
                     Linkedin = "linkedin.com/jose",
-                    PostalCode = "04473-190"
                 };
             });
 
@@ -86,7 +83,6 @@ namespace ShareBook.Test.Unit.Services
                             PasswordSalt = PASSWORD_SALT,
                              Name = "José da Silva",
                             Linkedin = "linkedin.com/jose",
-                            PostalCode = "04473-190"
                         },
                     new User()
                         {
@@ -94,7 +90,6 @@ namespace ShareBook.Test.Unit.Services
                            Linkedin = "https://www.linkedin.com/in/sergiopratesdossantos/",
                            Name = "Sergio",
                            Phone = "584558999",
-                           PostalCode = "111547899",
                            Password = "6sQwTaExa3mdpFWK1xLV1qb/bMs/GpB097MaNRXRbn0=",
                            PasswordSalt = "Qs1P9F2aeh8CMf9AedbSDg==",
                            Profile = Domain.Enums.Profile.User
@@ -117,7 +112,6 @@ namespace ShareBook.Test.Unit.Services
                 Password = "Password.123",
                 Name = "José da Silva",
                 Linkedin = @"linkedin.com\jose-silva",
-                PostalCode = "04473-190",
                 Phone = "55601719"
 
             });
@@ -155,7 +149,6 @@ namespace ShareBook.Test.Unit.Services
                 Linkedin = "https://www.linkedin.com/in/sergiopratesdossantos/",
                 Name = "Sergio1",
                 Phone = "584558999",
-                PostalCode = "04473-150",
             });
 
             Assert.NotNull(result);
@@ -173,7 +166,6 @@ namespace ShareBook.Test.Unit.Services
                 Linkedin = "",
                 Name = "",
                 Phone = "",
-                PostalCode = "",
             });
 
             Assert.NotNull(result);

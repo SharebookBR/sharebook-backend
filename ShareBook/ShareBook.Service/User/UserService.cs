@@ -69,7 +69,6 @@ namespace ShareBook.Service
                 x => x.Linkedin,
                 x => x.Name,
                 x => x.Phone,
-                x => x.PostalCode,
                 x => x.Id);
 
             if (result.Success == false) return result;
