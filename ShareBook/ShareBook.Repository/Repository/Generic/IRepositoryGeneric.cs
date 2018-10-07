@@ -11,6 +11,7 @@ namespace ShareBook.Repository
     {
         Task<TEntity> FindAsync(params object[] keyValues);
         Task<TEntity> FindAsync(IncludeList<TEntity> includes, params object[] keyValues);
+        Task<TEntity> FindAsync(IncludeList<TEntity> includes, Expression<Func<TEntity, bool>> filter);
         Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage);
         Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes);
         Task<int> CountAsync(Expression<Func<TEntity, bool>> filter);
@@ -36,6 +37,14 @@ namespace ShareBook.Repository
         /// Execute a Find on the DbSet using the <paramref name="keyValues"/> and the <paramref name="includes"/>
         /// </summary>
         TEntity Find(IncludeList<TEntity> includes, params object[] keyValues);
+
+        /// <summary>
+        /// Find in the DbSet an entity that matches the specified filter.
+        /// </summary>
+        /// <param name="includes">Includes (child objects) to be returned.</param>
+        /// <returns>Entity with the child objects</returns>
+        /// <exception cref="ShareBook.Domain.Exceptions.ShareBookException">In case that more than 1 entity could be returned for the filter specified.</exception>
+        TEntity Find(IncludeList<TEntity> includes, Expression<Func<TEntity, bool>> filter);
 
         /// <summary>
         /// Get ALL the entities, without filter, on the specified order, without child objects.

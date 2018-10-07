@@ -32,6 +32,22 @@ namespace ShareBook.Repository
 
             return result;
         }
+        public async Task<TEntity> FindAsync(IncludeList<TEntity> includes, Expression<Func<TEntity, bool>> filter)
+        {
+            var query = _dbSet.AsQueryable();
+
+            if (includes != null)
+                foreach (var item in includes)
+                    query = query.Include(item);
+
+            query = query.Where(filter);
+
+            var count = await query.CountAsync();
+            if (count > 1)
+                throw new ShareBookException("More than one entity find for the specified filter");
+
+            return query.FirstOrDefault();
+        }
 
         public virtual async Task<PagedList<TEntity>> GetAsync<TKey>(
            Expression<Func<TEntity, bool>> filter,
@@ -114,6 +130,8 @@ namespace ShareBook.Repository
         public TEntity Find(params object[] keyValues) => _dbSet.Find(keyValues);
 
         public TEntity Find(IncludeList<TEntity> includes, params object[] keyValues) => FindAsync(includes, keyValues).Result;
+
+        public TEntity Find(IncludeList<TEntity> includes, Expression<Func<TEntity, bool>> filter) => FindAsync(includes, filter).Result;
 
         public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, TKey>> order)
             => Get(order, null);
