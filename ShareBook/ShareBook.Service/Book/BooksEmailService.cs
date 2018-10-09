@@ -25,7 +25,7 @@ namespace ShareBook.Service
         public async Task SendEmailBookApproved(Book book)
         {
             if (book.User == null)
-                book.User = _userService.Get(book.UserId);
+                book.User = _userService.Find(book.UserId);
 
             var vm = new
             {
@@ -40,7 +40,7 @@ namespace ShareBook.Service
         public async Task SendEmailNewBookInserted(Book book)
         {
             if (book.User == null)
-                book.User = _userService.Get(book.UserId);
+                book.User = _userService.Find(book.UserId);
 
             var administrators = _userService.GetAllAdministrators();
 

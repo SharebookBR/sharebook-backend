@@ -6,11 +6,13 @@ using ShareBook.Domain.Validators;
 using ShareBook.Repository;
 using ShareBook.Repository.Infra;
 using ShareBook.Repository.Infra.CrossCutting.Identity.Interfaces;
+using ShareBook.Repository.Repository;
 using ShareBook.Service;
 using ShareBook.Test.Unit.Mocks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using Xunit;
 
@@ -45,7 +47,6 @@ namespace ShareBook.Test.Unit.Services
                     Password = "123456",
                     Name = "José da Silva",
                     Linkedin = "linkedin.com/jose",
-                    PostalCode = "04473-190"
                 };
             });
 
@@ -57,11 +58,10 @@ namespace ShareBook.Test.Unit.Services
                     Password = "123456",
                     Name = "José da Silva",
                     Linkedin = "linkedin.com/jose",
-                    PostalCode = "04473-190"
                 };
             });
 
-            userRepositoryMock.Setup(repo => repo.Get(It.IsAny<Guid>())).Returns(() =>
+            userRepositoryMock.Setup(repo => repo.Find(It.IsAny<Expression<Func<User, bool>>>())).Returns(() =>
             {
                 return new User()
                 {
@@ -71,7 +71,20 @@ namespace ShareBook.Test.Unit.Services
                     PasswordSalt = PASSWORD_SALT,
                     Name = "José da Silva",
                     Linkedin = "linkedin.com/jose",
-                    PostalCode = "04473-190"
+                };
+            });
+
+
+            userRepositoryMock.Setup(repo => repo.Find(It.IsAny<IncludeList<User>>(), It.IsAny<Guid>())).Returns(() =>
+            {
+                return new User()
+                {
+                    Id = new Guid("C53B3552-606C-40C6-9D7F-FFC87572977E"),
+                    Email = "jose@sharebook.com",
+                    Password = PASSWORD_HASH,
+                    PasswordSalt = PASSWORD_SALT,
+                    Name = "José da Silva",
+                    Linkedin = "linkedin.com/jose",
                 };
             });
 
@@ -87,7 +100,6 @@ namespace ShareBook.Test.Unit.Services
                             PasswordSalt = PASSWORD_SALT,
                              Name = "José da Silva",
                             Linkedin = "linkedin.com/jose",
-                            PostalCode = "04473-190"
                         },
                     new User()
                         {
@@ -95,7 +107,6 @@ namespace ShareBook.Test.Unit.Services
                            Linkedin = "https://www.linkedin.com/in/sergiopratesdossantos/",
                            Name = "Sergio",
                            Phone = "584558999",
-                           PostalCode = "111547899",
                            Password = "6sQwTaExa3mdpFWK1xLV1qb/bMs/GpB097MaNRXRbn0=",
                            PasswordSalt = "Qs1P9F2aeh8CMf9AedbSDg==",
                            Profile = Profile.User
@@ -118,7 +129,6 @@ namespace ShareBook.Test.Unit.Services
                 Password = "Password.123",
                 Name = "José da Silva",
                 Linkedin = @"linkedin.com\jose-silva",
-                PostalCode = "04473-190",
                 Phone = "55601719"
 
             });
@@ -156,7 +166,6 @@ namespace ShareBook.Test.Unit.Services
                 Linkedin = "https://www.linkedin.com/in/sergiopratesdossantos/",
                 Name = "Sergio1",
                 Phone = "584558999",
-                PostalCode = "04473-150",
             });
 
             Assert.NotNull(result);
@@ -174,7 +183,6 @@ namespace ShareBook.Test.Unit.Services
                 Linkedin = "",
                 Name = "",
                 Phone = "",
-                PostalCode = "",
             });
 
             Assert.NotNull(result);

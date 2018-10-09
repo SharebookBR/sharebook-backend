@@ -58,7 +58,7 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpGet("{id}")]
-        public Book GetById(string id) => _service.Get(new Guid(id));
+        public Book GetById(string id) => _service.Find(new Guid(id));
 
         [Authorize("Bearer")]
         [HttpPost("Approve/{id}")]

@@ -31,12 +31,6 @@ namespace ShareBook.Domain.Validators
             RuleFor(u => u.Password)
               .NotEmpty()
               .WithMessage(Password);
-
-            RuleFor(u => u.PostalCode)
-                .NotEmpty()
-                .WithMessage(PostalCode)
-                .Must(PostalCodeIsValid)
-                .WithMessage(PostalCodeInvalid);
                 
         }
 

@@ -27,7 +27,7 @@ namespace ShareBook.Service
         public async Task SendEmailBookDonated(BookUser bookUser)
         {
             var bookDonated = bookUser.Book;
-            bookDonated.User = _userService.Get(bookUser.Book.UserId);
+            bookDonated.User = _userService.Find(bookUser.Book.UserId);
 
             var grantee = bookUser.User;
 
@@ -37,11 +37,11 @@ namespace ShareBook.Service
         public async Task SendEmailBookRequested(BookUser bookUser)
         {
             // TODO - Ajustar para apenas um SELECT 
-            var bookRequested = _bookService.Get(bookUser.BookId);
+            var bookRequested = _bookService.Find(bookUser.BookId);
 
-            bookRequested.User = _userService.Get(bookRequested.UserId);
+            bookRequested.User = _userService.Find(bookRequested.UserId);
 
-            var requestingUser = _userService.Get(bookUser.UserId);
+            var requestingUser = _userService.Find(bookUser.UserId);
 
             var administrators = _userService.GetAllAdministrators();
 

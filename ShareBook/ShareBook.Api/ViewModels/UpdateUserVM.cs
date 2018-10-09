@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using ShareBook.Domain;
 using ShareBook.Domain.Enums;
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -15,8 +16,8 @@ namespace ShareBook.Api.ViewModels
 
         public string Linkedin { get; set; }
 
-        [Required]
-        public string PostalCode { get; set; }
+        public Address Address { get; set; }
+
 
         public string Phone { get; set; }
     }

@@ -26,6 +26,7 @@ namespace ShareBook.Repository
             new UserMap(modelBuilder.Entity<User>());
             new BookUserMap(modelBuilder.Entity<BookUser>());
             new CategoryMap(modelBuilder.Entity<Category>());
+            new AddressMap(modelBuilder.Entity<Address>());
         }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken))
