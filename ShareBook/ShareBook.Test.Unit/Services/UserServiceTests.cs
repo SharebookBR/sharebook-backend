@@ -5,11 +5,13 @@ using ShareBook.Domain.Validators;
 using ShareBook.Repository;
 using ShareBook.Repository.Infra;
 using ShareBook.Repository.Infra.CrossCutting.Identity.Interfaces;
+using ShareBook.Repository.Repository;
 using ShareBook.Service;
 using ShareBook.Test.Unit.Mocks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using Xunit;
 
@@ -58,7 +60,21 @@ namespace ShareBook.Test.Unit.Services
                 };
             });
 
-            userRepositoryMock.Setup(repo => repo.Find(It.IsAny<Guid>())).Returns(() =>
+            userRepositoryMock.Setup(repo => repo.Find(It.IsAny<Expression<Func<User, bool>>>())).Returns(() =>
+            {
+                return new User()
+                {
+                    Id = new Guid("C53B3552-606C-40C6-9D7F-FFC87572977E"),
+                    Email = "jose@sharebook.com",
+                    Password = PASSWORD_HASH,
+                    PasswordSalt = PASSWORD_SALT,
+                    Name = "José da Silva",
+                    Linkedin = "linkedin.com/jose",
+                };
+            });
+
+
+            userRepositoryMock.Setup(repo => repo.Find(It.IsAny<IncludeList<User>>(), It.IsAny<Guid>())).Returns(() =>
             {
                 return new User()
                 {
