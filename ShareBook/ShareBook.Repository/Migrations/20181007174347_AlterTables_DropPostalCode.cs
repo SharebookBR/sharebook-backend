@@ -88,6 +88,15 @@ namespace ShareBook.Repository.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.Sql(@"UPDATE
+                                    UserTable
+                                SET
+                                    UserTable.PostalCode = AddressTable.PostalCode
+                                FROM
+                                    Users AS UserTable
+                                    INNER JOIN Address AS AddressTable
+                                        ON UserTable.Id = AddressTable.UserId", true);
+
             migrationBuilder.AddColumn<string>(
                 name: "PostalCode",
                 table: "Users",
