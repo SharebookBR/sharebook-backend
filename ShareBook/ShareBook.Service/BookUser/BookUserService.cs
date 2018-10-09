@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using ShareBook.Domain;
 using ShareBook.Domain.Enums;
 using ShareBook.Domain.Exceptions;
 using ShareBook.Repository;
 using ShareBook.Repository.Infra;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 
 namespace ShareBook.Service
 {
@@ -18,7 +18,7 @@ namespace ShareBook.Service
         private readonly IBookService _bookService;
         private readonly IBookUsersEmailService _bookUsersEmailService;
 
-        public BookUserService(IBookUserRepository bookUserRepository, IBookService bookService, 
+        public BookUserService(IBookUserRepository bookUserRepository, IBookService bookService,
             IBookUsersEmailService bookUsersEmailService, IUnitOfWork unitOfWork)
         {
             _bookUserRepository = bookUserRepository;
@@ -38,7 +38,7 @@ namespace ShareBook.Service
                 BookId = bookId,
                 UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name),
                 Reason = reason
-            };          
+            };
 
             if (!_bookService.Any(x => x.Id == bookUser.BookId))
                 throw new ShareBookException(ShareBookException.Error.NotFound);
@@ -47,18 +47,18 @@ namespace ShareBook.Service
                 throw new ShareBookException("O usuário já possui uma requisição para o mesmo livro.");
 
             _bookUserRepository.Insert(bookUser);
-             _bookUsersEmailService.SendEmailBookRequested(bookUser);
+            _bookUsersEmailService.SendEmailBookRequested(bookUser);
         }
 
         public async void DonateBook(Guid bookId, Guid userId, string note)
         {
-            var bookUserAccepted = _bookUserRepository.Get().Include(u => u.Book).Include( u => u.User)
-                .Where(x => x.UserId == userId 
-                    && x.BookId == bookId 
+            var bookUserAccepted = _bookUserRepository.Get().Include(u => u.Book).Include(u => u.User)
+                .Where(x => x.UserId == userId
+                    && x.BookId == bookId
                     && x.Status == DonationStatus.WaitingAction)
                     .FirstOrDefault();
 
-            if(bookUserAccepted == null) 
+            if (bookUserAccepted == null)
                 throw new ShareBookException("Não existe a relação de usuário e livro para a doação.");
 
             bookUserAccepted.UpdateBookUser(DonationStatus.Donated, note);
@@ -87,8 +87,7 @@ namespace ShareBook.Service
         public IList<BookUser> GetRequestsByUser()
         {
             var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            return _bookUserRepository.Get().Include(u => u.Book)
-                            .Where(x => x.UserId == userId).ToList();
+            return _bookUserRepository.Get(x => x.UserId == userId, x => x.Book).Items;
         }
     }
 }

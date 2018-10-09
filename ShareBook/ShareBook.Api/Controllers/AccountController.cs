@@ -35,10 +35,13 @@ namespace ShareBook.Api.Controllers
         #region GET
         [Authorize("Bearer")]
         [HttpGet]
-        public User Get()
+        public UserVM Get()
         {
             var id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            return _userService.Get(id);
+            var user = _userService.Find(id);
+
+            var userVM = Mapper.Map<User, UserVM>(user);
+            return userVM;
         }
 
 
@@ -47,7 +50,7 @@ namespace ShareBook.Api.Controllers
         public object Profile()
         {
             var id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            return new { profile = _userService.Get(id).Profile.ToString() };
+            return new { profile = _userService.Find(id).Profile.ToString() };
         }
         #endregion
 

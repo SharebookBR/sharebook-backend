@@ -1,14 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using FluentValidation;
+﻿using FluentValidation;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Helper.Crypto;
 using ShareBook.Repository;
 using ShareBook.Repository.Infra;
+using ShareBook.Repository.Repository;
 using ShareBook.Service.Generic;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 
 namespace ShareBook.Service
 {
@@ -29,11 +30,7 @@ namespace ShareBook.Service
 
             string decryptedPass = user.Password;
 
-            user = _repository.Get()
-                .Where(e => e.Email.Equals(user.Email, StringComparison.InvariantCultureIgnoreCase))
-                .FirstOrDefault();
-
-
+            user = _repository.Find(e => e.Email.Equals(user.Email, StringComparison.InvariantCultureIgnoreCase));
 
             if (user == null || !IsValidPassword(user, decryptedPass))
             {
@@ -49,7 +46,7 @@ namespace ShareBook.Service
         {
             var result = Validate(user);
 
-            if(!user.PasswordIsStrong())
+            if (!user.PasswordIsStrong())
                 result.Messages.Add(PASSWORD_IS_WEAK);
 
             if (_repository.Any(x => x.Email == user.Email))
@@ -72,12 +69,11 @@ namespace ShareBook.Service
                 x => x.Linkedin,
                 x => x.Name,
                 x => x.Phone,
-                x => x.PostalCode,
                 x => x.Id);
 
             if (result.Success == false) return result;
 
-            User userAux = _repository.Get(user.Id);
+            var userAux = _repository.Find(new IncludeList<User>(x => x.Address), user.Id);
 
             if (userAux == null) result.Messages.Add("Usuário não existe.");
 
@@ -86,40 +82,45 @@ namespace ShareBook.Service
 
             if (result.Success)
             {
-                userAux.ChangeEmail(user.Email);
-                userAux.ChangeName(user.Name);
-                userAux.ChangeLinkedin(user.Linkedin);
-                userAux.ChangePostalCode(user.PostalCode);
-                userAux.ChangePhone(user.Phone);
+                userAux.Change(user.Email, user.Name, user.Linkedin, user.Phone);
+                userAux.ChangeAddress(user.Address);
+
                 result.Value = UserCleanup(_repository.Update(userAux));
             }
+
             return result;
         }
 
-        public override User Get(params object[] keyValues) => UserCleanup(_repository.Get(keyValues));
+        public override User Find(params object[] keyValues)
+        {
+            var includes = new IncludeList<User>(x => x.Address);
+            var user = _repository.Find(includes, keyValues);
+
+            return UserCleanup(user);
+        }
 
         public IEnumerable<User> GetAllAdministrators()
         {
-            return _repository.Get().Where(x => x.Profile == Domain.Enums.Profile.Administrator);
+            return _repository.Get(x => x.Profile == Domain.Enums.Profile.Administrator).Items;
         }
 
         public Result<User> ChangeUserPassword(User user, string newPassword)
         {
-            user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);       
+            user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             var resultUserAuth = this.AuthenticationByIdAndPassword(user);
 
             if (resultUserAuth.Success)
             {
                 var userAuth = resultUserAuth.Value;
                 userAuth.ChangePassword(newPassword);
-                
-                if(!userAuth.PasswordIsStrong())
+
+                if (!userAuth.PasswordIsStrong())
                 {
                     resultUserAuth.Messages.Add(PASSWORD_IS_WEAK);
                     resultUserAuth.Value = null;
                     return resultUserAuth;
                 }
-                    
+
                 userAuth = GetUserEncryptedPass(userAuth);
                 userAuth = _userRepository.UpdatePassword(userAuth).Result;
                 resultUserAuth.Value = UserCleanup(userAuth);

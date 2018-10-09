@@ -1,7 +1,5 @@
 ﻿using ShareBook.Domain.Common;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ShareBook.Domain
 {
@@ -22,8 +20,6 @@ namespace ShareBook.Domain
         public string State { get; set; }
 
         public string Country { get; set; }
-
-        public User User { get; set; }
 
         public Guid UserId { get; set; }
     }

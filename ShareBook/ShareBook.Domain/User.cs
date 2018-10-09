@@ -12,7 +12,6 @@ namespace ShareBook.Domain
         public string Password { get; set; }
         public string PasswordSalt { get; set; }
         public string Linkedin { get; set; }
-        public string PostalCode { get; set; }
         public  string Phone{ get; set; }
         public Profile Profile { get;  set; } = Profile.User;
         public virtual Address Address { get; set; }
@@ -33,29 +32,17 @@ namespace ShareBook.Domain
             return this;
         }
 
-        public void ChangeEmail(string email)
+        public void Change(string email, string name, string linkedin, string phone)
         {
             this.Email = email;
-        }
-
-        public void ChangeName(string name)
-        {
             this.Name = name;
-        }
-        
-        public void ChangeLinkedin(string linkedin)
-        {
             this.Linkedin = linkedin;
-        }
-
-        public void ChangePostalCode(string postalCode)
-        {
-            this.PostalCode = postalCode;
-        }
-
-        public void ChangePhone(string phone)
-        {
             this.Phone = phone;
+        }
+
+        public void ChangeAddress(Address address)
+        {
+            this.Address = address;
         }
 
         public void ChangePassword(string password)

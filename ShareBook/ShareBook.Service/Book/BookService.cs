@@ -35,7 +35,7 @@ namespace ShareBook.Service
 
         public Result<Book> Approve(Guid bookId, bool approved = true)
         {
-            var book = _repository.Get(bookId);
+            var book = _repository.Find(bookId);
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
@@ -83,7 +83,6 @@ namespace ShareBook.Service
                          Email = u.User.Email,
                          Name = u.User.Name,
                          Linkedin = u.User.Linkedin,
-                         PostalCode = u.User.PostalCode
                      },
                      Category = new Category()
                      {
@@ -111,7 +110,6 @@ namespace ShareBook.Service
                          Email = u.User.Email,
                          Name = u.User.Name,
                          Linkedin = u.User.Linkedin,
-                         PostalCode = u.User.PostalCode
                      },
                      Category = new Category()
                      {
@@ -125,9 +123,9 @@ namespace ShareBook.Service
             .Skip((page - 1) * items)
             .Take(items).ToList();
 
-        public override Book Get(params object[] keyValues)
+        public override Book Find(params object[] keyValues)
         {
-            var result = _repository.Get(keyValues);
+            var result = _repository.Find(keyValues);
 
             result.ImageUrl = _uploadService.GetImageUrl(result.ImageSlug, "Books");
 
@@ -259,7 +257,6 @@ namespace ShareBook.Service
                         Email = u.User.Email,
                         Name = u.User.Name,
                         Linkedin = u.User.Linkedin,
-                        PostalCode = u.User.PostalCode
                     },
                     Category = new Category()
                     {
