@@ -9,6 +9,13 @@ namespace ShareBook.Test.Unit.Domain
     public class BookTests
     {
         [Fact]
+        public void BookStatusUnknow()
+        {
+            var book = new Book();
+            Assert.Equal(BookStatus.Unknow, book.Status());
+        }
+
+        [Fact]
         public void BookStatusWaitingApproval()
         {
             var book = new Book{

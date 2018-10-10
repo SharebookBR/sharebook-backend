@@ -1,6 +1,5 @@
 ﻿using FluentValidation;
 using System.Text.RegularExpressions;
-using ShareBook.Domain;
 
 namespace ShareBook.Domain.Validators
 {

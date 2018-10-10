@@ -7,6 +7,7 @@ using ShareBook.Domain.Exceptions;
 using ShareBook.Helper.Extensions;
 using ShareBook.Helper.Image;
 using ShareBook.Repository;
+using ShareBook.Repository.Repository;
 using ShareBook.Repository.Infra;
 using ShareBook.Service.Generic;
 using ShareBook.Service.Upload;
@@ -239,11 +240,11 @@ namespace ShareBook.Service
 
         public IList<Book> GetUserDonations(Guid userId)
         {
-            return _repository
-                .Get()
-                .Include(b => b.BookUsers)
-                .Where(book => book.UserId == userId)
-                .ToList();
+            return _repository.Get(
+                    book => book.UserId == userId, 
+                    book => book.CreationDate, 
+                    new IncludeList<Book>(book => book.BookUsers)
+                ).Items;
         }
 
         #region Private

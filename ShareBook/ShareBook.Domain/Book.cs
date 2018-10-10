@@ -42,6 +42,9 @@ namespace ShareBook.Domain
         public BookStatus Status() {
             BookStatus response = BookStatus.Unknow;
 
+            if (this.BookUsers == null) 
+                return response;
+
             bool visible        = this.Approved;
             int totalInterested = this.TotalInterested();
             bool donated        = this.Donated();
@@ -61,12 +64,7 @@ namespace ShareBook.Domain
         
         public int TotalInterested()
         {
-            int totalInterested = 0;
-            if (this.BookUsers != null) {
-                totalInterested = this.BookUsers.Count;
-            }
-
-            return totalInterested;
+            return this.BookUsers?.Count ?? 0;
         }
 
         public int DaysInShowcase() 
