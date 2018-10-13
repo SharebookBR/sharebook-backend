@@ -7,6 +7,7 @@ using ShareBook.Domain.Exceptions;
 using ShareBook.Helper.Extensions;
 using ShareBook.Helper.Image;
 using ShareBook.Repository;
+using ShareBook.Repository.Repository;
 using ShareBook.Repository.Infra;
 using ShareBook.Service.Generic;
 using ShareBook.Service.Upload;
@@ -236,6 +237,15 @@ namespace ShareBook.Service
 
         public override PagedList<Book> Get<TKey>(Expression<Func<Book, bool>> filter, Expression<Func<Book, TKey>> order, int page, int itemsPerPage)
             => base.Get(filter, order, page, itemsPerPage);
+
+        public IList<Book> GetUserDonations(Guid userId)
+        {
+            return _repository.Get(
+                    book => book.UserId == userId, 
+                    book => book.CreationDate, 
+                    new IncludeList<Book>(book => book.BookUsers)
+                ).Items;
+        }
 
         #region Private
         private PagedList<Book> SearchBooks(Expression<Func<Book, bool>> filter, int page, int itemsPerPage)

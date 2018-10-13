@@ -9,6 +9,7 @@ using ShareBook.Domain.Common;
 using ShareBook.Service;
 using ShareBook.Service.Authorization;
 using System;
+using System.Threading;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
@@ -182,6 +183,15 @@ namespace ShareBook.Api.Controllers
             var myBooksRequestsVM = Mapper.Map<List<MyBookRequestVM>>(donation);
 
             return myBooksRequestsVM;
+        }
+
+        [Authorize("Bearer")]
+        [HttpGet("MyDonations")]
+        public IList<BooksVM> MyDonations()
+        {
+            Guid userId   = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+            var donations = _service.GetUserDonations(userId);
+            return Mapper.Map<List<BooksVM>>(donations);
         }
     }
 }

@@ -24,8 +24,6 @@ namespace ShareBook.Api.Controllers
         private readonly IUserService _userService;
         private readonly IApplicationSignInManager _signManager;
 
-       
-
         public AccountController(IUserService userService, IApplicationSignInManager signManager)
         {
             _userService = userService;

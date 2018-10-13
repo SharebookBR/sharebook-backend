@@ -4,7 +4,6 @@ using ShareBook.Service.Generic;
 using System;
 using System.Collections.Generic;
 
-
 namespace ShareBook.Service
 {
     public interface IBookService : IBaseService<Book>
@@ -28,5 +27,7 @@ namespace ShareBook.Service
         Book BySlug(string slug);
 
         bool UserRequestedBook(Guid bookId);
+
+        IList<Book> GetUserDonations(Guid userId);
     }
 }

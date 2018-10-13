@@ -145,7 +145,7 @@ namespace ShareBook.Repository
             => Get(filter, order, null);
         
         public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, IncludeList<TEntity> includes)
-           => Get(filter, order, 1, int.MaxValue);
+           => Get(filter, order, 1, int.MaxValue, includes);
 
         public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage)
             => Get(order, page, itemsPerPage, null);

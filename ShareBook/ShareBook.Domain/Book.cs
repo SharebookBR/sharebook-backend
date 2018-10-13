@@ -38,5 +38,39 @@ namespace ShareBook.Domain
 
         public bool Donated()
             => BookUsers.Any(x => x.Status == DonationStatus.Donated);
+
+        public BookStatus Status() {
+            BookStatus response = BookStatus.Unknow;
+
+            if (this.BookUsers == null) 
+                return response;
+
+            bool visible        = this.Approved;
+            int totalInterested = this.TotalInterested();
+            bool donated        = this.Donated();
+
+            if (!visible && totalInterested == 0) {
+                response = BookStatus.WaitingApproval;
+            } else if (visible && !donated) {
+                response = BookStatus.Available;
+            } else if (!visible && !donated && totalInterested > 0) {
+                response = BookStatus.Invisible;
+            } else if (donated) {
+                response = BookStatus.Donated;
+            }
+
+            return response;
+        }
+        
+        public int TotalInterested()
+        {
+            return this.BookUsers?.Count ?? 0;
+        }
+
+        public int DaysInShowcase() 
+        {
+            TimeSpan diff = (TimeSpan) (DateTime.Now - this.CreationDate);
+            return diff.Days;
+        }
     }
 }

@@ -1,21 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="JsonDiffPatch.Net" Version="2.1.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.0.3" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="2.0.3" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="2.0.3" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="JsonDiffPatch.Net" Version="2.1.0"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.0.3"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="2.0.3"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="2.0.3"/>
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2"/>
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="5.2.4"/>
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="5.2.4"/>
   </ItemGroup>
-
   <ItemGroup>
-    <ProjectReference Include="..\ShareBook.Domain\ShareBook.Domain.csproj" />
+    <ProjectReference Include="..\ShareBook.Domain\ShareBook.Domain.csproj"/>
   </ItemGroup>
-
   <ItemGroup>
     <Reference Include="Microsoft.IdentityModel.Tokens">
       <HintPath>C:\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.identitymodel.tokens\5.1.4\lib\netstandard1.4\Microsoft.IdentityModel.Tokens.dll</HintPath>
@@ -24,5 +22,4 @@
       <HintPath>C:\Program Files\dotnet\sdk\NuGetFallbackFolder\system.identitymodel.tokens.jwt\5.1.4\lib\netstandard1.4\System.IdentityModel.Tokens.Jwt.dll</HintPath>
     </Reference>
   </ItemGroup>
-
 </Project>

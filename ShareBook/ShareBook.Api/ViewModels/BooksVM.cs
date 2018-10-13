@@ -11,5 +11,8 @@ namespace ShareBook.Api.ViewModels
         public string Donor { get; set; }
         public bool Approved { get; set; }
         public string PhoneDonor { get; set; }
+        public int DaysInShowcase { get; set; }
+        public int TotalInterested { get; set; }
+        public string Status { get; set; }
     }
 }
