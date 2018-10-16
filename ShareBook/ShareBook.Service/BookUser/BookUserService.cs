@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ShareBook.Domain;
+using ShareBook.Domain.Common;
 using ShareBook.Domain.Enums;
 using ShareBook.Domain.Exceptions;
 using ShareBook.Repository;
@@ -84,10 +85,10 @@ namespace ShareBook.Service
             }
         }
 
-        public IList<BookUser> GetRequestsByUser()
+        public PagedList<BookUser> GetRequestsByUser()
         {
             var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            return _bookUserRepository.Get(x => x.UserId == userId, x => x.Book).Items;
+            return _bookUserRepository.Get(x => x.UserId == userId, x => x.Book);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using ShareBook.Domain;
+using ShareBook.Domain.Common;
 using System;
 using System.Collections.Generic;
 
@@ -14,6 +15,6 @@ namespace ShareBook.Service
 
         void DeniedBookUsers(Guid bookId);
 
-        IList<BookUser> GetRequestsByUser();
+        PagedList<BookUser> GetRequestsByUser();
     }
 }
