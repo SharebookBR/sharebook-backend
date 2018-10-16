@@ -5,6 +5,7 @@ using ShareBook.Domain.Enums;
 using ShareBook.Domain.Exceptions;
 using ShareBook.Repository;
 using ShareBook.Repository.Infra;
+using ShareBook.Repository.Repository;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -88,7 +89,7 @@ namespace ShareBook.Service
         public PagedList<BookUser> GetRequestsByUser()
         {
             var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            return _bookUserRepository.Get(x => x.UserId == userId, x => x.Book);
+            return _bookUserRepository.Get(x => x.UserId == userId, x => x.Book, new IncludeList<BookUser>(b => b.Book));
         }
     }
 }
