@@ -45,8 +45,7 @@ namespace ShareBook.Api.Controllers
        [AuthorizationFilter(Permissions.Permission.DonateBook)]
         public PagedList<BooksVM> Paged(int page, int items)
         {
-            Expression<Func<Book, bool>> filter = null;
-            var books = _service.Get<object>(filter, x => x.Title, page, items);
+            var books = _service.Get<object>(x => x.Title, page, items);
             var responseVM = Mapper.Map<List<BooksVM>>(books.Items);
             return new PagedList<BooksVM>()
             {
