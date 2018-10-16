@@ -45,8 +45,8 @@ namespace ShareBook.Api.Controllers
        [AuthorizationFilter(Permissions.Permission.DonateBook)]
         public PagedList<BooksVM> Paged(int page, int items)
         {
-            // corrigir para o parametro filter ser opcional
-            var books = _service.Get<object>(x => x.Approved || !x.Approved, x => x.Title, page, items);
+            Expression<Func<Book, bool>> filter = null;
+            var books = _service.Get<object>(filter, x => x.Title, page, items);
             var responseVM = Mapper.Map<List<BooksVM>>(books.Items);
             return new PagedList<BooksVM>()
             {
@@ -176,13 +176,19 @@ namespace ShareBook.Api.Controllers
         }
 
         [Authorize("Bearer")]
-        [HttpGet("MyRequests")]
-        public IList<MyBookRequestVM> MyRequests()
+        [HttpGet("MyRequests/{page}/{items}")]
+        public PagedList<MyBookRequestVM> MyRequests(int page, int items)
         {
             var donation = _bookUserService.GetRequestsByUser();
-            var myBooksRequestsVM = Mapper.Map<List<MyBookRequestVM>>(donation);
+            var myBooksRequestsVM = Mapper.Map<List<MyBookRequestVM>>(donation.Items);
 
-            return myBooksRequestsVM;
+            return new PagedList<MyBookRequestVM>()
+            {
+                Page = page,
+                TotalItems = donation.TotalItems,
+                ItemsPerPage = items,
+                Items = myBooksRequestsVM
+            };
         }
 
         [Authorize("Bearer")]
