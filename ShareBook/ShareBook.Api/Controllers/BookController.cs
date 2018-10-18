@@ -9,9 +9,9 @@ using ShareBook.Domain.Common;
 using ShareBook.Service;
 using ShareBook.Service.Authorization;
 using System;
-using System.Threading;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Threading;
 
 namespace ShareBook.Api.Controllers
 {
@@ -38,14 +38,14 @@ namespace ShareBook.Api.Controllers
         [HttpGet()]
         [Authorize("Bearer")]
         [AuthorizationFilter(Permissions.Permission.DonateBook)]
-        public  PagedList<BooksVM> GetAll() => Paged(1, 15);
+        public PagedList<BooksVM> GetAll() => Paged(1, 15);
 
-       [HttpGet("{page}/{items}")]
-       [Authorize("Bearer")]
-       [AuthorizationFilter(Permissions.Permission.DonateBook)]
+        [HttpGet("{page}/{items}")]
+        [Authorize("Bearer")]
+        [AuthorizationFilter(Permissions.Permission.DonateBook)]
         public PagedList<BooksVM> Paged(int page, int items)
         {
-            var books = _service.Get<object>(x => x.Title, page, items);
+            var books = _service.Get<object>(x => x.Title, page, items, new Repository.Repository.IncludeList<Book>(x => x.User));
             var responseVM = Mapper.Map<List<BooksVM>>(books.Items);
             return new PagedList<BooksVM>()
             {
@@ -80,7 +80,7 @@ namespace ShareBook.Api.Controllers
         public IActionResult Get(string slug)
         {
             var book = _service.BySlug(slug);
-            return book != null ? (IActionResult) Ok(book) : NotFound();
+            return book != null ? (IActionResult)Ok(book) : NotFound();
         }
 
         [HttpGet("Top15NewBooks")]
@@ -106,7 +106,7 @@ namespace ShareBook.Api.Controllers
         public PagedList<Book> FullSearchAdmin(string criteria, int page, int items)
         {
             var isAdmin = true;
-            return  _service.FullSearch(criteria, page, items, isAdmin);
+            return _service.FullSearch(criteria, page, items, isAdmin);
         }
 
         [Authorize("Bearer")]
@@ -194,7 +194,7 @@ namespace ShareBook.Api.Controllers
         [HttpGet("MyDonations")]
         public IList<BooksVM> MyDonations()
         {
-            Guid userId   = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+            Guid userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             var donations = _service.GetUserDonations(userId);
             return Mapper.Map<List<BooksVM>>(donations);
         }
