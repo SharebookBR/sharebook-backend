@@ -42,9 +42,6 @@ namespace ShareBook.Domain
         public BookStatus Status() {
             BookStatus response = BookStatus.Unknow;
 
-            if (this.BookUsers == null) 
-                return response;
-
             bool visible        = this.Approved;
             int totalInterested = this.TotalInterested();
             bool donated        = this.Donated();
