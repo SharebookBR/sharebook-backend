@@ -8,8 +8,6 @@ namespace ShareBook.Domain.Enums
     [JsonConverter(typeof(StringEnumConverter))]
     public enum BookStatus
     {
-        [Description("Não identificado")]
-        Unknow,
         [Description("Aguardando aprovação")]
         WaitingApproval,
         [Description("Disponível")]
