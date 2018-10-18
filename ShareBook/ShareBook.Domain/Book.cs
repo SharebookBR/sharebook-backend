@@ -37,14 +37,14 @@ namespace ShareBook.Domain
         public string ImageName { get; set; }
 
         public bool Donated()
-            => BookUsers.Any(x => x.Status == DonationStatus.Donated);
+            => BookUsers?.Any(x => x.Status == DonationStatus.Donated) ?? false;
 
         public BookStatus Status() {
             BookStatus response = BookStatus.Unknow;
 
-            bool visible        = this.Approved;
-            int totalInterested = this.TotalInterested();
-            bool donated        = this.Donated();
+            bool visible        = Approved;
+            int totalInterested = TotalInterested();
+            bool donated        = Donated();
 
             if (!visible && totalInterested == 0) {
                 response = BookStatus.WaitingApproval;
@@ -61,7 +61,7 @@ namespace ShareBook.Domain
         
         public int TotalInterested()
         {
-            return this.BookUsers?.Count ?? 0;
+            return BookUsers?.Count ?? 0;
         }
 
         public int DaysInShowcase() 
