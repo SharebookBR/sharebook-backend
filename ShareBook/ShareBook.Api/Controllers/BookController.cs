@@ -8,6 +8,7 @@ using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Service;
 using ShareBook.Service.Authorization;
+using ShareBook.Repository.Repository;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -45,7 +46,7 @@ namespace ShareBook.Api.Controllers
         [AuthorizationFilter(Permissions.Permission.DonateBook)]
         public PagedList<BooksVM> Paged(int page, int items)
         {
-            var books = _service.Get<object>(x => x.Title, page, items, new Repository.Repository.IncludeList<Book>(x => x.User));
+            var books = _service.Get(x => x.Title, page, items, new IncludeList<Book>(x => x.User, x => x.BookUsers));
             var responseVM = Mapper.Map<List<BooksVM>>(books.Items);
             return new PagedList<BooksVM>()
             {
