@@ -65,31 +65,12 @@ namespace ShareBook.Service
             return enumValues;
         }
 
-        public IList<Book> Top15NewBooks()
+        public PagedList<Book> Top15NewBooks()
         {
-            return _repository.Get().Where(x => x.Approved
-             && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated)).OrderByDescending(x => x.CreationDate).Take(15)
-                 .Select(u => new Book
-                 {
-                     Id = u.Id,
-                     Title = u.Title,
-                     Author = u.Author,
-                     Approved = u.Approved,
-                     FreightOption = u.FreightOption,
-                     ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
-                     Slug = u.Slug,
-                     User = new User()
-                     {
-                         Id = u.User.Id,
-                         Email = u.User.Email,
-                         Name = u.User.Name,
-                         Linkedin = u.User.Linkedin,
-                     },
-                     Category = new Category()
-                     {
-                         Name = u.Category.Name
-                     }
-                 }).ToList();
+            int page = 1;
+            int itemsPerPage = 15;
+            return SearchBooks(x => (x.Approved && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated)), 
+                page, itemsPerPage);
         }
 
         public IList<Book> Random15Books()
@@ -258,6 +239,7 @@ namespace ShareBook.Service
                     Title = u.Title,
                     Author = u.Author,
                     Approved = u.Approved,
+                    ImageSlug = u.ImageSlug,
                     FreightOption = u.FreightOption,
                     ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
                     Slug = u.Slug,

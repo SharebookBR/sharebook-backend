@@ -23,10 +23,13 @@ namespace ShareBook.Api.Controllers
     {
         private readonly IBookUserService _bookUserService;
         private readonly IBookService _service;
+        private readonly IMapper _autoMapper;
+
         private Expression<Func<Book, object>> _defaultOrder = x => x.Id;
 
-        public BookController(IBookService bookService, IBookUserService bookUserService)
+        public BookController(IMapper mapper, IBookService bookService, IBookUserService bookUserService)
         {
+            _autoMapper = mapper;
             _service = bookService;
             _bookUserService = bookUserService;
         }
@@ -85,7 +88,16 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpGet("Top15NewBooks")]
-        public IList<Book> Top15NewBooks() => _service.Top15NewBooks();
+        public IActionResult Top15NewBooks()
+        {
+            try
+            {
+                var top15NewBooksVM = _autoMapper.Map<List<Top15NewBooksVM>>(_service.Top15NewBooks().Items);
+                return new OkObjectResult(top15NewBooksVM);
+            }
+
+            catch (Exception ex) { return new BadRequestObjectResult(ex.Message); }
+         }
 
         [HttpGet("Random15Books")]
         public IList<Book> Random15Books() => _service.Random15Books();

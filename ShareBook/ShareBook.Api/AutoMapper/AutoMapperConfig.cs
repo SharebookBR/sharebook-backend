@@ -1,14 +1,16 @@
 ﻿using AutoMapper;
+using ShareBook.Service.Upload;
+
 namespace ShareBook.Api.AutoMapper
 {
     public class AutoMapperConfig
     {
-        public static void RegisterMappings()
+        public static MapperConfiguration RegisterMappings()
         {
-            Mapper.Initialize(x =>
+            return new MapperConfiguration(cfg =>
             {
-                x.AddProfile<ViewModelToDomainMappingProfile>();
-                x.AddProfile<DomainToViewModelMappingProfile>();
+                cfg.AddProfile(new DomainToViewModelMappingProfile());
+                cfg.AddProfile(new ViewModelToDomainMappingProfile());
             });
         }
     }

@@ -30,7 +30,9 @@ namespace ShareBook.Api
         {
             services.RegisterRepositoryServices();
             //auto mapper start 
-            AutoMapperConfig.RegisterMappings();
+            var config = AutoMapperConfig.RegisterMappings();
+            var mapper = config.CreateMapper();
+            services.AddSingleton(mapper);
 
             services.AddMvc();
             services.Configure<ImageSettings>(options => Configuration.GetSection("ImageSettings").Bind(options));
