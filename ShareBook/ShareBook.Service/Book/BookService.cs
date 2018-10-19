@@ -151,7 +151,7 @@ namespace ShareBook.Service
 
                 result.Value.ImageBytes = null;
 
-                _booksEmailService.SendEmailNewBookInserted(entity);
+                //_booksEmailService.SendEmailNewBookInserted(entity);
             }
             return result;
         }
