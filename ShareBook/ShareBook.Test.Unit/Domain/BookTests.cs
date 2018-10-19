@@ -1,6 +1,6 @@
-using System;
 using ShareBook.Domain;
 using ShareBook.Domain.Enums;
+using System;
 using System.Collections.Generic;
 using Xunit;
 
@@ -9,26 +9,17 @@ namespace ShareBook.Test.Unit.Domain
     public class BookTests
     {
         [Fact]
-        public void BookStatusUnknow()
-        {
-            var book = new Book();
-            Assert.Equal(BookStatus.Unknow, book.Status());
-        }
-
-        [Fact]
         public void BookStatusWaitingApproval()
         {
-            var book = new Book{
-                BookUsers = new List<BookUser>()
-            };
-
+            var book = new Book();
             Assert.Equal(BookStatus.WaitingApproval, book.Status());
         }
 
         [Fact]
         public void BookStatusAvailable()
         {
-            var book = new Book{
+            var book = new Book
+            {
                 BookUsers = new List<BookUser>(),
                 Approved = true
             };
@@ -39,10 +30,13 @@ namespace ShareBook.Test.Unit.Domain
         [Fact]
         public void BookStatusInvisible()
         {
-            var bookUsers = new List<BookUser>();
-            bookUsers.Add(new BookUser());
+            var bookUsers = new List<BookUser>
+            {
+                new BookUser()
+            };
 
-            var book = new Book{
+            var book = new Book
+            {
                 BookUsers = bookUsers
             };
 
@@ -57,8 +51,9 @@ namespace ShareBook.Test.Unit.Domain
             bookUser.UpdateBookUser(DonationStatus.Donated, null);
 
             bookUsers.Add(bookUser);
-            
-            var book = new Book{
+
+            var book = new Book
+            {
                 BookUsers = bookUsers
             };
 
@@ -79,7 +74,8 @@ namespace ShareBook.Test.Unit.Domain
             bookUsers.Add(new BookUser());
             bookUsers.Add(new BookUser());
 
-            var book = new Book{
+            var book = new Book
+            {
                 BookUsers = bookUsers
             };
 
@@ -90,7 +86,8 @@ namespace ShareBook.Test.Unit.Domain
         public void DaysInShowCaseShouldBeTheDifferenceBetweenTodayAndTheCreationDate()
         {
             int expectedDays = 5;
-            var book = new Book{
+            var book = new Book
+            {
                 CreationDate = DateTime.Now.AddDays(expectedDays * -1)
             };
 
