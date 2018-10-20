@@ -43,6 +43,7 @@ namespace ShareBook.Domain
         public void ChangeAddress(Address address)
         {
             this.Address = address;
+            this.Address.UserId = Id;
         }
 
         public void ChangePassword(string password)
