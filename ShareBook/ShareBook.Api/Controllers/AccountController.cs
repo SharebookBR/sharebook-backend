@@ -23,9 +23,10 @@ namespace ShareBook.Api.Controllers
     {
         private readonly IUserService _userService;
         private readonly IApplicationSignInManager _signManager;
-
-        public AccountController(IUserService userService, IApplicationSignInManager signManager)
+        private readonly IMapper _autoMapper;
+        public AccountController(IMapper mapper, IUserService userService, IApplicationSignInManager signManager)
         {
+            _autoMapper = mapper;
             _userService = userService;
             _signManager = signManager;
         }
@@ -38,7 +39,7 @@ namespace ShareBook.Api.Controllers
             var id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             var user = _userService.Find(id);
 
-            var userVM = Mapper.Map<User, UserVM>(user);
+            var userVM = _autoMapper.Map<User, UserVM>(user);
             return userVM;
         }
 
@@ -64,7 +65,7 @@ namespace ShareBook.Api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            var user = Mapper.Map<RegisterUserVM, User>(registerUserVM);
+            var user = _autoMapper.Map<RegisterUserVM, User>(registerUserVM);
 
             var result = _userService.Insert(user);
 
@@ -84,7 +85,7 @@ namespace ShareBook.Api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            var user = Mapper.Map<LoginUserVM, User>(loginUserVM);
+            var user = _autoMapper.Map<LoginUserVM, User>(loginUserVM);
 
             var result = _userService.AuthenticationByEmailAndPassword(user);
 
@@ -114,7 +115,7 @@ namespace ShareBook.Api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            var user = Mapper.Map<UpdateUserVM, User>(updateUserVM);
+            var user = _autoMapper.Map<UpdateUserVM, User>(updateUserVM);
 
             var result = _userService.Update(user);
 

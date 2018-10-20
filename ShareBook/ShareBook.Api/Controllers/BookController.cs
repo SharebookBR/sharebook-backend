@@ -50,7 +50,7 @@ namespace ShareBook.Api.Controllers
         public PagedList<BooksVM> Paged(int page, int items)
         {
             var books = _service.Get(x => x.Title, page, items, new IncludeList<Book>(x => x.User, x => x.BookUsers));
-            var responseVM = Mapper.Map<List<BooksVM>>(books.Items);
+            var responseVM = _autoMapper.Map<List<BooksVM>>(books.Items);
             return new PagedList<BooksVM>()
             {
                 Page = page,
@@ -139,7 +139,7 @@ namespace ShareBook.Api.Controllers
         [HttpPost]
         public Result<Book> Create([FromBody] CreateBookVM createBookVM)
         {
-            var book = Mapper.Map<Book>(createBookVM);
+            var book = _autoMapper.Map<Book>(createBookVM);
             return _service.Insert(book);
         }
 
@@ -149,7 +149,7 @@ namespace ShareBook.Api.Controllers
         public Result<Book> Update(Guid id, [FromBody] UpdateBookVM updateBookVM)
         {
             updateBookVM.Id = id;
-            var book = Mapper.Map<Book>(updateBookVM);
+            var book = _autoMapper.Map<Book>(updateBookVM);
 
             return _service.Update(book);
         }
@@ -192,7 +192,7 @@ namespace ShareBook.Api.Controllers
         public PagedList<MyBookRequestVM> MyRequests(int page, int items)
         {
             var donation = _bookUserService.GetRequestsByUser();
-            var myBooksRequestsVM = Mapper.Map<List<MyBookRequestVM>>(donation.Items);
+            var myBooksRequestsVM = _autoMapper.Map<List<MyBookRequestVM>>(donation.Items);
 
             return new PagedList<MyBookRequestVM>()
             {
@@ -209,7 +209,7 @@ namespace ShareBook.Api.Controllers
         {
             Guid userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             var donations = _service.GetUserDonations(userId);
-            return Mapper.Map<List<BooksVM>>(donations);
+            return _autoMapper.Map<List<BooksVM>>(donations);
         }
     }
 }
