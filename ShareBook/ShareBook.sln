@@ -27,6 +27,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00 - Domain", "00 - Domain"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShareBook.Domain", "ShareBook.Domain\ShareBook.Domain.csproj", "{C05FCFDC-AC50-4941-8195-3283A862A78D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShareBook.Test.Integration", "ShareBook.Test.Integration\ShareBook.Test.Integration.csproj", "{42D56CB7-DB32-46EA-B311-BA7843ED6E89}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,10 @@ Global
 		{C05FCFDC-AC50-4941-8195-3283A862A78D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C05FCFDC-AC50-4941-8195-3283A862A78D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C05FCFDC-AC50-4941-8195-3283A862A78D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42D56CB7-DB32-46EA-B311-BA7843ED6E89}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42D56CB7-DB32-46EA-B311-BA7843ED6E89}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42D56CB7-DB32-46EA-B311-BA7843ED6E89}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42D56CB7-DB32-46EA-B311-BA7843ED6E89}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -69,6 +75,7 @@ Global
 		{D35C529A-4E05-4ED4-ACA9-97BD57AFCF2D} = {2CB49962-4574-4BFD-93FC-9C8B1D409D37}
 		{B3EB0A49-B7AE-4A6B-9986-A6A9F5776174} = {4DC3351F-0B20-4D5E-8727-3730DF7A9B88}
 		{C05FCFDC-AC50-4941-8195-3283A862A78D} = {78A450D9-55B2-4D2A-8B3F-CE72C0279B19}
+		{42D56CB7-DB32-46EA-B311-BA7843ED6E89} = {4DC3351F-0B20-4D5E-8727-3730DF7A9B88}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FF5BA500-51EA-4DD9-8523-8EE368731B63}

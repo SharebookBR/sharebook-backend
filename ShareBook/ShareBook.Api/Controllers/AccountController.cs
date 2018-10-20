@@ -116,6 +116,8 @@ namespace ShareBook.Api.Controllers
 
             var user = Mapper.Map<UpdateUserVM, User>(updateUserVM);
 
+            user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+
             var result = _userService.Update(user);
 
             if (result.Success)
