@@ -166,6 +166,16 @@ namespace ShareBook.Test.Unit.Services
                 Linkedin = "https://www.linkedin.com/in/sergiopratesdossantos/",
                 Name = "Sergio1",
                 Phone = "584558999",
+                Address = new Address ()
+                {
+                    PostalCode = "04473-140",
+                    Street = "Av sharebook",
+                    Number = "5",
+                    City = "São Paulo",
+                    Country = "Brasil",
+                    State = "SP",
+                    Neighborhood = "Interlagos"
+                }
             });
 
             Assert.NotNull(result);
