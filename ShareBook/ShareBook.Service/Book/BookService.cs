@@ -69,35 +69,17 @@ namespace ShareBook.Service
         {
             int page = 1;
             int itemsPerPage = 15;
-            return SearchBooks(x => (x.Approved && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated)), 
+            return SearchBooks(x => (x.Approved && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated)), x => x.CreationDate, 
                 page, itemsPerPage);
         }
 
-        public IList<Book> Random15Books()
+        public PagedList<Book> Random15Books()
         {
-            return _repository.Get().Where(x => x.Approved
-            && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated)).OrderBy(x => Guid.NewGuid()).Take(15)
-                 .Select(u => new Book
-                 {
-                     Id = u.Id,
-                     Title = u.Title,
-                     Author = u.Author,
-                     FreightOption = u.FreightOption,
-                     Approved = u.Approved,
-                     ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
-                     Slug = u.Slug,
-                     User = new User()
-                     {
-                         Id = u.User.Id,
-                         Email = u.User.Email,
-                         Name = u.User.Name,
-                         Linkedin = u.User.Linkedin,
-                     },
-                     Category = new Category()
-                     {
-                         Name = u.Category.Name
-                     }
-                 }).ToList();
+            int page = 1;
+            int itemsPerPage = 15;
+            return SearchBooks(x => x.Approved
+            && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated), x => Guid.NewGuid(),
+               page, itemsPerPage);
         }
 
         public IList<Book> GetAll(int page, int items)
@@ -176,12 +158,12 @@ namespace ShareBook.Service
         public PagedList<Book> ByTitle(string title, int page, int itemsPerPage)
             => SearchBooks(x => (x.Approved
                                 && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated))
-                                && x.Title.Contains(title), page, itemsPerPage);
+                                && x.Title.Contains(title), x => x.Title, page, itemsPerPage);
 
         public PagedList<Book> ByAuthor(string author, int page, int itemsPerPage)
             => SearchBooks(x => (x.Approved
                                  && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated))
-                                 && x.Author.Contains(author), page, itemsPerPage);
+                                 && x.Author.Contains(author), x => x.Author, page, itemsPerPage);
 
         public PagedList<Book> FullSearch(string criteria, int page, int itemsPerPage, bool isAdmin)
         {
@@ -195,12 +177,14 @@ namespace ShareBook.Service
                                         || x.Title.Contains(criteria)
                                         || x.Category.Name.Contains(criteria);
 
-            return SearchBooks(filter, page, itemsPerPage);
+            return SearchBooks(filter, x => x.Title, page, itemsPerPage);
         }
 
         public Book BySlug(string slug)
-        { 
-            var pagedBook = SearchBooks(x => (x.Slug.Contains(slug)), 1, 1);
+        {
+            int page = 1;
+            int itemsPerPage = 15;
+            var pagedBook = SearchBooks(x => (x.Slug.Contains(slug)), x => x.Title, page, itemsPerPage);
             return pagedBook.Items.FirstOrDefault();
         }       
 
@@ -229,9 +213,10 @@ namespace ShareBook.Service
         }
 
         #region Private
-        private PagedList<Book> SearchBooks(Expression<Func<Book, bool>> filter, int page, int itemsPerPage)
+        private PagedList<Book> SearchBooks(Expression<Func<Book, bool>> filter, Expression<Func<Book, object>> order, int page, int itemsPerPage)
         {
             var result = _repository.Get()
+                .OrderBy(order)
                 .Where(filter)
                 .Select(u => new Book
                 {

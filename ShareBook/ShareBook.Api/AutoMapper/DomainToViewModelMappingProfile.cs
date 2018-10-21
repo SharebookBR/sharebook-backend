@@ -28,6 +28,7 @@ namespace ShareBook.Api.AutoMapper
                 .ForMember(dest => dest.RequestId, opt => opt.MapFrom(src => src.Id));
 
             CreateMap<Top15NewBooksVM, Book>();
+            CreateMap<Random15BooksVM, Book>();
             #endregion
 
             #region [ User ]

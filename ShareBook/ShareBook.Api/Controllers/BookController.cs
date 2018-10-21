@@ -100,7 +100,15 @@ namespace ShareBook.Api.Controllers
          }
 
         [HttpGet("Random15Books")]
-        public IList<Book> Random15Books() => _service.Random15Books();
+        public IActionResult Random15Books()
+        {
+            try
+            {
+                var random15Books = _autoMapper.Map<List<Random15BooksVM>>(_service.Random15Books().Items);
+                return new OkObjectResult(random15Books);
+            }
+            catch (Exception ex) { return new BadRequestObjectResult(ex.Message); }
+        }
 
         [Authorize("Bearer")]
         [HttpGet("Title/{title}/{page}/{items}")]

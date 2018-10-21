@@ -14,7 +14,7 @@ namespace ShareBook.Service
 
         PagedList<Book> Top15NewBooks();
 
-        IList<Book> Random15Books();
+        PagedList<Book> Random15Books();
 
         PagedList<Book> ByTitle(string title, int page, int itemsPerPage);
 
