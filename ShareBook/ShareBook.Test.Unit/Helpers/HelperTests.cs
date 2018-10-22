@@ -1,8 +1,5 @@
 ﻿using ShareBook.Helper.Extensions;
 using ShareBook.Helper.Image;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Xunit;
 
 namespace ShareBook.Test.Unit.Helpers

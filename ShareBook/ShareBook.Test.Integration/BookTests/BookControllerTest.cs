@@ -1,10 +1,4 @@
 ﻿using ShareBook.Test.Integration.Base;
-using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
 
 namespace ShareBook.Test.Integration.BookTests
 {

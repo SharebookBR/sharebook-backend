@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using ShareBook.Domain.Enums;
+﻿using ShareBook.Domain.Enums;
 using System;
 
 namespace ShareBook.Api.ViewModels
