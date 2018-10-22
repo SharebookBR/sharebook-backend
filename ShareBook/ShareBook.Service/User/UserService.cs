@@ -1,4 +1,4 @@
-using FluentValidation;
+﻿using FluentValidation;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Helper.Crypto;
@@ -90,10 +90,10 @@ namespace ShareBook.Service
             return result;
         }
 
-        public override User Find(params object[] keyValues)
+        public override User Find(object keyValue)
         {
             var includes = new IncludeList<User>(x => x.Address);
-            var user = _repository.Find(includes, keyValues);
+            var user = _repository.Find(includes, keyValue);
 
             return UserCleanup(user);
         }

@@ -1,4 +1,4 @@
-using FluentValidation;
+﻿using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
@@ -7,8 +7,8 @@ using ShareBook.Domain.Exceptions;
 using ShareBook.Helper.Extensions;
 using ShareBook.Helper.Image;
 using ShareBook.Repository;
-using ShareBook.Repository.Repository;
 using ShareBook.Repository.Infra;
+using ShareBook.Repository.Repository;
 using ShareBook.Service.Generic;
 using ShareBook.Service.Upload;
 using System;
@@ -16,7 +16,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace ShareBook.Service
 {
@@ -124,12 +123,11 @@ namespace ShareBook.Service
             .Skip((page - 1) * items)
             .Take(items).ToList();
 
-        public override Book Find(params object[] keyValues)
+        public override Book Find(object keyValue)
         {
-            var result = _repository.Find(keyValues);
+            var result = _repository.Find(keyValue);
 
             result.ImageUrl = _uploadService.GetImageUrl(result.ImageSlug, "Books");
-
 
             return result;
         }
@@ -177,7 +175,7 @@ namespace ShareBook.Service
                 entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, entity.Title);
                 _uploadService.UploadImage(entity.ImageBytes, entity.ImageSlug, "Books");
             }
-            
+
             result.Value = _repository.UpdateAsync(entity).Result;
             result.Value.ImageBytes = null;
 
@@ -187,7 +185,7 @@ namespace ShareBook.Service
                 entity.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
                 _booksEmailService.SendEmailBookApproved(entity);
             }
-               
+
 
             return result;
         }
@@ -218,10 +216,10 @@ namespace ShareBook.Service
         }
 
         public Book BySlug(string slug)
-        { 
+        {
             var pagedBook = SearchBooks(x => (x.Slug.Contains(slug)), 1, 1);
             return pagedBook.Items.FirstOrDefault();
-        }       
+        }
 
         public bool UserRequestedBook(Guid bookId)
         {
@@ -241,8 +239,8 @@ namespace ShareBook.Service
         public IList<Book> GetUserDonations(Guid userId)
         {
             return _repository.Get(
-                    book => book.UserId == userId, 
-                    book => book.CreationDate, 
+                    book => book.UserId == userId,
+                    book => book.CreationDate,
                     new IncludeList<Book>(book => book.BookUsers)
                 ).Items;
         }
