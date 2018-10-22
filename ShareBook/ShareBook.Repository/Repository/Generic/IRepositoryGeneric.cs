@@ -31,12 +31,12 @@ namespace ShareBook.Repository
         /// <para>Using this method will return onlye the Entity, without the children.</para>
         /// <para>If you want to get the Child Objects too, use the <seealso cref="Find(IncludeList{TEntity}, object[])"/> method.</para>
         /// </summary>
-        TEntity Find(params object[] keyValues);
+        TEntity Find(object keyValue);
 
         /// <summary>
         /// Execute a Find on the DbSet using the <paramref name="keyValues"/> and the <paramref name="includes"/>
         /// </summary>
-        TEntity Find(IncludeList<TEntity> includes, params object[] keyValues);
+        TEntity Find(IncludeList<TEntity> includes, object keyValue);
 
         /// <summary>
         /// Find in the DbSet an entity that matches the specified filter.
