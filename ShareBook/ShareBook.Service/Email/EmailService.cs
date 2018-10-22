@@ -1,7 +1,7 @@
 ﻿using MailKit.Net.Smtp;
 using Microsoft.Extensions.Options;
 using MimeKit;
-
+using System.Threading.Tasks;
 
 namespace ShareBook.Service
 {
@@ -14,7 +14,13 @@ namespace ShareBook.Service
             _settings = emailSettings.Value;
         }
 
-        public async void Send(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins)
+        public async Task SendToAdmins(string messageText, string subject)
+            => await Send(_settings.Username, "Administradores Sharebook", messageText, subject, false);
+
+        public async Task Send(string emailRecipient, string nameRecipient, string messageText, string subject)
+            => await Send(emailRecipient, nameRecipient, messageText, subject, false);
+
+        public async Task Send(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins)
         {
             var message = FormatEmail(emailRecipient, nameRecipient, messageText, subject, copyAdmins);
             try
@@ -30,13 +36,11 @@ namespace ShareBook.Service
                     client.Disconnect(true);
                 }
             }
-            catch (System.Exception )
+            catch (System.Exception)
             {
 
-               //v2 implementar log para exceptions
+                //v2 implementar log para exceptions
             }
-            
-
         }
 
         private MimeMessage FormatEmail(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins)
@@ -45,7 +49,7 @@ namespace ShareBook.Service
             message.From.Add(new MailboxAddress("Sharebook", _settings.Username));
             message.To.Add(new MailboxAddress(nameRecipient, emailRecipient));
 
-            if(copyAdmins)
+            if (copyAdmins)
                 message.To.Add(new MailboxAddress("Sharebook", _settings.Username));
 
             message.Subject = subject;

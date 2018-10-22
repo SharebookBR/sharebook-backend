@@ -1,7 +1,11 @@
-﻿namespace ShareBook.Service
+﻿using System.Threading.Tasks;
+
+namespace ShareBook.Service
 {
     public interface IEmailService
     {
-        void Send(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins);
+        Task SendToAdmins(string messageText, string subject);
+        Task Send(string emailRecipient, string nameRecipient, string messageText, string subject);
+        Task Send(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins);
     }
 }
