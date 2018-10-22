@@ -1,5 +1,5 @@
-﻿using System.Threading.Tasks;
-using ShareBook.Domain;
+﻿using ShareBook.Domain;
+using System.Threading.Tasks;
 
 namespace ShareBook.Service
 {
@@ -27,14 +27,8 @@ namespace ShareBook.Service
             if (book.User == null)
                 book.User = _userService.Find(book.UserId);
 
-            var vm = new
-            {
-                Book = book
-            };
-
-            bool copyAdmins = true;
-            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookApprovedTemplate, vm);
-            _emailService.Send(book.User.Email, book.User.Name, html, BookApprovedTitle, copyAdmins);
+            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookApprovedTemplate, book);
+            await _emailService.Send(book.User.Email, book.User.Name, html, BookApprovedTitle, true);
         }
 
         public async Task SendEmailNewBookInserted(Book book)
@@ -42,37 +36,21 @@ namespace ShareBook.Service
             if (book.User == null)
                 book.User = _userService.Find(book.UserId);
 
-            var administrators = _userService.GetAllAdministrators();
-
-            foreach (var admin in administrators)
-                await SendEmailNewBookInsertedToAdministrator(book, admin);
+            await SendEmailNewBookInsertedToAdministrator(book);
 
             await SendEmailWaitingApprovalToUser(book);
-
         }
 
-        private async Task SendEmailNewBookInsertedToAdministrator(Book book, User administrator)
+        private async Task SendEmailNewBookInsertedToAdministrator(Book book)
         {
-            var vm = new
-            {
-                Book = book,
-                Administrator = administrator
-            };
-
-            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(NewBookInsertedTemplate, vm);
-            bool copyAdmins = false;
-            _emailService.Send(administrator.Email, administrator.Name, html, NewBookInsertedTitle, copyAdmins);
+            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(NewBookInsertedTemplate, book);
+            await _emailService.SendToAdmins(html, NewBookInsertedTitle);
         }
 
         private async Task SendEmailWaitingApprovalToUser(Book book)
         {
-            var vm = new
-            {
-                Book = book
-            };
-            bool copyAdmins = true;
-            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(WaitingApprovalTemplate, vm);
-            _emailService.Send(book.User.Email, book.User.Name, html, WaitingApprovalTitle, copyAdmins);
+            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(WaitingApprovalTemplate, book);
+            await _emailService.Send(book.User.Email, book.User.Name, html, WaitingApprovalTitle, true);
         }
     }
 }

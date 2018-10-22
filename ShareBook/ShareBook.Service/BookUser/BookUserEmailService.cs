@@ -1,5 +1,6 @@
-﻿using System.Threading.Tasks;
-using ShareBook.Domain;
+﻿using ShareBook.Domain;
+using ShareBook.Repository.Repository;
+using System.Threading.Tasks;
 
 namespace ShareBook.Service
 {
@@ -27,53 +28,31 @@ namespace ShareBook.Service
         public async Task SendEmailBookDonated(BookUser bookUser)
         {
             var bookDonated = bookUser.Book;
-            bookDonated.User = _userService.Find(bookUser.Book.UserId);
-
-            var grantee = bookUser.User;
-
-            await SendEmailBookDonatedToGrantee(bookDonated, grantee);
+            if (bookDonated.User == null)
+                bookDonated.User = _userService.Find(bookUser.Book.UserId);
+            var vm = new
+            {
+                Book = bookDonated,
+                bookUser.User
+            };
+            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookDonatedTemplate, vm);
+            await _emailService.Send(bookUser.User.Email, bookUser.User.Name, html, BookDonatedTitle, true);
         }
 
         public async Task SendEmailBookRequested(BookUser bookUser)
         {
-            // TODO - Ajustar para apenas um SELECT 
-            var bookRequested = _bookService.Find(bookUser.BookId);
-
-            bookRequested.User = _userService.Find(bookRequested.UserId);
+            var includeList = new IncludeList<Book>(x => x.User);
+            var bookRequested = _bookService.Find(includeList, bookUser.BookId);
 
             var requestingUser = _userService.Find(bookUser.UserId);
 
-            var administrators = _userService.GetAllAdministrators();
-
-            foreach (var admin in administrators)
-                await SendEmailBookRequestedToAdministrator(bookUser, bookRequested, requestingUser, admin);
-        }
-
-        private async Task SendEmailBookRequestedToAdministrator(BookUser request, Book bookRequested, User requestingUser, User admin)
-        {
             var vm = new
             {
-                Request = request,
                 Book = bookRequested,
                 RequestingUser = requestingUser,
-                Administrator = admin
             };
-
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookRequestedTemplate, vm);
-            bool copyAdmins = false;
-            _emailService.Send(admin.Email, admin.Name, html, BookRequestedTitle, copyAdmins);
-        }
-
-        private async Task SendEmailBookDonatedToGrantee(Book bookDonated, User grantee)
-        {
-            var vm = new
-            {
-                Book = bookDonated,
-                User = grantee
-            };
-            bool copyAdmins = true;
-            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookDonatedTemplate, vm);
-            _emailService.Send(grantee.Email, grantee.Name, html, BookDonatedTitle, copyAdmins);
+            await _emailService.SendToAdmins(html, BookRequestedTitle);
         }
     }
 }
