@@ -1,5 +1,4 @@
-﻿using ShareBook.Domain.Enums;
-using System;
+﻿using System;
 
 namespace ShareBook.Api.ViewModels
 {

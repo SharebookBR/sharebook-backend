@@ -25,10 +25,10 @@ namespace ShareBook.Service.Generic
         public bool Any(Expression<Func<TEntity, bool>> filter) => _repository.Any(filter);
         public int Count(Expression<Func<TEntity, bool>> filter) => _repository.Count(filter);
 
-        public virtual TEntity Find(params object[] keyValues)
-            => _repository.Find(keyValues);
-        public virtual TEntity Find(IncludeList<TEntity> includes, params object[] keyValues)
-            => _repository.Find(includes, keyValues);
+        public virtual TEntity Find(object keyValue)
+            => _repository.Find(keyValue);
+        public virtual TEntity Find(IncludeList<TEntity> includes, object keyValue)
+            => _repository.Find(includes, keyValue);
         public TEntity Find(Expression<Func<TEntity, bool>> filter)
             => _repository.Find(filter);
         public TEntity Find(IncludeList<TEntity> includes, Expression<Func<TEntity, bool>> filter) => _repository.Find(includes, filter);

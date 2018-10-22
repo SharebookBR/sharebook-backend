@@ -7,7 +7,6 @@ using ShareBook.Repository.Infra;
 using ShareBook.Repository.Repository;
 using ShareBook.Service.Generic;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
@@ -91,17 +90,12 @@ namespace ShareBook.Service
             return result;
         }
 
-        public override User Find(params object[] keyValues)
+        public override User Find(object keyValue)
         {
             var includes = new IncludeList<User>(x => x.Address);
-            var user = _repository.Find(includes, keyValues);
+            var user = _repository.Find(includes, keyValue);
 
             return UserCleanup(user);
-        }
-
-        public IEnumerable<User> GetAllAdministrators()
-        {
-            return _repository.Get(x => x.Profile == Domain.Enums.Profile.Administrator).Items;
         }
 
         public Result<User> ChangeUserPassword(User user, string newPassword)

@@ -1,5 +1,4 @@
 ﻿using FluentValidation;
-using ShareBook.Domain.Enums;
 
 namespace ShareBook.Domain.Validators
 {

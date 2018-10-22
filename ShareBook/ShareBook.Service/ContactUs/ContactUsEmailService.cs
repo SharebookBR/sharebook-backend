@@ -23,32 +23,19 @@ namespace ShareBook.Service
         }
         public async Task SendEmailContactUs(ContactUs contactUs)
         {
-            var administrators = _userService.GetAllAdministrators();
-
-            foreach (var admin in administrators)
-                await SendEmailContactUsToAdministrator(contactUs, admin);
+            await SendEmailContactUsToAdministrator(contactUs);
 
             await SendEmailNotificationToUser(contactUs);
         }
-        private async Task SendEmailContactUsToAdministrator(ContactUs contactUs, User administrator)
+        private async Task SendEmailContactUsToAdministrator(ContactUs contactUs)
         {
-            var vm = new
-            {
-                ContactUs = contactUs,
-                Administrator = administrator
-            };
-
-            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(ContactUsTemplate, vm);
-            bool copyAdmins = false;
-            _emailService.Send(administrator.Email, administrator.Name, html, ContactUsTitle, copyAdmins);
+            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(ContactUsTemplate, contactUs);
+            await _emailService.SendToAdmins(html, ContactUsTitle);
         }
         private async Task SendEmailNotificationToUser(ContactUs contactUs)
         {
-            bool copyAdmins = true;
-
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(ContactUsNotificationTemplate, contactUs);
-            _emailService.Send(contactUs.Email, contactUs.Name, html, ContactUsNotificationTitle, copyAdmins);
+            await _emailService.Send(contactUs.Email, contactUs.Name, html, ContactUsNotificationTitle, true);
         }
-
     }
 }

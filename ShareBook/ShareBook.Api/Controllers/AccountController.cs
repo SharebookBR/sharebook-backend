@@ -11,7 +11,6 @@ using ShareBook.Repository.Infra.CrossCutting.Identity.Configurations;
 using ShareBook.Repository.Infra.CrossCutting.Identity.Interfaces;
 using ShareBook.Service;
 using System;
-using System.Net.Http;
 using System.Threading;
 
 namespace ShareBook.Api.Controllers
