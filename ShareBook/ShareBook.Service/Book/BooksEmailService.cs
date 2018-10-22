@@ -36,12 +36,12 @@ namespace ShareBook.Service
             if (book.User == null)
                 book.User = _userService.Find(book.UserId);
 
-            await SendEmailNewBookInsertedToAdministrator(book);
+            await SendEmailNewBookInsertedToAdministrators(book);
 
             await SendEmailWaitingApprovalToUser(book);
         }
 
-        private async Task SendEmailNewBookInsertedToAdministrator(Book book)
+        private async Task SendEmailNewBookInsertedToAdministrators(Book book)
         {
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(NewBookInsertedTemplate, book);
             await _emailService.SendToAdmins(html, NewBookInsertedTitle);
