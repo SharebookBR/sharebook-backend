@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Helper.Crypto;
@@ -7,7 +7,6 @@ using ShareBook.Repository.Infra;
 using ShareBook.Repository.Repository;
 using ShareBook.Service.Generic;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
@@ -97,11 +96,6 @@ namespace ShareBook.Service
             var user = _repository.Find(includes, keyValues);
 
             return UserCleanup(user);
-        }
-
-        public IEnumerable<User> GetAllAdministrators()
-        {
-            return _repository.Get(x => x.Profile == Domain.Enums.Profile.Administrator).Items;
         }
 
         public Result<User> ChangeUserPassword(User user, string newPassword)
