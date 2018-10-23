@@ -25,9 +25,6 @@ namespace ShareBook.Test.Unit.Services
         readonly Mock<IUserRepository> userRepositoryMock;
         readonly Mock<IUnitOfWork> unitOfWorkMock;
 
-        private const string PASSWORD_HASH = "9XurTqQsYQY1rtAGXRfwEWO/ROghN3DFx9lTT75i/0s=";
-        private const string PASSWORD_SALT = "1x7XxoaSO5I0QGIdARCh5A==";
-
         public UserServiceTests()
         {
             // Definindo quais serão as classes mockadas
@@ -41,76 +38,30 @@ namespace ShareBook.Test.Unit.Services
 
             userRepositoryMock.Setup(repo => repo.Insert(It.IsAny<User>())).Returns(() =>
             {
-                return new User()
-                {
-                    Email = "jose@sharebook.com",
-                    Password = "123456",
-                    Name = "José da Silva",
-                    Linkedin = "linkedin.com/jose",
-                };
+                return UserMock.GetGrantee();
             });
 
             userRepositoryMock.Setup(repo => repo.Update(It.IsAny<User>())).Returns(() =>
             {
-                return new User()
-                {
-                    Email = "jose@sharebook.com",
-                    Password = "123456",
-                    Name = "José da Silva",
-                    Linkedin = "linkedin.com/jose",
-                };
+                return UserMock.GetGrantee();
             });
 
             userRepositoryMock.Setup(repo => repo.Find(It.IsAny<Expression<Func<User, bool>>>())).Returns(() =>
             {
-                return new User()
-                {
-                    Id = new Guid("C53B3552-606C-40C6-9D7F-FFC87572977E"),
-                    Email = "jose@sharebook.com",
-                    Password = PASSWORD_HASH,
-                    PasswordSalt = PASSWORD_SALT,
-                    Name = "José da Silva",
-                    Linkedin = "linkedin.com/jose",
-                };
+                return UserMock.GetGrantee();
             });
-
 
             userRepositoryMock.Setup(repo => repo.Find(It.IsAny<IncludeList<User>>(), It.IsAny<Guid>())).Returns(() =>
             {
-                return new User()
-                {
-                    Id = new Guid("C53B3552-606C-40C6-9D7F-FFC87572977E"),
-                    Email = "jose@sharebook.com",
-                    Password = PASSWORD_HASH,
-                    PasswordSalt = PASSWORD_SALT,
-                    Name = "José da Silva",
-                    Linkedin = "linkedin.com/jose",
-                };
+                return UserMock.GetGrantee();
             });
 
             userRepositoryMock.Setup(repo => repo.Get()).Returns(() =>
             {
                 return new List<User>()
                 {
-                    new User()
-                        {
-                            Id = Guid.NewGuid(),
-                            Email = "jose@sharebook.com",
-                            Password = PASSWORD_HASH,
-                            PasswordSalt = PASSWORD_SALT,
-                             Name = "José da Silva",
-                            Linkedin = "linkedin.com/jose",
-                        },
-                    new User()
-                        {
-                           Email = "sergioprates.student@gmail.com",
-                           Linkedin = "https://www.linkedin.com/in/sergiopratesdossantos/",
-                           Name = "Sergio",
-                           Phone = "584558999",
-                           Password = "6sQwTaExa3mdpFWK1xLV1qb/bMs/GpB097MaNRXRbn0=",
-                           PasswordSalt = "Qs1P9F2aeh8CMf9AedbSDg==",
-                           Profile = Profile.User
-                        }
+                    UserMock.GetGrantee(),
+                    UserMock.GetDonor()
                 }.AsQueryable();
             });
 
@@ -223,7 +174,7 @@ namespace ShareBook.Test.Unit.Services
             var service = new UserService(userRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator());
             Result<User> result = service.AuthenticationByEmailAndPassword(new User()
             {
-                Email = "jose@sharebook.com",
+                Email = "walter@sharebook.com",
                 Password = "123456"
             });
             Assert.NotNull(result);
@@ -239,7 +190,7 @@ namespace ShareBook.Test.Unit.Services
             var service = new UserService(userRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator());
             Result<User> result = service.AuthenticationByEmailAndPassword(new User()
             {
-                Email = "jose@sharebook.com",
+                Email = "walter@sharebook.com",
                 Password = "wrongpassword"
             });
             Assert.Equal("Email ou senha incorretos", result.Messages[0]);

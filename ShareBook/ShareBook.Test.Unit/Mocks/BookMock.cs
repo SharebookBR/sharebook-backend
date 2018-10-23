@@ -15,7 +15,22 @@ namespace ShareBook.Test.Unit.Mocks
                 Author = "J. R. R. Tolkien",
                 ImageSlug = "lotr.png",
                 ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
-                User = user
+                User = user,
+                CategoryId = Guid.NewGuid()
+           };
+        }
+
+
+        public static Book GetLordTheRings()
+        {
+            return new Book()
+            {
+                Title = "Lord of the Rings",
+                Author = "J. R. R. Tolkien",
+                ImageSlug = "lotr.png",
+                ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
+                CategoryId = Guid.NewGuid(),
+                UserId = new Guid("5489A967-9320-4350-E6FC-08D5CC8498F3")
             };
         }
     }

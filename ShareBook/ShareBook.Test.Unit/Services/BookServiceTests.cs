@@ -36,14 +36,7 @@ namespace ShareBook.Test.Unit.Services
 
             bookRepositoryMock.Setup(repo => repo.Insert(It.IsAny<Book>())).Returns(() =>
             {
-                return new Book()
-                {
-                    Title = "Lord of the Rings",
-                    Author = "J. R. R. Tolkien",
-                    ImageSlug = "lotr.png",
-                    ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
-                    UserId = new Guid("5489A967-9320-4350-E6FC-08D5CC8498F3"),
-                };
+                return BookMock.GetLordTheRings();
             });
 
             uploadServiceMock.Setup(service => service.UploadImage(null, null, null));
