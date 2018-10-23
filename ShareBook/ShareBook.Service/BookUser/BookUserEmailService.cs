@@ -48,6 +48,7 @@ namespace ShareBook.Service
 
             var vm = new
             {
+                Request = bookUser,
                 Book = bookRequested,
                 RequestingUser = requestingUser,
             };
