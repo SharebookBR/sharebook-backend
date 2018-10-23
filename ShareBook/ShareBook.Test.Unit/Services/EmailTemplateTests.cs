@@ -16,6 +16,7 @@ namespace ShareBook.Test.Unit.Services
         private User administrator;
         private User requestingUser;
         private ContactUs contactUs;
+        private BookUser bookRequested; 
 
         public EmailTemplateTests()
         {
@@ -65,6 +66,13 @@ namespace ShareBook.Test.Unit.Services
                 Phone = "(11) 954422-2765"
             };
 
+            bookRequested = new BookUser()
+            {
+                Book = book,
+                User = requestingUser,
+                Reason = "MOTIVO"
+            };
+
         }
 
         [Fact]
@@ -86,7 +94,7 @@ namespace ShareBook.Test.Unit.Services
             {
                 Book = book,
                 RequestingUser = requestingUser,
-                Administrator = administrator
+                Request = bookRequested
             };
 
             var result = emailTemplate.GenerateHtmlFromTemplateAsync("BookRequestedTemplate", vm).Result;
@@ -102,6 +110,7 @@ namespace ShareBook.Test.Unit.Services
             Assert.Contains("<li><strong>Linkedin: </strong>linkedin.com/rodrigo</li>", result);
             Assert.Contains("<li><strong>Telefone: </strong></li>", result);
             Assert.Contains("<li><strong>Email: </strong>rodrigo@sharebook.com</li>", result);
+            Assert.Contains("<pre>MOTIVO</pre>", result);
         }
 
         [Fact]
