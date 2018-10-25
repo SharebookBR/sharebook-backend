@@ -169,7 +169,7 @@ namespace ShareBook.Service
 
             if (!result.Success) return result;
 
-            var numberOfSlugs = _repository.Count(x => x.Title == entity.Title);
+            var numberOfSlugs = _repository.Count(x => x.Title.ToLowerInvariant() == entity.Title.ToLowerInvariant());
 
             entity.Slug = entity.Title.GenerateSlug().AddIncremental(numberOfSlugs);
 
