@@ -1,6 +1,7 @@
 ﻿using ShareBook.Domain;
 using ShareBook.Domain.Enums;
 using ShareBook.Service;
+using ShareBook.Test.Unit.Mocks;
 using System;
 using System.Text;
 using Xunit;
@@ -10,54 +11,27 @@ namespace ShareBook.Test.Unit.Services
     public class EmailTemplateTests
     {
         readonly IEmailTemplate emailTemplate;
+        readonly IBookUsersEmailService bookUserEmailService;
 
         private User user;
         private Book book;
         private User administrator;
         private User requestingUser;
         private ContactUs contactUs;
-        private BookUser bookRequested; 
+        private BookUser bookRequested;
 
         public EmailTemplateTests()
         {
             emailTemplate = new EmailTemplate();
 
-            user = new User()
-            {
-                Id = new Guid("5489A967-9320-4350-E6FC-08D5CC8498F3"),
-                Name = "Rodrigo",
-                Email = "rodrigo@sharebook.com",
-                Linkedin = "linkedin.com/rodrigo",
-                Profile = Profile.User
-            };
+            user = UserMock.GetDonor();
 
-            book = new Book()
-            {
-                Title = "Lord of the Rings",
-                Author = "J. R. R. Tolkien",
-                ImageSlug = "lotr.png",
-                ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
-                User = user
-            };
+            requestingUser = UserMock.GetGrantee();
 
-            requestingUser = new User()
-            {
+            administrator = UserMock.GetAdmin();
 
-                Id = new Guid("5489A967-9320-4350-FFFF-08D5CC8498F3"),
-                Name = "Walter Vinicius",
-                Email = "walter@sharebook.com",
-                Linkedin = "linkedin.com/walter",
-                Profile = Profile.User
-            };
-
-            administrator = new User()
-            {
-                Id = new Guid("5489A967-AAAA-BBBB-CCCC-08D5CC8498F3"),
-                Name = "Cussa Mitre",
-                Email = "cussa@sharebook.com",
-                Profile = Profile.Administrator
-            };
-
+            book = BookMock.GetLordTheRings(user);
+           
             contactUs = new ContactUs()
             {
                 Name = "Rafael Rocha",
@@ -66,13 +40,7 @@ namespace ShareBook.Test.Unit.Services
                 Phone = "(11) 954422-2765"
             };
 
-            bookRequested = new BookUser()
-            {
-                Book = book,
-                User = requestingUser,
-                Reason = "MOTIVO"
-            };
-
+            bookRequested = BookUserMock.GetDonation(book, requestingUser);
         }
 
         [Fact]
