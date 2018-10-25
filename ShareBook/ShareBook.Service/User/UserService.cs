@@ -123,7 +123,20 @@ namespace ShareBook.Service
         }
         #endregion
 
+        public bool GenerateHashCodePasswordAndSendEmailToUser(string email)
+        {
+            var user = _repository.Find(email);
+            if (user != null)
+            {
+                user.GenerateHashCodePassword();
+                _repository.Update(user);
 
+                //SEND EMAIL
+                return true;
+            }
+
+            return false;
+        }
         #region Private
 
         private Result<User> AuthenticationByIdAndPassword(User user)

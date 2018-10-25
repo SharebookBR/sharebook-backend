@@ -9,5 +9,6 @@ namespace ShareBook.Service
         Result<User> AuthenticationByEmailAndPassword(User user);
         new Result<User> Update(User user);
         Result<User> ChangeUserPassword(User user, string oldPassword);
+        bool GenerateHashCodePasswordAndSendEmailToUser(string email);
     }
 }
