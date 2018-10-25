@@ -141,7 +141,9 @@ namespace ShareBook.Service
             {
                 entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, entity.Title);
 
-                entity.Slug = entity.Title.GenerateSlug();
+                var numberOfSlugs = _repository.Count(x => x.Title.ToLowerInvariant() == entity.Title.ToLowerInvariant());
+
+                entity.Slug = entity.Title.GenerateSlug().AddIncremental(numberOfSlugs);
 
                 result.Value = _repository.Insert(entity);
 
@@ -167,7 +169,9 @@ namespace ShareBook.Service
 
             if (!result.Success) return result;
 
-            entity.Slug = entity.Title.GenerateSlug();
+            var numberOfSlugs = _repository.Count(x => x.Title.ToLowerInvariant() == entity.Title.ToLowerInvariant());
+
+            entity.Slug = entity.Title.GenerateSlug().AddIncremental(numberOfSlugs);
 
             //imagem eh opcional no update
             if (entity.ImageName != "" && entity.ImageBytes.Length > 0)
