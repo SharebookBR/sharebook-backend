@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -34,6 +35,16 @@ namespace ShareBook.Helper.Extensions
             }
 
             return stringBuilder.ToString().Normalize(NormalizationForm.FormC);
+        }
+
+
+        public static string AddIncremental(this string text, int numberOfSlugs)
+        {
+            if (numberOfSlugs == 0) return text;
+
+            var onlyText = text.Split("_copy").Length == 2 ? text.Split("_copy")[0] : text;
+
+            return $"{onlyText}_copy{numberOfSlugs}";
         }
     }
 }
