@@ -15,11 +15,16 @@ namespace ShareBook.Service
     public class UserService : BaseService<User>, IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly IUserEmailService _userEmailService;
         private const string PASSWORD_IS_WEAK = "A senha não atende os requisitos. Mínimo oito caracteres, um caractere especial, um caractere numérico e uma letra em maiúsculo.";
         #region Public
-        public UserService(IUserRepository userRepository, IUnitOfWork unitOfWork, IValidator<User> validator) : base(userRepository, unitOfWork, validator)
+        public UserService(IUserRepository userRepository, 
+            IUnitOfWork unitOfWork, 
+            IValidator<User> validator,
+            IUserEmailService userEmailService) : base(userRepository, unitOfWork, validator)
         {
             _userRepository = userRepository;
+            _userEmailService = userEmailService;
         }
 
         public Result<User> AuthenticationByEmailAndPassword(User user)
@@ -125,17 +130,17 @@ namespace ShareBook.Service
 
         public bool GenerateHashCodePasswordAndSendEmailToUser(string email)
         {
+            bool userExists = false;
             var user = _repository.Find(email);
             if (user != null)
             {
                 user.GenerateHashCodePassword();
                 _repository.Update(user);
-
-                //SEND EMAIL
-                return true;
+                _userEmailService.SendEmailForgotMyPasswordToUserAsync(user);
+                return userExists = true;
             }
 
-            return false;
+            return userExists;
         }
         #region Private
 
