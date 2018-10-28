@@ -139,11 +139,13 @@ namespace ShareBook.Service
             var result = Validate(entity);
             if (result.Success)
             {
-                entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, entity.Title);
+                var slug = _repository.Get()
+                    .Where(x => x.Title.ToUpperInvariant().Equals(entity.Title.ToUpperInvariant()))
+                    .OrderByDescending(x => x.CreationDate)?.FirstOrDefault()?.Slug;
 
-                var numberOfSlugs = _repository.Count(x => x.Title.ToLowerInvariant() == entity.Title.ToLowerInvariant());
+                entity.Slug = slug == null ? entity.Title.GenerateSlug() : slug.AddIncremental();
 
-                entity.Slug = entity.Title.GenerateSlug().AddIncremental(numberOfSlugs);
+                entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, entity.Slug);
 
                 result.Value = _repository.Insert(entity);
 
@@ -169,14 +171,16 @@ namespace ShareBook.Service
 
             if (!result.Success) return result;
 
-            var numberOfSlugs = _repository.Count(x => x.Title.ToLowerInvariant() == entity.Title.ToLowerInvariant());
+            var slug = _repository.Get()
+                    .Where(x => x.Title.ToUpperInvariant().Equals(entity.Title.ToUpperInvariant()))
+                    .OrderByDescending(x => x.CreationDate)?.FirstOrDefault()?.Slug;
 
-            entity.Slug = entity.Title.GenerateSlug().AddIncremental(numberOfSlugs);
+            entity.Slug = slug.GenerateSlug().AddIncremental();
 
             //imagem eh opcional no update
             if (entity.ImageName != "" && entity.ImageBytes.Length > 0)
             {
-                entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, entity.Title);
+                entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, entity.Slug);
                 _uploadService.UploadImage(entity.ImageBytes, entity.ImageSlug, "Books");
             }
 

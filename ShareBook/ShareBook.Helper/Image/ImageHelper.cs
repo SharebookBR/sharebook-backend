@@ -5,9 +5,9 @@ namespace ShareBook.Helper.Image
 {
     public static class ImageHelper
     {
-        public static string FormatImageName(string originalName, string newName)
+        public static string FormatImageName(string originalName, string slug)
         {
-            var newFileName = originalName.Replace(Path.GetFileNameWithoutExtension(originalName), newName.GenerateSlug());
+            var newFileName = originalName.Replace(Path.GetFileNameWithoutExtension(originalName), slug);
 
             return Path.GetFileName(newFileName);
         }

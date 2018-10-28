@@ -38,7 +38,7 @@ namespace ShareBook.Test.Unit.Helpers
 
             var expected = "harry-potter-and-the-philosophers-stone.png";
 
-            var actual = ImageHelper.FormatImageName(imageName, title);
+            var actual = ImageHelper.FormatImageName(imageName, title.GenerateSlug());
 
             Assert.Equal(actual, expected);
         }
@@ -55,10 +55,9 @@ namespace ShareBook.Test.Unit.Helpers
         [Fact]
         public void IncrementalIsValidCopy1()
         {
-            var numberOfSlugs = 1;
             var phrase = "Harry-potter-and-thE-philosophers-stone";
             var expected = "Harry-potter-and-thE-philosophers-stone_copy1";
-            var actual = phrase.AddIncremental(numberOfSlugs);
+            var actual = phrase.AddIncremental();
 
             Assert.Equal(expected, actual);
         }
@@ -67,10 +66,9 @@ namespace ShareBook.Test.Unit.Helpers
         [Fact]
         public void IncrementalIsValidCopy2()
         {
-            var numberOfSlugs = 2;
             var phrase = "Harry-potter-and-thE-philosophers-stone_copy1";
             var expected = "Harry-potter-and-thE-philosophers-stone_copy2";
-            var actual = phrase.AddIncremental(numberOfSlugs);
+            var actual = phrase.AddIncremental();
 
             Assert.Equal(expected, actual);
         }
@@ -78,10 +76,9 @@ namespace ShareBook.Test.Unit.Helpers
         [Fact]
         public void IncrementalIsValidCopy11002()
         {
-            var numberOfSlugs = 11002;
             var phrase = "Harry-potter-and-thE-philosophers-stone_copy11001";
             var expected = "Harry-potter-and-thE-philosophers-stone_copy11002";
-            var actual = phrase.AddIncremental(numberOfSlugs);
+            var actual = phrase.AddIncremental();
 
             Assert.Equal(expected, actual);
         }
@@ -89,10 +86,9 @@ namespace ShareBook.Test.Unit.Helpers
         [Fact]
         public void IncrementalIsValidCopy100()
         {
-            var numberOfSlugs = 100;
             var phrase = "Harry-potter-and-thE-philosophers-stone_copy99";
             var expected = "Harry-potter-and-thE-philosophers-stone_copy100";
-            var actual = phrase.AddIncremental(numberOfSlugs);
+            var actual = phrase.AddIncremental();
 
             Assert.Equal(expected, actual);
         }
