@@ -38,13 +38,14 @@ namespace ShareBook.Helper.Extensions
         }
 
 
-        public static string AddIncremental(this string text, int numberOfSlugs)
+        public static string AddIncremental(this string text)
         {
-            if (numberOfSlugs == 0) return text;
+
+            var number = text.Split("_copy").Length == 2 ? Convert.ToInt32(text.Split("_copy")[1]) + 1 : 1;
 
             var onlyText = text.Split("_copy").Length == 2 ? text.Split("_copy")[0] : text;
 
-            return $"{onlyText}_copy{numberOfSlugs}";
+            return $"{onlyText}_copy{number}";
         }
     }
 }
