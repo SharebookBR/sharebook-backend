@@ -38,6 +38,13 @@ namespace ShareBook.Repository.Mapping
                 .HasColumnType("varchar(30)")
                 .HasMaxLength(30);
 
+            entityBuilder.Property(t => t.HashCodePassword)
+                .HasColumnType("varchar(200)")
+                .HasMaxLength(200);
+
+            entityBuilder.Property(t => t.HashCodePasswordExpiryDate)
+                .HasColumnType("datetime2(7)");
+
         }
     }
 }
