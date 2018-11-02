@@ -8,7 +8,9 @@ namespace ShareBook.Service
     {
         Result<User> AuthenticationByEmailAndPassword(User user);
         new Result<User> Update(User user);
-        Result<User> ChangeUserPassword(User user, string oldPassword);
+        Result<User> ValidOldPasswordAndChangeUserPassword(User user, string newPassword);
+        Result<User> ChangeUserPassword(User user, string newPassword);
         Result GenerateHashCodePasswordAndSendEmailToUser(string email);
+        Result ConfirmEmailAndHashCodePassword(string email, string hashCodePassword);
     }
 }

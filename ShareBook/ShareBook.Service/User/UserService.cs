@@ -18,8 +18,8 @@ namespace ShareBook.Service
         private readonly IUserEmailService _userEmailService;
         private const string PASSWORD_IS_WEAK = "A senha não atende os requisitos. Mínimo oito caracteres, um caractere especial, um caractere numérico e uma letra em maiúsculo.";
         #region Public
-        public UserService(IUserRepository userRepository, 
-            IUnitOfWork unitOfWork, 
+        public UserService(IUserRepository userRepository,
+            IUnitOfWork unitOfWork,
             IValidator<User> validator,
             IUserEmailService userEmailService) : base(userRepository, unitOfWork, validator)
         {
@@ -103,28 +103,34 @@ namespace ShareBook.Service
             return UserCleanup(user);
         }
 
-        public Result<User> ChangeUserPassword(User user, string newPassword)
+        public Result<User> ValidOldPasswordAndChangeUserPassword(User user, string newPassword)
         {
-            user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             var resultUserAuth = this.AuthenticationByIdAndPassword(user);
 
             if (resultUserAuth.Success)
-            {
-                var userAuth = resultUserAuth.Value;
-                userAuth.ChangePassword(newPassword);
+                ChangeUserPassword(resultUserAuth.Value, newPassword);
 
-                if (!userAuth.PasswordIsStrong())
-                {
-                    resultUserAuth.Messages.Add(PASSWORD_IS_WEAK);
-                    resultUserAuth.Value = null;
-                    return resultUserAuth;
-                }
-
-                userAuth = GetUserEncryptedPass(userAuth);
-                userAuth = _userRepository.UpdatePassword(userAuth).Result;
-                resultUserAuth.Value = UserCleanup(userAuth);
-            }
             return resultUserAuth;
+        }
+
+        public Result<User> ChangeUserPassword(User user, string newPassword)
+        {
+            user.ChangePassword(newPassword);
+
+            var result = Validate(user);         
+
+            if (!user.PasswordIsStrong())
+            {
+                result.Messages.Add(PASSWORD_IS_WEAK);
+                result.Value = null;
+                return result;
+            }
+
+            user = GetUserEncryptedPass(user);
+            user = _userRepository.UpdatePassword(user).Result;
+            result.Value = UserCleanup(user);
+
+            return result;
         }
 
         public Result GenerateHashCodePasswordAndSendEmailToUser(string email)
@@ -142,6 +148,24 @@ namespace ShareBook.Service
             }
 
             result.Messages.Add("E-mail não encontrado.");
+            return result;
+        }
+
+        public Result ConfirmEmailAndHashCodePassword(string email, string hashCodePassword)
+        {
+            var result = new Result();
+
+            var userConfirmedByEmail = _repository.Find(e => e.Email.Equals(email, StringComparison.InvariantCultureIgnoreCase));
+
+            if (userConfirmedByEmail == null)
+                result.Messages.Add("E-mail não encontrado.");
+
+            if (result.Success && !userConfirmedByEmail.HashCodePasswordIsValid(hashCodePassword))
+                result.Messages.Add("Chave errada ou expirada. Por favor gere outra chave");
+
+            if(result.Success)
+                result.Value = UserCleanup(userConfirmedByEmail);
+
             return result;
         }
         #endregion

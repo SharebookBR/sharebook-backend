@@ -146,8 +146,28 @@ namespace ShareBook.Api.Controllers
         public Result<User> ChangePassword([FromBody]ChangePasswordUserVM changePasswordUserVM)
         {
             var user = new User() { Password = changePasswordUserVM.OldPassword };
+            user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+            return _userService.ValidOldPasswordAndChangeUserPassword(user, changePasswordUserVM.NewPassword);
+        }
 
-            return _userService.ChangeUserPassword(user, changePasswordUserVM.NewPassword);
+        [HttpPut("ChangeUserPasswordByEmailAndHashCode")]
+        [ProducesResponseType(typeof(object), 200)]
+        [ProducesResponseType(404)]
+        public IActionResult ChangeUserPasswordByEmailAndHashCode(ChangeUserPasswordByEmailAndHashCodeVM changeUserPasswordByEmailAndHashCodeVM)
+        {
+            var result = _userService.ConfirmEmailAndHashCodePassword(changeUserPasswordByEmailAndHashCodeVM.Email, changeUserPasswordByEmailAndHashCodeVM.HashCodePassword);
+
+            if (result.Success)
+            {
+                var resultChangePasswordUser = _userService.ChangeUserPassword(result.Value as User, changeUserPasswordByEmailAndHashCodeVM.NewPassword);
+                if (resultChangePasswordUser.Success)
+                    return Ok(resultChangePasswordUser);
+
+                return BadRequest(resultChangePasswordUser);
+
+            }
+
+            return NotFound(result);
         }
         #endregion
 
