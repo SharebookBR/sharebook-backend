@@ -99,6 +99,21 @@ namespace ShareBook.Api.Controllers
 
             return NotFound(result);
         }
+
+
+        [HttpPost("ForgotMyPassword/{email}")]
+        [ProducesResponseType(typeof(object), 200)]
+        [ProducesResponseType(404)]
+        public IActionResult ForgotMyPassword(string email)
+        {
+            var result = _userService.GenerateHashCodePasswordAndSendEmailToUser(email);
+
+            if (result.Success)
+                return Ok(result);
+
+            return NotFound(result);
+        }
+
         #endregion
 
         #region PUT

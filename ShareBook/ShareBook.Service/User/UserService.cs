@@ -127,19 +127,22 @@ namespace ShareBook.Service
             return resultUserAuth;
         }
 
-        public bool GenerateHashCodePasswordAndSendEmailToUser(string email)
+        public Result GenerateHashCodePasswordAndSendEmailToUser(string email)
         {
-            bool userExists = false;
-            var user = _repository.Find(email);
+            var result = new Result();
+            var user = _repository.Find(e => e.Email.Equals(email, StringComparison.InvariantCultureIgnoreCase));
+
             if (user != null)
             {
                 user.GenerateHashCodePassword();
                 _repository.Update(user);
                 _userEmailService.SendEmailForgotMyPasswordToUserAsync(user);
-                return userExists = true;
+                result.SuccessMessage = "E-mail enviado com as instruções para recuperação da senha.";
+                return result;
             }
 
-            return userExists;
+            result.Messages.Add("E-mail não encontrado.");
+            return result;
         }
         #endregion
 
