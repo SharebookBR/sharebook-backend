@@ -126,7 +126,6 @@ namespace ShareBook.Service
             }
             return resultUserAuth;
         }
-        #endregion
 
         public bool GenerateHashCodePasswordAndSendEmailToUser(string email)
         {
@@ -142,6 +141,9 @@ namespace ShareBook.Service
 
             return userExists;
         }
+        #endregion
+
+
         #region Private
 
         private Result<User> AuthenticationByIdAndPassword(User user)
