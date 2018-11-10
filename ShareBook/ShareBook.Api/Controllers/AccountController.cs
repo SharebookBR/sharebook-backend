@@ -102,7 +102,7 @@ namespace ShareBook.Api.Controllers
 
 
         [HttpPost("ForgotMyPassword/{email}")]
-        [ProducesResponseType(typeof(object), 200)]
+        [ProducesResponseType(typeof(Result), 200)]
         [ProducesResponseType(404)]
         public IActionResult ForgotMyPassword(string email)
         {
@@ -119,7 +119,7 @@ namespace ShareBook.Api.Controllers
         #region PUT
         [Authorize("Bearer")]
         [HttpPut]
-        [ProducesResponseType(typeof(object), 200)]
+        [ProducesResponseType(typeof(Result<User>), 200)]
         [ProducesResponseType(409)]
         public IActionResult Update([FromBody]UpdateUserVM updateUserVM,
            [FromServices]SigningConfigurations signingConfigurations,
@@ -134,10 +134,10 @@ namespace ShareBook.Api.Controllers
 
             var result = _userService.Update(user);
 
-            if (result.Success)
-                return Ok(_signManager.GenerateTokenAndSetIdentity(result.Value, signingConfigurations, tokenConfigurations));
+            if (!result.Success)
+                return Conflict(result);
 
-            return Conflict(result);
+            return Ok(_signManager.GenerateTokenAndSetIdentity(result.Value, signingConfigurations, tokenConfigurations));
         }
 
 

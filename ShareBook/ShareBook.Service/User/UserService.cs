@@ -138,16 +138,17 @@ namespace ShareBook.Service
             var result = new Result();
             var user = _repository.Find(e => e.Email.Equals(email, StringComparison.InvariantCultureIgnoreCase));
 
-            if (user != null)
+            if (user == null)
             {
-                user.GenerateHashCodePassword();
-                _repository.Update(user);
-                _userEmailService.SendEmailForgotMyPasswordToUserAsync(user);
-                result.SuccessMessage = "E-mail enviado com as instruções para recuperação da senha.";
+                result.Messages.Add("E-mail não encontrado.");
                 return result;
             }
 
-            result.Messages.Add("E-mail não encontrado.");
+            
+            user.GenerateHashCodePassword();
+            _repository.Update(user);
+            _userEmailService.SendEmailForgotMyPasswordToUserAsync(user);
+            result.SuccessMessage = "E-mail enviado com as instruções para recuperação da senha.";
             return result;
         }
 
@@ -160,10 +161,10 @@ namespace ShareBook.Service
             if (userConfirmedByEmail == null)
                 result.Messages.Add("E-mail não encontrado.");
 
-            if (result.Success && !userConfirmedByEmail.HashCodePasswordIsValid(hashCodePassword))
+            else if (result.Success && !userConfirmedByEmail.HashCodePasswordIsValid(hashCodePassword))
                 result.Messages.Add("Chave errada ou expirada. Por favor gere outra chave");
 
-            if(result.Success)
+            else 
                 result.Value = UserCleanup(userConfirmedByEmail);
 
             return result;
