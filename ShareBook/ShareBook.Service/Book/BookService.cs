@@ -7,7 +7,7 @@ using ShareBook.Domain.Exceptions;
 using ShareBook.Helper.Extensions;
 using ShareBook.Helper.Image;
 using ShareBook.Repository;
-using ShareBook.Repository.Infra;
+using ShareBook.Repository.UoW;
 using ShareBook.Repository.Repository;
 using ShareBook.Service.Generic;
 using ShareBook.Service.Upload;

@@ -3,23 +3,23 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1-Api", "1-Api", "{9BD0B701-8938-47B7-9310-410F72171C27}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1 - Api", "1 - Api", "{9BD0B701-8938-47B7-9310-410F72171C27}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShareBook.Api", "ShareBook.Api\ShareBook.Api.csproj", "{384DB7AC-4918-4ABD-9C12-5F673FFB200D}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2-Service", "2-Service", "{D9F59369-1816-4FAE-B71F-637741B12872}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2 - Service", "2 - Service", "{D9F59369-1816-4FAE-B71F-637741B12872}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShareBook.Service", "ShareBook.Service\ShareBook.Service.csproj", "{808B5265-CBA4-4A6F-84B4-78833C9C6418}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "4-Infrastructure", "4-Infrastructure", "{F4693E98-387E-4804-A818-FEC59FEDD41C}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "4 - Infrastructure", "4 - Infrastructure", "{F4693E98-387E-4804-A818-FEC59FEDD41C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShareBook.Infra.Data", "ShareBook.Repository\ShareBook.Infra.Data.csproj", "{2C198B09-42B6-4A09-82F7-3A9CD7DD76BE}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3-Helper", "3-Helper", "{2CB49962-4574-4BFD-93FC-9C8B1D409D37}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3 - Helper", "3 - Helper", "{2CB49962-4574-4BFD-93FC-9C8B1D409D37}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShareBook.Helper", "ShareBook.Helper\ShareBook.Helper.csproj", "{D35C529A-4E05-4ED4-ACA9-97BD57AFCF2D}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "6-Tests", "6-Tests", "{4DC3351F-0B20-4D5E-8727-3730DF7A9B88}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "5 - Tests", "5 - Tests", "{4DC3351F-0B20-4D5E-8727-3730DF7A9B88}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShareBook.Test.Unit", "ShareBook.Test.Unit\ShareBook.Test.Unit.csproj", "{B3EB0A49-B7AE-4A6B-9986-A6A9F5776174}"
 EndProject

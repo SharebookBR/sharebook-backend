@@ -3,8 +3,9 @@ using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Helper.Crypto;
 using ShareBook.Repository;
-using ShareBook.Repository.Infra;
+
 using ShareBook.Repository.Repository;
+using ShareBook.Repository.UoW;
 using ShareBook.Service.Generic;
 using System;
 using System.Linq;

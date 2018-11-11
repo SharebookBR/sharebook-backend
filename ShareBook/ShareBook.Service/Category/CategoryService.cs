@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using ShareBook.Domain;
 using ShareBook.Repository;
-using ShareBook.Repository.Infra;
+using ShareBook.Repository.UoW;
 using ShareBook.Service.Generic;
 
 namespace ShareBook.Service

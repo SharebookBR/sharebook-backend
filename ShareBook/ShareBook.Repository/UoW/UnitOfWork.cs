@@ -1,4 +1,4 @@
-﻿namespace ShareBook.Repository.Infra
+﻿namespace ShareBook.Repository.UoW
 {
     public class UnitOfWork : IUnitOfWork
     {

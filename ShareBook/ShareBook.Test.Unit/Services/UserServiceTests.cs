@@ -1,11 +1,8 @@
 ﻿using Moq;
 using ShareBook.Domain;
-using ShareBook.Domain.Enums;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.Validators;
 using ShareBook.Repository;
-using ShareBook.Repository.Infra;
-using ShareBook.Repository.Infra.CrossCutting.Identity.Interfaces;
 using ShareBook.Repository.Repository;
 using ShareBook.Service;
 using ShareBook.Test.Unit.Mocks;
@@ -15,6 +12,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using Xunit;
+using ShareBook.Repository.UoW;
+using ShareBook.Infra.CrossCutting.Identity.Interfaces;
 
 namespace ShareBook.Test.Unit.Services
 {

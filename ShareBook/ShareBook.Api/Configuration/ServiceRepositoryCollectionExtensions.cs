@@ -2,10 +2,10 @@
 using Microsoft.Extensions.DependencyInjection;
 using ShareBook.Domain;
 using ShareBook.Domain.Validators;
+using ShareBook.Infra.CrossCutting.Identity;
+using ShareBook.Infra.CrossCutting.Identity.Interfaces;
 using ShareBook.Repository;
-using ShareBook.Repository.Infra;
-using ShareBook.Repository.Infra.CrossCutting.Identity.Configurations;
-using ShareBook.Repository.Infra.CrossCutting.Identity.Interfaces;
+using ShareBook.Repository.UoW;
 using ShareBook.Service;
 using ShareBook.Service.Upload;
 

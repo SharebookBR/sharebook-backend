@@ -1,8 +1,8 @@
 ﻿using FluentValidation;
 using ShareBook.Domain.Common;
 using ShareBook.Repository;
-using ShareBook.Repository.Infra;
 using ShareBook.Repository.Repository;
+using ShareBook.Repository.UoW;
 using System;
 using System.Linq.Expressions;
 
