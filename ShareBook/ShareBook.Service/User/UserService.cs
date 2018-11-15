@@ -15,11 +15,16 @@ namespace ShareBook.Service
     public class UserService : BaseService<User>, IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly IUserEmailService _userEmailService;
         private const string PASSWORD_IS_WEAK = "A senha não atende os requisitos. Mínimo oito caracteres, um caractere especial, um caractere numérico e uma letra em maiúsculo.";
         #region Public
-        public UserService(IUserRepository userRepository, IUnitOfWork unitOfWork, IValidator<User> validator) : base(userRepository, unitOfWork, validator)
+        public UserService(IUserRepository userRepository,
+            IUnitOfWork unitOfWork,
+            IValidator<User> validator,
+            IUserEmailService userEmailService) : base(userRepository, unitOfWork, validator)
         {
             _userRepository = userRepository;
+            _userEmailService = userEmailService;
         }
 
         public Result<User> AuthenticationByEmailAndPassword(User user)
@@ -98,28 +103,71 @@ namespace ShareBook.Service
             return UserCleanup(user);
         }
 
-        public Result<User> ChangeUserPassword(User user, string newPassword)
+        public Result<User> ValidOldPasswordAndChangeUserPassword(User user, string newPassword)
         {
-            user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             var resultUserAuth = this.AuthenticationByIdAndPassword(user);
 
             if (resultUserAuth.Success)
-            {
-                var userAuth = resultUserAuth.Value;
-                userAuth.ChangePassword(newPassword);
+                ChangeUserPassword(resultUserAuth.Value, newPassword);
 
-                if (!userAuth.PasswordIsStrong())
-                {
-                    resultUserAuth.Messages.Add(PASSWORD_IS_WEAK);
-                    resultUserAuth.Value = null;
-                    return resultUserAuth;
-                }
-
-                userAuth = GetUserEncryptedPass(userAuth);
-                userAuth = _userRepository.UpdatePassword(userAuth).Result;
-                resultUserAuth.Value = UserCleanup(userAuth);
-            }
             return resultUserAuth;
+        }
+
+        public Result<User> ChangeUserPassword(User user, string newPassword)
+        {
+            user.ChangePassword(newPassword);
+
+            var result = Validate(user);         
+
+            if (!user.PasswordIsStrong())
+            {
+                result.Messages.Add(PASSWORD_IS_WEAK);
+                result.Value = null;
+                return result;
+            }
+
+            user = GetUserEncryptedPass(user);
+            user = _userRepository.UpdatePassword(user).Result;
+            result.Value = UserCleanup(user);
+
+            return result;
+        }
+
+        public Result GenerateHashCodePasswordAndSendEmailToUser(string email)
+        {
+            var result = new Result();
+            var user = _repository.Find(e => e.Email.Equals(email, StringComparison.InvariantCultureIgnoreCase));
+
+            if (user == null)
+            {
+                result.Messages.Add("E-mail não encontrado.");
+                return result;
+            }
+
+            
+            user.GenerateHashCodePassword();
+            _repository.Update(user);
+            _userEmailService.SendEmailForgotMyPasswordToUserAsync(user);
+            result.SuccessMessage = "E-mail enviado com as instruções para recuperação da senha.";
+            return result;
+        }
+
+        public Result ConfirmEmailAndHashCodePassword(string email, string hashCodePassword)
+        {
+            var result = new Result();
+
+            var userConfirmedByEmail = _repository.Find(e => e.Email.Equals(email, StringComparison.InvariantCultureIgnoreCase));
+
+            if (userConfirmedByEmail == null)
+                result.Messages.Add("E-mail não encontrado.");
+
+            else if (result.Success && !userConfirmedByEmail.HashCodePasswordIsValid(hashCodePassword))
+                result.Messages.Add("Chave errada ou expirada. Por favor gere outra chave");
+
+            else 
+                result.Value = UserCleanup(userConfirmedByEmail);
+
+            return result;
         }
         #endregion
 

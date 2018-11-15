@@ -22,10 +22,11 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<IBookService, BookService>();
             services.AddScoped<IBookUserService, BookUserService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IUserEmailService, UserEmailService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IContactUsService, ContactUsService>();
             services.AddScoped<IContactUsEmailService, ContactUsEmailService>();
-
+            
 
             //repositories
             services.AddScoped<IBookRepository, BookRepository>();

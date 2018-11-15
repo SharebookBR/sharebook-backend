@@ -1,5 +1,7 @@
 ﻿using ShareBook.Domain.Common;
 using ShareBook.Domain.Enums;
+using ShareBook.Helper.Crypto;
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
@@ -11,6 +13,8 @@ namespace ShareBook.Domain
         public string Email { get; set; }
         public string Password { get; set; }
         public string PasswordSalt { get; set; }
+        public string HashCodePassword { get; set; }
+        public DateTime HashCodePasswordExpiryDate { get; set; }
         public string Linkedin { get; set; }
         public  string Phone{ get; set; }
         public Profile Profile { get;  set; } = Profile.User;
@@ -31,6 +35,17 @@ namespace ShareBook.Domain
             this.PasswordSalt = string.Empty;
             return this;
         }
+
+        public void GenerateHashCodePassword()
+        {
+            this.HashCodePassword = Salt.Create();
+            this.HashCodePasswordExpiryDate = DateTime.Now.AddDays(1); 
+        }
+
+        public bool HashCodePasswordIsValid(string hashCodePassword)
+             => hashCodePassword == this.HashCodePassword 
+                && (this.HashCodePasswordExpiryDate.Date == DateTime.Now.AddDays(1).Date
+                   || this.HashCodePasswordExpiryDate.Date == DateTime.Now.Date);
 
         public void Change(string email, string name, string linkedin, string phone)
         {

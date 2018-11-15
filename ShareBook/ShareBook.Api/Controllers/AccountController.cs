@@ -99,12 +99,27 @@ namespace ShareBook.Api.Controllers
 
             return NotFound(result);
         }
+
+
+        [HttpPost("ForgotMyPassword/{email}")]
+        [ProducesResponseType(typeof(Result), 200)]
+        [ProducesResponseType(404)]
+        public IActionResult ForgotMyPassword(string email)
+        {
+            var result = _userService.GenerateHashCodePasswordAndSendEmailToUser(email);
+
+            if (result.Success)
+                return Ok(result);
+
+            return NotFound(result);
+        }
+
         #endregion
 
         #region PUT
         [Authorize("Bearer")]
         [HttpPut]
-        [ProducesResponseType(typeof(object), 200)]
+        [ProducesResponseType(typeof(Result<User>), 200)]
         [ProducesResponseType(409)]
         public IActionResult Update([FromBody]UpdateUserVM updateUserVM,
            [FromServices]SigningConfigurations signingConfigurations,
@@ -119,10 +134,10 @@ namespace ShareBook.Api.Controllers
 
             var result = _userService.Update(user);
 
-            if (result.Success)
-                return Ok(_signManager.GenerateTokenAndSetIdentity(result.Value, signingConfigurations, tokenConfigurations));
+            if (!result.Success)
+                return Conflict(result);
 
-            return Conflict(result);
+            return Ok(_signManager.GenerateTokenAndSetIdentity(result.Value, signingConfigurations, tokenConfigurations));
         }
 
 
@@ -131,8 +146,24 @@ namespace ShareBook.Api.Controllers
         public Result<User> ChangePassword([FromBody]ChangePasswordUserVM changePasswordUserVM)
         {
             var user = new User() { Password = changePasswordUserVM.OldPassword };
+            user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+            return _userService.ValidOldPasswordAndChangeUserPassword(user, changePasswordUserVM.NewPassword);
+        }
 
-            return _userService.ChangeUserPassword(user, changePasswordUserVM.NewPassword);
+        [HttpPut("ChangeUserPasswordByEmailAndHashCode")]
+        [ProducesResponseType(typeof(Result<User>), 200)]
+        [ProducesResponseType(404)]
+        public IActionResult ChangeUserPasswordByEmailAndHashCode(ChangeUserPasswordByEmailAndHashCodeVM changeUserPasswordByEmailAndHashCodeVM)
+        {
+            var result = _userService.ConfirmEmailAndHashCodePassword(changeUserPasswordByEmailAndHashCodeVM.Email, changeUserPasswordByEmailAndHashCodeVM.HashCodePassword);
+            if (!result.Success)
+                return NotFound(result);
+
+            var resultChangePasswordUser = _userService.ChangeUserPassword(result.Value as User, changeUserPasswordByEmailAndHashCodeVM.NewPassword);
+            if (!resultChangePasswordUser.Success)
+                return BadRequest(resultChangePasswordUser);
+
+            return Ok(resultChangePasswordUser);
         }
         #endregion
 
