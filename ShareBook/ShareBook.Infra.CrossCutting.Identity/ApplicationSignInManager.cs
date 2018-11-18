@@ -1,11 +1,11 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 using ShareBook.Domain;
-using ShareBook.Repository.Infra.CrossCutting.Identity.Interfaces;
+using ShareBook.Infra.CrossCutting.Identity.Interfaces;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
-namespace ShareBook.Repository.Infra.CrossCutting.Identity.Configurations
+namespace ShareBook.Infra.CrossCutting.Identity
 {
     public class ApplicationSignInManager : IApplicationSignInManager
     {

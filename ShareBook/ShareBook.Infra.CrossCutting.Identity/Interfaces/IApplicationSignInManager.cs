@@ -1,7 +1,7 @@
 ﻿using ShareBook.Domain;
-using ShareBook.Repository.Infra.CrossCutting.Identity.Configurations;
+using ShareBook.Infra.CrossCutting.Identity;
 
-namespace ShareBook.Repository.Infra.CrossCutting.Identity.Interfaces
+namespace ShareBook.Infra.CrossCutting.Identity.Interfaces
 {
     public interface IApplicationSignInManager
     {

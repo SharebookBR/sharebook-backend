@@ -1,7 +1,7 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
 
-namespace ShareBook.Repository.Infra.CrossCutting.Identity.Configurations
+namespace ShareBook.Infra.CrossCutting.Identity
 {
     public class SigningConfigurations
     {

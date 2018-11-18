@@ -1,6 +1,6 @@
 ﻿using Moq;
 using ShareBook.Repository;
-using ShareBook.Repository.Infra;
+using ShareBook.Repository.UoW;
 using ShareBook.Service;
 using ShareBook.Test.Unit.Mocks;
 using System;

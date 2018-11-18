@@ -4,7 +4,7 @@ using ShareBook.Domain.Common;
 using ShareBook.Domain.Enums;
 using ShareBook.Domain.Validators;
 using ShareBook.Repository;
-using ShareBook.Repository.Infra;
+using ShareBook.Repository.UoW;
 using ShareBook.Service;
 using ShareBook.Service.Upload;
 using ShareBook.Test.Unit.Mocks;

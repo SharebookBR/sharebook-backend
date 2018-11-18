@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ShareBook.Repository.Infra
+namespace ShareBook.Repository.UoW
 {
     public interface IUnitOfWork : IDisposable
     {
