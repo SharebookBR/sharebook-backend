@@ -19,7 +19,7 @@ namespace ShareBook.Repository.Migrations
                 name: "HashCodePasswordExpiryDate",
                 table: "Users",
                 type: "datetime2(7)",
-                nullable: true,
+                nullable: false,
                 defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
         }
 
