@@ -36,6 +36,10 @@ namespace ShareBook.Domain
 
         public string ImageName { get; set; }
 
+        public DateTime? ChooseDate { get; set; }
+
+        public string ChooseDateString => ChooseDate?.ToString("dd/MM/yyyy");
+
         public bool Donated()
             => BookUsers?.Any(x => x.Status == DonationStatus.Donated) ?? false;
 
