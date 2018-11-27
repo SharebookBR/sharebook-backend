@@ -31,14 +31,15 @@ namespace ShareBook.Service
                     client.Connect(_settings.HostName, _settings.Port, true);
 
                     client.Authenticate(_settings.Username, _settings.Password);
+                    
+
 
                     await client.SendAsync(message);
                     client.Disconnect(true);
                 }
             }
-            catch (System.Exception)
+            catch (System.Exception ex)
             {
-
                 //v2 implementar log para exceptions
             }
         }

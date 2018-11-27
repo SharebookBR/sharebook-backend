@@ -8,5 +8,7 @@ namespace ShareBook.Service
         Task SendEmailBookRequested(BookUser bookUser);
 
         Task SendEmailBookDonated(BookUser bookUser);
+
+        Task SendEmailBookDonor(BookUser bookUser);
     }
 }

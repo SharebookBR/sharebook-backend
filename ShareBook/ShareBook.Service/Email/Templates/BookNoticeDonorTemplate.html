@@ -1,0 +1,31 @@
+﻿﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Um livro foi solicitado - Sharebook</title>
+</head>
+<body>
+    <h4>Um livro foi solicitado - Sharebook</h4>
+    <p>
+        Olá {Donor.Name},
+    </p>
+    <p>
+        Um livro foi solicitado. Veja mais informações abaixo:
+    </p>
+    <h2>Interessado</h2>
+    <ul>
+        <li><strong>Livro: </strong>{Book.Title}</li>
+        <li><strong>Nome: </strong>{RequestingUser.Name}</li>    
+    </ul>
+    
+    <h2>Motivo</h2>
+    <pre>{Request.Reason}</pre>
+
+   <h3>Importante!</h3>
+   <p>
+	Este é apenas uma aviso que mostra que alguém está interessado no livro que você disponibilizou.<br>
+	é necessário no entanto aguardar até a data de descisão para definir quem receberá o livro.
+   </p>
+    <p>Sharebook</p>
+</body>
+</html>  
