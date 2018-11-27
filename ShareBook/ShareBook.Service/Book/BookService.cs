@@ -40,7 +40,7 @@ namespace ShareBook.Service
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
             book.Approved = true;
-            book.ChooseDate = (chooseDate?.Date ?? DateTime.Today).AddDays(5);
+            book.ChooseDate = chooseDate?.Date ?? DateTime.Today.AddDays(5);
             _repository.Update(book);
 
             _booksEmailService.SendEmailBookApproved(book).Wait();
