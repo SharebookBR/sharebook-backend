@@ -69,7 +69,7 @@ namespace ShareBook.Service
 
             DeniedBookUsers(bookId);
 
-            _bookService.Approve(bookId, false);
+            _bookService.HideBook(bookId);
 
             await _bookUsersEmailService.SendEmailBookDonated(bookUserAccepted);
         }

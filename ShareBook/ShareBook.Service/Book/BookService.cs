@@ -7,8 +7,8 @@ using ShareBook.Domain.Exceptions;
 using ShareBook.Helper.Extensions;
 using ShareBook.Helper.Image;
 using ShareBook.Repository;
-using ShareBook.Repository.UoW;
 using ShareBook.Repository.Repository;
+using ShareBook.Repository.UoW;
 using ShareBook.Service.Generic;
 using ShareBook.Service.Upload;
 using System;
@@ -33,21 +33,29 @@ namespace ShareBook.Service
             _booksEmailService = booksEmailService;
         }
 
-        public Result<Book> Approve(Guid bookId, bool approved = true)
+        public Result<Book> Approve(Guid bookId, DateTime? chooseDate)
         {
             var book = _repository.Find(bookId);
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
-            book.Approved = approved;
+            book.Approved = true;
+            book.ChooseDate = chooseDate?.Date ?? DateTime.Today.AddDays(5);
             _repository.Update(book);
 
-            if (approved)
-            {
-                _booksEmailService.SendEmailBookApproved(book).Wait();
-            }
+            _booksEmailService.SendEmailBookApproved(book).Wait();
 
             return new Result<Book>(book);
+        }
+
+        public void HideBook(Guid bookId)
+        {
+            var book = _repository.Find(bookId);
+            if (book == null)
+                throw new ShareBookException(ShareBookException.Error.NotFound);
+
+            book.Approved = false;
+            _repository.Update(book);
         }
 
         public IList<dynamic> FreightOptions()

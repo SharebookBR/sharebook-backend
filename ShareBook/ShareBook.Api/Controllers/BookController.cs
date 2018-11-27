@@ -6,9 +6,9 @@ using ShareBook.Api.Filters;
 using ShareBook.Api.ViewModels;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
+using ShareBook.Repository.Repository;
 using ShareBook.Service;
 using ShareBook.Service.Authorization;
-using ShareBook.Repository.Repository;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -63,7 +63,7 @@ namespace ShareBook.Api.Controllers
         [Authorize("Bearer")]
         [HttpPost("Approve/{id}")]
         [AuthorizationFilter(Permissions.Permission.ApproveBook)]
-        public Result<Book> Approve(string id) => _service.Approve(new Guid(id));
+        public Result<Book> Approve(string id, [FromBody] ApproveBookVM model) => _service.Approve(new Guid(id), model?.ChooseDate);
 
         [HttpGet("FreightOptions")]
         public IList<dynamic> FreightOptions()
