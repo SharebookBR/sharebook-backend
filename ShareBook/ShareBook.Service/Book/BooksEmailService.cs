@@ -27,7 +27,14 @@ namespace ShareBook.Service
             if (book.User == null)
                 book.User = _userService.Find(book.UserId);
 
-            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookApprovedTemplate, book);
+            var vm = new
+            {
+                Book = book,
+                book.User,
+                ChooseDate = book.ChooseDate?.ToString("dd/MM/yyyy")
+            };
+
+            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookApprovedTemplate, vm);
             await _emailService.Send(book.User.Email, book.User.Name, html, BookApprovedTitle, true);
         }
 
