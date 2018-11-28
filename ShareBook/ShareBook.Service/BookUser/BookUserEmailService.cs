@@ -14,6 +14,8 @@ namespace ShareBook.Service
         private const string BookRequestedTitle = "Um livro foi solicitado - Sharebook";
         private const string BookNoticeDonorTitle = "Seu livro foi solicitado - Sharebook";
 
+  
+
 
         private readonly IUserService _userService;
         private readonly IBookService _bookService;
@@ -63,20 +65,15 @@ namespace ShareBook.Service
         {
             var includeList = new IncludeList<Book>(x => x.User);
             var bookRequested = _bookService.Find(includeList, bookUser.BookId);
-
-
-            //var requestingUser = _userService.Find(bookUser.UserId);
-            DateTime chooseDate = bookRequested.ChooseDate.HasValue ?  bookRequested.ChooseDate.Value : bookRequested.CreationDate.Value.AddDays(5);
-
-
             var vm = new
             {
+
                 Request = bookUser,
                 Book = bookRequested,
                 Donor = new
                 {
                     Name = bookRequested.User.Name,
-                    ChooseDate = string.Format("{0:dd/MM/yyyy}",chooseDate)
+                    ChooseDate = string.Format("{0:dd/MM/yyyy}", bookRequested.ChooseDate.Value)
                 },
                 RequestingUser = new {NickName = $"Interessado {bookRequested.TotalInterested()}" },
             };
