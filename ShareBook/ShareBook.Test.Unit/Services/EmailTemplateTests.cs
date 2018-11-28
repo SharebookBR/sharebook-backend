@@ -84,7 +84,14 @@ namespace ShareBook.Test.Unit.Services
         [Fact]
         public void VerifyEmailBookApprovedParse()
         {
-            var result = emailTemplate.GenerateHtmlFromTemplateAsync("BookApprovedTemplate", book).Result;
+            var vm = new
+            {
+                Book = book,
+                book.User,
+                ChooseDate = book.ChooseDate?.ToString("dd/MM/yyyy")
+            };
+
+            var result = emailTemplate.GenerateHtmlFromTemplateAsync("BookApprovedTemplate", vm).Result;
 
             Assert.Contains("<title>Livro aprovado - Sharebook</title>", result);
             Assert.Contains("Olá Rodrigo", result);
