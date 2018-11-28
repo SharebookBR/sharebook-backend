@@ -22,6 +22,11 @@ namespace ShareBook.Helper.Extensions
 
         public static string RemoveAccent(this string text)
         {
+            if (string.IsNullOrEmpty(text))
+            {
+                return text;
+            }
+
             var normalizedString = text.Normalize(NormalizationForm.FormD);
             var stringBuilder = new StringBuilder();
 
