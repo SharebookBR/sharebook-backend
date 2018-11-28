@@ -1,5 +1,6 @@
 ﻿using ShareBook.Domain;
 using ShareBook.Repository.Repository;
+using System;
 using System.Threading.Tasks;
 
 namespace ShareBook.Service
@@ -11,6 +12,7 @@ namespace ShareBook.Service
         private const string BookDonatedTemplate = "BookDonatedTemplate";
         private const string BookDonatedTitle = "Parabéns você foi selecionado!";
         private const string BookRequestedTitle = "Um livro foi solicitado - Sharebook";
+        private const string BookNoticeDonorTitle = "Seu livro foi solicitado - Sharebook";
 
 
         private readonly IUserService _userService;
@@ -61,21 +63,27 @@ namespace ShareBook.Service
         {
             var includeList = new IncludeList<Book>(x => x.User);
             var bookRequested = _bookService.Find(includeList, bookUser.BookId);
-            
+
 
             //var requestingUser = _userService.Find(bookUser.UserId);
+            DateTime chooseDate = bookRequested.ChooseDate.HasValue ?  bookRequested.ChooseDate.Value : bookRequested.CreationDate.Value.AddDays(5);
+
 
             var vm = new
             {
                 Request = bookUser,
                 Book = bookRequested,
-                Donor = bookRequested.User,
-                RequestingUser = bookUser.User,
+                Donor = new
+                {
+                    Name = bookRequested.User.Name,
+                    ChooseDate = string.Format("{0:dd/MM/yyyy}",chooseDate)
+                },
+                RequestingUser = new {NickName = $"Interessado {bookRequested.TotalInterested()}" },
             };
 
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookNoticeDonorTemplate, vm);
-            
-            await _emailService.Send(bookRequested.User.Email, bookRequested.User.Name, html, BookRequestedTitle);
+
+            await _emailService.Send(bookRequested.User.Email, bookRequested.User.Name, html, BookNoticeDonorTitle);
 
         }
     }
