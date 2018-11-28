@@ -1,0 +1,39 @@
+﻿﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Seu livro foi solicitado - Sharebook</title>
+</head>
+<body>
+    <h4>Seu livro foi solicitado - Sharebook</h4>
+    <p>
+        Olá {Donor.Name},
+    </p>
+    <br />
+    <p>
+        Seu livro foi solicitado. Veja mais informações abaixo:
+    </p>
+    <h2>Interessado</h2>
+    <ul>
+        <li><strong>Livro: </strong>{Book.Title}</li>
+        <li><strong>Apelido: </strong>{RequestingUser.NickName}</li>    
+    </ul>
+    
+    <h2>Motivo</h2>
+    <pre>{Request.Reason}</pre>
+
+   <h3>Importante!</h3>
+   <p>
+	Este é apenas uma aviso que mostra que alguém está interessado no livro que você disponibilizou.<br>
+	É necessário no entanto aguardar até a data de <strong>{Donor.ChooseDate}</strong> para escolhero ganhador.
+   </p>
+    <p>
+        Atenciosamente,
+    </p>
+    <p>
+        Sharebook - Compartilhando conhecimento<br />
+        Siga-nos no instagram:
+        <a target="_blank" href="https://www.instagram.com/sharebook.com.br/" title="Instagram Sharebook">@sharebook.com.br</a>
+    </p>
+</body>
+</html>  

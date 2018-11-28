@@ -49,7 +49,9 @@ namespace ShareBook.Service
                 throw new ShareBookException("O usuário já possui uma requisição para o mesmo livro.");
 
             _bookUserRepository.Insert(bookUser);
+
             _bookUsersEmailService.SendEmailBookRequested(bookUser);
+            _bookUsersEmailService.SendEmailBookDonor(bookUser);
         }
 
         public async void DonateBook(Guid bookId, Guid userId, string note)
