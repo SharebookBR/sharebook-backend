@@ -1,7 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
+using Rollbar;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.Exceptions;
 
@@ -33,6 +35,10 @@ namespace ShareBook.Api.Middleware
                 httpContext.Response.StatusCode = (int)ex.ErrorType;
                 await httpContext.Response.WriteAsync(jsonResponse);
                 return;
+            }
+            catch (Exception ex)
+            {
+                await RollbarLocator.RollbarInstance.Error(ex);
             }
         }
     }
