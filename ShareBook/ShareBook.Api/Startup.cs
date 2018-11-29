@@ -33,7 +33,12 @@ namespace ShareBook.Api
             //auto mapper start 
             AutoMapperConfig.RegisterMappings();
 
-            services.AddMvc();
+            services.AddMvc()
+                .AddJsonOptions(options =>
+                {
+                    options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
+                });
+
             services.Configure<ImageSettings>(options => Configuration.GetSection("ImageSettings").Bind(options));
 
             services.Configure<EmailSettings>(options => Configuration.GetSection("EmailSettings").Bind(options));
@@ -110,9 +115,7 @@ namespace ShareBook.Api
                     var sharebookSeeder = new ShareBookSeeder(context);
                     sharebookSeeder.Seed();
                 }
-
             }
-
         }
     }
 }
