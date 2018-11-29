@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
@@ -73,58 +73,14 @@ namespace ShareBook.Service
         }
 
         public IList<Book> Top15NewBooks()
-        {
-            return _repository.Get().Where(x => x.Approved
-             && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated)).OrderByDescending(x => x.CreationDate).Take(15)
-                 .Select(u => new Book
-                 {
-                     Id = u.Id,
-                     Title = u.Title,
-                     Author = u.Author,
-                     Approved = u.Approved,
-                     FreightOption = u.FreightOption,
-                     ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
-                     Slug = u.Slug,
-                     User = new User()
-                     {
-                         Id = u.User.Id,
-                         Email = u.User.Email,
-                         Name = u.User.Name,
-                         Linkedin = u.User.Linkedin,
-                     },
-                     Category = new Category()
-                     {
-                         Name = u.Category.Name
-                     }
-                 }).ToList();
-        }
+             => SearchBooks(x => x.Approved
+                                 && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated), 1, 15)
+                            .Items;
 
         public IList<Book> Random15Books()
-        {
-            return _repository.Get().Where(x => x.Approved
-            && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated)).OrderBy(x => Guid.NewGuid()).Take(15)
-                 .Select(u => new Book
-                 {
-                     Id = u.Id,
-                     Title = u.Title,
-                     Author = u.Author,
-                     FreightOption = u.FreightOption,
-                     Approved = u.Approved,
-                     ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
-                     Slug = u.Slug,
-                     User = new User()
-                     {
-                         Id = u.User.Id,
-                         Email = u.User.Email,
-                         Name = u.User.Name,
-                         Linkedin = u.User.Linkedin,
-                     },
-                     Category = new Category()
-                     {
-                         Name = u.Category.Name
-                     }
-                 }).ToList();
-        }
+            => SearchBooks(x => x.Approved
+                                && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated), 1, 15, x => Guid.NewGuid())
+                           .Items;
 
         public IList<Book> GetAll(int page, int items)
             => _repository.Get().Include(b => b.User).Include(b => b.BookUsers)
@@ -263,9 +219,13 @@ namespace ShareBook.Service
 
         #region Private
         private PagedList<Book> SearchBooks(Expression<Func<Book, bool>> filter, int page, int itemsPerPage)
+            => SearchBooks(filter, page, itemsPerPage, x => x.CreationDate);
+
+        private PagedList<Book> SearchBooks<TKey>(Expression<Func<Book, bool>> filter, int page, int itemsPerPage, Expression<Func<Book, TKey>> expression)
         {
             var result = _repository.Get()
                 .Where(filter)
+                .OrderByDescending(expression)
                 .Select(u => new Book
                 {
                     Id = u.Id,
@@ -275,6 +235,7 @@ namespace ShareBook.Service
                     FreightOption = u.FreightOption,
                     ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
                     Slug = u.Slug,
+                    CreationDate = u.CreationDate,
                     User = new User()
                     {
                         Id = u.User.Id,
@@ -285,7 +246,6 @@ namespace ShareBook.Service
                     Category = new Category()
                     {
                         Name = u.Category.Name
-
                     }
                 });
 
