@@ -183,7 +183,7 @@ namespace ShareBook.Service
                     .Where(x => x.Title.ToUpperInvariant().Equals(entity.Title.ToUpperInvariant()))
                     .OrderByDescending(x => x.CreationDate)?.FirstOrDefault()?.Slug;
 
-            entity.Slug = slug.GenerateSlug().AddIncremental();
+            entity.Slug = string.IsNullOrWhiteSpace(slug) ? entity.Title.GenerateSlug() : slug.GenerateSlug().AddIncremental();
 
             //imagem eh opcional no update
             if (entity.ImageName != "" && entity.ImageBytes.Length > 0)
