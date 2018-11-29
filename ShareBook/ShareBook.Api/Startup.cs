@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ShareBook.Api.AutoMapper;
 using ShareBook.Api.Configuration;
 using ShareBook.Api.Middleware;
+using ShareBook.Api.Services;
 using ShareBook.Repository;
 using ShareBook.Service;
 using ShareBook.Service.Server;
@@ -70,6 +71,8 @@ namespace ShareBook.Api
             });
 
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+
+            RollbarConfigurator.Configure(Configuration.GetSection("RollbarEnvironment").Value);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -107,7 +110,7 @@ namespace ShareBook.Api
                     var sharebookSeeder = new ShareBookSeeder(context);
                     sharebookSeeder.Seed();
                 }
-               
+
             }
 
         }
