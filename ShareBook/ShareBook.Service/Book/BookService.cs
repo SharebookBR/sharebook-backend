@@ -131,15 +131,13 @@ namespace ShareBook.Service
                 x => x.FreightOption,
                 x => x.Id);
 
-            var bookAlreadyApproved = BookAlreadyApproved(entity.Id);
+            var bookId = entity.Id;
+            var bookAlreadyApproved = BookAlreadyApproved(bookId);
 
             if (!result.Success) return result;
 
-            var slug = _repository.Get()
-                    .Where(x => x.Title.ToUpperInvariant().Equals(entity.Title.ToUpperInvariant()))
-                    .OrderByDescending(x => x.CreationDate)?.FirstOrDefault()?.Slug;
 
-            entity.Slug = string.IsNullOrWhiteSpace(slug) ? entity.Title.GenerateSlug() : slug.GenerateSlug().AddIncremental();
+            entity.Slug = ValidateAndSetSlug(entity, bookAlreadyApproved);
 
             //imagem eh opcional no update
             if (entity.ImageName != "" && entity.ImageBytes.Length > 0)
@@ -160,6 +158,21 @@ namespace ShareBook.Service
 
 
             return result;
+        }
+
+        public string ValidateAndSetSlug(Book entity,  bool bookAlreadyApproved)
+        {
+            if (!bookAlreadyApproved)
+            {
+                var slug = _repository.Get()
+                        .Where(x => x.Title.ToUpperInvariant().Equals(entity.Title.ToUpperInvariant())
+                                    && !x.Id.Equals(entity.Id))
+                        .OrderByDescending(x => x.CreationDate)?.FirstOrDefault()?.Slug;
+
+                entity.Slug = string.IsNullOrWhiteSpace(slug) ? entity.Title.GenerateSlug() : slug.GenerateSlug().AddIncremental();
+            }
+
+            return entity.Slug;
         }
 
         public PagedList<Book> ByTitle(string title, int page, int itemsPerPage)
@@ -189,7 +202,7 @@ namespace ShareBook.Service
 
         public Book BySlug(string slug)
         {
-            var pagedBook = SearchBooks(x => (x.Slug.Contains(slug)), 1, 1);
+            var pagedBook = SearchBooks(x => (x.Slug.Equals(slug)), 1, 1);
             return pagedBook.Items.FirstOrDefault();
         }
 
