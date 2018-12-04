@@ -151,7 +151,8 @@ namespace ShareBook.Service
                     .Where(x => x.Title.ToUpperInvariant().Equals(entity.Title.ToUpperInvariant()))
                     .OrderByDescending(x => x.CreationDate)?.FirstOrDefault()?.Slug;
 
-                entity.Slug = slug == null ? entity.Title.GenerateSlug() : slug.AddIncremental();
+                var bookAlreadyApproved = false;
+                entity.Slug = ValidateAndSetSlug(entity, bookAlreadyApproved);
 
                 entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, entity.Slug);
 
@@ -206,14 +207,14 @@ namespace ShareBook.Service
 
         public string ValidateAndSetSlug(Book entity,  bool bookAlreadyApproved)
         {
-            if (!bookAlreadyApproved)
+            if (!bookAlreadyApproved && entity.Approved)
             {
                 var slug = _repository.Get()
                         .Where(x => x.Title.ToUpperInvariant().Equals(entity.Title.ToUpperInvariant())
                                     && !x.Id.Equals(entity.Id))
                         .OrderByDescending(x => x.CreationDate)?.FirstOrDefault()?.Slug;
 
-                entity.Slug = string.IsNullOrWhiteSpace(slug) ? entity.Title.GenerateSlug() : slug.GenerateSlug().AddIncremental();
+                entity.Slug = string.IsNullOrWhiteSpace(slug) ? entity.Title.GenerateSlug() : slug.AddIncremental();
             }
 
             return entity.Slug;
