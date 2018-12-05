@@ -36,6 +36,9 @@ namespace ShareBook.Api.Controllers
             _defaultOrder = defaultOrder;
         }
 
+        [HttpGet("Ping")]
+        public IActionResult Ping() => Ok("Pong!");
+
         [HttpGet()]
         [Authorize("Bearer")]
         [AuthorizationFilter(Permissions.Permission.DonateBook)]
