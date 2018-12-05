@@ -36,5 +36,3 @@ Lista de bibliotecas instaladas para execução dos testes:
 - Microsoft.AspNetCore.App [Microsoft.NET.Test.Sdk dependency]
 - xunit
 - xunit.runner.visualstudio
-
-force merge
