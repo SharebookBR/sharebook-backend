@@ -175,9 +175,10 @@ namespace ShareBook.Service
             var bookAlreadyApproved = BookAlreadyApproved(bookId);
 
             if (!result.Success) return result;
-
-
-            entity.Slug = SetSlugByTitleOrIncremental(entity);
+            
+            if(!bookAlreadyApproved)
+                entity.Slug = SetSlugByTitleOrIncremental(entity);
+           
 
             //imagem eh opcional no update
             if (entity.ImageName != "" && entity.ImageBytes.Length > 0)
