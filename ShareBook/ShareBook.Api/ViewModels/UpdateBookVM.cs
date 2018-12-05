@@ -17,6 +17,8 @@ namespace ShareBook.Api.ViewModels
 
         public byte[] ImageBytes { get; set; }
 
+        public string Synopsis { get; set; }
+
         public FreightOption FreightOption { get; set; }
     }
 }

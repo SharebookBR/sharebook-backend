@@ -38,6 +38,8 @@ namespace ShareBook.Domain
 
         public DateTime? ChooseDate { get; set; }
 
+        public string Synopsis { get; set; }
+
         public bool Donated()
             => BookUsers?.Any(x => x.Status == DonationStatus.Donated) ?? false;
 
