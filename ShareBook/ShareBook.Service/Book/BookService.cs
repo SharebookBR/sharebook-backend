@@ -103,12 +103,7 @@ namespace ShareBook.Service
             var result = Validate(entity);
             if (result.Success)
             {
-                var slug = _repository.Get()
-                    .Where(x => x.Title.ToUpperInvariant().Equals(entity.Title.ToUpperInvariant()))
-                    .OrderByDescending(x => x.CreationDate)?.FirstOrDefault()?.Slug;
-
-                var bookAlreadyApproved = false;
-                entity.Slug = ValidateAndSetSlug(entity, bookAlreadyApproved);
+                entity.Slug = SetSlugByTitleOrIncremental(entity);
 
                 entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, entity.Slug);
 
@@ -136,9 +131,10 @@ namespace ShareBook.Service
             var bookAlreadyApproved = BookAlreadyApproved(bookId);
 
             if (!result.Success) return result;
-
-
-            entity.Slug = ValidateAndSetSlug(entity, bookAlreadyApproved);
+            
+            if(!bookAlreadyApproved)
+                entity.Slug = SetSlugByTitleOrIncremental(entity);
+           
 
             //imagem eh opcional no update
             if (entity.ImageName != "" && entity.ImageBytes.Length > 0)
@@ -161,20 +157,7 @@ namespace ShareBook.Service
             return result;
         }
 
-        public string ValidateAndSetSlug(Book entity,  bool bookAlreadyApproved)
-        {
-            if (!bookAlreadyApproved && entity.Approved)
-            {
-                var slug = _repository.Get()
-                        .Where(x => x.Title.ToUpperInvariant().Equals(entity.Title.ToUpperInvariant())
-                                    && !x.Id.Equals(entity.Id))
-                        .OrderByDescending(x => x.CreationDate)?.FirstOrDefault()?.Slug;
-
-                entity.Slug = string.IsNullOrWhiteSpace(slug) ? entity.Title.GenerateSlug() : slug.AddIncremental();
-            }
-
-            return entity.Slug;
-        }
+        
 
         public PagedList<Book> ByTitle(string title, int page, int itemsPerPage)
             => SearchBooks(x => (x.Approved
@@ -280,6 +263,17 @@ namespace ShareBook.Service
 
         private bool BookAlreadyApproved(Guid bookId)
             => _repository.Any(x => x.Approved && x.Id == bookId);
+
+        private string SetSlugByTitleOrIncremental(Book entity)
+        {
+            var slug = _repository.Get()
+                        .Where(x => x.Title.ToUpperInvariant().Equals(entity.Title.ToUpperInvariant())
+                                    && !x.Id.Equals(entity.Id))
+                        .OrderByDescending(x => x.CreationDate)?.FirstOrDefault()?.Slug;
+
+            return string.IsNullOrWhiteSpace(slug) ? entity.Title.GenerateSlug() : slug.AddIncremental();
+        }
+
         #endregion
     }
 }
