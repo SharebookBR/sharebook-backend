@@ -233,6 +233,7 @@ namespace ShareBook.Service
                     ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
                     Slug = u.Slug,
                     CreationDate = u.CreationDate,
+                    Synopsis = u.Synopsis,
                     User = new User()
                     {
                         Id = u.User.Id,
