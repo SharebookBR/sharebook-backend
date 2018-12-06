@@ -201,15 +201,7 @@ namespace ShareBook.Service
             return result;
         }
 
-        private string SetSlugByTitleOrIncremental(Book entity)
-        {
-            var slug = _repository.Get()
-                        .Where(x => x.Title.ToUpperInvariant().Equals(entity.Title.ToUpperInvariant())
-                                    && !x.Id.Equals(entity.Id))
-                        .OrderByDescending(x => x.CreationDate)?.FirstOrDefault()?.Slug;
-
-            return string.IsNullOrWhiteSpace(slug) ? entity.Title.GenerateSlug() : slug.AddIncremental();          
-        }
+        
 
         public PagedList<Book> ByTitle(string title, int page, int itemsPerPage)
             => SearchBooks(x => (x.Approved
@@ -311,6 +303,17 @@ namespace ShareBook.Service
 
         private bool BookAlreadyApproved(Guid bookId)
             => _repository.Any(x => x.Approved && x.Id == bookId);
+
+        private string SetSlugByTitleOrIncremental(Book entity)
+        {
+            var slug = _repository.Get()
+                        .Where(x => x.Title.ToUpperInvariant().Equals(entity.Title.ToUpperInvariant())
+                                    && !x.Id.Equals(entity.Id))
+                        .OrderByDescending(x => x.CreationDate)?.FirstOrDefault()?.Slug;
+
+            return string.IsNullOrWhiteSpace(slug) ? entity.Title.GenerateSlug() : slug.AddIncremental();
+        }
+
         #endregion
     }
 }
