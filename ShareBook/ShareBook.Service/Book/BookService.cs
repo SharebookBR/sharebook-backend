@@ -33,7 +33,7 @@ namespace ShareBook.Service
             _booksEmailService = booksEmailService;
         }
 
-        public Result<Book> Approve(Guid bookId, DateTime? chooseDate)
+        public Result<Book> Approve(Guid bookId, DateTime? chooseDate = null)
         {
             var book = _repository.Find(bookId);
             if (book == null)
@@ -43,6 +43,9 @@ namespace ShareBook.Service
             book.ChooseDate = chooseDate?.Date ?? DateTime.Today.AddDays(5);
             _repository.Update(book);
 
+            // TODO: obter o usuário doador. Não o usuário logado.
+            // Github issue: https://github.com/SharebookBR/sharebook-backend/issues/139
+            book.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             _booksEmailService.SendEmailBookApproved(book).Wait();
 
             return new Result<Book>(book);
@@ -146,11 +149,10 @@ namespace ShareBook.Service
             result.Value = _repository.UpdateAsync(entity).Result;
             result.Value.ImageBytes = null;
 
-            //Se livro já foi aprovado não enviar e-mail
+            // TODO: pedir pro pessoal de front usar o endpoint correto de aprovação.
             if (!bookAlreadyApproved && entity.Approved)
             {
-                entity.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-                _booksEmailService.SendEmailBookApproved(entity);
+                this.Approve(entity.Id);
             }
 
 
