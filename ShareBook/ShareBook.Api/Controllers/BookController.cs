@@ -121,7 +121,7 @@ namespace ShareBook.Api.Controllers
             _bookUserService.Insert(requestBookVM.BookId, requestBookVM.Reason);
             var result = new Result
             {
-                SuccessMessage = "Pedido realizo com sucesso!",
+                SuccessMessage = "Pedido realizado com sucesso!",
             };
             return Ok(result);
         }
