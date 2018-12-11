@@ -10,6 +10,8 @@ namespace ShareBook.Repository.Mapping
         {
             entityBuilder.HasKey(t => t.Id);
 
+            entityBuilder.Property(t => t.UserId);
+
             entityBuilder.Property(t => t.Author)
                 .HasColumnType("varchar(200)")
                 .HasMaxLength(50)
