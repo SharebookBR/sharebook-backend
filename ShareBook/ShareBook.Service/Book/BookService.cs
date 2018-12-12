@@ -35,19 +35,19 @@ namespace ShareBook.Service
 
         public Result<Book> Approve(Guid bookId, DateTime? chooseDate = null)
         {
-            // Por definicao, metodo Find nao traz objetos filhos.
-            var book = _repository.Find(new IncludeList<Book>() { (b => b.User) }, bookId);
+            var book = _repository.Find(new IncludeList<Book>(){ (b => b.User) }, bookId);
 
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
             book.Approved = true;
             book.ChooseDate = chooseDate?.Date ?? DateTime.Today.AddDays(5);
+
             _repository.Update(book);
 
             // TODO: obter o usuário doador. Não o usuário logado.
             // Github issue: https://github.com/SharebookBR/sharebook-backend/issues/139
-            book.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+            //book.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             _booksEmailService.SendEmailBookApproved(book).Wait();
 
             return new Result<Book>(book);
@@ -101,11 +101,22 @@ namespace ShareBook.Service
             return result;
         }
 
+        private User GetAuthenticatedUser()
+        {
+            if (Guid.TryParse(Thread.CurrentPrincipal?.Identity?.Name, out var id))
+            {
+                return new User(id);
+            }
+
+            return null;
+        }
+
         public override Result<Book> Insert(Book entity)
         {
-            entity.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-
+            entity.User = GetAuthenticatedUser();
+            
             var result = Validate(entity);
+
             if (result.Success)
             {
                 entity.Slug = SetSlugByTitleOrIncremental(entity);
@@ -212,7 +223,7 @@ namespace ShareBook.Service
         public IList<Book> GetUserDonations(Guid userId)
         {
             return _repository.Get(
-                    book => book.UserId == userId,
+                    book => book.User.Id == userId,
                     book => book.CreationDate,
                     new IncludeList<Book>(book => book.BookUsers)
                 ).Items;

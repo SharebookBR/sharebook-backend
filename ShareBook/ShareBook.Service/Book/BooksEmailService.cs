@@ -13,20 +13,16 @@ namespace ShareBook.Service
         private const string BookApprovedTitle = "Livro aprovado - Sharebook";
 
         private readonly IEmailService _emailService;
-        private readonly IUserService _userService;
         private readonly IEmailTemplate _emailTemplate;
-        public BooksEmailService(IEmailService emailService, IUserService userService, IEmailTemplate emailTemplate)
+
+        public BooksEmailService(IEmailService emailService, IEmailTemplate emailTemplate)
         {
             _emailService = emailService;
-            _userService = userService;
             _emailTemplate = emailTemplate;
         }
 
         public async Task SendEmailBookApproved(Book book)
         {
-            if (book.User == null)
-                book.User = _userService.Find(book.UserId);
-
             var vm = new
             {
                 Book = book,
@@ -40,9 +36,6 @@ namespace ShareBook.Service
 
         public async Task SendEmailNewBookInserted(Book book)
         {
-            if (book.User == null)
-                book.User = _userService.Find(book.UserId);
-
             await SendEmailNewBookInsertedToAdministrators(book);
 
             await SendEmailWaitingApprovalToUser(book);

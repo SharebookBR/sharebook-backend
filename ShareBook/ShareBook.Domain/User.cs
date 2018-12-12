@@ -9,6 +9,16 @@ namespace ShareBook.Domain
 {
     public class User : BaseEntity
     {
+        public User()
+        {
+            
+        }
+
+        public User(Guid id)
+        {
+            this.Id = id;
+        }
+
         public string Name { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }

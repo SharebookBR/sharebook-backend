@@ -19,11 +19,7 @@ namespace ShareBook.Domain
         public string ImageSlug { get; set; }
 
         public FreightOption FreightOption { get; set; }
-
-        public Guid? UserId { get; set; }
-
-        public Guid CategoryId { get; set; }
-
+        
         public User User { get; set; }
 
         public Category Category { get; set; }

@@ -39,11 +39,11 @@ namespace ShareBook.Domain.Validators
                 .Must(FreightOptionIsValid)
                 .WithMessage(FreightOption);
 
-            RuleFor(b => b.UserId)
+            RuleFor(b => b.User)
                 .NotEmpty()
                 .WithMessage(User);
 
-            RuleFor(b => b.CategoryId)
+            RuleFor(b => b.Category)
                .NotEmpty()
                .WithMessage(Categoria);
         }

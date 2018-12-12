@@ -48,7 +48,7 @@ namespace ShareBook.Test.Unit.Services
         public void AddBook()
         {
             Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
-            var service = new BookService(bookRepositoryMock.Object, 
+            var service = new BookService(bookRepositoryMock.Object,
                 unitOfWorkMock.Object, new BookValidator(),
                 uploadServiceMock.Object, bookEmailService.Object);
             Result<Book> result = service.Insert(new Book()
@@ -58,7 +58,7 @@ namespace ShareBook.Test.Unit.Services
                 ImageName = "lotr.png",
                 ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
                 FreightOption = FreightOption.City,
-                CategoryId = Guid.NewGuid()
+                Category = new Category(Guid.NewGuid())
                 
             });
             Assert.NotNull(result);

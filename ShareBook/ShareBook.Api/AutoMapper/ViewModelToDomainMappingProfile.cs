@@ -11,8 +11,14 @@ namespace ShareBook.Api.AutoMapper
         protected ViewModelToDomainMappingProfile(string profileName) : base(profileName)
         {
             #region [ Book ]
-            CreateMap<CreateBookVM, Book>().ReverseMap();
-            CreateMap<UpdateBookVM, Book>().ReverseMap();
+            CreateMap<CreateBookVM, Book>()
+                .AfterMap((c, b) => b.Category = new Category(c.CategoryId))
+                .ReverseMap();
+
+            CreateMap<UpdateBookVM, Book>()
+                .AfterMap((c, b) => b.Category = new Category(c.CategoryId))
+                .ReverseMap();
+
             CreateMap<DonateBookUserVM, BookUser>().ReverseMap();
             #endregion
 

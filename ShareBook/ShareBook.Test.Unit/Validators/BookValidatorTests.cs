@@ -22,8 +22,8 @@ namespace ShareBook.Test.Unit.Validators
                ImageName = "lotr.png",
                ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
                FreightOption = FreightOption.World,
-               UserId = new Guid("5489A967-9320-4350-E6FC-08D5CC8498F3"),
-               CategoryId = Guid.NewGuid()
+               User = new User(new Guid("5489A967-9320-4350-E6FC-08D5CC8498F3")),
+               Category = new Category(Guid.NewGuid())
             };
 
             ValidationResult result = bookValidator.Validate(book);

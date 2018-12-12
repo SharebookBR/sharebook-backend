@@ -12,9 +12,20 @@ namespace ShareBook.Repository
     {
         public BookRepository(ApplicationDbContext context) : base(context) { }
 
+        public override async Task<Book> InsertAsync(Book entity)
+        {
+            _context.Attach(entity.Category);
+            _context.Attach(entity.User);
+
+            _context.Add(entity);
+
+            await _context.SaveChangesAsync();
+
+            return entity;
+        }
+
         public override async Task<Book> UpdateAsync(Book entity)
         {
-         
             _context.Update(entity);
 
             //imagem eh opcional no update
@@ -23,8 +34,6 @@ namespace ShareBook.Repository
 
             if(entity.Slug == null)
                 _context.Entry(entity).Property(x => x.Slug).IsModified = false;
-
-            _context.Entry(entity).Property(x => x.UserId).IsModified = false;
      
             await _context.SaveChangesAsync();
 

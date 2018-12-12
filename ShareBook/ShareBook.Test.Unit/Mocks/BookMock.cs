@@ -16,7 +16,7 @@ namespace ShareBook.Test.Unit.Mocks
                 ImageSlug = "lotr.png",
                 ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
                 User = user,
-                CategoryId = Guid.NewGuid()
+                Category = new Category(Guid.NewGuid())
            };
         }
 
@@ -29,8 +29,8 @@ namespace ShareBook.Test.Unit.Mocks
                 Author = "J. R. R. Tolkien",
                 ImageSlug = "lotr.png",
                 ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
-                CategoryId = Guid.NewGuid(),
-                UserId = new Guid("5489A967-9320-4350-E6FC-08D5CC8498F3")
+                Category = new Category(Guid.NewGuid()),
+                User = new User(new Guid("5489A967-9320-4350-E6FC-08D5CC8498F3"))
             };
         }
     }

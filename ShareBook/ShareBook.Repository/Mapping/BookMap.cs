@@ -9,9 +9,7 @@ namespace ShareBook.Repository.Mapping
         public BookMap(EntityTypeBuilder<Book> entityBuilder)
         {
             entityBuilder.HasKey(t => t.Id);
-
-            entityBuilder.Property(t => t.UserId);
-
+            
             entityBuilder.Property(t => t.Author)
                 .HasColumnType("varchar(200)")
                 .HasMaxLength(50)

@@ -93,7 +93,7 @@ namespace ShareBook.Repository
 
         public async Task<bool> AnyAsync(Expression<Func<TEntity, bool>> filter) => await CountAsync(filter) > 0;
 
-        public async Task<TEntity> InsertAsync(TEntity entity)
+        public virtual async Task<TEntity> InsertAsync(TEntity entity)
         {
             _context.Add(entity);
             await _context.SaveChangesAsync();
