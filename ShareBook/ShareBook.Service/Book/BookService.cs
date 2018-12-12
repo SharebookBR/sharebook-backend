@@ -35,7 +35,9 @@ namespace ShareBook.Service
 
         public Result<Book> Approve(Guid bookId, DateTime? chooseDate = null)
         {
-            var book = _repository.Find(bookId);
+            // Por definicao, metodo Find nao traz objetos filhos.
+            var book = _repository.Find(new IncludeList<Book>() { (b => b.User) }, bookId);
+
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
