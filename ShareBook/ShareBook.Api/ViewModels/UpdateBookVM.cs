@@ -11,6 +11,8 @@ namespace ShareBook.Api.ViewModels
 
         public Guid CategoryId { get; set; }
 
+        public Guid UserId { get; set; }
+
         public bool Approved { get; set; }
 
         public string ImageName { get; set; }

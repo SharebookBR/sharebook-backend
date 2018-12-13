@@ -43,9 +43,6 @@ namespace ShareBook.Service
             book.ChooseDate = chooseDate?.Date ?? DateTime.Today.AddDays(5);
             _repository.Update(book);
 
-            // TODO: obter o usuário doador. Não o usuário logado.
-            // Github issue: https://github.com/SharebookBR/sharebook-backend/issues/139
-            book.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             _booksEmailService.SendEmailBookApproved(book).Wait();
 
             return new Result<Book>(book);
@@ -154,7 +151,6 @@ namespace ShareBook.Service
             {
                 this.Approve(entity.Id);
             }
-
 
             return result;
         }
