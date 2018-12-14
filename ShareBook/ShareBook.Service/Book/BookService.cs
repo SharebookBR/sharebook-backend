@@ -232,6 +232,7 @@ namespace ShareBook.Service
                     Slug = u.Slug,
                     CreationDate = u.CreationDate,
                     Synopsis = u.Synopsis,
+                    ChooseDate = u.ChooseDate,
                     User = new User()
                     {
                         Id = u.User.Id,
