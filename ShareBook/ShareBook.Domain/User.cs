@@ -38,7 +38,7 @@ namespace ShareBook.Domain
 
         public void GenerateHashCodePassword()
         {
-            this.HashCodePassword = Salt.Create();
+            this.HashCodePassword =  Guid.NewGuid().ToString();
             this.HashCodePasswordExpiryDate = DateTime.Now.AddDays(1); 
         }
 
