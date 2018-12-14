@@ -157,7 +157,7 @@ namespace ShareBook.Service
         {
             var result = new Result();
 
-            var userConfirmedHashCodePassword = _repository.Find(e => e.Email.Equals(hashCodePassword, StringComparison.InvariantCultureIgnoreCase));
+            var userConfirmedHashCodePassword = _repository.Find(e => e.HashCodePassword.Equals(hashCodePassword));
 
             if (userConfirmedHashCodePassword == null)
                 result.Messages.Add("Hash code não encontrado.");
