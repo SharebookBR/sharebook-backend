@@ -153,20 +153,20 @@ namespace ShareBook.Service
             return result;
         }
 
-        public Result ConfirmEmailAndHashCodePassword(string email, string hashCodePassword)
+        public Result ConfirmHashCodePassword(string hashCodePassword)
         {
             var result = new Result();
 
-            var userConfirmedByEmail = _repository.Find(e => e.Email.Equals(email, StringComparison.InvariantCultureIgnoreCase));
+            var userConfirmedHashCodePassword = _repository.Find(e => e.Email.Equals(hashCodePassword, StringComparison.InvariantCultureIgnoreCase));
 
-            if (userConfirmedByEmail == null)
-                result.Messages.Add("E-mail não encontrado.");
+            if (userConfirmedHashCodePassword == null)
+                result.Messages.Add("Hash code não encontrado.");
 
-            else if (result.Success && !userConfirmedByEmail.HashCodePasswordIsValid(hashCodePassword))
+            else if (result.Success && !userConfirmedHashCodePassword.HashCodePasswordIsValid(hashCodePassword))
                 result.Messages.Add("Chave errada ou expirada. Por favor gere outra chave");
 
             else 
-                result.Value = UserCleanup(userConfirmedByEmail);
+                result.Value = UserCleanup(userConfirmedHashCodePassword);
 
             return result;
         }

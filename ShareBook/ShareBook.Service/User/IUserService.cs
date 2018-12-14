@@ -11,6 +11,6 @@ namespace ShareBook.Service
         Result<User> ValidOldPasswordAndChangeUserPassword(User user, string newPassword);
         Result<User> ChangeUserPassword(User user, string newPassword);
         Result GenerateHashCodePasswordAndSendEmailToUser(string email);
-        Result ConfirmEmailAndHashCodePassword(string email, string hashCodePassword);
+        Result ConfirmHashCodePassword(string hashCodePassword);
     }
 }
