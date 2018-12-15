@@ -152,13 +152,13 @@ namespace ShareBook.Api.Controllers
         [HttpPut("ChangeUserPasswordByEmailAndHashCode")]
         [ProducesResponseType(typeof(Result<User>), 200)]
         [ProducesResponseType(404)]
-        public IActionResult ChangeUserPasswordByEmailAndHashCode(ChangeUserPasswordByHashCodeVM changeUserPasswordHashCodeVM)
+        public IActionResult ChangeUserPasswordByHashCode([FromBody]ChangeUserPasswordByHashCodeVM changeUserPasswordByHashCodeVM)
         {
-            var result = _userService.ConfirmHashCodePassword(changeUserPasswordHashCodeVM.HashCodePassword);
+            var result = _userService.ConfirmHashCodePassword(changeUserPasswordByHashCodeVM.HashCodePassword);
             if (!result.Success)
                 return NotFound(result);
 
-            var resultChangePasswordUser = _userService.ChangeUserPassword(result.Value as User, changeUserPasswordHashCodeVM.NewPassword);
+            var resultChangePasswordUser = _userService.ChangeUserPassword(result.Value as User, changeUserPasswordByHashCodeVM.NewPassword);
             if (!resultChangePasswordUser.Success)
                 return BadRequest(resultChangePasswordUser);
 
