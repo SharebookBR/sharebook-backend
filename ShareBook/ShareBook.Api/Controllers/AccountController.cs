@@ -149,7 +149,7 @@ namespace ShareBook.Api.Controllers
             return _userService.ValidOldPasswordAndChangeUserPassword(user, changePasswordUserVM.NewPassword);
         }
 
-        [HttpPut("ChangeUserPasswordByEmailAndHashCode")]
+        [HttpPut("ChangeUserPasswordByHashCode")]
         [ProducesResponseType(typeof(Result<User>), 200)]
         [ProducesResponseType(404)]
         public IActionResult ChangeUserPasswordByHashCode([FromBody]ChangeUserPasswordByHashCodeVM changeUserPasswordByHashCodeVM)
