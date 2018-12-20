@@ -239,6 +239,15 @@ namespace ShareBook.Service
                         Email = u.User.Email,
                         Name = u.User.Name,
                         Linkedin = u.User.Linkedin,
+                        Address = new Address()
+                        {
+                            City = u.User.Address.City,
+                            State = u.User.Address.State,
+                            Country = u.User.Address.Country,
+                            UserId = u.User.Address.UserId,
+                            Id = u.User.Address.Id,
+                            CreationDate = u.User.Address.CreationDate,
+                        }
                     },
                     Category = new Category()
                     {
