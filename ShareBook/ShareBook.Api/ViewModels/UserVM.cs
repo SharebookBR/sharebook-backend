@@ -4,6 +4,7 @@ namespace ShareBook.Api.ViewModels
 {
     public class UserVM : BaseViewModel
     {
+
         public string Name { get; set; }
 
         public string Email { get; set; }
