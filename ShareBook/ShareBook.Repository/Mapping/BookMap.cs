@@ -12,6 +12,8 @@ namespace ShareBook.Repository.Mapping
 
             entityBuilder.Property(t => t.UserId);
 
+            entityBuilder.Property(t => t.UserIdFacilitator);
+
             entityBuilder.Property(t => t.Author)
                 .HasColumnType("varchar(200)")
                 .HasMaxLength(50)
@@ -42,6 +44,8 @@ namespace ShareBook.Repository.Mapping
             entityBuilder.Ignore(t => t.ImageName);
 
             entityBuilder.HasOne(t => t.User);
+
+            entityBuilder.HasOne(t => t.UserFacilitator);
 
             entityBuilder.HasOne(t => t.Category);
                 
