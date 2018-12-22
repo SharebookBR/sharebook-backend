@@ -2,6 +2,7 @@
 using ShareBook.Domain.Enums;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 
 namespace ShareBook.Domain
@@ -22,9 +23,15 @@ namespace ShareBook.Domain
 
         public Guid? UserId { get; set; }
 
-        public Guid CategoryId { get; set; }
+        [ForeignKey("UserId")]
+        public User User { get; set; } // Doador.
 
-        public User User { get; set; }
+        public Guid? UserIdFacilitator { get; set; }
+
+        [ForeignKey("UserIdFacilitator")]
+        public User UserFacilitator { get; set; } // Facilitador.
+
+        public Guid CategoryId { get; set; }
 
         public Category Category { get; set; }
 

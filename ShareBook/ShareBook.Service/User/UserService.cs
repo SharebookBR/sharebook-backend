@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
+using ShareBook.Domain.Enums;
 using ShareBook.Helper.Crypto;
 using ShareBook.Repository;
 
@@ -8,6 +9,7 @@ using ShareBook.Repository.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service.Generic;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
@@ -169,6 +171,14 @@ namespace ShareBook.Service
                 result.Value = UserCleanup(userConfirmedHashCodePassword);
 
             return result;
+        }
+
+        public IList<User> GetFacilitators()
+        {
+            return _repository.Get(
+                    u => u.Profile == Profile.Administrator,
+                    u => u.CreationDate
+                ).Items;
         }
         #endregion
 

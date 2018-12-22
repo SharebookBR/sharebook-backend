@@ -12,9 +12,10 @@ using System;
 namespace ShareBook.Repository.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20181221183602_facilitator")]
+    partial class facilitator
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -81,8 +82,6 @@ namespace ShareBook.Repository.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(200)")
                         .HasMaxLength(50);
-
-                    b.Property<bool>("Canceled");
 
                     b.Property<Guid>("CategoryId");
 
