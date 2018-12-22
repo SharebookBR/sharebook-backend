@@ -10,6 +10,7 @@ using ShareBook.Infra.CrossCutting.Identity;
 using ShareBook.Infra.CrossCutting.Identity.Interfaces;
 using ShareBook.Service;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace ShareBook.Api.Controllers
@@ -47,6 +48,16 @@ namespace ShareBook.Api.Controllers
         {
             var id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             return new { profile = _userService.Find(id).Profile.ToString() };
+        }
+
+
+        [Authorize("Bearer")]
+        [HttpGet("ListFacilitators")]
+        public IActionResult ListFacilitators()
+        {
+            var facilitators = _userService.GetFacilitators();
+            var facilitatorsClean = Mapper.Map<List<UserVM>>(facilitators);
+            return Ok(facilitatorsClean);
         }
         #endregion
 
