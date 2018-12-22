@@ -10,6 +10,8 @@ namespace ShareBook.Service
     {
         Result<Book> Approve(Guid bookId, DateTime? chooseDate);
 
+        Result<Book> Cancel(Guid bookId, bool isAdmin = false);
+
         void HideBook(Guid bookId);
 
         IList<dynamic> FreightOptions();

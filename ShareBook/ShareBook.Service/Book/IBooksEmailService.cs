@@ -8,5 +8,7 @@ namespace ShareBook.Service
         Task SendEmailNewBookInserted(Book book);
 
         Task SendEmailBookApproved(Book book);
+
+        Task SendEmailBookCanceledToAdmins(Book book);
     }
 }

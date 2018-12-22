@@ -30,6 +30,8 @@ namespace ShareBook.Domain
 
         public bool Approved { get; set; } = false;
 
+        public bool Canceled { get; set; } = false;
+
         public virtual ICollection<BookUser> BookUsers { get; set; }
 
         public string ImageUrl { get; set; }
@@ -47,6 +49,9 @@ namespace ShareBook.Domain
         {
             if (Donated())
                 return BookStatus.Donated;
+
+            if(Canceled)
+                return BookStatus.Canceled;
 
             if (Approved)
                 return BookStatus.Available;

@@ -11,6 +11,8 @@ namespace ShareBook.Service
         private const string WaitingApprovalTitle = "Aguarde aprovação do livro - Sharebook";
         private const string BookApprovedTemplate = "BookApprovedTemplate";
         private const string BookApprovedTitle = "Livro aprovado - Sharebook";
+        private const string BookCanceledTemplate = "BookCanceledTemplate";
+        private const string BookCanceledTitle = "Livro cancelado - Sharebook";
 
         private readonly IEmailService _emailService;
         private readonly IUserService _userService;
@@ -46,6 +48,12 @@ namespace ShareBook.Service
             await SendEmailNewBookInsertedToAdministrators(book);
 
             await SendEmailWaitingApprovalToUser(book);
+        }
+
+        public async Task SendEmailBookCanceledToAdmins(Book book)
+        {
+            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookCanceledTemplate, book);
+            await _emailService.SendToAdmins(html, BookCanceledTitle);
         }
 
         private async Task SendEmailNewBookInsertedToAdministrators(Book book)
