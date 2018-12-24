@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace ShareBook.Service
 {
@@ -74,6 +75,8 @@ namespace ShareBook.Service
             _bookService.HideBook(bookId);
 
             await _bookUsersEmailService.SendEmailBookDonated(bookUserAccepted);
+
+            
         }
 
         public void DeniedBookUsers(Guid bookId)
@@ -92,6 +95,28 @@ namespace ShareBook.Service
         {
             var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             return _bookUserRepository.Get(x => x.UserId == userId, x => x.Book, new IncludeList<BookUser>(b => b.Book));
+        }
+
+        public async Task NotifyIntestedAboutBooksWinner(Guid bookId)
+        {
+            //Obter todos os users do livro
+            var bookUsers = _bookUserRepository.Get()
+                                                .Include(u => u.Book)
+                                                .Include(u => u.User)
+                                                .Where(x => x.BookId == bookId).ToList();
+
+            //obter apenas o ganhador
+            var winnerBookUser = bookUsers.Where(bu => bu.Status == DonationStatus.Donated).FirstOrDefault();
+
+            //Book
+            var book =  winnerBookUser.Book;
+
+            //usuarios que perderam a doação :(
+            var losersBookUser = bookUsers.Where(bu => bu.Status == DonationStatus.Denied).ToList();
+
+            //enviar e-mails
+           await this._bookUsersEmailService.SendEmailDonationDeclined(book, winnerBookUser, losersBookUser);
+
         }
     }
 }

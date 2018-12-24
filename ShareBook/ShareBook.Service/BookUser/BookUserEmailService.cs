@@ -1,6 +1,7 @@
 ﻿using ShareBook.Domain;
 using ShareBook.Repository.Repository;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ShareBook.Service
@@ -10,11 +11,13 @@ namespace ShareBook.Service
         private const string BookRequestedTemplate = "BookRequestedTemplate";
         private const string BookNoticeDonorTemplate = "BookNoticeDonorTemplate";
         private const string BookDonatedTemplate = "BookDonatedTemplate";
+        private const string BookNoticeDeclinedUsersTemplate = "BookNoticeDeclinedUsersTemplate";
         private const string BookDonatedTitle = "Parabéns você foi selecionado!";
         private const string BookRequestedTitle = "Um livro foi solicitado - Sharebook";
         private const string BookNoticeDonorTitle = "Seu livro foi solicitado - Sharebook";
+     
 
-  
+
 
 
         private readonly IUserService _userService;
@@ -75,12 +78,30 @@ namespace ShareBook.Service
                     Name = bookRequested.User.Name,
                     ChooseDate = string.Format("{0:dd/MM/yyyy}", bookRequested.ChooseDate.Value)
                 },
-                RequestingUser = new {NickName = $"Interessado {bookRequested.TotalInterested()}" },
+                RequestingUser = new { NickName = $"Interessado {bookRequested.TotalInterested()}" },
             };
 
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookNoticeDonorTemplate, vm);
 
             await _emailService.Send(bookRequested.User.Email, bookRequested.User.Name, html, BookNoticeDonorTitle);
+
+        }
+
+        public async Task SendEmailDonationDeclined(Book book, BookUser bookUserWinner, List<BookUser> bookUsersDeclined)
+        {
+            var vm = new
+            {
+                BookTitle = book.Title,
+                BookWinner = bookUserWinner.User.Name
+            };
+
+            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookNoticeDeclinedUsersTemplate, vm);
+
+
+            bookUsersDeclined.ForEach(bookUser =>
+            {
+                _emailService.Send(bookUser.User.Email, bookUser.User.Name, html, $"SHAREBOOK - GANHADOR DO LIVRO {book.Title.ToUpper()}").Wait();
+            });
 
         }
     }
