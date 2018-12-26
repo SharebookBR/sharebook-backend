@@ -6,7 +6,7 @@ namespace ShareBook.Api.ViewModels
 {
     public abstract class BaseViewModel : IIdProperty
     {
-        //[JsonIgnore]
+        [JsonIgnore]
         public Guid Id { get; set; }
     }
 }
