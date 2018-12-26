@@ -56,7 +56,7 @@ namespace ShareBook.Api.Controllers
         public IActionResult ListFacilitators()
         {
             var facilitators = _userService.GetFacilitators();
-            var facilitatorsClean = Mapper.Map<List<UserVM>>(facilitators);
+            var facilitatorsClean = Mapper.Map<List<UserFacilitatorVM>>(facilitators);
             return Ok(facilitatorsClean);
         }
         #endregion
