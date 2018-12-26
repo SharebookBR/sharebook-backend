@@ -1,4 +1,5 @@
 ﻿using ShareBook.Domain;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ShareBook.Service
@@ -10,5 +11,7 @@ namespace ShareBook.Service
         Task SendEmailBookDonated(BookUser bookUser);
 
         Task SendEmailBookDonor(BookUser bookUser);
+
+        Task SendEmailDonationDeclined(Book book, BookUser bookUserWinner, List<BookUser> bookUsersDeclined);
     }
 }

@@ -2,6 +2,7 @@
 using ShareBook.Domain.Common;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ShareBook.Service
 {
@@ -16,5 +17,10 @@ namespace ShareBook.Service
         void DeniedBookUsers(Guid bookId);
 
         PagedList<BookUser> GetRequestsByUser();
+        /// <summary>
+        /// Comunicar os interessados não escolhidos sobre a finalização da doação. e quem ganhou o livro
+        /// </summary>
+        /// <param name="bookId"></param>
+        Task NotifyInterestedAboutBooksWinner(Guid bookId);
     }
 }

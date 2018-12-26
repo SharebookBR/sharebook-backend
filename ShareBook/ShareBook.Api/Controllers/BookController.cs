@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace ShareBook.Api.Controllers
 {
@@ -157,6 +158,10 @@ namespace ShareBook.Api.Controllers
             {
                 SuccessMessage = "Livro doado com sucesso!",
             };
+
+            //avisar aos participantes que não foram selecionados
+            _bookUserService.NotifyInterestedAboutBooksWinner(bookId);
+
 
             return Ok(result);
         }
