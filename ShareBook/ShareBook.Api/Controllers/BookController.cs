@@ -160,7 +160,7 @@ namespace ShareBook.Api.Controllers
             };
 
             //avisar aos participantes que não foram selecionados
-            _bookUserService.NotifyIntestedAboutBooksWinner(bookId);
+            _bookUserService.NotifyInterestedAboutBooksWinner(bookId);
 
 
             return Ok(result);

@@ -97,7 +97,7 @@ namespace ShareBook.Service
             return _bookUserRepository.Get(x => x.UserId == userId, x => x.Book, new IncludeList<BookUser>(b => b.Book));
         }
 
-        public async Task NotifyIntestedAboutBooksWinner(Guid bookId)
+        public async Task NotifyInterestedAboutBooksWinner(Guid bookId)
         {
             //Obter todos os users do livro
             var bookUsers = _bookUserRepository.Get()
