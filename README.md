@@ -1,38 +1,41 @@
-### Projeto SHAREBOOK backend.
-#### Tecnologias usadas no projeto
+# PRIMEIROS PASSOS DEVELOPER BACKEND
 
-- Visual Studio 2017.
-- ASP.NET CORE 2.0.
-- C#.
-- SQL SERVER.
-- SWAGGER.
+## 1 - CONHEÇA O PROJETO SHAREBOOK
 
-#### Documentação das apis - Swagger
+https://www.linkedin.com/pulse/projeto-sharebook-raffaello-damgaard/
 
-http://www.sharebook.com.br/swagger/
+## 2 - ENTRE NO SLACK
 
-#### Como rodar o projeto ?
+https://join.slack.com/t/sharebookworkspace/shared_invite/enQtMzQ2Nzc5OTk3MDc4LTZlMmJlMjA3NGE1NDczN2QxYzc2ZWZhM2UxMzFkMDIyYjliMGI3YzdlYzg2ZjZhYjQ2YWY1ZTUyZGViNzViOWQ
 
-##### Via terminal:
+### 2.2 - LÁ NO SLACK, ENTRE NO CANAL #BACKEND
 
-- Abra o terminal
-- Acesse a pasta `raiz_do_projeto/Sharebook`
-- Execute: ```dotnet restore``` e na sequencia ```dotnet run --project ShareBook.Api```
+- Se apresente. Nome, cidade, profissão, e principais habilidades.
+- Pergunte sobre as tarefas em aberto.
+- Troque uma ideia com o time técnico. Comente como planeja solucionar. Ouça os conselhos dos devs mais experientes. Esse alinhamento é super importante pra aumentar significativamente as chances do seu PULL REQUEST ser aprovado depois.
+
+## 3 - FAÇA PARTE DA EQUIPE NO TRELLO
+
+https://trello.com/invite/sharebook6/928f21ef82592b5edafde06f171d338b
+
+### 3.2 - PEGUE UMA TAREFA NO TRELLO.
+
+- https://trello.com/b/QTdWPYhl/sharebook
+- Coloque no seu nome e mova para DOING.
+
+## 4 - GITHUB
+
+### 4.1 FAÇA UM FORK DO REPOSITÓRIO
+
+https://github.com/SharebookBR/sharebook-backend
+
+### 4.2 ESCREVA CÓDIGO
+
+Hora de colocar a mão na massa. A parte mais divertida, trabalhar no código-fonte. Depois de concluir e testar, envie e aguarde o PULL REQUEST ser aprovado.
+
+### 5 MISSÃO CUMPRIDA. VC AJUDOU O PROJETO. ❤️
+
+# Rodar o app pela primeira vez?
+https://github.com/SharebookBR/sharebook-backend/wiki/Como-rodar-o-projeto%3F
 
 
-** Não se esquecer de mudar a connection string para a sua base de dados no arquivo appsettings.json que se encontra na camada da API do projeto.
-
-** Sempre que criar as classes de model e map  rodar o comando:
-"Add-Migration nome-do-migration" na camada BASE do projeto  para criar o novo migration para o  banco de dados.
-
-#### Como rodar os testes ?
-
-Estamos usando a biblioteca xUnit[https://github.com/xunit/xunit]. Todos os pacotes foram instalados através do NuGet. Caso necessário, efetue o comando Restore para baixar os pacotes para a sua máquina local.
-
-Para executar os testes, faça um build da solução e depois acesse o Test Explorer acessando Test < Windows < Test Explorer no menu superior do Visual Studio.
-
-Lista de bibliotecas instaladas para execução dos testes:
-- Microsoft.NET.Test.Sdk
-- Microsoft.AspNetCore.App [Microsoft.NET.Test.Sdk dependency]
-- xunit
-- xunit.runner.visualstudio
