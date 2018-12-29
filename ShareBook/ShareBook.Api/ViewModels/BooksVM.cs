@@ -8,6 +8,7 @@ namespace ShareBook.Api.ViewModels
         public string Author { get; set; }
         public bool Donated { get; set; }
         public string Donor { get; set; }
+        public string Facilitator { get; set; }
         public bool Approved { get; set; }
         public string PhoneDonor { get; set; }
         public int DaysInShowcase { get; set; }
