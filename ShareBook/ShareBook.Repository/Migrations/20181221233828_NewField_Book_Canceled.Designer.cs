@@ -12,9 +12,10 @@ using System;
 namespace ShareBook.Repository.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20181221233828_NewField_Book_Canceled")]
+    partial class NewField_Book_Canceled
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -112,15 +113,11 @@ namespace ShareBook.Repository.Migrations
 
                     b.Property<Guid?>("UserId");
 
-                    b.Property<Guid?>("UserIdFacilitator");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
 
                     b.HasIndex("UserId");
-
-                    b.HasIndex("UserIdFacilitator");
 
                     b.ToTable("Books");
                 });
@@ -262,10 +259,6 @@ namespace ShareBook.Repository.Migrations
                     b.HasOne("ShareBook.Domain.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId");
-
-                    b.HasOne("ShareBook.Domain.User", "UserFacilitator")
-                        .WithMany()
-                        .HasForeignKey("UserIdFacilitator");
                 });
 
             modelBuilder.Entity("ShareBook.Domain.BookUser", b =>

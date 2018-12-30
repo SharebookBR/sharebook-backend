@@ -15,6 +15,8 @@ namespace ShareBook.Domain.Enums
         [Description("Invisível")]
         Invisible,
         [Description("Doado")]
-        Donated
+        Donated,
+        [Description("Cancelado")]
+        Canceled
     }
 }

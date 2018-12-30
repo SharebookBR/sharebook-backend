@@ -24,7 +24,7 @@ namespace ShareBook.Service
         private readonly IUploadService _uploadService;
         private readonly IBooksEmailService _booksEmailService;
 
-        public BookService(IBookRepository bookRepository,
+public BookService(IBookRepository bookRepository,
             IUnitOfWork unitOfWork, IValidator<Book> validator,
             IUploadService uploadService, IBooksEmailService booksEmailService)
             : base(bookRepository, unitOfWork, validator)
@@ -44,6 +44,27 @@ namespace ShareBook.Service
             _repository.Update(book);
 
             _booksEmailService.SendEmailBookApproved(book).Wait();
+
+            return new Result<Book>(book);
+        }
+
+        public Result<Book> Cancel(Guid bookId, bool isAdmin = false)
+        {
+            var book = _repository.Get().Include(x => x.BookUsers).FirstOrDefault(x => x.Id == bookId);
+
+            if (book == null)
+                throw new ShareBookException(ShareBookException.Error.NotFound);
+
+            if (!isAdmin && book.BookUsers != null && book.BookUsers.Count > 0)
+                throw new ShareBookException("Este livro já possui interessados");
+
+            book.Approved = false;
+            book.ChooseDate = null;
+            book.Canceled = true;
+
+            _repository.Update(book);
+
+            _booksEmailService.SendEmailBookCanceledToAdmins(book).Wait();
 
             return new Result<Book>(book);
         }
@@ -131,10 +152,10 @@ namespace ShareBook.Service
             var bookAlreadyApproved = BookAlreadyApproved(bookId);
 
             if (!result.Success) return result;
-            
+
             if(!bookAlreadyApproved)
                 entity.Slug = SetSlugByTitleOrIncremental(entity);
-           
+
 
             //imagem eh opcional no update
             if (entity.ImageName != "" && entity.ImageBytes.Length > 0)
@@ -155,7 +176,7 @@ namespace ShareBook.Service
             return result;
         }
 
-        
+
 
         public PagedList<Book> ByTitle(string title, int page, int itemsPerPage)
             => SearchBooks(x => (x.Approved
