@@ -97,6 +97,7 @@ namespace ShareBook.Repository
                     Name = "Cussa",
                     Email = "cussa@sharebook.com",
                     Linkedin = "linkedin.com/cussa",
+                    Profile = Profile.Administrator,
                     Password = PASSWORD_HASH,
                     PasswordSalt = PASSWORD_SALT,
                     CreationDate = DateTime.Now,
