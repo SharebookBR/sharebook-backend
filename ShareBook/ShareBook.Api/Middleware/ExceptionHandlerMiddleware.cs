@@ -38,7 +38,8 @@ namespace ShareBook.Api.Middleware
             }
             catch (Exception ex)
             {
-                await RollbarLocator.RollbarInstance.Error(ex);
+                throw ex;
+                //await RollbarLocator.RollbarInstance.Error(ex);
             }
         }
     }
