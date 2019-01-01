@@ -65,5 +65,10 @@ namespace ShareBook.Domain
         {
             this.Password = password;
         }
+
+        public void TotalFacilitations(Guid UserIdDonator)
+        {
+
+        }
     }
 }
