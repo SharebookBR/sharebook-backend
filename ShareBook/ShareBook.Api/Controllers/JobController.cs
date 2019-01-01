@@ -22,7 +22,8 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpGet("Executor")]
-        [Throttle(Name = "ThrottleTest", Seconds = 5)]
+        [Throttle(Name = "JobExecutor", Seconds = 5)]
+        // TODO: colocar 300 segundos ( 5 minutos ) 
         public IActionResult Executor(){
 
             if (!_IsValidJobToken()) return Unauthorized();

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Net;
-//using System.Runtime.Caching;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Caching.Memory;

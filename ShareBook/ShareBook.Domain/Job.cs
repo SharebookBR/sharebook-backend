@@ -21,6 +21,7 @@ namespace ShareBook.Domain
         public bool IsSuccess { get; set; }
 
         // Alguns jobs precisam saber de onde terminou o ultimo ciclo pra continuar daí.
+        // permitindo dividir um GRANDE PROCESSAMENTO em vários PEQUENOS.
         public string LastResult { get; set; }
         public string Details { get; set; }
 
