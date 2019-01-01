@@ -1,20 +1,10 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Cors;
+﻿using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using ShareBook.Api.Filters;
-using ShareBook.Api.ViewModels;
-using ShareBook.Domain;
-using ShareBook.Domain.Common;
-using ShareBook.Repository.Repository;
-using ShareBook.Service;
-using ShareBook.Service.Authorization;
-using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using Sharebook.Jobs;
+using ShareBook.Service.Server;
+using System.Configuration;
+using ShareBook.Api.Filters;
 
 namespace ShareBook.Api.Controllers
 {
@@ -23,16 +13,31 @@ namespace ShareBook.Api.Controllers
     public class JobController: Controller
     {
         IJobExecutor _executor;
+        string _validToken;
 
-        public JobController(IJobExecutor executor)
+        public JobController(IJobExecutor executor, IOptions<ServerSettings> settings)
         {
             _executor = executor;
+            _validToken = settings.Value.JobExecutorToken;
         }
 
-        [HttpGet("Execute")]
-        public IActionResult Ping(){
+        [HttpGet("Executor")]
+        [Throttle(Name = "ThrottleTest", Seconds = 5)]
+        public IActionResult Executor(){
+
+            if (!_IsValidJobToken()) return Unauthorized();
+
             var result = _executor.Execute();
             return Ok(result);
+        }
+
+        private bool _IsValidJobToken()
+        {
+            var userToken = Request.Headers["Authorization"].ToString();
+
+            if (userToken == _validToken) return true;
+
+            return false;
         }
     }
 }
