@@ -15,6 +15,6 @@ namespace ShareBook.Api.ViewModels
         public int TotalInterested { get; set; }
         public string Status { get; set; }
         public DateTime CreationDate { get; set; }
-        public DateTime ChososeDate { get; set; }
+        public DateTime ChooseDate { get; set; }
     }
 }
