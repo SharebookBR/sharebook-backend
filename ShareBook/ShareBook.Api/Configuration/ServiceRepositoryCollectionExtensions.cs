@@ -8,6 +8,7 @@ using ShareBook.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service;
 using ShareBook.Service.Upload;
+using Sharebook.Jobs;
 
 namespace ShareBook.Api.Configuration
 {
@@ -33,6 +34,8 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<IBookUserRepository, BookUserRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
+            services.AddScoped<IJobReposiory, JobReposiory>();
+            services.AddScoped<IJobHistoryReposiory, JobHistoryReposiory>();
 
             //validators
             services.AddScoped<IValidator<User>, UserValidator>();
@@ -52,6 +55,12 @@ namespace ShareBook.Api.Configuration
 
             //UnitOfWork
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            //Jobs
+            services.AddScoped<IJobExecutor, JobExecutor>();
+            services.AddScoped<RemoveBookFromShowcase>();
+            services.AddScoped<ChooseDateReminder>();
+            services.AddScoped<LateDonationNotification>();
 
             return services;
         }

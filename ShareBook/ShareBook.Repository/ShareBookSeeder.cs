@@ -10,8 +10,10 @@ namespace ShareBook.Repository
 
         private readonly ApplicationDbContext _context;
 
-        private const string PASSWORD_HASH = "9XurTqQsYQY1rtAGXRfwEWO/ROghN3DFx9lTT75i/0s=";
-        private const string PASSWORD_SALT = "1x7XxoaSO5I0QGIdARCh5A==";
+        // Teste123@
+        private const string PASSWORD_HASH = "cWrRhnwyLmSOv3FIn7abuRevvV/GkGc1E/c66s02ujQ=";
+        private const string PASSWORD_SALT = "xP+CoqfrCbbfIU9HPCd4rA==";
+
 
         public ShareBookSeeder(ApplicationDbContext context)
         {
@@ -33,7 +35,18 @@ namespace ShareBook.Repository
                     Linkedin = "linkedin.com/walter.cardoso",
                     Password = PASSWORD_HASH,
                     PasswordSalt = PASSWORD_SALT,
-                    CreationDate = DateTime.Now
+                    CreationDate = DateTime.Now,
+                    Address = new Address()
+                    {
+                        Street = "Rua teste",
+                        Number = "1",
+                        Complement = "apto 1",
+                        Neighborhood = "Bairro teste",
+                        PostalCode = "11111-111",
+                        City = "São Paulo",
+                        State = "SP",
+                        Country = "Brasil"
+                    }
                 };
 
                 var @operator = new User()
@@ -44,7 +57,18 @@ namespace ShareBook.Repository
                     Profile = Profile.Administrator,
                     Password = PASSWORD_HASH,
                     PasswordSalt = PASSWORD_SALT,
-                    CreationDate = DateTime.Now
+                    CreationDate = DateTime.Now,
+                    Address = new Address()
+                    {
+                        Street = "Rua teste",
+                        Number = "2",
+                        Complement = "apto 2",
+                        Neighborhood = "Bairro teste",
+                        PostalCode = "11111-111",
+                        City = "São Paulo",
+                        State = "SP",
+                        Country = "Brasil"
+                    }
                 };
 
                 var donor = new User()
@@ -54,7 +78,40 @@ namespace ShareBook.Repository
                     Linkedin = "linkedin.com/rodrigo",
                     Password = PASSWORD_HASH,
                     PasswordSalt = PASSWORD_SALT,
-                    CreationDate = DateTime.Now
+                    CreationDate = DateTime.Now,
+                    Address = new Address()
+                    {
+                        Street = "Rua teste",
+                        Number = "3",
+                        Complement = "apto 3",
+                        Neighborhood = "Bairro teste",
+                        PostalCode = "11111-111",
+                        City = "São Paulo",
+                        State = "SP",
+                        Country = "Brasil"
+                    }
+                };
+
+                var facilitator = new User()
+                {
+                    Name = "Cussa",
+                    Email = "cussa@sharebook.com",
+                    Linkedin = "linkedin.com/cussa",
+                    Profile = Profile.Administrator,
+                    Password = PASSWORD_HASH,
+                    PasswordSalt = PASSWORD_SALT,
+                    CreationDate = DateTime.Now,
+                    Address = new Address()
+                    {
+                        Street = "Rua teste",
+                        Number = "4",
+                        Complement = "apto 4",
+                        Neighborhood = "Bairro teste",
+                        PostalCode = "11111-111",
+                        City = "São Paulo",
+                        State = "SP",
+                        Country = "Brasil"
+                    }
                 };
 
                 var dir = new Category() { Name = "Direito", CreationDate = DateTime.Now };
@@ -79,7 +136,9 @@ namespace ShareBook.Repository
                     User = donor,
                     Approved = true,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-1)
+                    CreationDate = DateTime.Now.AddDays(-1),
+                    ChooseDate = DateTime.Now.AddDays(5),
+                    UserFacilitator = facilitator
                 };
 
 
@@ -93,7 +152,9 @@ namespace ShareBook.Repository
                     User = donor,
                     Approved = true,
                     Category = dir,
-                    CreationDate = DateTime.Now.AddDays(-2)
+                    CreationDate = DateTime.Now.AddDays(-2),
+                    ChooseDate = DateTime.Now.AddDays(5),
+                    UserFacilitator = facilitator
                 };
 
                 var book3 = new Book()
@@ -106,7 +167,9 @@ namespace ShareBook.Repository
                     User = donor,
                     Approved = true,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-2)
+                    CreationDate = DateTime.Now.AddDays(-2),
+                    ChooseDate = DateTime.Now.AddDays(5),
+                    UserFacilitator = facilitator
                 };
 
                 var book4 = new Book()
@@ -119,7 +182,9 @@ namespace ShareBook.Repository
                     User = donor,
                     Approved = true,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-2)
+                    CreationDate = DateTime.Now.AddDays(-2),
+                    ChooseDate = DateTime.Now.AddDays(5),
+                    UserFacilitator = facilitator
                 };
 
                 var book5 = new Book()
@@ -132,7 +197,9 @@ namespace ShareBook.Repository
                     User = donor,
                     Approved = true,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-2)
+                    CreationDate = DateTime.Now.AddDays(-2),
+                    ChooseDate = DateTime.Now.AddDays(5),
+                    UserFacilitator = facilitator
                 };
 
                 var book6 = new Book()
@@ -145,7 +212,9 @@ namespace ShareBook.Repository
                     User = donor,
                     Approved = true,
                     Category = inf,
-                    CreationDate = DateTime.Now.AddDays(-1)
+                    CreationDate = DateTime.Now.AddDays(-1),
+                    ChooseDate = DateTime.Now.AddDays(5),
+                    UserFacilitator = facilitator
                 };
 
                 var book7 = new Book()
@@ -158,7 +227,9 @@ namespace ShareBook.Repository
                     User = donor,
                     Approved = true,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-5)
+                    CreationDate = DateTime.Now.AddDays(-5),
+                    ChooseDate = DateTime.Now.AddDays(5),
+                    UserFacilitator = facilitator
                 };
 
                 var book8 = new Book()
@@ -171,7 +242,9 @@ namespace ShareBook.Repository
                     User = donor,
                     Approved = true,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-6)
+                    CreationDate = DateTime.Now.AddDays(-6),
+                    ChooseDate = DateTime.Now.AddDays(5),
+                    UserFacilitator = facilitator
                 };
 
                 var book9 = new Book()
@@ -184,7 +257,9 @@ namespace ShareBook.Repository
                     User = donor,
                     Approved = true,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-8)
+                    CreationDate = DateTime.Now.AddDays(-8),
+                    ChooseDate = DateTime.Now.AddDays(5),
+                    UserFacilitator = facilitator
                 };
 
 
@@ -198,7 +273,9 @@ namespace ShareBook.Repository
                     User = donor,
                     Approved = true,
                     Category = inf,
-                    CreationDate = DateTime.Now.AddDays(-5)
+                    CreationDate = DateTime.Now.AddDays(-5),
+                    ChooseDate = DateTime.Now.AddDays(5),
+                    UserFacilitator = facilitator
                 };
 
                 var book11 = new Book()
@@ -211,7 +288,9 @@ namespace ShareBook.Repository
                     User = donor,
                     Approved = true,
                     Category = inf,
-                    CreationDate = DateTime.Now.AddDays(-10)
+                    CreationDate = DateTime.Now.AddDays(-10),
+                    ChooseDate = DateTime.Now.AddDays(5),
+                    UserFacilitator = facilitator
                 };
 
                 var book12 = new Book()
@@ -224,7 +303,9 @@ namespace ShareBook.Repository
                     User = donor,
                     Approved = true,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-2)
+                    CreationDate = DateTime.Now.AddDays(-2),
+                    ChooseDate = DateTime.Now.AddDays(5),
+                    UserFacilitator = facilitator
                 };
 
                 var book13 = new Book()
@@ -237,7 +318,9 @@ namespace ShareBook.Repository
                     User = donor,
                     Approved = true,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-9)
+                    CreationDate = DateTime.Now.AddDays(-9),
+                    ChooseDate = DateTime.Now.AddDays(5),
+                    UserFacilitator = facilitator
                 };
 
                 var book14 = new Book()
@@ -250,7 +333,9 @@ namespace ShareBook.Repository
                     User = donor,
                     Approved = true,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-1)
+                    CreationDate = DateTime.Now.AddDays(-1),
+                    ChooseDate = DateTime.Now.AddDays(5),
+                    UserFacilitator = facilitator
                 };
 
                 var book16 = new Book()
@@ -263,7 +348,9 @@ namespace ShareBook.Repository
                     User = donor,
                     Approved = true,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-2)
+                    CreationDate = DateTime.Now.AddDays(-2),
+                    ChooseDate = DateTime.Now.AddDays(5),
+                    UserFacilitator = facilitator
                 };
 
                 var book17 = new Book()
@@ -276,7 +363,9 @@ namespace ShareBook.Repository
                     User = donor,
                     Approved = true,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-3)
+                    CreationDate = DateTime.Now.AddDays(-3),
+                    ChooseDate = DateTime.Now.AddDays(5),
+                    UserFacilitator = facilitator
                 };
 
                 var book18 = new Book()
@@ -289,7 +378,9 @@ namespace ShareBook.Repository
                     User = donor,
                     Approved = true,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-1)
+                    CreationDate = DateTime.Now.AddDays(-1),
+                    ChooseDate = DateTime.Now.AddDays(5),
+                    UserFacilitator = facilitator
                 };
 
                 var book19 = new Book()
@@ -302,7 +393,9 @@ namespace ShareBook.Repository
                     User = donor,
                     Approved = true,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-3)
+                    CreationDate = DateTime.Now.AddDays(-3),
+                    ChooseDate = DateTime.Now.AddDays(5),
+                    UserFacilitator = facilitator
                 };
 
                 var book20 = new Book()
@@ -315,7 +408,9 @@ namespace ShareBook.Repository
                     User = donor,
                     Approved = true,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-4)
+                    CreationDate = DateTime.Now.AddDays(-4),
+                    ChooseDate = DateTime.Now.AddDays(5),
+                    UserFacilitator = facilitator
                 };
 
                 var book21 = new Book()
@@ -328,7 +423,9 @@ namespace ShareBook.Repository
                     User = donor,
                     Approved = true,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-5)
+                    CreationDate = DateTime.Now.AddDays(-5),
+                    ChooseDate = DateTime.Now.AddDays(5),
+                    UserFacilitator = facilitator
                 };
 
                 var book22 = new Book()
@@ -341,7 +438,9 @@ namespace ShareBook.Repository
                     User = donor,
                     Approved = true,
                     Category = psico,
-                    CreationDate = DateTime.Now.AddDays(-2)
+                    CreationDate = DateTime.Now.AddDays(-2),
+                    ChooseDate = DateTime.Now.AddDays(5),
+                    UserFacilitator = facilitator
                 };
 
 
@@ -355,7 +454,9 @@ namespace ShareBook.Repository
                     User = donor,
                     Approved = true,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-4)
+                    CreationDate = DateTime.Now.AddDays(-4),
+                    ChooseDate = DateTime.Now.AddDays(5),
+                    UserFacilitator = facilitator
                 };
 
                 var book15 = new Book()
@@ -368,7 +469,9 @@ namespace ShareBook.Repository
                     User = donor,
                     Approved = true,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-2)
+                    CreationDate = DateTime.Now.AddDays(-2),
+                    ChooseDate = DateTime.Now.AddDays(5),
+                    UserFacilitator = facilitator
                 };
 
 
@@ -376,7 +479,34 @@ namespace ShareBook.Repository
                 {
                     User = grantee,
                     Book = book5,
-                    CreationDate = DateTime.Now
+                    CreationDate = DateTime.Now,
+                    Reason = "Quero muito esse livro."
+                };
+
+                // ----------------------------------------------
+                // Jobs
+                var job1 = new Job
+                {
+                    Name = "RemoveBookFromShowcase",
+                    Description = "Remove o livro da vitrine no dia da decisão. Caso o livro não tenha interessado o mesmo tem a data renovada por mais 10 dias.",
+                    Interval = Interval.Dayly,
+                    Active = true
+                };
+
+                var job2 = new Job
+                {
+                    Name = "ChooseDateReminder",
+                    Description = "Notifica o doador, com um lembrete amigável, no dia da doação. Com cópia para o facilitador.",
+                    Interval = Interval.Dayly,
+                    Active = true
+                };
+
+                var job3 = new Job
+                {
+                    Name = "LateDonationNotification",
+                    Description = "Notifica o facilitador que uma doação está em atraso. Com cópia para contato@sharebook.com.br.",
+                    Interval = Interval.Dayly,
+                    Active = true
                 };
 
                 _context.Categories.AddRange(adm, dir, psico, med, eng, geo_his, cien, art);
@@ -386,6 +516,9 @@ namespace ShareBook.Repository
                     book16, book18, book19, book20 , book21 , book22 , book23);
 
                 _context.BookUser.Add(request);
+
+                _context.Jobs.AddRange(job1, job2, job3);
+
                 _context.SaveChanges();
             }
 
