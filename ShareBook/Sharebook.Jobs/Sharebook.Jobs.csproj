@@ -6,7 +6,6 @@
 
   <ItemGroup>
     <Folder Include="Executor\" />
-    <Folder Include="Jobs\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ShareBook.Domain\ShareBook.Domain.csproj" />

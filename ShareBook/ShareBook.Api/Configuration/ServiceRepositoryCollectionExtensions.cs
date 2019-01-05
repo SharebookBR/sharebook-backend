@@ -34,7 +34,6 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<IBookUserRepository, BookUserRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
-            services.AddScoped<IJobReposiory, JobReposiory>();
             services.AddScoped<IJobHistoryReposiory, JobHistoryReposiory>();
 
             //validators

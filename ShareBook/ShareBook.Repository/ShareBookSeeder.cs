@@ -483,32 +483,6 @@ namespace ShareBook.Repository
                     Reason = "Quero muito esse livro."
                 };
 
-                // ----------------------------------------------
-                // Jobs
-                var job1 = new Job
-                {
-                    Name = "RemoveBookFromShowcase",
-                    Description = "Remove o livro da vitrine no dia da decisão. Caso o livro não tenha interessado o mesmo tem a data renovada por mais 10 dias.",
-                    Interval = Interval.Dayly,
-                    Active = true
-                };
-
-                var job2 = new Job
-                {
-                    Name = "ChooseDateReminder",
-                    Description = "Notifica o doador, com um lembrete amigável, no dia da doação. Com cópia para o facilitador.",
-                    Interval = Interval.Dayly,
-                    Active = true
-                };
-
-                var job3 = new Job
-                {
-                    Name = "LateDonationNotification",
-                    Description = "Notifica o facilitador que uma doação está em atraso. Com cópia para contato@sharebook.com.br.",
-                    Interval = Interval.Dayly,
-                    Active = true
-                };
-
                 _context.Categories.AddRange(adm, dir, psico, med, eng, geo_his, cien, art);
                 _context.Users.AddRange(grantee, @operator);
                 _context.Books.AddRange(book1, book2, book3, book4, book5, book6, book7,
@@ -516,8 +490,6 @@ namespace ShareBook.Repository
                     book16, book18, book19, book20 , book21 , book22 , book23);
 
                 _context.BookUser.Add(request);
-
-                _context.Jobs.AddRange(job1, job2, job3);
 
                 _context.SaveChanges();
             }

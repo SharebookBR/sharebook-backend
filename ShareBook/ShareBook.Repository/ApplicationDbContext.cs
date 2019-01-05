@@ -17,7 +17,6 @@ namespace ShareBook.Repository
         public DbSet<BookUser> BookUser { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Address> Addresses { get; set; }
-        public DbSet<Job> Jobs { get; set; }
         public DbSet<JobHistory> JobHistories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -29,7 +28,6 @@ namespace ShareBook.Repository
             new BookUserMap(modelBuilder.Entity<BookUser>());
             new CategoryMap(modelBuilder.Entity<Category>());
             new AddressMap(modelBuilder.Entity<Address>());
-            new JobMap(modelBuilder.Entity<Job>());
             new JobHistoryMap(modelBuilder.Entity<JobHistory>());
         }
 
