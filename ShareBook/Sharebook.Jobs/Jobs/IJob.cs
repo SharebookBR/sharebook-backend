@@ -1,5 +1,5 @@
 ﻿using ShareBook.Domain.Enums;
-using System;
+
 namespace Sharebook.Jobs
 {
     public interface IJob

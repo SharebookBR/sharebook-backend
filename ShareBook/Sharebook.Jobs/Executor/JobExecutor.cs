@@ -7,6 +7,9 @@ using System.Diagnostics;
 
 namespace Sharebook.Jobs
 {
+    // inspirado no design pattern chain of responsability
+    // https://pt.wikipedia.org/wiki/Chain_of_Responsibility
+
     public class JobExecutor : IJobExecutor
     {
         private readonly List<IJob> _jobs = new List<IJob>();
@@ -78,7 +81,7 @@ namespace Sharebook.Jobs
             // Executor também loga seu histórico. Precisamos de rastreabilidade.
             _stopwatch.Stop();
             var details = String.Join("\n", messages.ToArray());
-            LogExecutorAddHistory(details);
+            LogExecutorAddHistory(success, details);
 
             return new JobExecutorResult()
             {
@@ -87,12 +90,12 @@ namespace Sharebook.Jobs
             };
         }
 
-        private void LogExecutorAddHistory(string details)
+        private void LogExecutorAddHistory(bool success, string details)
         {
             var history = new JobHistory()
             {
                 JobName = "JobExecutor",
-                IsSuccess = true,
+                IsSuccess = success,
                 Details = details,
                 TimeSpentSeconds = ((double)_stopwatch.ElapsedMilliseconds / (double)1000),
             };

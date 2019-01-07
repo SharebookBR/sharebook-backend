@@ -1,38 +1,33 @@
-﻿using System;
-using ShareBook.Domain;
-using ShareBook.Repository;
-using ShareBook.Repository.Repository;
+﻿using ShareBook.Domain;
 using ShareBook.Domain.Enums;
-using System.Collections.Generic;
+using ShareBook.Repository;
 
 namespace Sharebook.Jobs
 {
     public class RemoveBookFromShowcase : GenericJob, IJob
     {
-        private IJobHistoryReposiory _jobHistoryRepo;
 
-        public RemoveBookFromShowcase(IJobHistoryReposiory jobHistoryRepo)
+        public RemoveBookFromShowcase(IJobHistoryReposiory jobHistoryRepo) : base(jobHistoryRepo)
         {
-            _jobHistoryRepo = jobHistoryRepo;
 
-            JobName = "RemoveBookFromShowcase";
+            JobName     = "RemoveBookFromShowcase";
             Description = "Remove o livro da vitrine no dia da decisão. " +
                           "Caso o livro não tenha interessado o mesmo tem a data renovada por mais 10 dias.";
-            Interval = Interval.Dayly;
-            Active = true;
+            Interval    = Interval.Dayly;
+            Active      = false;
 
         }
 
-        public bool HasWork()
+        public override JobHistory Work()
         {
-            return true;            
-        }
+            // TODO: implementar trabalho do job aqui.
 
-        public bool Execute()
-        {
-            return true;
+            return new JobHistory()
+            {
+                JobName = JobName,
+                IsSuccess = true,
+                Details = ""
+            };
         }
-
-        
     }
 }

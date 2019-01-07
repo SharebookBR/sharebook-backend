@@ -12,8 +12,8 @@ namespace ShareBook.Api.Controllers
     [EnableCors("AllowAllHeaders")]
     public class JobController: Controller
     {
-        IJobExecutor _executor;
-        string _validToken;
+        private readonly IJobExecutor _executor;
+        private readonly string _validToken;
 
         public JobController(IJobExecutor executor, IOptions<ServerSettings> settings)
         {
@@ -22,8 +22,7 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpGet("Executor")]
-        [Throttle(Name = "JobExecutor", Seconds = 5)]
-        // TODO: colocar 300 segundos ( 5 minutos ) 
+        [Throttle(Name = "JobExecutor", Seconds = 300, VaryByIp = false)]
         public IActionResult Executor(){
 
             if (!_IsValidJobToken()) return Unauthorized();
