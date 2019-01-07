@@ -12,12 +12,15 @@ namespace ShareBook.Api.Filters
         public string Name { get; set; }
         public int Seconds { get; set; }
         public string Message { get; set; }
+        public bool VaryByIp { get; set; }
 
         private static MemoryCache Cache { get; } = new MemoryCache(new MemoryCacheOptions());
 
         public override void OnActionExecuting(ActionExecutingContext c)
         {
-            var key = string.Concat(Name, "-", c.HttpContext.Request.HttpContext.Connection.RemoteIpAddress);
+            var key = VaryByIp 
+            ? string.Concat(Name, "-", c.HttpContext.Request.HttpContext.Connection.RemoteIpAddress)
+            : Name;
 
             if (!Cache.TryGetValue(key, out bool entry))
             {

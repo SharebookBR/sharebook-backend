@@ -1,28 +1,30 @@
-﻿using System;
+﻿using ShareBook.Domain;
 using ShareBook.Domain.Enums;
+using ShareBook.Repository;
 
 namespace Sharebook.Jobs
 {
     public class LateDonationNotification : GenericJob, IJob
     {
-        public LateDonationNotification()
+        public LateDonationNotification(IJobHistoryReposiory jobHistoryRepo) : base(jobHistoryRepo)
         {
-            JobName = "LateDonationNotification";
+            JobName     = "LateDonationNotification";
             Description = "Notifica o facilitador que uma doação está em atraso. " +
                           "Com cópia para contato@sharebook.com.br.";
-            Interval = Interval.Dayly;
-            Active = false;
+            Interval    = Interval.Dayly;
+            Active      = false;
         }
 
-        public bool HasWork()
+        public override JobHistory Work()
         {
-            return false;
-        }
+            // TODO: implementar trabalho do job aqui.
 
-        public bool Execute()
-        {
-            //throw new Exception("Erro teste");
-            return true;
+            return new JobHistory()
+            {
+                JobName = JobName,
+                IsSuccess = true,
+                Details = ""
+            };
         }
     }
 }

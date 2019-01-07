@@ -10,5 +10,6 @@
   <ItemGroup>
     <ProjectReference Include="..\ShareBook.Domain\ShareBook.Domain.csproj" />
     <ProjectReference Include="..\ShareBook.Repository\ShareBook.Infra.Data.csproj" />
+    <ProjectReference Include="..\ShareBook.Service\ShareBook.Service.csproj" />
   </ItemGroup>
 </Project>
