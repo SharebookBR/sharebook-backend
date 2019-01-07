@@ -25,10 +25,4 @@ namespace ShareBook.Domain.Common
 
         public bool Success { get { return Messages.Count == 0; } }
     }
-
-    public class JobExecutorResult
-    {
-        public bool Success { get; set; }
-        public IList<string> Messages { get; set; }
-    }
 }

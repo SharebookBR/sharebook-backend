@@ -13,10 +13,10 @@ namespace Sharebook.Jobs
     public class JobExecutor : IJobExecutor
     {
         private readonly List<IJob> _jobs = new List<IJob>();
-        private readonly IJobHistoryReposiory _jobHistoryRepo;
+        private readonly IJobHistoryRepository _jobHistoryRepo;
         private Stopwatch _stopwatch;
 
-        public JobExecutor(IJobHistoryReposiory jobHistoryRepo,
+        public JobExecutor(IJobHistoryRepository jobHistoryRepo,
                            ChooseDateReminder job1,
                            LateDonationNotification job2,
                            RemoveBookFromShowcase job3)

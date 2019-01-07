@@ -14,11 +14,11 @@ namespace Sharebook.Jobs
         public Interval Interval { get; set; }
         public bool Active { get; set; }
 
-        protected readonly IJobHistoryReposiory _jobHistoryRepo;
+        protected readonly IJobHistoryRepository _jobHistoryRepo;
 
         protected Stopwatch _stopwatch;
 
-        public GenericJob(IJobHistoryReposiory jobHistoryRepo)
+        public GenericJob(IJobHistoryRepository jobHistoryRepo)
         {
             _jobHistoryRepo = jobHistoryRepo;
         }

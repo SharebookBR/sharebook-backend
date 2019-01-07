@@ -2,18 +2,16 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Sharebook.Jobs;
-using ShareBook.Service.Server;
-using System.Configuration;
+using ShareBook.Api.Controllers.Generic;
 using ShareBook.Api.Filters;
+using ShareBook.Service.Server;
 
 namespace ShareBook.Api.Controllers
 {
     [Route("api/[controller]")]
     [EnableCors("AllowAllHeaders")]
-    public class JobController: Controller
+    public class JobController: BaseJobController
     {
-        private readonly IJobExecutor _executor;
-        private readonly string _validToken;
 
         public JobController(IJobExecutor executor, IOptions<ServerSettings> settings)
         {
@@ -31,13 +29,5 @@ namespace ShareBook.Api.Controllers
             return Ok(result);
         }
 
-        private bool _IsValidJobToken()
-        {
-            var userToken = Request.Headers["Authorization"].ToString();
-
-            if (userToken == _validToken) return true;
-
-            return false;
-        }
     }
 }

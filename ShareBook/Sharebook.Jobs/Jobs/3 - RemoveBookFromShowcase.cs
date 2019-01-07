@@ -7,7 +7,7 @@ namespace Sharebook.Jobs
     public class RemoveBookFromShowcase : GenericJob, IJob
     {
 
-        public RemoveBookFromShowcase(IJobHistoryReposiory jobHistoryRepo) : base(jobHistoryRepo)
+        public RemoveBookFromShowcase(IJobHistoryRepository jobHistoryRepo) : base(jobHistoryRepo)
         {
 
             JobName     = "RemoveBookFromShowcase";

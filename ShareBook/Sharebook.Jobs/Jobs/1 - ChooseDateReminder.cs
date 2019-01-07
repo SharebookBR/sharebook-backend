@@ -11,13 +11,13 @@ namespace Sharebook.Jobs
 {
     public class ChooseDateReminder : GenericJob, IJob
     {
-        private IBookRepository _bookRepo;
-        private IEmailService _emailService;
-        private IEmailTemplate _emailTemplate;
+        private readonly IEmailService _emailService;
+        private readonly IEmailTemplate _emailTemplate;
+        private readonly IBookService _bookService;
 
         public ChooseDateReminder(
-            IJobHistoryReposiory jobHistoryRepo, 
-            IBookRepository bookRepository,
+            IJobHistoryRepository jobHistoryRepo,
+            IBookService bookService,
             IEmailService emailService, 
             IEmailTemplate emailTemplate
             ) : base(jobHistoryRepo)
@@ -28,7 +28,7 @@ namespace Sharebook.Jobs
             Interval = Interval.Dayly;
             Active = true;
 
-            _bookRepo = bookRepository;
+            _bookService = bookService;
             _emailService = emailService;
             _emailTemplate = emailTemplate;
         }
@@ -37,7 +37,7 @@ namespace Sharebook.Jobs
         {
             var messages = new List<string>();
 
-            var books = FindBooks();
+            var books = _bookService.GetChooseDateRemindableBooks();
 
             if (books.Count == 0) messages.Add("Nenhum livro encontrado.");
 
@@ -64,25 +64,6 @@ namespace Sharebook.Jobs
 
         #region métodos privados de apoio
 
-
-
-        private List<Book> FindBooks()
-        {
-            // limite eh o dia de hoje.
-            DateTime startDateTime = DateTime.Today; //Today at 00:00:00
-            DateTime endDateTime = DateTime.Today.AddDays(1).AddTicks(-1); //Today at 23:59:59
-
-            // livros em que o choosedate eh hoje.
-            var books = _bookRepo
-            .Get().Include(x => x.User).Include(x => x.BookUsers).Include(x => x.UserFacilitator)
-            .Where(x =>
-                x.ChooseDate >= startDateTime &&
-                x.ChooseDate <= endDateTime &&
-                x.BookUsers.Count > 0
-            ).ToList();
-
-            return books;
-        }
 
         private void SendEmail(Book book)
         {

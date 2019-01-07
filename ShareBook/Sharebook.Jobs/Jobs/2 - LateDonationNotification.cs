@@ -6,7 +6,7 @@ namespace Sharebook.Jobs
 {
     public class LateDonationNotification : GenericJob, IJob
     {
-        public LateDonationNotification(IJobHistoryReposiory jobHistoryRepo) : base(jobHistoryRepo)
+        public LateDonationNotification(IJobHistoryRepository jobHistoryRepo) : base(jobHistoryRepo)
         {
             JobName     = "LateDonationNotification";
             Description = "Notifica o facilitador que uma doação está em atraso. " +
