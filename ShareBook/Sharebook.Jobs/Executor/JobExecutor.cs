@@ -36,10 +36,6 @@ namespace Sharebook.Jobs
             var messages = new List<string>();
             var success = true;
 
-            var r = new Result() { 
-
-             };
-
             try
             {
                 foreach (IJob job in _jobs)
