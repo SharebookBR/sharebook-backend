@@ -7,6 +7,7 @@ namespace ShareBook.Api.ViewModels
         public string Title { get; set; }
         public string Author { get; set; }
         public bool Donated { get; set; }
+        public string WinnerName { get; set; }
         public string Donor { get; set; }
         public string Facilitator { get; set; }
         public bool Approved { get; set; }
@@ -15,6 +16,6 @@ namespace ShareBook.Api.ViewModels
         public int TotalInterested { get; set; }
         public string Status { get; set; }
         public DateTime CreationDate { get; set; }
-        public DateTime ChooseDate { get; set; }
+        public DateTime ChooseDate { get; set; } 
     }
 }
