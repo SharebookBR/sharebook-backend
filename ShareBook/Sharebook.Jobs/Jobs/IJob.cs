@@ -1,4 +1,5 @@
 ﻿using ShareBook.Domain.Enums;
+using System;
 
 namespace Sharebook.Jobs
 {
@@ -8,6 +9,8 @@ namespace Sharebook.Jobs
         string Description { get; set; }
         Interval Interval { get; set; }
         bool Active { get; set; }
+        TimeSpan? BestTimeToExecute { get; set; }
+
         bool HasWork();
         bool Execute();
     }

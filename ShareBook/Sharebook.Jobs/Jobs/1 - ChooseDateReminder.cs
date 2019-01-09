@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
-using ShareBook.Domain;
+﻿using ShareBook.Domain;
 using ShareBook.Domain.Enums;
 using ShareBook.Repository;
 using ShareBook.Service;
+using System;
+using System.Collections.Generic;
 
 namespace Sharebook.Jobs
 {
@@ -27,6 +25,7 @@ namespace Sharebook.Jobs
                           "Com cópia para o facilitador.";
             Interval = Interval.Dayly;
             Active = true;
+            BestTimeToExecute = new TimeSpan(9, 0, 0);
 
             _bookService = bookService;
             _emailService = emailService;
@@ -37,20 +36,20 @@ namespace Sharebook.Jobs
         {
             var messages = new List<string>();
 
-            var books = _bookService.GetChooseDateRemindableBooks();
+            var books = _bookService.GetBooksChooseDateIsToday();
 
             if (books.Count == 0) messages.Add("Nenhum livro encontrado.");
 
             foreach (var book in books)
             {
-                if (book.Status() == BookStatus.Available)
+                if (book.Status() == BookStatus.Available && book.BookUsers.Count > 0)
                 {
                     SendEmail(book);
                     messages.Add(string.Format("Lembrete amigável enviado para '{0}' referente ao livro '{1}'.", book.User.Name, book.Title));
                 }
                 else
                 {
-                    messages.Add(string.Format("Lembrete amigável NÃO enviado para '{0}' referente ao livro '{1}'. Livro não está disponível.", book.User.Name, book.Title));
+                    messages.Add(string.Format("Lembrete amigável NÃO enviado para '{0}' referente ao livro '{1}'. Livro não está disponível ou não tem interessados.", book.User.Name, book.Title));
                 }
             }
 

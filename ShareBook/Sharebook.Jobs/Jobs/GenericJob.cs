@@ -13,6 +13,7 @@ namespace Sharebook.Jobs
         public string Description { get; set; }
         public Interval Interval { get; set; }
         public bool Active { get; set; }
+        public TimeSpan? BestTimeToExecute { get; set; }
 
         protected readonly IJobHistoryRepository _jobHistoryRepo;
 
@@ -25,6 +26,12 @@ namespace Sharebook.Jobs
 
         public bool HasWork()
         {
+            if(BestTimeToExecute != null)
+            {
+                var timeNow = DateTime.Now - DateTime.Today;
+                if (timeNow < BestTimeToExecute) return false;
+            }
+
             var DateLimit = GetDateLimitByInterval(Interval);
 
             var hasHistory =

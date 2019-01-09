@@ -233,7 +233,7 @@ public BookService(IBookRepository bookRepository,
                 ).Items;
         }
 
-        public List<Book> GetChooseDateRemindableBooks()
+        public List<Book> GetBooksChooseDateIsToday()
         {
             // limite eh o dia de hoje.
             DateTime startDateTime = DateTime.Today; //Today at 00:00:00
@@ -244,8 +244,7 @@ public BookService(IBookRepository bookRepository,
             .Get().Include(x => x.User).Include(x => x.BookUsers).Include(x => x.UserFacilitator)
             .Where(x =>
                 x.ChooseDate >= startDateTime &&
-                x.ChooseDate <= endDateTime &&
-                x.BookUsers.Count > 0
+                x.ChooseDate <= endDateTime
             ).ToList();
 
             return books;

@@ -13,6 +13,7 @@ namespace Sharebook.Jobs
                           "Com cópia para contato@sharebook.com.br.";
             Interval    = Interval.Dayly;
             Active      = false;
+            BestTimeToExecute = null;
         }
 
         public override JobHistory Work()
