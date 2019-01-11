@@ -21,6 +21,7 @@ namespace Sharebook.Jobs
             Active      = false;
             BestTimeToExecute = new TimeSpan(9, 0, 0);
 
+            _bookService = bookService;
         }
 
         public override JobHistory Work()
@@ -34,7 +35,7 @@ namespace Sharebook.Jobs
             foreach (var book in books)
             {
                 // Só trata livros disponíves
-                if (book.Status() == BookStatus.Available) continue;
+                if (book.Status() != BookStatus.Available) continue;
 
                 if (book.BookUsers.Count > 0)
                 {
