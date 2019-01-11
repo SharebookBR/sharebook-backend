@@ -13,5 +13,9 @@ namespace ShareBook.Service
         Task SendEmailBookDonor(BookUser bookUser);
 
         Task SendEmailDonationDeclined(Book book, BookUser bookUserWinner, List<BookUser> bookUsersDeclined);
+
+        Task SendEmailDonationCanceled(Book book, List<BookUser> bookUsers);
+
+        Task SendEmailBookCanceledToAdmins(Book book);
     }
 }
