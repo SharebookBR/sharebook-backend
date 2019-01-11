@@ -22,7 +22,7 @@ namespace ShareBook.Api.AutoMapper
                  .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status().Description()))
                  .ForMember(dest => dest.CreationDate, opt => opt.MapFrom(src => src.CreationDate))
                  .ForMember(dest => dest.ChooseDate, opt => opt.MapFrom(src => src.ChooseDate))
-                 .ForMember(dest => dest.Winner, opt => opt.MapFrom(src => src.Winner()));
+                 .ForMember(dest => dest.WinnerName, opt => opt.MapFrom(src => src.WinnerName()));
 
             CreateMap<BookUser, MyBookRequestVM>()
                 .ForMember(dest => dest.Author, opt => opt.MapFrom(src => src.Book.Author))

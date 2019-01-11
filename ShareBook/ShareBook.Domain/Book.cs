@@ -52,7 +52,7 @@ namespace ShareBook.Domain
         public bool Donated()
             => BookUsers?.Any(x => x.Status == DonationStatus.Donated) ?? false;
 
-        public string Winner()
+        public string WinnerName()
             => BookUsers?.FirstOrDefault(x => x.Status == DonationStatus.Donated).User.Name ?? "";
 
         public BookStatus Status()
