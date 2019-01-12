@@ -61,8 +61,8 @@ namespace Sharebook.Jobs
             };
         }
 
-        #region métodos privados de apoio
 
+        #region métodos privados de apoio
 
         private void SendEmail(Book book)
         {

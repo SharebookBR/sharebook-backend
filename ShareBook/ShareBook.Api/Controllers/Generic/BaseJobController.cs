@@ -8,14 +8,7 @@ namespace ShareBook.Api.Controllers.Generic
         protected IJobExecutor _executor;
         protected string _validToken;
 
-        protected bool _IsValidJobToken()
-        {
-            var userToken = Request.Headers["Authorization"].ToString();
-
-            if (userToken == _validToken) return true;
-
-            return false;
-        }
+        protected bool _IsValidJobToken() => (Request.Headers["Authorization"].ToString() == _validToken);
     }
 
     

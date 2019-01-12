@@ -19,14 +19,12 @@ namespace ShareBook.Api.Controllers
             _validToken = settings.Value.JobExecutorToken;
         }
 
+        // TODO: voltar 300 no Throttle
         [HttpGet("Executor")]
-        [Throttle(Name = "JobExecutor", Seconds = 300, VaryByIp = false)]
+        [Throttle(Name = "JobExecutor", Seconds = 5, VaryByIp = false)]
         public IActionResult Executor(){
-
             if (!_IsValidJobToken()) return Unauthorized();
-
-            var result = _executor.Execute();
-            return Ok(result);
+            else                     return Ok(_executor.Execute());
         }
 
     }

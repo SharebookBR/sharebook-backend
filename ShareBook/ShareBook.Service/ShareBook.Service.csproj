@@ -15,6 +15,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Email\Templates\ChooseDateRenewTemplate.html" />
+  </ItemGroup>
+  <ItemGroup>
     <None Update="Email\Templates\BookNoticeDeclinedUsersTemplate.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -50,4 +53,9 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Email\Templates\ChooseDateRenewTemplate.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 </Project>
