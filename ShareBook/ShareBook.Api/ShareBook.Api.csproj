@@ -25,6 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ShareBook.Infra.CrossCutting.Identity\ShareBook.Infra.CrossCutting.Identity.csproj" />
     <ProjectReference Include="..\ShareBook.Service\ShareBook.Service.csproj" />
+    <ProjectReference Include="..\Sharebook.Jobs\Sharebook.Jobs.csproj" />
   </ItemGroup>
 
 </Project>

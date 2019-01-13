@@ -15,13 +15,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Email\Templates\ChooseDateRenewTemplate.html" />
+  </ItemGroup>
+  <ItemGroup>
     <None Update="Email\Templates\BookNoticeDeclinedUsersTemplate.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Email\Templates\BookNoticeDonorTemplate.html">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Email\Templates\BookCanceledTemplate.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Email\Templates\ForgotPasswordTemplate.html">
@@ -48,6 +48,14 @@
     <None Update="Email\Templates\WaitingApprovalTemplate.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Email\Templates\ChooseDateReminderTemplate.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Email\Templates\ChooseDateRenewTemplate.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 </Project>

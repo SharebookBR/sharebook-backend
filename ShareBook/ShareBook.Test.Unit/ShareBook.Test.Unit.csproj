@@ -21,4 +21,7 @@
     <ProjectReference Include="..\ShareBook.Service\ShareBook.Service.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Jobs\1 - ChooseDateReminderTest.cs" />
+  </ItemGroup>
 </Project>

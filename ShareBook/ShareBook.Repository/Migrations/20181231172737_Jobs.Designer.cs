@@ -12,9 +12,10 @@ using System;
 namespace ShareBook.Repository.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20181231172737_Jobs")]
+    partial class Jobs
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -82,8 +83,6 @@ namespace ShareBook.Repository.Migrations
                         .HasColumnType("varchar(200)")
                         .HasMaxLength(50);
 
-                    b.Property<bool>("Canceled");
-
                     b.Property<Guid>("CategoryId");
 
                     b.Property<DateTime?>("ChooseDate");
@@ -135,6 +134,8 @@ namespace ShareBook.Repository.Migrations
 
                     b.Property<DateTime?>("CreationDate");
 
+                    b.Property<Guid?>("JobId");
+
                     b.Property<string>("Note")
                         .HasColumnType("varchar(2000)")
                         .HasMaxLength(2000);
@@ -148,6 +149,8 @@ namespace ShareBook.Repository.Migrations
                     b.HasKey("Id", "BookId", "UserId");
 
                     b.HasIndex("BookId");
+
+                    b.HasIndex("JobId");
 
                     b.HasIndex("UserId");
 
@@ -171,6 +174,32 @@ namespace ShareBook.Repository.Migrations
                     b.ToTable("Categories");
                 });
 
+            modelBuilder.Entity("ShareBook.Domain.Job", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<bool>("Active");
+
+                    b.Property<DateTime?>("CreationDate");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("varchar(2000)")
+                        .HasMaxLength(2000);
+
+                    b.Property<int>("Interval");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("varchar(200)")
+                        .HasMaxLength(200);
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Jobs");
+                });
+
             modelBuilder.Entity("ShareBook.Domain.JobHistory", b =>
                 {
                     b.Property<Guid>("Id")
@@ -179,23 +208,24 @@ namespace ShareBook.Repository.Migrations
                     b.Property<DateTime?>("CreationDate");
 
                     b.Property<string>("Details")
+                        .IsRequired()
                         .HasColumnType("varchar(2000)")
                         .HasMaxLength(2000);
 
                     b.Property<bool>("IsSuccess");
 
-                    b.Property<string>("JobName")
+                    b.Property<Guid?>("JobId");
+
+                    b.Property<string>("LastResult")
                         .IsRequired()
                         .HasColumnType("varchar(200)")
                         .HasMaxLength(200);
 
-                    b.Property<string>("LastResult")
-                        .HasColumnType("varchar(200)")
-                        .HasMaxLength(200);
-
-                    b.Property<double>("TimeSpentSeconds");
+                    b.Property<int>("TimeSpentSeconds");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("JobId");
 
                     b.ToTable("JobHistories");
                 });
@@ -304,10 +334,21 @@ namespace ShareBook.Repository.Migrations
                         .HasForeignKey("BookId")
                         .OnDelete(DeleteBehavior.Cascade);
 
+                    b.HasOne("ShareBook.Domain.Job")
+                        .WithMany("JobHistory")
+                        .HasForeignKey("JobId");
+
                     b.HasOne("ShareBook.Domain.User", "User")
                         .WithMany("BookUsers")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("ShareBook.Domain.JobHistory", b =>
+                {
+                    b.HasOne("ShareBook.Domain.Job", "Job")
+                        .WithMany()
+                        .HasForeignKey("JobId");
                 });
 #pragma warning restore 612, 618
         }
