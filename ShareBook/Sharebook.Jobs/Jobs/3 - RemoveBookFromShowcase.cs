@@ -57,7 +57,7 @@ namespace Sharebook.Jobs
                 else
                 {
                     book.ChooseDate = DateTime.Today.AddDays(10);
-                    messages.Add(string.Format("Livro '{0}' vai ficar +10 dias na vitrine porque ainda não te interessados. :/", book.Title));
+                    messages.Add(string.Format("Livro '{0}' vai ficar +10 dias na vitrine porque ainda não tem interessados. :/", book.Title));
                     SendEmail(book);
                 }
 
