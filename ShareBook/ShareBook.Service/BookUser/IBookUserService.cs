@@ -22,5 +22,7 @@ namespace ShareBook.Service
         /// </summary>
         /// <param name="bookId"></param>
         Task NotifyInterestedAboutBooksWinner(Guid bookId);
+
+        Result<Book> Cancel(Guid bookId, bool isAdmin = false);
     }
 }

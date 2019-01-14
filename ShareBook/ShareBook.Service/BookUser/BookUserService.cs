@@ -79,6 +79,30 @@ namespace ShareBook.Service
             
         }
 
+        public Result<Book> Cancel(Guid bookId, bool isAdmin = false)
+        {
+            var book = _bookService.Find(bookId);
+
+            if (book == null)
+                throw new ShareBookException(ShareBookException.Error.NotFound);
+
+            var bookUsers = _bookUserRepository.Get().Where(x => x.BookId == bookId).ToList();
+
+            if (!isAdmin && bookUsers != null && bookUsers.Count > 0)
+                throw new ShareBookException("Este livro já possui interessados");
+
+            book.Approved = false;
+            book.ChooseDate = null;
+            book.Canceled = true;
+
+            CancelBookUsersAndSendNotification(book);            
+
+            _bookService.Update(book);
+            _bookUsersEmailService.SendEmailBookCanceledToAdmins(book).Wait();
+
+            return new Result<Book>(book);
+        }
+
         public void DeniedBookUsers(Guid bookId)
         {
             var bookUsersDenied = _bookUserRepository.Get().Where(x => x.BookId == bookId
@@ -89,6 +113,11 @@ namespace ShareBook.Service
                 item.UpdateBookUser(DonationStatus.Denied, note);
                 _bookUserRepository.Update(item);
             }
+        }
+
+        private void CancelBookUsersAndSendNotification(Book book){
+            DeniedBookUsers(book.Id);
+            NotifyUsersBookCanceled(book);
         }
 
         public PagedList<BookUser> GetRequestsByUser()
@@ -116,6 +145,16 @@ namespace ShareBook.Service
 
             //enviar e-mails
            await this._bookUsersEmailService.SendEmailDonationDeclined(book, winnerBookUser, losersBookUser);
+
+        }
+
+        public void NotifyUsersBookCanceled(Book book){
+            List<BookUser> bookUsers = _bookUserRepository.Get()
+                                            .Include(u => u.User)
+                                            .Where(x => x.BookId == book.Id).ToList();
+
+            
+            this._bookUsersEmailService.SendEmailDonationCanceled(book, bookUsers).Wait();
 
         }
     }

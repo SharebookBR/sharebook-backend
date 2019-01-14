@@ -111,12 +111,12 @@ namespace ShareBook.Api.Controllers
         }
 
 
-        [HttpPost("ForgotMyPassword/{email}")]
+        [HttpPost("ForgotMyPassword")]
         [ProducesResponseType(typeof(Result), 200)]
         [ProducesResponseType(404)]
-        public IActionResult ForgotMyPassword(string email)
+        public IActionResult ForgotMyPassword([FromBody]ForgotMyPasswordVM forgotMyPasswordVM)
         {
-            var result = _userService.GenerateHashCodePasswordAndSendEmailToUser(email);
+            var result = _userService.GenerateHashCodePasswordAndSendEmailToUser(forgotMyPasswordVM.Email);
 
             if (result.Success)
                 return Ok(result);

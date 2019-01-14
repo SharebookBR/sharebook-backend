@@ -71,12 +71,12 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpPost("Cancel/{id}")]
-        public Result<Book> Cancel(string id) => _service.Cancel(new Guid(id), false);
+        public Result<Book> Cancel(string id) => _bookUserService.Cancel(new Guid(id), false);
 
         [Authorize("Bearer")]
         [HttpPost("CancelAdmin/{id}")]
         [AuthorizationFilter(Permissions.Permission.DonateBook)]
-        public Result<Book> CancelAdmin(string id) => _service.Cancel(new Guid(id), true);
+        public Result<Book> CancelAdmin(string id) => _bookUserService.Cancel(new Guid(id), true);
 
         [HttpGet("FreightOptions")]
         public IList<dynamic> FreightOptions()
