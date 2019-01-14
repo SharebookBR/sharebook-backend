@@ -158,7 +158,7 @@ public BookService(IBookRepository bookRepository,
 
 
             //imagem eh opcional no update
-            if (entity.ImageName != "" && entity.ImageBytes.Length > 0)
+            if (!string.IsNullOrEmpty(entity.ImageName) && entity.ImageBytes.Length > 0)
             {
                 entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, entity.Slug);
                 _uploadService.UploadImage(entity.ImageBytes, entity.ImageSlug, "Books");
