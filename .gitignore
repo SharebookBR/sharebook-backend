@@ -248,6 +248,3 @@ ModelManifest.xml
 .DS_Store
 
 .vscode
-
-# sandbox local. Nunca commitar isso.
-Sharebook.Sandbox

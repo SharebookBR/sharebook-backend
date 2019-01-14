@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Executor\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ShareBook.Domain\ShareBook.Domain.csproj" />
+    <ProjectReference Include="..\ShareBook.Repository\ShareBook.Infra.Data.csproj" />
+    <ProjectReference Include="..\ShareBook.Service\ShareBook.Service.csproj" />
+  </ItemGroup>
+</Project>

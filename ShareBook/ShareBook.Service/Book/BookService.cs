@@ -212,6 +212,23 @@ namespace ShareBook.Service
                 ).Items;
         }
 
+        public IList<Book> GetBooksChooseDateIsToday()
+        {
+            // limite é o dia de hoje.
+            DateTime startDateTime = DateTime.Today; //Today at 00:00:00
+            DateTime endDateTime = DateTime.Today.AddDays(1).AddTicks(-1); //Today at 23:59:59
+
+            // livros em que o choosedate é hoje.
+            var books = _repository
+            .Get().Include(x => x.User).Include(x => x.BookUsers).Include(x => x.UserFacilitator)
+            .Where(x =>
+                x.ChooseDate >= startDateTime &&
+                x.ChooseDate <= endDateTime
+            ).ToList();
+
+            return books;
+        }
+
         #region Private
         private PagedList<Book> SearchBooks(Expression<Func<Book, bool>> filter, int page, int itemsPerPage)
             => SearchBooks(filter, page, itemsPerPage, x => x.CreationDate);
