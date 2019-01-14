@@ -12,13 +12,12 @@ namespace ShareBook.Service
         private const string BookNoticeDonorTemplate = "BookNoticeDonorTemplate";
         private const string BookDonatedTemplate = "BookDonatedTemplate";
         private const string BookNoticeDeclinedUsersTemplate = "BookNoticeDeclinedUsersTemplate";
+        private const string BookCanceledNoticeUsersTemplate = "BookCanceledNoticeUsersTemplate";
         private const string BookDonatedTitle = "Parabéns você foi selecionado!";
         private const string BookRequestedTitle = "Um livro foi solicitado - Sharebook";
         private const string BookNoticeDonorTitle = "Seu livro foi solicitado - Sharebook";
-
-
-
-
+        private const string BookCanceledTemplate = "BookCanceledTemplate";
+        private const string BookCanceledTitle = "Livro cancelado - Sharebook";
 
         private readonly IUserService _userService;
         private readonly IBookService _bookService;
@@ -136,6 +135,25 @@ namespace ShareBook.Service
                 _emailService.Send(bookUser.User.Email, bookUser.User.Name, html, $"SHAREBOOK - GANHADOR DO LIVRO {book.Title.ToUpper()}").Wait();
             });
 
+        }
+
+        public async Task SendEmailDonationCanceled(Book book, List<BookUser> bookUsers){
+            var vm = new {
+                book
+            };
+
+            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookCanceledNoticeUsersTemplate, vm);
+
+            bookUsers.ForEach(bookUser => {
+                _emailService.Send(bookUser.User.Email, bookUser.User.Name, html,  $"SHAREBOOK - DOAÇÃO CANCELADA").Wait();
+            });
+            
+        }
+
+        public async Task SendEmailBookCanceledToAdmins(Book book)
+        {
+            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookCanceledTemplate, book);
+            await _emailService.SendToAdmins(html, BookCanceledTitle);
         }
     }
 }

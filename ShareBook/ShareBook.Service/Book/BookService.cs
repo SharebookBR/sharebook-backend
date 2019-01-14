@@ -24,10 +24,10 @@ namespace ShareBook.Service
         private readonly IUploadService _uploadService;
         private readonly IBooksEmailService _booksEmailService;
 
-public BookService(IBookRepository bookRepository,
-            IUnitOfWork unitOfWork, IValidator<Book> validator,
-            IUploadService uploadService, IBooksEmailService booksEmailService)
-            : base(bookRepository, unitOfWork, validator)
+        public BookService(IBookRepository bookRepository,
+                    IUnitOfWork unitOfWork, IValidator<Book> validator,
+                    IUploadService uploadService, IBooksEmailService booksEmailService)
+                    : base(bookRepository, unitOfWork, validator)
         {
             _uploadService = uploadService;
             _booksEmailService = booksEmailService;
@@ -44,27 +44,6 @@ public BookService(IBookRepository bookRepository,
             _repository.Update(book);
 
             _booksEmailService.SendEmailBookApproved(book).Wait();
-
-            return new Result<Book>(book);
-        }
-
-        public Result<Book> Cancel(Guid bookId, bool isAdmin = false)
-        {
-            var book = _repository.Get().Include(x => x.BookUsers).FirstOrDefault(x => x.Id == bookId);
-
-            if (book == null)
-                throw new ShareBookException(ShareBookException.Error.NotFound);
-
-            if (!isAdmin && book.BookUsers != null && book.BookUsers.Count > 0)
-                throw new ShareBookException("Este livro já possui interessados");
-
-            book.Approved = false;
-            book.ChooseDate = null;
-            book.Canceled = true;
-
-            _repository.Update(book);
-
-            _booksEmailService.SendEmailBookCanceledToAdmins(book).Wait();
 
             return new Result<Book>(book);
         }
