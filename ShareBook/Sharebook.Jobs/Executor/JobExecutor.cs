@@ -12,7 +12,7 @@ namespace Sharebook.Jobs
 
     public class JobExecutor : IJobExecutor
     {
-        private readonly List<IJob> _jobs = new List<IJob>();
+        private readonly IList<IJob> _jobs;
         private readonly IJobHistoryRepository _jobHistoryRepo;
         private Stopwatch _stopwatch;
 
@@ -23,9 +23,12 @@ namespace Sharebook.Jobs
         {
             _jobHistoryRepo = jobHistoryRepo;
 
-            _jobs.Add(job1);
-            _jobs.Add(job2);
-            _jobs.Add(job3);
+            _jobs = new List<IJob>
+            {
+                job1,
+                job2,
+                job3
+            };
 
         }
 
