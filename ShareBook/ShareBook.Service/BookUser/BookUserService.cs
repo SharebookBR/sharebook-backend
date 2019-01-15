@@ -149,6 +149,8 @@ namespace ShareBook.Service
         }
 
         public void NotifyUsersBookCanceled(Book book){
+
+            
             List<BookUser> bookUsers = _bookUserRepository.Get()
                                             .Include(u => u.User)
                                             .Where(x => x.BookId == book.Id).ToList();
@@ -156,6 +158,27 @@ namespace ShareBook.Service
             
             this._bookUsersEmailService.SendEmailDonationCanceled(book, bookUsers).Wait();
 
+        }
+
+        public void InformTrackingNumber(Guid bookId, string trackingNumber)
+        {
+            var book = _bookService.Find(bookId);
+            var winnerBookUser = _bookUserRepository
+                                        .Get()
+                                        .Include(u => u.User)
+                                        .Where(bu => bu.BookId == bookId && bu.Status == DonationStatus.Donated)
+                                        .FirstOrDefault();
+
+            if (winnerBookUser == null)
+                throw new ShareBookException("Vencedor ainda não foi escolhido");
+
+
+            book.TrackingNumber = trackingNumber; 
+            _bookService.Update(book);
+
+            //Envia e-mail para avisar o ganhador do tracking number                          
+            _bookUsersEmailService.SendEmailTrackingNumberInformed(winnerBookUser, book);
+            
         }
     }
 }

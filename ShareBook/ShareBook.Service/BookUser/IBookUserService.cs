@@ -24,5 +24,7 @@ namespace ShareBook.Service
         Task NotifyInterestedAboutBooksWinner(Guid bookId);
 
         Result<Book> Cancel(Guid bookId, bool isAdmin = false);
+
+        void InformTrackingNumber(Guid bookId, string trackingNumber);
     }
 }

@@ -91,6 +91,9 @@ namespace ShareBook.Service
         {
             var result = _repository.Find(keyValue);
 
+            if (result == null)
+                throw new ShareBookException(ShareBookException.Error.NotFound);
+
             result.ImageUrl = _uploadService.GetImageUrl(result.ImageSlug, "Books");
 
             return result;
