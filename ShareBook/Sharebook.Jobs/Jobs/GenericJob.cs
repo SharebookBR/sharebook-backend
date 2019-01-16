@@ -4,6 +4,7 @@ using System.Linq;
 using ShareBook.Domain;
 using ShareBook.Domain.Enums;
 using ShareBook.Repository;
+using ShareBook.Helper;
 
 namespace Sharebook.Jobs
 {
@@ -28,7 +29,7 @@ namespace Sharebook.Jobs
         {
             if(BestTimeToExecute != null)
             {
-                var timeNow = DateTime.Now - DateTime.Today;
+                var timeNow = DateTimeHelper.GetTimeNowSaoPaulo();
                 if (timeNow < BestTimeToExecute) return false;
             }
 
