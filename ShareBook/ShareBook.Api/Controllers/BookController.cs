@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using ShareBook.Helper;
 
 namespace ShareBook.Api.Controllers
 {
@@ -42,6 +43,7 @@ namespace ShareBook.Api.Controllers
             var result = new 
             {
                 ServerDateTime = DateTime.Now,
+                SaoPauloDateTime = DateTimeHelper.ConvertDateTimeSaoPaulo(DateTime.Now),
                 Message = "Pong!"
             };
             return Ok(result);
