@@ -49,6 +49,8 @@ namespace ShareBook.Domain
 
         public string Synopsis { get; set; }
 
+        public string TrackingNumber { get; set; }
+
         public bool Donated()
             => BookUsers?.Any(x => x.Status == DonationStatus.Donated) ?? false;
 

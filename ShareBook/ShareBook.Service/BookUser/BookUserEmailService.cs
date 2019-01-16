@@ -13,11 +13,13 @@ namespace ShareBook.Service
         private const string BookDonatedTemplate = "BookDonatedTemplate";
         private const string BookNoticeDeclinedUsersTemplate = "BookNoticeDeclinedUsersTemplate";
         private const string BookCanceledNoticeUsersTemplate = "BookCanceledNoticeUsersTemplate";
+        private const string BookTrackingNumberNoticeWinnerTemplate = "BookTrackingNumberNoticeWinnerTemplate";
         private const string BookDonatedTitle = "Parabéns você foi selecionado!";
         private const string BookRequestedTitle = "Um livro foi solicitado - Sharebook";
         private const string BookNoticeDonorTitle = "Seu livro foi solicitado - Sharebook";
         private const string BookCanceledTemplate = "BookCanceledTemplate";
         private const string BookCanceledTitle = "Livro cancelado - Sharebook";
+        private const string BookTrackingNumberNoticeWinnerTitle = "Seu livro foi postado - Sharebook";
 
         private readonly IUserService _userService;
         private readonly IBookService _bookService;
@@ -155,5 +157,17 @@ namespace ShareBook.Service
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookCanceledTemplate, book);
             await _emailService.SendToAdmins(html, BookCanceledTitle);
         }
+    
+        public async Task SendEmailTrackingNumberInformed(BookUser bookUserWinner, Book book)
+        {
+            var vm = new
+            {
+                book = book
+            };
+            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookTrackingNumberNoticeWinnerTemplate, vm);
+            await _emailService.Send(bookUserWinner.User.Email, bookUserWinner.User.Name, html, BookTrackingNumberNoticeWinnerTitle, false);
+        }
+    
+    
     }
 }
