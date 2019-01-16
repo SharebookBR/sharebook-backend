@@ -38,7 +38,14 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpGet("Ping")]
-        public IActionResult Ping() => Ok("Pong!");
+        public IActionResult Ping() {
+            var result = new 
+            {
+                ServerDateTime = DateTime.Now,
+                Message = "Pong!"
+            };
+            return Ok(result);
+        }
 
         [HttpGet()]
         [Authorize("Bearer")]
@@ -50,6 +57,8 @@ namespace ShareBook.Api.Controllers
         [AuthorizationFilter(Permissions.Permission.DonateBook)]
         public PagedList<BooksVM> Paged(int page, int items)
         {
+            // TODO: parar de usar esse get complicado e fazer uma query linq/ef tradicional
+            // usando ThenInclude(). fonte: https://stackoverflow.com/questions/10822656/entity-framework-include-multiple-levels-of-properties
             var books = _service.Get(x => x.Title, page, items, new IncludeList<Book>(x => x.User, x => x.BookUsers, x => x.UserFacilitator));
             var responseVM = Mapper.Map<List<BooksVM>>(books.Items);
             return new PagedList<BooksVM>()
