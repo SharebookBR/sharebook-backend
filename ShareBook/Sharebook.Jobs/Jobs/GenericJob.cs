@@ -53,7 +53,7 @@ namespace Sharebook.Jobs
             {
                 case Interval.Dayly:
                     {
-                        result = result.AddDays(-1);
+                        result = DateTimeHelper.GetTodaySaoPaulo();
                         break;
                     }
                 case Interval.Hourly:

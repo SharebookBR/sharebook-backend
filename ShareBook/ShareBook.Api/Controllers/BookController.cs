@@ -42,8 +42,10 @@ namespace ShareBook.Api.Controllers
         public IActionResult Ping() {
             var result = new 
             {
-                ServerDateTime = DateTime.Now,
-                SaoPauloDateTime = DateTimeHelper.ConvertDateTimeSaoPaulo(DateTime.Now),
+                ServerNow = DateTime.Now,
+                SaoPauloNow = DateTimeHelper.ConvertDateTimeSaoPaulo(DateTime.Now),
+                ServerToday = DateTime.Today,
+                SaoPauloToday = DateTimeHelper.GetTodaySaoPaulo(),
                 Message = "Pong!"
             };
             return Ok(result);
