@@ -130,23 +130,49 @@ namespace ShareBook.Service
                 x => x.FreightOption,
                 x => x.Id);
 
+
+
             var bookId = entity.Id;
-            var bookAlreadyApproved = BookAlreadyApproved(bookId);
 
             if (!result.Success) return result;
 
-            if(!bookAlreadyApproved)
+            //buscar o book no banco para obter um objeto para ser re-hidratado
+            var savedBook = this._repository.Find(bookId);
+
+            if (savedBook == null)
+                throw new ShareBookException(ShareBookException.Error.NotFound);
+
+            //Como o objeto foi buscado diretamente do banco, removi a consulta e tratei diretamente no objeto
+            var bookAlreadyApproved = savedBook.Approved;
+
+            if (!bookAlreadyApproved)
                 entity.Slug = SetSlugByTitleOrIncremental(entity);
 
 
             //imagem eh opcional no update
             if (!string.IsNullOrEmpty(entity.ImageName) && entity.ImageBytes.Length > 0)
             {
-                entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, entity.Slug);
+                savedBook.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, entity.Slug);
                 _uploadService.UploadImage(entity.ImageBytes, entity.ImageSlug, "Books");
             }
 
-            result.Value = _repository.UpdateAsync(entity).Result;
+            //preparar o book para atualização
+            savedBook.Author = entity.Author;
+            savedBook.FreightOption = entity.FreightOption;
+            savedBook.Approved = entity.Approved;
+            savedBook.Author = entity.Author;
+            savedBook.ImageSlug = entity.ImageSlug;
+            savedBook.Title = entity.Title;
+            savedBook.CategoryId = entity.CategoryId;
+            savedBook.Canceled = entity.Canceled;           
+
+            savedBook.Synopsis = entity.Synopsis;
+            savedBook.TrackingNumber = entity.TrackingNumber;
+
+            if (entity.UserIdFacilitator.HasValue)
+                savedBook.UserIdFacilitator = entity.UserIdFacilitator;
+
+            result.Value = _repository.UpdateAsync(savedBook).Result;
             result.Value.ImageBytes = null;
 
             // TODO: pedir pro pessoal de front usar o endpoint correto de aprovação.
@@ -158,7 +184,7 @@ namespace ShareBook.Service
             return result;
         }
 
-
+    
 
         public PagedList<Book> ByTitle(string title, int page, int itemsPerPage)
             => SearchBooks(x => (x.Approved
