@@ -258,6 +258,19 @@ namespace ShareBook.Service
             return books;
         }
 
+        public IList<Book> GetBooksChooseDateIsLate()
+        {
+            DateTime today = DateTime.Today;
+
+            var books = _repository
+            .Get().Include(x => x.User).Include(x => x.BookUsers).Include(x => x.UserFacilitator)
+            .Where(x => x.ChooseDate < today)
+            .OrderBy(x => x.CreationDate)
+            .ToList();
+
+            return books;
+        }
+
         #region Private
         private PagedList<Book> SearchBooks(Expression<Func<Book, bool>> filter, int page, int itemsPerPage)
             => SearchBooks(filter, page, itemsPerPage, x => x.CreationDate);
