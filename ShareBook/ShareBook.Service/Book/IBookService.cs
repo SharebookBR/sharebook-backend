@@ -33,5 +33,8 @@ namespace ShareBook.Service
         IList<Book> GetUserDonations(Guid userId);
 
         IList<Book> GetBooksChooseDateIsToday();
+
+        IList<Book> GetBooksChooseDateIsLate();
+        
     }
 }
