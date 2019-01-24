@@ -264,11 +264,18 @@ namespace ShareBook.Service
 
             var books = _repository
             .Get().Include(x => x.User).Include(x => x.BookUsers).Include(x => x.UserFacilitator)
-            .Where(x => x.ChooseDate < today)
+            .Where(x => x.ChooseDate < today || x.ChooseDate == null)
             .OrderBy(x => x.CreationDate)
             .ToList();
 
-            return books;
+            var booksLate = new List<Book>();
+            foreach (var book in books)
+            {
+                if (book.Status() == BookStatus.Available || book.Status() == BookStatus.Invisible)
+                    booksLate.Add(book);
+            }
+
+            return booksLate;
         }
 
         #region Private

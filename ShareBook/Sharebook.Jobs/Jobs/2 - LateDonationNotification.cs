@@ -32,39 +32,21 @@ namespace Sharebook.Jobs
 
         public override JobHistory Work()
         {
-            var messages = new List<string>();
-
-            var books = _bookService.GetBooksChooseDateIsLate();
-            var booksLate = new List<Book>();
-
-            if (books.Count == 0) messages.Add("Nenhum livro encontrado.");
-
-            foreach (var book in books)
-            {
-                if (book.Status() == BookStatus.Available || book.Status() == BookStatus.Invisible)
-                {
-                    booksLate.Add(book);
-                    messages.Add(string.Format("Livro '{0}' adicionado na lista de atrasados.", book.Title));
-                }
-                else
-                {
-                    messages.Add(string.Format("Livro '{0}' NÃO adicionado na lista de atrasados porque seu status é {1}", book.Title, book.Status()));
-                }
-            }
-
+            var booksLate = _bookService.GetBooksChooseDateIsLate();
+            var details = string.Format("Encontradas {0} doações em atraso.", booksLate.Count);
             if (booksLate.Count > 0) SendEmail(booksLate);
 
             return new JobHistory()
             {
                 JobName = JobName,
                 IsSuccess = true,
-                Details = String.Join("\n", messages.ToArray())
+                Details = details
             };
         }
 
         #region métodos privados de apoio
 
-        private void SendEmail(List<Book> books)
+        private void SendEmail(IList<Book> books)
         {
             var htmlTable = "<TABLE border=1 cellpadding=3 cellspacing=0><TR bgcolor='#ffff00'><TD><b>LIVRO</b></TD><TD><b>DIAS NA <BR>VITRINE</b></TD><TD><b>TOTAL <br>INTERESSADOS</b></TD><TD><b>DOADOR</b></TD><TD><b>FACILITADOR</b></TD></TR>";
 
