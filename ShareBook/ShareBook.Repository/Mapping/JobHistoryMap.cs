@@ -20,8 +20,7 @@ namespace ShareBook.Repository.Mapping
                 .HasMaxLength(200);
 
             entityBuilder.Property(t => t.Details)
-                .HasColumnType("varchar(2000)")
-                .HasMaxLength(2000);
+                .HasColumnType("varchar(max)");
 
         }
     }
