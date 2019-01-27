@@ -15,6 +15,7 @@ namespace ShareBook.Api.AutoMapper
             CreateMap<Book, BooksVM>()
                  .ForMember(dest => dest.Donor, opt => opt.MapFrom(src => src.User.Name))
                  .ForMember(dest => dest.Facilitator, opt => opt.MapFrom(src => src.UserFacilitator.Name))
+                 .ForMember(dest => dest.FacilitatorNotes, opt => opt.MapFrom(src => src.FacilitatorNotes))
                  .ForMember(dest => dest.Donated, opt => opt.MapFrom(src => src.Donated()))
                  .ForMember(dest => dest.PhoneDonor, opt => opt.MapFrom(src => src.User.Phone))
                  .ForMember(dest => dest.DaysInShowcase, opt => opt.MapFrom(src => src.DaysInShowcase()))

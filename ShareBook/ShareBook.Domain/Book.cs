@@ -31,6 +31,8 @@ namespace ShareBook.Domain
         [ForeignKey("UserIdFacilitator")]
         public User UserFacilitator { get; set; } // Facilitador.
 
+        public string FacilitatorNotes { get; set; }
+
         public Guid CategoryId { get; set; }
 
         public Category Category { get; set; }
