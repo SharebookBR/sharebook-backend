@@ -245,10 +245,11 @@ namespace ShareBook.Api.Controllers
         [Authorize("Bearer")]
         [ProducesResponseType(typeof(Result), 200)]
         [HttpPost("AddFacilitatorNotes")]
-        public IActionResult AddFaciclitatorNotes(Guid bookId, string FacilitatorNotes)
+        [AuthorizationFilter(Permissions.Permission.ApproveBook)]
+        public IActionResult AddFacilitatorNotes([FromBody] AddFacilitatorNotesVM vm)
         {
 
-            //TODO: implementar service
+            _service.AddFacilitatorNotes(vm.BookId, vm.FacilitatorNotes);
             return Ok();
 
         }
