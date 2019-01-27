@@ -37,6 +37,10 @@ namespace ShareBook.Repository.Mapping
                .HasColumnType("varchar(2000)")
                .HasMaxLength(2000);
 
+            entityBuilder.Property(t => t.FacilitatorNotes)
+               .HasColumnType("varchar(2000)")
+               .HasMaxLength(2000);
+
             entityBuilder.Ignore(t => t.ImageBytes);
 
             entityBuilder.Ignore(t => t.ImageUrl);
