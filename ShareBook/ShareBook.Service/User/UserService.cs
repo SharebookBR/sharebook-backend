@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.Enums;
@@ -173,12 +174,31 @@ namespace ShareBook.Service
             return result;
         }
 
-        public IList<User> GetFacilitators()
+        public IList<User> GetFacilitators(Guid userIdDonator)
         {
-            return _repository.Get(
-                    u => u.Profile == Profile.Administrator,
-                    u => u.CreationDate
-                ).Items;
+            var sql = @"select 
+                            CONCAT(Name, ' (', total, ')') as Name,
+                            Id
+                        from 
+                        (
+                            select top 100
+                                u.Name, u.Id,
+                                ( select count(*) as total from Books b 
+                                  where b.UserIdFacilitator = u.Id and b.UserId = {0} 
+                                ) as total
+                            FROM
+                                Users u
+                            where u.Profile = 0 -- Administrador
+                            order by total desc, u.Name
+                        ) sub";
+
+            return _repository.Get().FromSql(sql, userIdDonator.ToString())
+            .Select(x => new User { 
+                Id = x.Id,
+                Name = x.Name
+                })
+            .ToList();
+
         }
         #endregion
 
