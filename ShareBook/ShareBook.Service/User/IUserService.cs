@@ -1,6 +1,7 @@
 ﻿using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Service.Generic;
+using System;
 using System.Collections.Generic;
 
 namespace ShareBook.Service
@@ -13,6 +14,6 @@ namespace ShareBook.Service
         Result<User> ChangeUserPassword(User user, string newPassword);
         Result GenerateHashCodePasswordAndSendEmailToUser(string email);
         Result ConfirmHashCodePassword(string hashCodePassword);
-        IList<User> GetFacilitators();
+        IList<User> GetFacilitators(Guid userIdDonator);
     }
 }

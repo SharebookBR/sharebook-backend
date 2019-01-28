@@ -278,6 +278,19 @@ namespace ShareBook.Service
             return booksLate;
         }
 
+        public void AddFacilitatorNotes(Guid bookId, string facilitatorNotes)
+        {
+            var book = _repository.Find(bookId);
+            if (book == null)
+                throw new ShareBookException(ShareBookException.Error.NotFound);
+
+            var date = DateTime.Now.ToString("dd/MM/yyyy");
+            var lineBreak = (string.IsNullOrEmpty(book.FacilitatorNotes)) ? "" : "\n";
+            book.FacilitatorNotes += string.Format("{0}{1} - {2}", lineBreak, date, facilitatorNotes);
+
+            _repository.Update(book);
+        }
+
         #region Private
         private PagedList<Book> SearchBooks(Expression<Func<Book, bool>> filter, int page, int itemsPerPage)
             => SearchBooks(filter, page, itemsPerPage, x => x.CreationDate);

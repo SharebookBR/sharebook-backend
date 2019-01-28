@@ -233,12 +233,25 @@ namespace ShareBook.Api.Controllers
         [Authorize("Bearer")]
         [ProducesResponseType(typeof(Result), 200)]
         [HttpPost("InformTrackingNumber/{bookId}")]
+        [AuthorizationFilter(Permissions.Permission.DonateBook)]
         public IActionResult InformTrackingNumber(Guid bookId, [FromBody] TrackinNumberBookVM trackingNumberBookVM)
         {
             
                 _bookUserService.InformTrackingNumber(bookId, trackingNumberBookVM.TrackingNumber);    
                 return Ok();
             
+        }
+
+        [Authorize("Bearer")]
+        [ProducesResponseType(typeof(Result), 200)]
+        [HttpPost("AddFacilitatorNotes")]
+        [AuthorizationFilter(Permissions.Permission.ApproveBook)]
+        public IActionResult AddFacilitatorNotes([FromBody] AddFacilitatorNotesVM vm)
+        {
+
+            _service.AddFacilitatorNotes(vm.BookId, vm.FacilitatorNotes);
+            return Ok();
+
         }
     }
 }
