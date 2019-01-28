@@ -32,4 +32,11 @@ namespace ShareBook.Api.ViewModels
 
         public Address Address { get; set; }
     }
+
+    public class MainUsersVM
+    {
+        public UserVM Donor { get; set; }
+        public UserVM Facilitator { get; set; }
+        public UserVM Winner { get; set; }
+    }
 }

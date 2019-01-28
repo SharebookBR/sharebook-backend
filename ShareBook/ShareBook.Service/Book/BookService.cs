@@ -291,6 +291,17 @@ namespace ShareBook.Service
             _repository.Update(book);
         }
 
+        public Book GetBookWithAllUsers(Guid bookId)
+        {
+            var books = _repository
+            .Get().Include(x => x.User).Include(x => x.UserFacilitator)
+            .Include(x => x.BookUsers).ThenInclude(bu => bu.User)
+            .Where(x => x.Id == bookId)
+            .ToList();
+
+            return books.FirstOrDefault();
+        }
+
         #region Private
         private PagedList<Book> SearchBooks(Expression<Func<Book, bool>> filter, int page, int itemsPerPage)
             => SearchBooks(filter, page, itemsPerPage, x => x.CreationDate);
