@@ -24,7 +24,7 @@ namespace Sharebook.Jobs
             Description = "Notifica o doador, com um lembrete amigável, no dia da doação. " +
                           "Com cópia para o facilitador.";
             Interval = Interval.Dayly;
-            Active = false;
+            Active = true;
             BestTimeToExecute = new TimeSpan(9, 0, 0);
 
             _bookService = bookService;
