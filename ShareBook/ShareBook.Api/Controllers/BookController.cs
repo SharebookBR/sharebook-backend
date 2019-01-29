@@ -248,10 +248,30 @@ namespace ShareBook.Api.Controllers
         [AuthorizationFilter(Permissions.Permission.ApproveBook)]
         public IActionResult AddFacilitatorNotes([FromBody] AddFacilitatorNotesVM vm)
         {
-
             _service.AddFacilitatorNotes(vm.BookId, vm.FacilitatorNotes);
             return Ok();
+        }
 
+        [Authorize("Bearer")]
+        [ProducesResponseType(typeof(MainUsersVM), 200)]
+        [HttpGet("MainUsers/{bookId}")]
+        [AuthorizationFilter(Permissions.Permission.ApproveBook)]
+        public IActionResult MainUsers(Guid bookId)
+        {
+            var book = _service.GetBookWithAllUsers(bookId);
+
+            var donor       = Mapper.Map<UserVM>(book.User);
+            var facilitator = Mapper.Map<UserVM>(book.UserFacilitator);
+            var winner      = Mapper.Map<UserVM>(book.WinnerUser());
+
+            var result = new MainUsersVM
+            {
+                Donor = donor,
+                Facilitator = facilitator,
+                Winner = winner
+            };
+
+            return Ok(result);
         }
     }
 }
