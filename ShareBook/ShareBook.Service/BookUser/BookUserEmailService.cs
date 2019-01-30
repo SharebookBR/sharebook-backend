@@ -11,10 +11,12 @@ namespace ShareBook.Service
         private const string BookRequestedTemplate = "BookRequestedTemplate";
         private const string BookNoticeDonorTemplate = "BookNoticeDonorTemplate";
         private const string BookDonatedTemplate = "BookDonatedTemplate";
+        private const string BookDonatedTemplateNotifyDonor = "BookDonatedNotifyDonorTemplate";
         private const string BookNoticeDeclinedUsersTemplate = "BookNoticeDeclinedUsersTemplate";
         private const string BookCanceledNoticeUsersTemplate = "BookCanceledNoticeUsersTemplate";
         private const string BookTrackingNumberNoticeWinnerTemplate = "BookTrackingNumberNoticeWinnerTemplate";
         private const string BookDonatedTitle = "Parabéns você foi selecionado!";
+        private const string BookDonatedTitleNotifyDonor = "Parabéns você escolheu um ganhador!";
         private const string BookRequestedTitle = "Um livro foi solicitado - Sharebook";
         private const string BookNoticeDonorTitle = "Seu livro foi solicitado - Sharebook";
         private const string BookCanceledTemplate = "BookCanceledTemplate";
@@ -46,6 +48,22 @@ namespace ShareBook.Service
             };
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookDonatedTemplate, vm);
             await _emailService.Send(bookUser.User.Email, bookUser.User.Name, html, BookDonatedTitle, true);
+        }
+
+        public async Task SendEmailBookDonatedNotifyDonor(Book book, User winner)
+        {
+            var vm = new
+            {
+                BookTitle = book.Title,
+                DonorName = book.User.Name,
+                Facilitator = book.UserFacilitator,
+                Winner = winner
+            };
+            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookDonatedTemplateNotifyDonor, vm);
+
+            // TODO: não enviar cópia para admins quando esse processo estiver bem amadurecido.
+            var copyAdmins = true;
+            await _emailService.Send(book.User.Email, book.User.Name, html, BookDonatedTitleNotifyDonor, copyAdmins);
         }
 
         public async Task SendEmailBookRequested(BookUser bookUser)

@@ -1,0 +1,57 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Parabéns você escolheu um ganhador - Sharebook</title>
+</head>
+<body>
+    <p>
+        Olá {DonorName},
+    </p>
+    <p>Que legal! Você escolheu um ganhador para seu livro <strong>{BookTitle}</strong>. Agora é hora de conhecer o ganhador! Seguem os dados pessoais dele:</p>
+
+    <ul>
+        <li><strong>Nome do ganhador: </strong>{Winner.Name}</li>
+        <li><strong>Email: </strong>{Winner.Email}</li>
+        <li><strong>Linkedin: </strong>{Winner.Linkedin}</li>
+        <li><strong>Whatsapp: </strong>{Winner.Phone}</li>
+        <li>
+            <strong>Endereço de entrega: </strong>{Winner.Address.Street} {Winner.Address.Number} {Winner.Address.Complement} <br />
+            bairro {Winner.Address.Neighborhood}, CEP {Winner.Address.PostalCode}, {Winner.Address.City}-{Winner.Address.State}, {Winner.Address.Country}
+        </li>
+    </ul>
+
+    <p>Próximos passos. Te pedir um favor...</p>
+
+    <ol>
+        <li> - Dê a boa notícia pro ganhador.</li>
+        <li> - Confirme o endereço de entrega e envie. ( ou combine entregar pessoalmente. Tomar um café. Certamente será um papo agradável com assunto em comum. )</li>
+        <li> - Assim que o livro chegar peça pra ele tirar uma foto. Pra gente postar na nossa fanpage e incentivar a galera a continuar compartilhando livros.</li>
+    </ol>
+
+    <p>Blz?</p>
+
+    <p>
+        Dúvidas? Sem problemas, é um prazer ajudar. Entre em contato com seu facilitador.
+        <ul>
+            <li><strong>Nome do facilitador: </strong>{Facilitator.Name}</li>
+            <li><strong>Email: </strong>{Facilitator.Email}</li>
+            <li><strong>Linkedin: </strong>{Facilitator.Linkedin}</li>
+            <li><strong>Whatsapp: </strong>{Facilitator.Phone}</li>
+        </ul>
+    </p>
+    <p>&nbsp;</p>
+
+    <p>
+        Atenciosamente,<br /><br />
+
+        Sharebook team - Compartilhando conhecimento<br />
+        Siga-nos no instagram:
+        <a target="_blank" href="https://www.instagram.com/sharebook.com.br/" title="Instagram Sharebook">@sharebook.com.br</a>
+        <br>
+        <br>
+        Curta nossa fanpage pra ficar por dentro das novidades:<br>
+        <a href="https://www.linkedin.com/company/sharebook-br/" target="_blank">https://www.linkedin.com/company/sharebook-br/</a>
+    </p>
+</body>
+</html>  
