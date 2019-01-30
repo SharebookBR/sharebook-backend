@@ -181,10 +181,6 @@ namespace ShareBook.Api.Controllers
                 SuccessMessage = "Livro doado com sucesso!",
             };
 
-            //avisar aos participantes que não foram selecionados
-            _bookUserService.NotifyInterestedAboutBooksWinner(bookId);
-
-
             return Ok(result);
         }
 

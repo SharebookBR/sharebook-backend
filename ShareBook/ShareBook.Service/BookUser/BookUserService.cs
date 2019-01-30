@@ -55,9 +55,12 @@ namespace ShareBook.Service
             _bookUsersEmailService.SendEmailBookDonor(bookUser);
         }
 
-        public async void DonateBook(Guid bookId, Guid userId, string note)
+        public void DonateBook(Guid bookId, Guid userId, string note)
         {
-            var bookUserAccepted = _bookUserRepository.Get().Include(u => u.Book).Include(u => u.User)
+            var bookUserAccepted = _bookUserRepository.Get()
+                .Include(u => u.Book).ThenInclude(b => b.UserFacilitator)
+                .Include(u => u.Book).ThenInclude(b => b.User)
+                .Include(u => u.User).ThenInclude(u => u.Address)
                 .Where(x => x.UserId == userId
                     && x.BookId == bookId
                     && x.Status == DonationStatus.WaitingAction)
@@ -74,9 +77,16 @@ namespace ShareBook.Service
 
             _bookService.HideBook(bookId);
 
-            await _bookUsersEmailService.SendEmailBookDonated(bookUserAccepted);
+            // não usamos await nas notificações, pra serem assíncronas de verdade e retornar mais rápido.
 
-            
+            // avisa o ganhador
+            var taskWinner = _bookUsersEmailService.SendEmailBookDonated(bookUserAccepted);
+
+            // avisa os perdedores :/
+            var taskLoosers = NotifyInterestedAboutBooksWinner(bookId);
+
+            // avisa o doador
+            var taskDonator = _bookUsersEmailService.SendEmailBookDonatedNotifyDonor(bookUserAccepted.Book, bookUserAccepted.User);
         }
 
         public Result<Book> Cancel(Guid bookId, bool isAdmin = false)
