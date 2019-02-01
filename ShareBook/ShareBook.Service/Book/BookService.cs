@@ -74,7 +74,7 @@ namespace ShareBook.Service
 
         public IList<Book> Top15NewBooks()
              => SearchBooks(x => x.Approved
-                                 && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated), 1, 15)
+                                 && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated), 1, 30) // TODO: Voltar para 15 depois de ter uma solução definitiva usando categorias.
                             .Items;
 
         public IList<Book> Random15Books()
