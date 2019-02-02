@@ -72,9 +72,10 @@ namespace ShareBook.Service
             return enumValues;
         }
 
+        // TODO: renomar para um nome mais significativo. Talvez: Showcase (vitrine)
         public IList<Book> Top15NewBooks()
              => SearchBooks(x => x.Approved
-                                 && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated), 1, 30) // TODO: Voltar para 15 depois de ter uma solução definitiva usando categorias.
+                                 && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated), 1, 99) // não precisamos de limite. Ainda mais levando em consideração a DOAÇÃO RÁPIDA.
                             .Items;
 
         public IList<Book> Random15Books()

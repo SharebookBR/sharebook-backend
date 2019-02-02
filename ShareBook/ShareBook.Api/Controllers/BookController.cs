@@ -106,6 +106,7 @@ namespace ShareBook.Api.Controllers
             return book != null ? (IActionResult)Ok(book) : NotFound();
         }
 
+        // TODO: renomar para um nome mais significativo. Talvez: Showcase (vitrine)
         [HttpGet("Top15NewBooks")]
         public IList<Book> Top15NewBooks() => _service.Top15NewBooks();
 
