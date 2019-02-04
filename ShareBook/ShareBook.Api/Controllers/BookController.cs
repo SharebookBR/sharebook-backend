@@ -84,11 +84,7 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpPost("Cancel/{id}")]
-        public Result<Book> Cancel(string id) => _bookUserService.Cancel(new Guid(id), false);
-
-        [Authorize("Bearer")]
-        [HttpPost("CancelAdmin/{id}")]
-        [AuthorizationFilter(Permissions.Permission.DonateBook)]
+        [AuthorizationFilter(Permissions.Permission.ApproveBook)]
         public Result<Book> CancelAdmin(string id) => _bookUserService.Cancel(new Guid(id), true);
 
         [HttpGet("FreightOptions")]
@@ -110,6 +106,7 @@ namespace ShareBook.Api.Controllers
             return book != null ? (IActionResult)Ok(book) : NotFound();
         }
 
+        // TODO: renomar para um nome mais significativo. Talvez: Showcase (vitrine)
         [HttpGet("Top15NewBooks")]
         public IList<Book> Top15NewBooks() => _service.Top15NewBooks();
 
