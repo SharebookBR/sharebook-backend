@@ -72,9 +72,10 @@ namespace ShareBook.Service
             return enumValues;
         }
 
+        // TODO: renomar para um nome mais significativo. Talvez: Showcase (vitrine)
         public IList<Book> Top15NewBooks()
              => SearchBooks(x => x.Approved
-                                 && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated), 1, 30) // TODO: Voltar para 15 depois de ter uma solução definitiva usando categorias.
+                                 && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated), 1, 99) // não precisamos de limite. Ainda mais levando em consideração a DOAÇÃO RÁPIDA.
                             .Items;
 
         public IList<Book> Random15Books()
@@ -152,8 +153,8 @@ namespace ShareBook.Service
             //imagem eh opcional no update
             if (!string.IsNullOrEmpty(entity.ImageName) && entity.ImageBytes.Length > 0)
             {
-                savedBook.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, entity.Slug);
-                _uploadService.UploadImage(entity.ImageBytes, entity.ImageSlug, "Books");
+                entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, savedBook.Slug);
+                _uploadService.UploadImage(entity.ImageBytes, savedBook.ImageSlug, "Books");
             }
 
             //preparar o book para atualização
@@ -169,7 +170,7 @@ namespace ShareBook.Service
             savedBook.Synopsis = entity.Synopsis;
             savedBook.TrackingNumber = entity.TrackingNumber;
 
-            if (entity.UserIdFacilitator.HasValue)
+            if (entity.UserIdFacilitator.HasValue && entity.UserIdFacilitator !=  Guid.Empty)
                 savedBook.UserIdFacilitator = entity.UserIdFacilitator;
 
             result.Value = _repository.UpdateAsync(savedBook).Result;
