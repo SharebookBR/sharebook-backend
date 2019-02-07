@@ -4,6 +4,7 @@ using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.Enums;
 using ShareBook.Domain.Exceptions;
+using ShareBook.Helper;
 using ShareBook.Helper.Extensions;
 using ShareBook.Helper.Image;
 using ShareBook.Repository;
@@ -290,7 +291,8 @@ namespace ShareBook.Service
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
-            var date = DateTime.Now.ToString("dd/MM/yyyy");
+            var saoPauloNow = DateTimeHelper.ConvertDateTimeSaoPaulo(DateTime.Now);
+            var date = saoPauloNow.ToString("dd/MM/yyyy");
             var lineBreak = (string.IsNullOrEmpty(book.FacilitatorNotes)) ? "" : "\n";
             book.FacilitatorNotes += string.Format("{0}{1} - {2}", lineBreak, date, facilitatorNotes);
 
