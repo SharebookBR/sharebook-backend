@@ -24,6 +24,8 @@ namespace ShareBook.Service
 
         PagedList<Book> FullSearch(string criteria, int page, int itemsPerPage, bool isAdmin = false);
 
+        PagedList<Book> ByCategoryId(Guid categoryId, int page, int items);
+
         IList<Book> GetAll(int page, int items);
 
         Book BySlug(string slug);

@@ -212,6 +212,11 @@ namespace ShareBook.Service
             return SearchBooks(filter, page, itemsPerPage);
         }
 
+        public PagedList<Book> ByCategoryId(Guid categoryId, int page, int itemsPerPage)
+            => SearchBooks(x => (x.Approved
+                                && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated))
+                                && x.CategoryId == categoryId, page, itemsPerPage);
+
         public Book BySlug(string slug)
         {
             var pagedBook = SearchBooks(x => (x.Slug.Equals(slug)), 1, 1);
@@ -340,10 +345,8 @@ namespace ShareBook.Service
                             CreationDate = u.User.Address.CreationDate,
                         }
                     },
-                    Category = new Category()
-                    {
-                        Name = u.Category.Name
-                    }
+                    CategoryId = u.CategoryId,
+                    Category = u.Category
                 });
 
             return FormatPagedList(result, page, itemsPerPage, result.Count());

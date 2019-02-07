@@ -133,6 +133,9 @@ namespace ShareBook.Api.Controllers
             return _service.FullSearch(criteria, page, items, isAdmin);
         }
 
+        [HttpGet("Category/{categoryId}/{page}/{items}")]
+        public PagedList<Book> ByCategoryId(Guid categoryId, int page, int items) => _service.ByCategoryId(categoryId, page, items);
+
         [Authorize("Bearer")]
         [ProducesResponseType(typeof(Result), 200)]
         [HttpPost("Request")]
