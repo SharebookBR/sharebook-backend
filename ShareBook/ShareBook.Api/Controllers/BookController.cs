@@ -229,7 +229,6 @@ namespace ShareBook.Api.Controllers
         [Authorize("Bearer")]
         [ProducesResponseType(typeof(Result), 200)]
         [HttpPost("InformTrackingNumber/{bookId}")]
-        [AuthorizationFilter(Permissions.Permission.DonateBook)]
         public IActionResult InformTrackingNumber(Guid bookId, [FromBody] TrackinNumberBookVM trackingNumberBookVM)
         {
             
