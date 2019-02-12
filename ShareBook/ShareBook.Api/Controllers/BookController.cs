@@ -25,12 +25,14 @@ namespace ShareBook.Api.Controllers
     {
         private readonly IBookUserService _bookUserService;
         private readonly IBookService _service;
+        private readonly IUserService _userService;
         private Expression<Func<Book, object>> _defaultOrder = x => x.Id;
 
-        public BookController(IBookService bookService, IBookUserService bookUserService)
+        public BookController(IBookService bookService, IBookUserService bookUserService, IUserService userService)
         {
             _service = bookService;
             _bookUserService = bookUserService;
+            _userService = userService;
         }
 
         protected void SetDefault(Expression<Func<Book, object>> defaultOrder)
@@ -171,9 +173,10 @@ namespace ShareBook.Api.Controllers
         [Authorize("Bearer")]
         [HttpPut("Donate/{bookId}")]
         [ProducesResponseType(typeof(Result), 200)]
-        [AuthorizationFilter(Permissions.Permission.DonateBook)]
         public IActionResult DonateBook(Guid bookId, [FromBody] DonateBookUserVM donateBookUserVM)
         {
+            if (!_IsBookOwner(bookId)) return Unauthorized();
+
             _bookUserService.DonateBook(bookId, donateBookUserVM.UserId, donateBookUserVM.Note);
 
             var result = new Result
@@ -267,6 +270,17 @@ namespace ShareBook.Api.Controllers
             };
 
             return Ok(result);
+        }
+
+        private bool _IsBookOwner(Guid bookId)
+        {
+            var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+            var user = _userService.Find(userId);
+            if (user == null) return false;
+            if (user.Profile == Domain.Enums.Profile.Administrator) return true;
+
+            var book = _service.Find(bookId);
+            return book.UserId == userId;    
         }
     }
 }
