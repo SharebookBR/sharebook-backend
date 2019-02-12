@@ -272,6 +272,17 @@ namespace ShareBook.Api.Controllers
             return Ok(result);
         }
 
+        [Authorize("Bearer")]
+        [HttpPut("RenewChooseDate/{bookId}")]
+        [ProducesResponseType(typeof(Result), 200)]
+        public IActionResult RenewChooseDate(Guid bookId)
+        {
+            if (!_IsBookOwner(bookId)) return Unauthorized();
+
+            _service.RenewChooseDate(bookId);
+            return Ok();
+        }
+
         private bool _IsBookOwner(Guid bookId)
         {
             var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);

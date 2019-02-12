@@ -310,6 +310,15 @@ namespace ShareBook.Service
             return books.FirstOrDefault();
         }
 
+        public void RenewChooseDate(Guid bookId) {
+            var book = _repository.Find(bookId);
+            if (book == null)
+                throw new ShareBookException(ShareBookException.Error.NotFound);
+
+            book.ChooseDate = DateTime.Now.AddDays(10);
+            _repository.Update(book);
+        }
+
         #region Private
         private PagedList<Book> SearchBooks(Expression<Func<Book, bool>> filter, int page, int itemsPerPage)
             => SearchBooks(filter, page, itemsPerPage, x => x.CreationDate);

@@ -41,5 +41,7 @@ namespace ShareBook.Service
         void AddFacilitatorNotes(Guid bookId, string facilitatorNotes);
 
         Book GetBookWithAllUsers(Guid bookId);
+
+        void RenewChooseDate(Guid bookId);
     }
 }
