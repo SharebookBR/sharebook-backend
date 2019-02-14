@@ -37,6 +37,19 @@ namespace ShareBook.Api.AutoMapper
             CreateMap<User, UserVM>()
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address));
             #endregion
+
+            #region [ BookUser ]
+
+            CreateMap<BookUser, RequestersListVM>()
+                .ForMember(dest => dest.UserId, opt            => opt.MapFrom(src => src.UserId))
+                .ForMember(dest => dest.RequesterNickName, opt => opt.MapFrom(src => src.User.Name)) // TODO: Colocar o apelido. "Interessado 3"  por exemplo.
+                .ForMember(dest => dest.Location, opt          => opt.MapFrom(src => src.User.Location()))
+                .ForMember(dest => dest.TotalBooksWon, opt     => opt.MapFrom(src => src.User.TotalBooksWon()))
+                .ForMember(dest => dest.TotalBooksDonated, opt => opt.MapFrom(src => src.User.TotalBooksDonated()))
+                .ForMember(dest => dest.RequestText, opt       => opt.MapFrom(src => src.Reason))
+                .ForMember(dest => dest.Status, opt            => opt.MapFrom(src => src.Status));
+
+            #endregion
         }
     }
 }

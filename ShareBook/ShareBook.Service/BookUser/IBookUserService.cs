@@ -10,7 +10,7 @@ namespace ShareBook.Service
     {
         void Insert(Guid bookId, string reason);
 
-        IList<User> GetGranteeUsersByBookId(Guid bookId);
+        IList<BookUser> GetRequestersList(Guid bookId);
 
         void DonateBook(Guid bookId, Guid userId, string note);
 

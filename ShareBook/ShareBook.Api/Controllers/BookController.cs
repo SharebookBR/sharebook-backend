@@ -97,9 +97,16 @@ namespace ShareBook.Api.Controllers
         }
 
         [Authorize("Bearer")]
-        [HttpGet("GranteeUsersByBookId/{bookId}")]
-        [AuthorizationFilter(Permissions.Permission.DonateBook)]
-        public IList<User> GetGranteeUsersByBookId(string bookId) => _bookUserService.GetGranteeUsersByBookId(new Guid(bookId));
+        [HttpGet("RequestersList/{bookId}")]
+        public IActionResult GetRequestersList(Guid bookId)
+        {
+            if (!_IsBookOwner(bookId)) return Unauthorized();
+
+            var requesters = _bookUserService.GetRequestersList(bookId);
+            var requestersVM = Mapper.Map<List<RequestersListVM>>(requesters);
+
+            return Ok(requestersVM);
+        }
 
         [HttpGet("Slug/{slug}")]
         public IActionResult Get(string slug)
@@ -108,7 +115,6 @@ namespace ShareBook.Api.Controllers
             return book != null ? (IActionResult)Ok(book) : NotFound();
         }
 
-        // TODO: renomar para um nome mais significativo. Talvez: Showcase (vitrine)
         [HttpGet("Top15NewBooks")]
         public IList<Book> Top15NewBooks() => _service.Top15NewBooks();
 
