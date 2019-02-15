@@ -49,7 +49,7 @@ namespace ShareBook.Service
                 BookId = bookId,
                 UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name),
                 Reason = reason,
-                NickName = $"Interessado {bookRequested.TotalInterested() + 1}"
+                NickName = $"Interessado {bookRequested?.TotalInterested() + 1}"
             };
 
             if (!_bookService.Any(x => x.Id == bookUser.BookId))
