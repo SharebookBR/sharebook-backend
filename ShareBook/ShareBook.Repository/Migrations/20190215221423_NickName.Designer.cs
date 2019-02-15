@@ -12,9 +12,10 @@ using System;
 namespace ShareBook.Repository.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20190215221423_NickName")]
+    partial class NickName
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -141,9 +142,7 @@ namespace ShareBook.Repository.Migrations
 
                     b.Property<DateTime?>("CreationDate");
 
-                    b.Property<string>("NickName")
-                        .HasColumnType("varchar(64)")
-                        .HasMaxLength(64);
+                    b.Property<string>("NickName");
 
                     b.Property<string>("Note")
                         .HasColumnType("varchar(2000)")
