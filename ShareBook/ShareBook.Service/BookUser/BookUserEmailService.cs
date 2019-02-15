@@ -83,14 +83,9 @@ namespace ShareBook.Service
             await _emailService.SendToAdmins(html, BookRequestedTitle);
         }
 
-        public async Task SendEmailBookDonor(BookUser bookUser)
+        public async Task SendEmailBookDonor(BookUser bookUser, Book bookRequested)
         {
-            var includeList = new IncludeList<Book>(x => x.User);
-
-            //obtem o livro requisitado e o usuário doador do livro
-            var bookRequested = _bookService.Find(includeList, bookUser.BookId);
-
-            //obter o endereço do usuario que solicitou o livro
+            //obter o endereço do interessado
             var donatedUser = this._userService.Find(bookUser.UserId);
             var vm = new
             {
@@ -103,7 +98,7 @@ namespace ShareBook.Service
                     Name = bookRequested.User.Name,
                     ChooseDate = string.Format("{0:dd/MM/yyyy}", bookRequested.ChooseDate.Value)
                 },
-                RequestingUser = new { NickName = $"Interessado {bookRequested.TotalInterested()}" },
+                RequestingUser = new { bookUser.NickName },
 
             };
 

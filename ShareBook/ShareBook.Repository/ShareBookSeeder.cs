@@ -480,7 +480,8 @@ namespace ShareBook.Repository
                     User = grantee,
                     Book = book5,
                     CreationDate = DateTime.Now,
-                    Reason = "Quero muito esse livro."
+                    Reason = "Quero muito esse livro.",
+                    NickName = "Interessado 1"
                 };
 
                 _context.Categories.AddRange(adm, dir, psico, med, eng, geo_his, cien, art);

@@ -41,11 +41,15 @@ namespace ShareBook.Service
 
         public void Insert(Guid bookId, string reason)
         {
+            //obtem o livro requisitado e o doador
+            var bookRequested = _bookService.GetBookWithAllUsers(bookId);
+            
             var bookUser = new BookUser()
             {
                 BookId = bookId,
                 UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name),
-                Reason = reason
+                Reason = reason,
+                NickName = $"Interessado {bookRequested.TotalInterested() + 1}"
             };
 
             if (!_bookService.Any(x => x.Id == bookUser.BookId))
@@ -57,7 +61,7 @@ namespace ShareBook.Service
             _bookUserRepository.Insert(bookUser);
 
             _bookUsersEmailService.SendEmailBookRequested(bookUser);
-            _bookUsersEmailService.SendEmailBookDonor(bookUser);
+            _bookUsersEmailService.SendEmailBookDonor(bookUser, bookRequested);
         }
 
         public void DonateBook(Guid bookId, Guid userId, string note)

@@ -12,7 +12,7 @@ namespace ShareBook.Service
 
         Task SendEmailBookDonatedNotifyDonor(Book book, User winner);
 
-        Task SendEmailBookDonor(BookUser bookUser);
+        Task SendEmailBookDonor(BookUser bookUser, Book bookRequested);
 
         Task SendEmailDonationDeclined(Book book, BookUser bookUserWinner, List<BookUser> bookUsersDeclined);
 
