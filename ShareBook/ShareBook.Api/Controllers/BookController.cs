@@ -96,6 +96,12 @@ namespace ShareBook.Api.Controllers
             return freightOptions;
         }
 
+        // TODO: método deprecado. Remover depois que todos usarem o novo 'RequestersList'.
+        [Authorize("Bearer")]
+        [HttpGet("GranteeUsersByBookId/{bookId}")]
+        [AuthorizationFilter(Permissions.Permission.DonateBook)]
+        public IList<User> GetGranteeUsersByBookId(string bookId) => _bookUserService.GetGranteeUsersByBookId(new Guid(bookId));
+
         [Authorize("Bearer")]
         [HttpGet("RequestersList/{bookId}")]
         public IActionResult GetRequestersList(Guid bookId)
