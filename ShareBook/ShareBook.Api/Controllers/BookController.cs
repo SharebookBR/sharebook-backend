@@ -259,9 +259,10 @@ namespace ShareBook.Api.Controllers
         [Authorize("Bearer")]
         [ProducesResponseType(typeof(MainUsersVM), 200)]
         [HttpGet("MainUsers/{bookId}")]
-        [AuthorizationFilter(Permissions.Permission.ApproveBook)]
         public IActionResult MainUsers(Guid bookId)
         {
+            if (!_IsBookOwner(bookId)) return Unauthorized();
+
             var book = _service.GetBookWithAllUsers(bookId);
 
             var donor       = Mapper.Map<UserVM>(book.User);
