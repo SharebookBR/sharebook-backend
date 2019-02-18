@@ -12,6 +12,8 @@ namespace ShareBook.Service
 
         IList<User> GetGranteeUsersByBookId(Guid bookId);
 
+        IList<BookUser> GetRequestersList(Guid bookId);
+
         void DonateBook(Guid bookId, Guid userId, string note);
 
         void DeniedBookUsers(Guid bookId);

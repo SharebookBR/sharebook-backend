@@ -3,6 +3,7 @@ using ShareBook.Domain.Enums;
 using ShareBook.Helper.Crypto;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace ShareBook.Domain
@@ -20,6 +21,7 @@ namespace ShareBook.Domain
         public Profile Profile { get;  set; } = Profile.User;
         public virtual Address Address { get; set; }
         public virtual ICollection<BookUser> BookUsers { get; set; }
+        public virtual ICollection<Book> BooksDonated { get; set; }
 
         public bool PasswordIsStrong()
         {
@@ -65,5 +67,11 @@ namespace ShareBook.Domain
         {
             this.Password = password;
         }
+
+        public string Location() => Address.City + "-" + Address.State;
+
+        public int TotalBooksWon() => BookUsers.Where(b => b.Status == DonationStatus.Donated).ToList().Count ;
+
+        public int TotalBooksDonated() => BooksDonated.Count;
     }
 }

@@ -10,9 +10,10 @@ namespace ShareBook.Domain
         public Book Book { get; set; }
         public User User { get; set; }
         public Guid UserId { get; set; }
+        public string NickName { get; set; }
         public DonationStatus Status { get; private set; } = DonationStatus.WaitingAction;
-        public string Note { get; set; }
-        public string Reason { get; set; }
+        public string Note { get; set; } // motivo do doador ter escolhido.
+        public string Reason { get; set; } // justificativa do interessado.
 
         public void UpdateBookUser(DonationStatus status, string note)
         {

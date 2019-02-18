@@ -34,13 +34,27 @@ namespace ShareBook.Service
             .Where(x => x.BookId == bookId && x.Status == DonationStatus.WaitingAction)
             .Select(x => x.User.Cleanup()).ToList();
 
+        // TODO: avaliar se o uso de custom sql melhora significativamente a performance. Muitos includes.
+        public IList<BookUser> GetRequestersList(Guid bookId) =>
+            _bookUserRepository.Get()
+            .Include(x => x.User).ThenInclude(u => u.Address)
+            .Include(x => x.User).ThenInclude(u => u.BookUsers)
+            .Include(x => x.User).ThenInclude(u => u.BooksDonated)
+            .Where(x => x.BookId == bookId)
+            .OrderBy(x => x.CreationDate)
+            .ToList();
+
         public void Insert(Guid bookId, string reason)
         {
+            //obtem o livro requisitado e o doador
+            var bookRequested = _bookService.GetBookWithAllUsers(bookId);
+            
             var bookUser = new BookUser()
             {
                 BookId = bookId,
                 UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name),
-                Reason = reason
+                Reason = reason,
+                NickName = $"Interessado {bookRequested?.TotalInterested() + 1}"
             };
 
             if (!_bookService.Any(x => x.Id == bookUser.BookId))
@@ -52,7 +66,7 @@ namespace ShareBook.Service
             _bookUserRepository.Insert(bookUser);
 
             _bookUsersEmailService.SendEmailBookRequested(bookUser);
-            _bookUsersEmailService.SendEmailBookDonor(bookUser);
+            _bookUsersEmailService.SendEmailBookDonor(bookUser, bookRequested);
         }
 
         public void DonateBook(Guid bookId, Guid userId, string note)
