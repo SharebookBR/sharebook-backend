@@ -280,7 +280,6 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpPut("RenewChooseDate/{bookId}")]
-        [ProducesResponseType(typeof(Result), 200)]
         public IActionResult RenewChooseDate(Guid bookId)
         {
             if (!_IsBookOwner(bookId)) return Unauthorized();
