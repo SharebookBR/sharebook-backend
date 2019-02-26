@@ -41,8 +41,9 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpGet("Ping")]
-        public IActionResult Ping() {
-            var result = new 
+        public IActionResult Ping()
+        {
+            var result = new
             {
                 ServerNow = DateTime.Now,
                 SaoPauloNow = DateTimeHelper.ConvertDateTimeSaoPaulo(DateTime.Now),
@@ -150,30 +151,28 @@ namespace ShareBook.Api.Controllers
         public IActionResult RequestBook([FromBody] RequestBookVM requestBookVM)
         {
             _bookUserService.Insert(requestBookVM.BookId, requestBookVM.Reason);
-            var result = new Result
-            {
-                SuccessMessage = "Pedido realizado com sucesso!",
-            };
-            return Ok(result);
+            return Ok(new Result { SuccessMessage = "Pedido realizado com sucesso!" });
         }
 
         [Authorize("Bearer")]
         [HttpPost]
-        public Result<Book> Create([FromBody] CreateBookVM createBookVM)
+        public IActionResult Create([FromBody] CreateBookVM createBookVM)
         {
             var book = Mapper.Map<Book>(createBookVM);
-            return _service.Insert(book);
+            _service.Insert(book);
+            return Ok(new Result { SuccessMessage = "Livro cadastrado com sucesso! Aguarde aprovação." });
         }
 
         [Authorize("Bearer")]
         [HttpPut("{id}")]
         [AuthorizationFilter(Permissions.Permission.ApproveBook)]
-        public Result<Book> Update(Guid id, [FromBody] UpdateBookVM updateBookVM)
+        public IActionResult Update(Guid id, [FromBody] UpdateBookVM updateBookVM)
         {
             updateBookVM.Id = id;
             var book = Mapper.Map<Book>(updateBookVM);
 
-            return _service.Update(book);
+            _service.Update(book);
+            return Ok(new Result { SuccessMessage = "Livro alterado com sucesso!" });
         }
 
         [Authorize("Bearer")]
@@ -240,10 +239,10 @@ namespace ShareBook.Api.Controllers
         [HttpPost("InformTrackingNumber/{bookId}")]
         public IActionResult InformTrackingNumber(Guid bookId, [FromBody] TrackinNumberBookVM trackingNumberBookVM)
         {
-            
-                _bookUserService.InformTrackingNumber(bookId, trackingNumberBookVM.TrackingNumber);    
-                return Ok();
-            
+
+            _bookUserService.InformTrackingNumber(bookId, trackingNumberBookVM.TrackingNumber);
+            return Ok();
+
         }
 
         [Authorize("Bearer")]
@@ -264,9 +263,9 @@ namespace ShareBook.Api.Controllers
         {
             var book = _service.GetBookWithAllUsers(bookId);
 
-            var donor       = Mapper.Map<UserVM>(book.User);
+            var donor = Mapper.Map<UserVM>(book.User);
             var facilitator = Mapper.Map<UserVM>(book.UserFacilitator);
-            var winner      = Mapper.Map<UserVM>(book.WinnerUser());
+            var winner = Mapper.Map<UserVM>(book.WinnerUser());
 
             var result = new MainUsersVM
             {
@@ -296,7 +295,7 @@ namespace ShareBook.Api.Controllers
             if (user.Profile == Domain.Enums.Profile.Administrator) return true;
 
             var book = _service.Find(bookId);
-            return book.UserId == userId;    
+            return book.UserId == userId;
         }
     }
 }
