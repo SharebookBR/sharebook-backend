@@ -1,5 +1,6 @@
 ﻿using ShareBook.Domain.Common;
 using ShareBook.Domain.Enums;
+using ShareBook.Helper;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -88,6 +89,17 @@ namespace ShareBook.Domain
         {
             TimeSpan diff = (TimeSpan)(DateTime.Now - this.CreationDate);
             return diff.Days;
+        }
+
+        public bool MayChooseWinner()
+        {
+            var now = DateTime.Now;
+            new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
+
+            if (ChooseDate == null) return false;
+            var today = DateTimeHelper.GetTodaySaoPaulo();
+            DateTime ChooseDateMidnight = new DateTime(ChooseDate.Value.Year, ChooseDate.Value.Month, ChooseDate.Value.Day, 0, 0, 0);
+            return today >= ChooseDateMidnight;
         }
     }
 }
