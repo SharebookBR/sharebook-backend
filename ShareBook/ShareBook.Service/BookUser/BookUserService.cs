@@ -66,6 +66,10 @@ namespace ShareBook.Service
 
         public void DonateBook(Guid bookId, Guid userId, string note)
         {
+            var book = _bookService.Find(bookId);
+            if (!book.MayChooseWinner())
+                throw new ShareBookException(ShareBookException.Error.BadRequest, "Aguarde a data de decisão.");
+
             var bookUserAccepted = _bookUserRepository.Get()
                 .Include(u => u.Book).ThenInclude(b => b.UserFacilitator)
                 .Include(u => u.Book).ThenInclude(b => b.User)
