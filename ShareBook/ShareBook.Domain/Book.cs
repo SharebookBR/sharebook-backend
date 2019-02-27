@@ -93,10 +93,8 @@ namespace ShareBook.Domain
 
         public bool MayChooseWinner()
         {
-            var now = DateTime.Now;
-            new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
-
             if (ChooseDate == null) return false;
+
             var today = DateTimeHelper.GetTodaySaoPaulo();
             DateTime ChooseDateMidnight = new DateTime(ChooseDate.Value.Year, ChooseDate.Value.Month, ChooseDate.Value.Day, 0, 0, 0);
             return today >= ChooseDateMidnight;
