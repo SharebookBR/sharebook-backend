@@ -315,6 +315,9 @@ namespace ShareBook.Service
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
+            if (!book.MayChooseWinner())
+                throw new ShareBookException(ShareBookException.Error.BadRequest, "Aguarde a data de decisão.");
+
             book.ChooseDate = DateTime.Now.AddDays(10);
             _repository.Update(book);
         }

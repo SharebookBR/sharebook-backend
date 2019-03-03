@@ -102,9 +102,7 @@ namespace ShareBook.Service
         public override User Find(object keyValue)
         {
             var includes = new IncludeList<User>(x => x.Address);
-            var user = _repository.Find(includes, keyValue);
-
-            return UserCleanup(user);
+            return _repository.Find(includes, keyValue);
         }
 
         public Result<User> ValidOldPasswordAndChangeUserPassword(User user, string newPassword)

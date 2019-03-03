@@ -1,5 +1,6 @@
 using ShareBook.Domain;
 using ShareBook.Domain.Enums;
+using ShareBook.Helper;
 using System;
 using System.Collections.Generic;
 using Xunit;
@@ -92,6 +93,27 @@ namespace ShareBook.Test.Unit.Domain
             };
 
             Assert.Equal(expectedDays, book.DaysInShowcase());
+        }
+
+        [Fact]
+        public void MayChooseWinnerWhenChooseDateIsYesterday()
+        {
+            var book = new Book { ChooseDate = DateTimeHelper.GetTodaySaoPaulo().AddDays(-1) };
+            Assert.True(book.MayChooseWinner());
+        }
+
+        [Fact]
+        public void MayChooseWinnerWhenChooseDateIsToday()
+        {
+            var book = new Book { ChooseDate = DateTimeHelper.GetTodaySaoPaulo() };
+            Assert.True(book.MayChooseWinner());
+        }
+
+        [Fact]
+        public void MayNotChooseWinnerWhenChooseDateIsTomorrow()
+        {
+            var book = new Book { ChooseDate = DateTimeHelper.GetTodaySaoPaulo().AddDays(1) };
+            Assert.False(book.MayChooseWinner());
         }
     }
 }
