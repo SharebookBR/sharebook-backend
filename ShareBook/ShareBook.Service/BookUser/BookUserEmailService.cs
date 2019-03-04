@@ -116,7 +116,7 @@ namespace ShareBook.Service
             {
                 NameBook = bookUser.Book.Title,
                 NameFacilitator = book.UserFacilitator.Name,
-                PhoneFaciltator = book.UserFacilitator.Phone,
+                PhoneFacilitator = book.UserFacilitator.Phone,
                 EmailFacilitator = book.UserFacilitator.Email,
                 ChooseDate = String.Format("0:dd/MM/yyyy", book.ChooseDate.Value),
                 NameInterested = bookUser.NickName,
