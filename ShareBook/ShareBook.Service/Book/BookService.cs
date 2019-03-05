@@ -27,7 +27,7 @@ namespace ShareBook.Service
 
         public BookService(IBookRepository bookRepository,
                     IUnitOfWork unitOfWork, IValidator<Book> validator,
-                    IUploadService uploadService, IBooksEmailService booksEmailService,)
+                    IUploadService uploadService, IBooksEmailService booksEmailService)
                     : base(bookRepository, unitOfWork, validator)
         {
             _uploadService = uploadService;
@@ -104,8 +104,6 @@ namespace ShareBook.Service
         public override Result<Book> Insert(Book entity)
         {
             entity.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-
-            var bookUser = new BookUser();
 
             var result = Validate(entity);
             if (result.Success)
