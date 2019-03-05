@@ -24,14 +24,16 @@ namespace ShareBook.Service
     {
         private readonly IUploadService _uploadService;
         private readonly IBooksEmailService _booksEmailService;
+        private readonly IBookUsersEmailService _bookUsersEmailService;
 
         public BookService(IBookRepository bookRepository,
                     IUnitOfWork unitOfWork, IValidator<Book> validator,
-                    IUploadService uploadService, IBooksEmailService booksEmailService)
+                    IUploadService uploadService, IBooksEmailService booksEmailService, IBookUsersEmailService bookUsersEmailService)
                     : base(bookRepository, unitOfWork, validator)
         {
             _uploadService = uploadService;
             _booksEmailService = booksEmailService;
+            _bookUsersEmailService = bookUsersEmailService;
         }
 
         public Result<Book> Approve(Guid bookId, DateTime? chooseDate = null)
@@ -105,6 +107,8 @@ namespace ShareBook.Service
         {
             entity.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
 
+            var bookUser = new BookUser();
+
             var result = Validate(entity);
             if (result.Success)
             {
@@ -119,8 +123,11 @@ namespace ShareBook.Service
                 result.Value.ImageBytes = null;
 
                 _booksEmailService.SendEmailNewBookInserted(entity);
+                                                                        //Usado ENTITY pois está declarado como BOOK
+                _bookUsersEmailService.SendEmailBookInterested(bookUser, entity);
+                
             }
-            return result;
+             return result;
         }
 
         public override Result<Book> Update(Book entity)

@@ -22,8 +22,8 @@ namespace ShareBook.Service
         private const string BookCanceledTemplate = "BookCanceledTemplate";
         private const string BookCanceledTitle = "Livro cancelado - Sharebook";
         private const string BookTrackingNumberNoticeWinnerTitle = "Seu livro foi postado - Sharebook";
-         private const string BookNoticeInterestedTemplate = "BookNoticeInterestedTemplate";
-        private const string BookNoticeInterestedTitle = "Livro Solicitado - Sharebook";
+        private const string BookNoticeInterestedTemplate = "BookNoticeInterestedTemplate";
+        private const string BookNoticeInterestedTitle = "Sharebook - Você solicitou um livro";
 
         private readonly IUserService _userService;
         private readonly IBookService _bookService;
@@ -116,7 +116,8 @@ namespace ShareBook.Service
             {
                 NameBook = bookUser.Book.Title,
                 NameFacilitator = book.UserFacilitator.Name,
-                PhoneFaciltator = book.UserFacilitator.Phone,
+                LinkedinFacilitator = book.UserFacilitator.Linkedin,
+                PhoneFacilitator = book.UserFacilitator.Phone,
                 EmailFacilitator = book.UserFacilitator.Email,
                 ChooseDate = String.Format("0:dd/MM/yyyy", book.ChooseDate.Value),
                 NameInterested = bookUser.NickName,
