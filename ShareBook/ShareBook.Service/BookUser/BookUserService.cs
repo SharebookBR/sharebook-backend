@@ -67,6 +67,7 @@ namespace ShareBook.Service
 
             _bookUsersEmailService.SendEmailBookRequested(bookUser);
             _bookUsersEmailService.SendEmailBookDonor(bookUser, bookRequested);
+            _bookUsersEmailService.SendEmailBookInterested(bookUser, bookRequested);
         }
 
         public void DonateBook(Guid bookId, Guid userId, string note)

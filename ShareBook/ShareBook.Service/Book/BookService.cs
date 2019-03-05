@@ -119,8 +119,9 @@ namespace ShareBook.Service
                 result.Value.ImageBytes = null;
 
                 _booksEmailService.SendEmailNewBookInserted(entity);
+                                                                      
             }
-            return result;
+             return result;
         }
 
         public override Result<Book> Update(Book entity)
