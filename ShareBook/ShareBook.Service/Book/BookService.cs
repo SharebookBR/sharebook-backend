@@ -105,9 +105,6 @@ namespace ShareBook.Service
         {
             entity.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
 
-            var bookUser = new BookUser();
-            bookUser.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-
             var result = Validate(entity);
             if (result.Success)
             {
@@ -122,7 +119,6 @@ namespace ShareBook.Service
                 result.Value.ImageBytes = null;
 
                 _booksEmailService.SendEmailNewBookInserted(entity);
-                _booksEmailService.SendEmailBookInterested(bookUser, entity);
                                                                       
             }
              return result;
