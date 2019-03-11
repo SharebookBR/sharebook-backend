@@ -302,7 +302,8 @@ namespace ShareBook.Service
         public Book GetBookWithAllUsers(Guid bookId)
         {
             var books = _repository
-            .Get().Include(x => x.User).Include(x => x.UserFacilitator).ThenInclude(u => u.Address)
+            .Get().Include(x => x.User).ThenInclude(u => u.Address)
+            .Include(x => x.UserFacilitator).ThenInclude(u => u.Address)
             .Include(x => x.BookUsers).ThenInclude(bu => bu.User).ThenInclude(u => u.Address)
             .Where(x => x.Id == bookId)
             .ToList();
