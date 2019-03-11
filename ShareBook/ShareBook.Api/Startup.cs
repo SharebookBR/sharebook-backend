@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,7 +38,8 @@ namespace ShareBook.Api
                 .AddJsonOptions(options =>
                 {
                     options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
-                });
+                })
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             services.Configure<ImageSettings>(options => Configuration.GetSection("ImageSettings").Bind(options));
 
@@ -66,13 +68,13 @@ namespace ShareBook.Api
 
             services.AddCors(options =>
             {
-                options.AddPolicy("AllowAllHeaders",
-                      builder =>
-                      {
-                          builder.AllowAnyOrigin()
-                                 .AllowAnyHeader()
-                                 .AllowAnyMethod();
-                      });
+                options.AddPolicy("SharebookPolicy",
+                    builder =>
+                    {
+                        builder.AllowAnyOrigin()
+                               .AllowAnyHeader()
+                               .AllowAnyMethod();
+                    });
             });
 
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
@@ -83,6 +85,8 @@ namespace ShareBook.Api
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            app.UseCors("SharebookPolicy");
+
             app.UseDeveloperExceptionPage();
             app.UseExceptionHandlerMiddleware();
 
@@ -94,6 +98,7 @@ namespace ShareBook.Api
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "SHAREBOOK API V1");
             });
 
+            // IMPORTANT: Make sure UseCors() is called BEFORE this
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
@@ -103,7 +108,7 @@ namespace ShareBook.Api
                 routes.MapSpaFallbackRoute(
                     name: "spa-fallback",
                     defaults: new { controller = "ClientSpa", action = "Index" });
-            });
+            });            
 
             using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
             {
