@@ -14,11 +14,14 @@ namespace ShareBook.Helper
             return now - today;
         }
 
+        // data hora agora.
+        static public DateTime GetDateTimeNowSaoPaulo() => TimeZoneInfo.ConvertTime(DateTime.Now, TimeZoneInfo.FindSystemTimeZoneById(SaoPauloTimezoneId));
+ 
         // data-hora de hoje a meia noite.
         static public DateTime GetTodaySaoPaulo()
         {
-            var nowSP = GetTimeNowSaoPaulo();
-            var todaySP = DateTime.Now.AddHours(nowSP.Hours * -1).AddMinutes(nowSP.Minutes * -1).AddSeconds(nowSP.Seconds * -1);
+            var nowSP = GetDateTimeNowSaoPaulo();
+            var todaySP = new DateTime(nowSP.Year, nowSP.Month, nowSP.Day, 0, 0, 0);
             return todaySP;
         }
 
