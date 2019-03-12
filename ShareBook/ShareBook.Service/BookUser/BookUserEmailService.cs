@@ -124,7 +124,7 @@ namespace ShareBook.Service
             };
 
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookNoticeInterestedTemplate, vm);
-            await _emailService.Send(book.User.Email, book.User.Name, html, BookNoticeInterestedTitle);
+            await _emailService.Send(bookUser.User.Email, bookUser.User.Name, html, BookNoticeInterestedTitle);
         }
 
         /// <summary>
