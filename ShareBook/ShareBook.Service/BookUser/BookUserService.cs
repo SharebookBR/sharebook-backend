@@ -51,6 +51,7 @@ namespace ShareBook.Service
             
             var bookUser = new BookUser()
             {
+                NameInterested = bookUser.User.Name,
                 BookId = bookId,
                 UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name),
                 Reason = reason,
@@ -67,7 +68,7 @@ namespace ShareBook.Service
 
             _bookUsersEmailService.SendEmailBookRequested(bookUser);
             _bookUsersEmailService.SendEmailBookDonor(bookUser, bookRequested);
-            _bookUsersEmailService.SendEmailBookInterested(bookUser, bookRequested);
+            _bookUsersEmailService.SendEmailBookInterested(bookUser.NameInterested, bookRequested);
         }
 
         public void DonateBook(Guid bookId, Guid userId, string note)
