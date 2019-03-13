@@ -20,7 +20,7 @@ namespace ShareBook.Api.Controllers
 {
     [Route("api/[controller]")]
     [GetClaimsFilter]
-    [EnableCors("SharebookPolicy")]
+    [EnableCors("AllowAllHeaders")]
     public class BookController : Controller
     {
         private readonly IBookUserService _bookUserService;
