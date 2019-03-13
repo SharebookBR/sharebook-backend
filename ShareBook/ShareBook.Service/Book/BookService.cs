@@ -320,6 +320,7 @@ namespace ShareBook.Service
             if (!book.MayChooseWinner())
                 throw new ShareBookException(ShareBookException.Error.BadRequest, "Aguarde a data de decisão.");
 
+            book.Approved = true;
             book.ChooseDate = DateTime.Now.AddDays(10);
             _repository.Update(book);
         }
