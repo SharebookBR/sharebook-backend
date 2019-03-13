@@ -68,7 +68,7 @@ namespace ShareBook.Api
 
             services.AddCors(options =>
             {
-                options.AddPolicy("SharebookPolicy",
+                options.AddPolicy("AllowAllHeaders",
                     builder =>
                     {
                         builder.AllowAnyOrigin()
@@ -85,7 +85,7 @@ namespace ShareBook.Api
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            app.UseCors("SharebookPolicy");
+            app.UseCors("AllowAllHeaders");
 
             app.UseDeveloperExceptionPage();
             app.UseExceptionHandlerMiddleware();

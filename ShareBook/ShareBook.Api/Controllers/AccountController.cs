@@ -16,7 +16,7 @@ using System.Threading;
 namespace ShareBook.Api.Controllers
 {
     [Route("api/[controller]")]
-    [EnableCors("SharebookPolicy")]
+    [EnableCors("AllowAllHeaders")]
     [GetClaimsFilter]
     public class AccountController : Controller
     {
