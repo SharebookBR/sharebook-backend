@@ -28,6 +28,9 @@
     <None Update="Email\Templates\BookNoticeDonorTemplate.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Email\Templates\BookNoticeInterestedTemplate.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Email\Templates\ForgotPasswordTemplate.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
