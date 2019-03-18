@@ -121,7 +121,7 @@ namespace ShareBook.Service
                 LinkedinFacilitator = book.UserFacilitator.Linkedin,
                 PhoneFacilitator = book.UserFacilitator.Phone,
                 EmailFacilitator = book.UserFacilitator.Email,
-                ChooseDate = string.Format("{0:dddd, MMMM d, yyyy}", Date) ,
+                ChooseDate = string.Format("{0:dd/MM/yyyy}", Date) ,
                 NameInterested = bookUser.User.Name,
             };
 
