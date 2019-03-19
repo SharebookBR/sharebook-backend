@@ -30,6 +30,9 @@ namespace ShareBook.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+
+            RegisterHealthChecks(services, Configuration.GetConnectionString("DefaultConnection"));
+
             services.RegisterRepositoryServices();
             //auto mapper start 
             AutoMapperConfig.RegisterMappings();
@@ -85,6 +88,8 @@ namespace ShareBook.Api
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+
+            app.UseHealthChecks("/hc");
             app.UseCors("AllowAllHeaders");
 
             app.UseDeveloperExceptionPage();
@@ -108,7 +113,7 @@ namespace ShareBook.Api
                 routes.MapSpaFallbackRoute(
                     name: "spa-fallback",
                     defaults: new { controller = "ClientSpa", action = "Index" });
-            });            
+            });
 
             using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
             {
@@ -120,7 +125,13 @@ namespace ShareBook.Api
                     var sharebookSeeder = new ShareBookSeeder(context);
                     sharebookSeeder.Seed();
                 }
-            }
+            }     
+        }
+
+        private void RegisterHealthChecks(IServiceCollection services, string connectionString)
+        {
+            services.AddHealthChecks()
+                .AddSqlServer(connectionString);
         }
     }
 }
