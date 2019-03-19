@@ -112,8 +112,6 @@ namespace ShareBook.Service
 
         public async Task SendEmailBookInterested(BookUser bookUser, Book book)
         {
-            var Date = book.ChooseDate.Value;
-
             var vm = new
             {
                 NameBook = bookUser.Book.Title,
@@ -121,7 +119,7 @@ namespace ShareBook.Service
                 LinkedinFacilitator = book.UserFacilitator.Linkedin,
                 PhoneFacilitator = book.UserFacilitator.Phone,
                 EmailFacilitator = book.UserFacilitator.Email,
-                ChooseDate = string.Format("{0:dd/MM/yyyy}", Date) ,
+                ChooseDate = string.Format("{0:dd/MM/yyyy}", book.ChooseDate.Value) ,
                 NameInterested = bookUser.User.Name,
             };
 
