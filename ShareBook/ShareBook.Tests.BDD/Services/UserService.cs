@@ -13,15 +13,24 @@ namespace ShareBook.Tests.BDD.Services
     {
         public async Task<string> RegisterAsync()
         {
-            RegisterUserVM viewModel = new RegisterUserVM()
+            try
             {
-                Name = "Walter"
-            };
-            string entity = JsonConvert.SerializeObject(viewModel);
+                RegisterUserVM viewModel = new RegisterUserVM()
+                {
+                    Name = "Walter"
+                };
+                string entity = JsonConvert.SerializeObject(viewModel);
 
-            var response = await Client.PostAsync("/api/account/", new StringContent(entity, Encoding.UTF8, "application/json"));
-            response.EnsureSuccessStatusCode();
-            return  await response.Content.ReadAsStringAsync();
+                var response = await Client.PostAsync("/api/account/register", new StringContent(entity, Encoding.UTF8, "application/json"));
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadAsStringAsync();
+            }
+            catch (Exception e)
+            {
+
+                throw e;
+            }
+           
           
         }
     }

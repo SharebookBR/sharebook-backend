@@ -1,6 +1,7 @@
 ﻿using LightBDD.Framework;
 using LightBDD.XUnit2;
 using ShareBook.Tests.BDD.Services;
+using System.Threading.Tasks;
 
 namespace ShareBook.Tests.BDD.Features
 {
