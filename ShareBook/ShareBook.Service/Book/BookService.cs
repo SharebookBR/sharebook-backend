@@ -242,11 +242,11 @@ namespace ShareBook.Service
 
         public IList<Book> GetUserDonations(Guid userId)
         {
-            return _repository.Get(
-                    book => book.UserId == userId,
-                    book => book.CreationDate,
-                    new IncludeList<Book>(book => book.BookUsers)
-                ).Items;
+            return _repository.Get()
+                .Include(b => b.BookUsers)
+                .Where(b => b.UserId == userId)
+                .OrderByDescending(b => b.CreationDate)
+                .ToList();
         }
 
         public IList<Book> GetBooksChooseDateIsToday()
