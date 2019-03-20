@@ -1,5 +1,6 @@
 ﻿using LightBDD.Framework;
 using LightBDD.XUnit2;
+using ShareBook.Tests.BDD.Services;
 
 namespace ShareBook.Tests.BDD.Features
 {
@@ -7,7 +8,9 @@ namespace ShareBook.Tests.BDD.Features
 	{
 		private void Given_new_user_want_to_join_with_this_datas()
 		{
-			StepExecution.Current.IgnoreScenario("Not implemented yet");
+            UserService service = new UserService();
+            var  result = service.RegisterAsync().Result;
+
 		}
 
 		private void When_the_new_user_registers()
