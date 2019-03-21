@@ -7,17 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="appsettings.Development.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="appsettings.Development.json">
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-  </ItemGroup>
-
-
-  <ItemGroup>
     <PackageReference Include="LightBDD" Version="2.1.0" />
     <PackageReference Include="LightBDD.XUnit2" Version="3.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="2.2.0" />
@@ -45,6 +34,13 @@
     <Compile Update="Features\RegisterUserFeature.Steps.cs">
       <SubType>Code</SubType>
     </Compile>
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
