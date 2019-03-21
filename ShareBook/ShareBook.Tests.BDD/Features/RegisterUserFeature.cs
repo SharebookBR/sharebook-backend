@@ -2,6 +2,7 @@
 using LightBDD.Framework.Scenarios;
 using LightBDD.XUnit2;
 using ShareBook.Tests.BDD.Configurations;
+using Xunit;
 
 [assembly: ConfiguredLightBddScope]
 namespace ShareBook.Tests.BDD.Features
@@ -13,7 +14,8 @@ namespace ShareBook.Tests.BDD.Features
 	{
 		[Label("Registration with all data correct.")]
 		[Scenario]
-		public void Template_basic_scenario()
+        [Trait("Category", "BDD")]
+        public void Template_basic_scenario()
 		{
 			Runner.RunScenario(
                 Given_new_user_want_to_join_with_this_datas,
