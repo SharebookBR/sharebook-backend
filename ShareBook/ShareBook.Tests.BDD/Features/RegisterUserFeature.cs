@@ -11,7 +11,7 @@ namespace ShareBook.Tests.BDD.Features
         @"New user wants to join in sharebook plataform")]
 	public partial class RegisterUserFeature
 	{
-		[Label("Registration with all data correct")]
+		[Label("Registration with all data correct.")]
 		[Scenario]
 		public void Template_basic_scenario()
 		{
