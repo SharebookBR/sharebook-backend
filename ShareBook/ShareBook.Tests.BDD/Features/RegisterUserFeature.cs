@@ -15,7 +15,7 @@ namespace ShareBook.Tests.BDD.Features
 		[Label("Registration with all data correct.")]
 		[Scenario]
         [Trait("Category", "BDD")]
-        public void Template_basic_scenario()
+        public void Register_User_Successfully()
 		{
 			Runner.RunScenario(
                 Given_new_user_want_to_join_with_this_datas,
