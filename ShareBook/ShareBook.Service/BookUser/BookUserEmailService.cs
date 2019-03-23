@@ -194,7 +194,11 @@ namespace ShareBook.Service
         {
             var vm = new
             {
-                book = book
+                book = book,
+                NameFacilitator = book.UserFacilitator.Name,
+                LinkedInFacilitator = book.UserFacilitator.Linkedin,
+                ZapFacilitator = book.UserFacilitator.Phone,
+                EmailFacilitator = book.UserFacilitator.Email,
             };
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookTrackingNumberNoticeWinnerTemplate, vm);
             await _emailService.Send(bookUserWinner.User.Email, bookUserWinner.User.Name, html, BookTrackingNumberNoticeWinnerTitle, false);
