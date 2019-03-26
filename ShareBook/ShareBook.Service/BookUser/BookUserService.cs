@@ -149,10 +149,15 @@ namespace ShareBook.Service
             NotifyUsersBookCanceled(book);
         }
 
-        public PagedList<BookUser> GetRequestsByUser()
+        public PagedList<BookUser> GetRequestsByUser(int page, int itemsPerPage)
         {
             var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            return _bookUserRepository.Get(x => x.UserId == userId, x => x.Book, new IncludeList<BookUser>(b => b.Book));
+            var query = _bookUserRepository.Get()
+                .Include(x => x.Book)
+                .Where(x => x.UserId == userId)
+                .OrderByDescending(x => x.CreationDate);
+
+            return FormatPagedList(query, page, itemsPerPage);
         }
 
         public async Task NotifyInterestedAboutBooksWinner(Guid bookId)
@@ -208,6 +213,19 @@ namespace ShareBook.Service
             //Envia e-mail para avisar o ganhador do tracking number                          
             _bookUsersEmailService.SendEmailTrackingNumberInformed(winnerBookUser, book);
             
+        }
+
+        private PagedList<BookUser> FormatPagedList(IQueryable<BookUser> query, int page, int itemsPerPage)
+        {
+            var total = query.Count();
+            var skip = (page - 1) * itemsPerPage;
+            return new PagedList<BookUser>()
+            {
+                Page = page,
+                ItemsPerPage = itemsPerPage,
+                TotalItems = total,
+                Items = query.Skip(skip).Take(itemsPerPage).ToList()
+            };
         }
     }
 }

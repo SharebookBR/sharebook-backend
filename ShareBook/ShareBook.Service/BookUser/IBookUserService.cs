@@ -18,7 +18,8 @@ namespace ShareBook.Service
 
         void DeniedBookUsers(Guid bookId);
 
-        PagedList<BookUser> GetRequestsByUser();
+        PagedList<BookUser> GetRequestsByUser(int page, int items);
+
         /// <summary>
         /// Comunicar os interessados não escolhidos sobre a finalização da doação. e quem ganhou o livro
         /// </summary>
