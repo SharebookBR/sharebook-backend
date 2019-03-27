@@ -1,4 +1,5 @@
 ﻿using Moq;
+using ShareBook.Domain.Validators;
 using ShareBook.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service;
@@ -18,6 +19,7 @@ namespace ShareBook.Test.Unit.Services
         readonly Mock<IBooksEmailService> bookEmailService;
         readonly Mock<IUnitOfWork> unitOfWorkMock;
         readonly Mock<IBookUsersEmailService> bookUsersEmailService;
+        readonly BookUserValidator bookUserValidator;
 
 
         public BookUserServiceTests()
@@ -39,7 +41,8 @@ namespace ShareBook.Test.Unit.Services
         {
             Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
             var service = new BookUserService(bookUserRepositoryMock.Object,
-                bookServiceMock.Object, bookUsersEmailService.Object, unitOfWorkMock.Object);
+                bookServiceMock.Object, bookUsersEmailService.Object, unitOfWorkMock.Object, bookUserValidator);
+
             string reason = "I need this book because I'm learning a new programming language.";
 
             service.Insert(bookId, reason);
