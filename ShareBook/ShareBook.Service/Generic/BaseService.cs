@@ -4,6 +4,7 @@ using ShareBook.Repository;
 using ShareBook.Repository.Repository;
 using ShareBook.Repository.UoW;
 using System;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace ShareBook.Service.Generic
@@ -56,6 +57,20 @@ namespace ShareBook.Service.Generic
 
         public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes)
             => _repository.Get(filter, order, page, itemsPerPage, includes);
+
+        public PagedList<TEntity> FormatPagedList(IQueryable<TEntity> query, int page, int itemsPerPage)
+        {
+            var total = query.Count();
+            var skip = (page - 1) * itemsPerPage;
+            return new PagedList<TEntity>()
+            {
+                Page = page,
+                ItemsPerPage = itemsPerPage,
+                TotalItems = total,
+                Items = query.Skip(skip).Take(itemsPerPage).ToList()
+            };
+        }
+
         #endregion
 
         protected Result<TEntity> Validate(TEntity entity) => new Result<TEntity>(_validator.Validate(entity));
