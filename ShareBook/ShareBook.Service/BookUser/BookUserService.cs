@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.Enums;
@@ -6,6 +7,7 @@ using ShareBook.Domain.Exceptions;
 using ShareBook.Repository;
 using ShareBook.Repository.Repository;
 using ShareBook.Repository.UoW;
+using ShareBook.Service.Generic;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,15 +16,20 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service
 {
-    public class BookUserService : IBookUserService
+    public class BookUserService : BaseService<BookUser>, IBookUserService
     {
 
         private readonly IBookUserRepository _bookUserRepository;
         private readonly IBookService _bookService;
         private readonly IBookUsersEmailService _bookUsersEmailService;
 
-        public BookUserService(IBookUserRepository bookUserRepository, IBookService bookService,
-            IBookUsersEmailService bookUsersEmailService, IUnitOfWork unitOfWork)
+        public BookUserService(
+            IBookUserRepository bookUserRepository, 
+            IBookService bookService,
+            IBookUsersEmailService bookUsersEmailService, 
+            IUnitOfWork unitOfWork,
+            IValidator<BookUser> validator)
+            : base(bookUserRepository, unitOfWork, validator)
         {
             _bookUserRepository = bookUserRepository;
             _bookService = bookService;
@@ -149,10 +156,15 @@ namespace ShareBook.Service
             NotifyUsersBookCanceled(book);
         }
 
-        public PagedList<BookUser> GetRequestsByUser()
+        public PagedList<BookUser> GetRequestsByUser(int page, int itemsPerPage)
         {
             var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            return _bookUserRepository.Get(x => x.UserId == userId, x => x.Book, new IncludeList<BookUser>(b => b.Book));
+            var query = _bookUserRepository.Get()
+                .Include(x => x.Book)
+                .Where(x => x.UserId == userId)
+                .OrderByDescending(x => x.CreationDate);
+
+            return FormatPagedList(query, page, itemsPerPage);
         }
 
         public async Task NotifyInterestedAboutBooksWinner(Guid bookId)

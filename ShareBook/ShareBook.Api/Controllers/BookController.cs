@@ -219,7 +219,7 @@ namespace ShareBook.Api.Controllers
         [HttpGet("MyRequests/{page}/{items}")]
         public PagedList<MyBookRequestVM> MyRequests(int page, int items)
         {
-            var donation = _bookUserService.GetRequestsByUser();
+            var donation = _bookUserService.GetRequestsByUser(page, items);
             var myBooksRequestsVM = Mapper.Map<List<MyBookRequestVM>>(donation.Items);
 
             return new PagedList<MyBookRequestVM>()

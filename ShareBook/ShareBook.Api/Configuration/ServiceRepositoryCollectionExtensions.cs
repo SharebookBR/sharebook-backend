@@ -41,6 +41,7 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<IValidator<Book>, BookValidator>();
             services.AddScoped<IValidator<Category>, CategoryValidator>();
             services.AddScoped<IValidator<ContactUs>, ContactUsValidator>();
+            services.AddScoped<IValidator<BookUser>, BookUserValidator>();
 
             //Auth
             services.AddScoped<IApplicationSignInManager, ApplicationSignInManager>();

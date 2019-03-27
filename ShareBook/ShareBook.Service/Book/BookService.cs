@@ -331,7 +331,7 @@ namespace ShareBook.Service
 
         private PagedList<Book> SearchBooks<TKey>(Expression<Func<Book, bool>> filter, int page, int itemsPerPage, Expression<Func<Book, TKey>> expression)
         {
-            var result = _repository.Get()
+            var query = _repository.Get()
                 .Where(filter)
                 .OrderByDescending(expression)
                 .Select(u => new Book
@@ -366,19 +366,7 @@ namespace ShareBook.Service
                     Category = u.Category
                 });
 
-            return FormatPagedList(result, page, itemsPerPage, result.Count());
-        }
-
-        private PagedList<Book> FormatPagedList(IQueryable<Book> list, int page, int itemsPerPage, int total)
-        {
-            var skip = (page - 1) * itemsPerPage;
-            return new PagedList<Book>()
-            {
-                Page = page,
-                ItemsPerPage = itemsPerPage,
-                TotalItems = total,
-                Items = list.Skip(skip).Take(itemsPerPage).ToList()
-            };
+            return FormatPagedList(query, page, itemsPerPage);
         }
 
         private bool BookAlreadyApproved(Guid bookId)
