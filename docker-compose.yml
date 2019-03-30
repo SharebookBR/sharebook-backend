@@ -1,0 +1,18 @@
+version: '3'
+
+# Inicio configuracao do ASP.NET
+
+services:
+  sharebook.api:
+    image: sharebook
+    ports:
+      - "8181:5000"
+    build:
+      context: ./ShareBook
+      dockerfile: Dockerfile      
+
+    networks:
+      - sharebook
+networks: 
+  sharebook: 
+    driver: bridge
