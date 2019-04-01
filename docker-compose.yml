@@ -6,7 +6,7 @@ services:
   sharebook.api:
     image: sharebook
     ports:
-      - "8181:5000"
+      - "80:80"
     build:
       context: ./ShareBook
       dockerfile: Dockerfile      
