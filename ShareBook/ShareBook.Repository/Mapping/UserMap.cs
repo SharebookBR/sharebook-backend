@@ -45,6 +45,9 @@ namespace ShareBook.Repository.Mapping
             entityBuilder.Property(t => t.HashCodePasswordExpiryDate)
                 .HasColumnType("datetime2(7)");
 
+            entityBuilder.Property(t => t.PlayerId)
+                .HasColumnType("varchar(36)")
+                .HasMaxLength(36);
         }
     }
 }
