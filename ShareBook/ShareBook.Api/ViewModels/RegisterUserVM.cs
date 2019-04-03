@@ -39,6 +39,8 @@ namespace ShareBook.Api.ViewModels
 
         public string Phone { get; set; }
 
+        public string PlayerId { get; set; }
+
         [Required]
         public string Password { get; set; }
     }

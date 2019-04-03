@@ -9,5 +9,7 @@ namespace ShareBook.Api.ViewModels
 
         [Required]
         public string Password { get; set; }
+
+        public string PlayerId { get; set; }
     }
 }
