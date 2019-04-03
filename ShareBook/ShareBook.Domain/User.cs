@@ -16,8 +16,9 @@ namespace ShareBook.Domain
         public string HashCodePassword { get; set; }
         public DateTime HashCodePasswordExpiryDate { get; set; }
         public string Linkedin { get; set; }
-        public  string Phone{ get; set; }
+        public string Phone{ get; set; }
         public Profile Profile { get;  set; } = Profile.User;
+        public string PlayerId { get; set; }
         public virtual Address Address { get; set; }
         public virtual ICollection<BookUser> BookUsers { get; set; }
 
@@ -64,6 +65,11 @@ namespace ShareBook.Domain
         public void ChangePassword(string password)
         {
             this.Password = password;
+        }
+
+        public void ChangePlayerId(string playerId)
+        {
+            this.PlayerId = playerId;
         }
     }
 }
