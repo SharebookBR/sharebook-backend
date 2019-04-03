@@ -35,6 +35,10 @@ namespace ShareBook.Api.AutoMapper
             #region [ ContactUs ]
             CreateMap<ContactUsVM, ContactUs>();
             #endregion
+
+            #region [ NotificationOnesignal ]
+            CreateMap<NotificationOnesignalVM, NotificationOnesignal>();
+            #endregion
         }
     }
 }
