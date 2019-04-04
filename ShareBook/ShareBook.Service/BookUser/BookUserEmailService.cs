@@ -45,6 +45,7 @@ namespace ShareBook.Service
                 bookDonated.User = _userService.Find(bookUser.Book.UserId);
             var vm = new
             {
+                Reason = bookUser.Note,
                 Book = bookDonated,
                 bookUser.User
             };
