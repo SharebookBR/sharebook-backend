@@ -186,6 +186,11 @@ namespace ShareBook.Service
 
         public async Task SendEmailBookCanceledToAdmins(Book book)
         {
+            var vm = new
+            {
+                Reasons = book.FacilitatorNotes
+            };
+
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookCanceledTemplate, book);
             await _emailService.SendToAdmins(html, BookCanceledTitle);
         }

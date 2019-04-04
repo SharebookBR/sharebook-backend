@@ -49,6 +49,12 @@ namespace ShareBook.Service
 
         private async Task SendEmailNewBookInsertedToAdministrators(Book book)
         {
+            BookUser bookUser = new BookUser();
+            var vm = new
+            {
+                Reason = bookUser.Note
+            };
+
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(NewBookInsertedTemplate, book);
             await _emailService.SendToAdmins(html, NewBookInsertedTitle);
         }
