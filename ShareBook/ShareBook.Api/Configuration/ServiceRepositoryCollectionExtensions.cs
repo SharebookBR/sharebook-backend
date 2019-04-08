@@ -9,6 +9,7 @@ using ShareBook.Repository.UoW;
 using ShareBook.Service;
 using ShareBook.Service.Upload;
 using Sharebook.Jobs;
+using ShareBook.Service.Notification;
 
 namespace ShareBook.Api.Configuration
 {
@@ -61,6 +62,9 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<RemoveBookFromShowcase>();
             services.AddScoped<ChooseDateReminder>();
             services.AddScoped<LateDonationNotification>();
+
+            //notification
+            services.AddScoped<INotificationService, NotificationService>();
 
             return services;
         }
