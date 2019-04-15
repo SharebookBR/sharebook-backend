@@ -47,7 +47,11 @@ namespace ShareBook.Repository.Mapping
 
             entityBuilder.HasMany(t => t.BooksDonated)
                 .WithOne(b => b.User);
-  
+
+            entityBuilder.Property(t => t.Active)
+                .HasDefaultValueSql("1");
+
+
 
         }
     }

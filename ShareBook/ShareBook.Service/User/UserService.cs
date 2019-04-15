@@ -46,6 +46,12 @@ namespace ShareBook.Service
                 return result;
             }
 
+            if (!user.Active)
+            {
+                result.Messages.Add("Usuário com acesso temporariamente suspenso.");
+                return result;
+            }
+
             result.Value = UserCleanup(user);
             return result;
         }
