@@ -25,13 +25,13 @@ steps:
   args:
   - '-c'
   - |
-      sed -e \
-      's/PROJECT_ID/${PROJECT_ID}/g; s/RELEASE_TAG/${TAG_NAME}/g; s/IMAGE_SHA/${SHORT_SHA}/g' \
-      deployments/service.yaml > deployments/final.yaml
+    sed "s/PROJECT_ID/${PROJECT_ID}/g" deployments/kubernetes.yaml.tpl | \
+    sed "s/COMMIT_SHA/${SHORT_SHA}/g" > deployments/kubernetes.yaml
+
 # deploy service to Knative cluster using the above gen'd manifest
 - name: 'gcr.io/cloud-builders/kubectl'
   id: Deploy
-  args: ['apply','-f','deployments/service.yaml']
+  args: ['apply','-f','deployments/kubernetes.yaml']
   env:
   - 'CLOUDSDK_COMPUTE_ZONE=${_CLUSTER_ZONE}'
   - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER_NAME}'
