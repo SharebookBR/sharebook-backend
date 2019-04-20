@@ -1,21 +1,15 @@
+# Example build script to create a Docker image from a .NET Core 2.0 Web Api app.
+steps:
 
-# [START cloudbuild]
+# .NET Core 2.0 by default restores before any build, so we can
+# combine the restore and publish operations in a single statement.
+- name: 'gcr.io/sharebook/dotnet'
+  args: [ 'publish', '-c', 'Release' ]
 
-# This step builds the container image.
-- name: 'gcr.io/cloud-builders/docker'
-  id: Build
-  args:
-  - 'build'
-  - '-t'
-  - 'gcr.io/tidy-hold-235620/sharebook-api:$COMMIT_SHA'
-  - '.'
+# Build the app image.
+- name: 'gcr.io/sharebook/docker'
+  args: [ 'build', '-t', 'gcr.io/$PROJECT_ID/sharebook-api', '.' ]
+  dir: './bin/Release/netcoreapp2.2/publish'
 
-# This step pushes the image to Container Registry
-# The PROJECT_ID and SHORT_SHA variables are automatically
-# replaced by Cloud Build.
-- name: 'gcr.io/cloud-builders/docker'
-  id: Push
-  args:
-  - 'push'
-  - 'gcr.io/tidy-hold-235620/sharebook-api:$COMMIT_SHA'
-# [END cloudbuild]
+# Publish the app.
+images: [ 'gcr.io/$PROJECT_ID/sharebook-api' ]
