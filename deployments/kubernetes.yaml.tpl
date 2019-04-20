@@ -29,7 +29,7 @@ spec:
         app: sharebook
     spec:
       containers:
-      - name: sharebook
+      - name: sharebook-api
         image: gcr.io/PROJECT_ID/sharebook-api:COMMIT_SHA
         ports:
         - containerPort: 80
