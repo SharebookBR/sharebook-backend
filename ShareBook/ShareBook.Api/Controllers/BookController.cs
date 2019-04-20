@@ -49,7 +49,7 @@ namespace ShareBook.Api.Controllers
                 SaoPauloNow = DateTimeHelper.ConvertDateTimeSaoPaulo(DateTime.Now),
                 ServerToday = DateTime.Today,
                 SaoPauloToday = DateTimeHelper.GetTodaySaoPaulo(),
-                Message = "Pong!"
+                Message = "Pong! Google Cloud deu certo!"
             };
             return Ok(result);
         }
