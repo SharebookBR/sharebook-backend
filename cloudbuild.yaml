@@ -31,7 +31,7 @@ steps:
 # deploy service to Knative cluster using the above gen'd manifest
 - name: 'gcr.io/cloud-builders/kubectl'
   id: Deploy
-  args: ['apply','-f','deployments/final.yaml']
+  args: ['apply','-f','deployments/service.yaml']
   env:
   - 'CLOUDSDK_COMPUTE_ZONE=${_CLUSTER_ZONE}'
   - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER_NAME}'
