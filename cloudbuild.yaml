@@ -15,7 +15,6 @@ steps:
 # Publish the app.
 images: [ 'gcr.io/$PROJECT_ID/sharebook-api' ]
 
-
 # update manifest with few env var (mainly release tag)
 - name: 'gcr.io/cloud-builders/gcloud'
   id: Manifest
