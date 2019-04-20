@@ -3,7 +3,7 @@ steps:
 
 # .NET Core 2.0 by default restores before any build, so we can
 # combine the restore and publish operations in a single statement.
-- name: 'gcr.io/sharebook/dotnet'
+- name: 'gcr.io/$PROJECT_ID/dotnet'
   args: [ 'publish', '-c', 'Release' ]
 
 # Build the app image.
