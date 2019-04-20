@@ -12,5 +12,26 @@ steps:
   args: [ 'build', '-t', 'gcr.io/$PROJECT_ID/sharebook-api:$SHORT_SHA', '.' ]
   dir: 'ShareBook'
 
-# Publish the app.
-images: [ 'gcr.io/$PROJECT_ID/sharebook-api:$SHORT_SHA' ]
+# push image to gcr
+- name: 'gcr.io/cloud-builders/docker'
+  id: Push
+  args: ['push','gcr.io/$PROJECT_ID/sharebook-api:$SHORT_SHA']
+
+
+# update manifest with few env var (mainly release tag)
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: Manifest
+  entrypoint: /bin/sh
+  args:
+  - '-c'
+  - |
+      sed -e \
+      's/PROJECT_ID/${PROJECT_ID}/g; s/RELEASE_TAG/${TAG_NAME}/g; s/IMAGE_SHA/${SHORT_SHA}/g' \
+      deployments/service.yaml > deployments/final.yaml
+# deploy service to Knative cluster using the above gen'd manifest
+- name: 'gcr.io/cloud-builders/kubectl'
+  id: Deploy
+  args: ['apply','-f','deployments/final.yaml']
+  env:
+  - 'CLOUDSDK_COMPUTE_ZONE=${_CLUSTER_ZONE}'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER_NAME}'

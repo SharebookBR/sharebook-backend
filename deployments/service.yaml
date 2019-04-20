@@ -12,7 +12,7 @@ spec:
             demo: sharebook
         spec:
           container:
-            image: gcr.io/$PROJECT_ID/sharebook-api
+            image: gcr.io/$PROJECT_ID/sharebook-api:$SHORT_SHA
             imagePullPolicy: Always
             resources:
               requests:
