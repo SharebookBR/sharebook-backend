@@ -1,0 +1,26 @@
+apiVersion: sharebook/v1alpha1
+kind: Service
+metadata:
+  name: sharebook
+  namespace: demo
+spec:
+  runLatest:
+    configuration:
+      revisionTemplate:
+        metadata:
+          labels:
+            demo: sharebook
+        spec:
+          container:
+            image: gcr.io/$PROJECT_ID/sharebook-api
+            imagePullPolicy: Always
+            resources:
+              requests:
+                memory: "128Mi"
+                cpu: "0.5"
+              limits:
+                memory: "256Mi"
+                cpu: "1"
+            env:
+            - name: RELEASE
+              value: "RELEASE_TAG"
