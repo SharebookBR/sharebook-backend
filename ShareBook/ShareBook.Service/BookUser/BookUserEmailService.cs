@@ -1,5 +1,6 @@
 ﻿using ShareBook.Domain;
 using ShareBook.Repository.Repository;
+using ShareBook.Service.Notification;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -29,13 +30,15 @@ namespace ShareBook.Service
         private readonly IBookService _bookService;
         private readonly IEmailService _emailService;
         private readonly IEmailTemplate _emailTemplate;
+        private readonly INotificationService _notificationService;
 
-        public BookUserEmailService(IUserService userService, IBookService bookService, IEmailService emailService, IEmailTemplate emailTemplate)
+        public BookUserEmailService(IUserService userService, IBookService bookService, IEmailService emailService, IEmailTemplate emailTemplate, INotificationService notificationService)
         {
             _userService = userService;
             _bookService = bookService;
             _emailService = emailService;
             _emailTemplate = emailTemplate;
+            _notificationService = notificationService;
         }
 
         public async Task SendEmailBookDonated(BookUser bookUser)
@@ -104,6 +107,8 @@ namespace ShareBook.Service
 
             };
 
+            _notificationService.SendNotificationByEmail(bookRequested.User.Email, $"Seu livro foi solicitado", $" O Interessado é {vm.RequestingUser.NickName}" );
+
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookNoticeDonorTemplate, vm);
 
             await _emailService.Send(bookRequested.User.Email, bookRequested.User.Name, html, BookNoticeDonorTitle);
@@ -122,6 +127,8 @@ namespace ShareBook.Service
                 ChooseDate = string.Format("{0:dd/MM/yyyy}", book.ChooseDate.Value) ,
                 NameInterested = bookUser.User.Name,
             };
+
+            _notificationService.SendNotificationByEmail(bookUser.User.Email, $"Você solicitou o livro {vm.NameBook}", $"Aguarde até o dia {vm.ChooseDate} que será anunciado o ganhador. Boa sorte!");
 
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookNoticeInterestedTemplate, vm);
             await _emailService.Send(bookUser.User.Email, bookUser.User.Name, html, BookNoticeInterestedTitle);
