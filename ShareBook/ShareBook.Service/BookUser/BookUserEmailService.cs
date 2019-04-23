@@ -107,7 +107,7 @@ namespace ShareBook.Service
 
             };
 
-            _notificationService.SendNotificationByEmail(bookRequested.User.Email, $"O livro {vm.Book.Title} foi solicitado", $" O Interessado é {vm.RequestingUser.NickName}" );
+            _notificationService.SendNotificationByEmail(bookRequested.User.Email, $"Seu livro foi solicitado", $" O Interessado é {vm.RequestingUser.NickName}" );
 
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookNoticeDonorTemplate, vm);
 
