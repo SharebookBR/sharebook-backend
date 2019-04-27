@@ -19,7 +19,7 @@ namespace ShareBook.Service.Upload
             _storageClient = StorageClient.Create();
         }
 
-        public string GetImageUrl(string imageName, string lastDirectory)
+        public string GetUrl(string imageName)
         {
             try
             {
@@ -32,7 +32,7 @@ namespace ShareBook.Service.Upload
             
         }
 
-        public string UploadImage(byte[] imageBytes, string imageName, string lastDirectory)
+        public string Upload(byte[] imageBytes, string imageName)
         {
             try
             {

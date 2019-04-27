@@ -18,7 +18,7 @@ namespace ShareBook.Test.Unit.Services
     public class BookServiceTests
     {
         readonly Mock<IBookService> bookServiceMock;
-        readonly Mock<IUploadService> uploadServiceMock;
+        readonly Mock<IUploadService<Book>> uploadServiceMock;
         readonly Mock<IBookRepository> bookRepositoryMock;
         readonly Mock<IBooksEmailService> bookEmailService;
         readonly Mock<IUnitOfWork> unitOfWorkMock;
@@ -28,7 +28,7 @@ namespace ShareBook.Test.Unit.Services
         {
             // Definindo quais serão as classes mockadas
             bookServiceMock = new Mock<IBookService>();
-            uploadServiceMock = new Mock<IUploadService>();
+            uploadServiceMock = new Mock<IUploadService<Book>>();
             unitOfWorkMock = new Mock<IUnitOfWork>();
             bookRepositoryMock = new Mock<IBookRepository>();
             bookEmailService = new Mock<IBooksEmailService>();
@@ -39,7 +39,7 @@ namespace ShareBook.Test.Unit.Services
                 return BookMock.GetLordTheRings();
             });
 
-            uploadServiceMock.Setup(service => service.UploadImage(null, null, null));
+            uploadServiceMock.Setup(service => service.Upload(null, null));
 
             bookServiceMock.Setup(service => service.Insert(It.IsAny<Book>())).Verifiable();
         }

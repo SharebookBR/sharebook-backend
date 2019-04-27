@@ -96,7 +96,7 @@ namespace ShareBook.Service
             if (result == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
-            result.ImageUrl = _uploadService.GetImageUrl(result.ImageSlug, "Books");
+            result.ImageUrl = _uploadService.GetUrl(result.ImageSlug);
 
             return result;
         }
@@ -114,7 +114,7 @@ namespace ShareBook.Service
 
                 result.Value = _repository.Insert(entity);
 
-                result.Value.ImageUrl = _uploadService.UploadImage(entity.ImageBytes, entity.ImageSlug, "Books");
+                result.Value.ImageUrl = _uploadService.Upload(entity.ImageBytes, entity.ImageSlug);
 
                 result.Value.ImageBytes = null;
 
@@ -156,7 +156,7 @@ namespace ShareBook.Service
             if (!string.IsNullOrEmpty(entity.ImageName) && entity.ImageBytes.Length > 0)
             {
                 entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, savedBook.Slug);
-                _uploadService.UploadImage(entity.ImageBytes, savedBook.ImageSlug, "Books");
+                _uploadService.Upload(entity.ImageBytes, savedBook.ImageSlug);
             }
 
             //preparar o book para atualização
@@ -341,7 +341,7 @@ namespace ShareBook.Service
                     Author = u.Author,
                     Approved = u.Approved,
                     FreightOption = u.FreightOption,
-                    ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
+                    ImageUrl = _uploadService.GetUrl(u.ImageSlug),
                     Slug = u.Slug,
                     CreationDate = u.CreationDate,
                     Synopsis = u.Synopsis,
