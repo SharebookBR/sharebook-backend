@@ -10,13 +10,14 @@ using ShareBook.Service;
 using ShareBook.Service.Upload;
 using Sharebook.Jobs;
 using ShareBook.Service.Notification;
+using Microsoft.AspNetCore.Hosting;
 
 namespace ShareBook.Api.Configuration
 {
     public static class ServiceRepositoryCollectionExtensions
     {
         public static IServiceCollection RegisterRepositoryServices(
-           this IServiceCollection services)
+           this IServiceCollection services, IHostingEnvironment env)
         {
             //services
             services.AddScoped<IBooksEmailService, BooksEmailService>();
@@ -52,7 +53,7 @@ namespace ShareBook.Api.Configuration
             services.AddSingleton<IEmailTemplate, EmailTemplate>();
 
             //Upload 
-            services.AddSingleton(typeof(IUploadService<>), new UploadImageGoogleCloudStorage<Book>("book"));
+            services.AddSingleton(typeof(IUploadService<Book>), new UploadImageGoogleCloudStorage<Book>($"sharebook-book-store-{env}"));
 
             //UnitOfWork
             services.AddScoped<IUnitOfWork, UnitOfWork>();

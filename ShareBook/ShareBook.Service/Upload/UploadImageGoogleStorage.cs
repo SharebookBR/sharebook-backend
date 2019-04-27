@@ -21,22 +21,37 @@ namespace ShareBook.Service.Upload
 
         public string GetImageUrl(string imageName, string lastDirectory)
         {
-            return _storageClient.GetObject(_bucketName, imageName).MediaLink;
+            try
+            {
+                return _storageClient.GetObject(_bucketName, imageName)?.MediaLink;
+            }
+            catch (Google.GoogleApiException ex)
+            {
+                return string.Empty;
+            }
+            
         }
 
         public string UploadImage(byte[] imageBytes, string imageName, string lastDirectory)
         {
-            var imageAcl = PredefinedObjectAcl.PublicRead;
+            try
+            {
+                var imageAcl = PredefinedObjectAcl.PublicRead;
 
-            var imageObject = _storageClient.UploadObject(
-                bucket: _bucketName,
-                objectName: imageName,
-                contentType: "image/jpeg",
-                source: new MemoryStream(imageBytes),
-                options: new UploadObjectOptions { PredefinedAcl = imageAcl }
-            );
+                var imageObject = _storageClient.UploadObject(
+                    bucket: _bucketName,
+                    objectName: imageName,
+                    contentType: "image/jpeg",
+                    source: new MemoryStream(imageBytes),
+                    options: new UploadObjectOptions { PredefinedAcl = imageAcl }
+                );
 
-            return imageObject.MediaLink;
+                return imageObject.MediaLink;
+            }
+            catch (Google.GoogleApiException ex)
+            {
+                throw ex;
+            }           
         }
     }
 }
