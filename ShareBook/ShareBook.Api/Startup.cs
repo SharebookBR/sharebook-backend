@@ -10,6 +10,7 @@ using ShareBook.Api.Middleware;
 using ShareBook.Api.Services;
 using ShareBook.Repository;
 using ShareBook.Service;
+using ShareBook.Service.Notification;
 using ShareBook.Service.Server;
 using ShareBook.Service.Upload;
 using Swashbuckle.AspNetCore.Swagger;
@@ -49,6 +50,8 @@ namespace ShareBook.Api
             services.Configure<EmailSettings>(options => Configuration.GetSection("EmailSettings").Bind(options));
 
             services.Configure<ServerSettings>(options => Configuration.GetSection("ServerSettings").Bind(options));
+
+            services.Configure<NotificationSettings>(options => Configuration.GetSection("NotificationSettings").Bind(options));
 
 
             JWTConfig.RegisterJWT(services, Configuration);
