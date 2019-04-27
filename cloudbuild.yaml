@@ -1,0 +1,36 @@
+steps:
+
+# .NET Core 2.2 by default restores before any build, so we can
+# combine the restore and publish operations in a single statement.
+- name: 'gcr.io/cloud-builders/dotnet'
+  args: [ 'publish', '-c', 'Release' ]
+  dir: 'ShareBook'
+
+# Build the app image.
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '-t', 'gcr.io/$PROJECT_ID/sharebook-api:$SHORT_SHA', '.' ]
+  dir: 'ShareBook'
+
+# push image to gcr
+- name: 'gcr.io/cloud-builders/docker'
+  id: Push
+  args: ['push','gcr.io/$PROJECT_ID/sharebook-api:$SHORT_SHA']
+
+
+# update manifest with few env var (mainly release tag)
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: Manifest
+  entrypoint: /bin/sh
+  args:
+  - '-c'
+  - |
+    sed "s/PROJECT_ID/${PROJECT_ID}/g" deployments/kubernetes.yaml.tpl | \
+    sed "s/COMMIT_SHA/${SHORT_SHA}/g" > deployments/kubernetes.yaml
+
+# deploy service to Knative cluster using the above gen'd manifest
+- name: 'gcr.io/cloud-builders/kubectl'
+  id: Deploy
+  args: ['apply','-f','deployments/kubernetes.yaml']
+  env:
+  - 'CLOUDSDK_COMPUTE_ZONE=${_CLUSTER_ZONE}'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER_NAME}'

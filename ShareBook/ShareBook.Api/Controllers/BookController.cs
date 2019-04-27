@@ -45,11 +45,11 @@ namespace ShareBook.Api.Controllers
         {
             var result = new
             {
-                ServerNow = DateTime.Now,
-                SaoPauloNow = DateTimeHelper.ConvertDateTimeSaoPaulo(DateTime.Now),
-                ServerToday = DateTime.Today,
-                SaoPauloToday = DateTimeHelper.GetTodaySaoPaulo(),
-                Message = "Pong!"
+                // ServerNow = DateTime.Now,
+                // SaoPauloNow = DateTimeHelper.ConvertDateTimeSaoPaulo(DateTime.Now),
+                // ServerToday = DateTime.Today,
+                // SaoPauloToday = DateTimeHelper.GetTodaySaoPaulo(),
+                Message = "Pong! Google Cloud deu certo!"
             };
             return Ok(result);
         }
