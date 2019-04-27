@@ -53,7 +53,7 @@ namespace ShareBook.Api.Configuration
             services.AddSingleton<IEmailTemplate, EmailTemplate>();
 
             //Upload 
-            services.AddSingleton(typeof(IUploadService<Book>), new UploadImageGoogleCloudStorage<Book>($"sharebook-book-store-{env}"));
+            services.AddSingleton(typeof(IUploadService<Book>), new UploadImageGoogleCloudStorage<Book>($"sharebook-book-store-{env.EnvironmentName.ToLower()}"));
 
             //UnitOfWork
             services.AddScoped<IUnitOfWork, UnitOfWork>();

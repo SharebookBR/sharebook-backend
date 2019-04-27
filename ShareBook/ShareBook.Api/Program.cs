@@ -10,7 +10,7 @@ namespace ShareBook.Api
         public static void Main(string[] args)
         {
             var appkey = AppDomain.CurrentDomain.BaseDirectory;
-            Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", Path.Combine(appkey, "Files", "Sharebook-039ab3cb114b.json"));
+            Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", Path.Combine(appkey, "Files", "sharebook-app-key.json"));
             BuildWebHost(args).Run();
         }
 
