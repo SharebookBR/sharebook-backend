@@ -1,0 +1,42 @@
+﻿using Google.Cloud.Storage.V1;
+using ShareBook.Domain.Common;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ShareBook.Service.Upload
+{
+    public class UploadImageGoogleCloudStorage<T>: IUploadService<T>
+    {
+        private readonly string _bucketName;
+        private readonly StorageClient _storageClient;
+
+        public UploadImageGoogleCloudStorage(string bucketName)
+        {
+            _bucketName = bucketName;
+            _storageClient = StorageClient.Create();
+        }
+
+        public string GetImageUrl(string imageName, string lastDirectory)
+        {
+            return _storageClient.GetObject(_bucketName, imageName).MediaLink;
+        }
+
+        public string UploadImage(byte[] imageBytes, string imageName, string lastDirectory)
+        {
+            var imageAcl = PredefinedObjectAcl.PublicRead;
+
+            var imageObject = _storageClient.UploadObject(
+                bucket: _bucketName,
+                objectName: imageName,
+                contentType: "image/jpeg",
+                source: new MemoryStream(imageBytes),
+                options: new UploadObjectOptions { PredefinedAcl = imageAcl }
+            );
+
+            return imageObject.MediaLink;
+        }
+    }
+}

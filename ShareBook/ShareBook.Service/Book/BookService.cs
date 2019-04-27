@@ -22,12 +22,12 @@ namespace ShareBook.Service
 {
     public class BookService : BaseService<Book>, IBookService
     {
-        private readonly IUploadService _uploadService;
+        private readonly IUploadService<Book> _uploadService;
         private readonly IBooksEmailService _booksEmailService;
 
         public BookService(IBookRepository bookRepository,
                     IUnitOfWork unitOfWork, IValidator<Book> validator,
-                    IUploadService uploadService, IBooksEmailService booksEmailService)
+                    IUploadService<Book> uploadService, IBooksEmailService booksEmailService)
                     : base(bookRepository, unitOfWork, validator)
         {
             _uploadService = uploadService;

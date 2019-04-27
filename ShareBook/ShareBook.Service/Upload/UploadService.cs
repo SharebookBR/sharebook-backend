@@ -7,7 +7,7 @@ using System.IO;
 
 namespace ShareBook.Service.Upload
 {
-    public class UploadService : IUploadService
+    public class UploadService
     {
         private readonly ImageSettings _imageSettings;
         private readonly ServerSettings _serverSettings;
