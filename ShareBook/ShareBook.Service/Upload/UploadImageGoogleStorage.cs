@@ -1,4 +1,5 @@
-﻿using Google.Cloud.Storage.V1;
+﻿using Google.Apis.Auth.OAuth2;
+using Google.Cloud.Storage.V1;
 using ShareBook.Domain.Common;
 using System;
 using System.Collections.Generic;
@@ -16,7 +17,8 @@ namespace ShareBook.Service.Upload
         public UploadImageGoogleCloudStorage(string bucketName)
         {
             _bucketName = bucketName;
-            _storageClient = StorageClient.Create();
+            var credential = GoogleCredential.FromComputeCredential();
+            _storageClient = StorageClient.Create(credential);
         }
 
         public string GetUrl(string imageName)

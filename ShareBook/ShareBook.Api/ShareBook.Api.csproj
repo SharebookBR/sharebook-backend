@@ -34,10 +34,4 @@
     <ProjectReference Include="..\Sharebook.Jobs\Sharebook.Jobs.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Content Update="Files\sharebook-app-key.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
 </Project>
