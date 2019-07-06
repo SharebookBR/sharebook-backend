@@ -20,7 +20,7 @@ namespace ShareBook.Repository.Mapping
                 .IsRequired();
 
             entityBuilder.Property(t => t.Title)
-                .HasColumnType("varchar(200)")
+                .HasColumnType("varchar(max)")
                 .HasMaxLength(50)
                 .IsRequired();
 
@@ -52,7 +52,9 @@ namespace ShareBook.Repository.Mapping
             entityBuilder.HasOne(t => t.UserFacilitator);
 
             entityBuilder.HasOne(t => t.Category);
-                
+
+            entityBuilder.Property(t => t.TrackingNumber)
+                 .HasColumnType("varchar(max)");
         }
     }
 }
