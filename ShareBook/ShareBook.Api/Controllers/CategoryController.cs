@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ShareBook.Domain;
+using ShareBook.Domain.Common;
 using ShareBook.Service;
 
 namespace ShareBook.Api.Controllers
@@ -11,5 +12,7 @@ namespace ShareBook.Api.Controllers
         {
             SetDefault(x => x.Name);
         }
+
+        public override PagedList<Category> GetAll() => Paged(1, 50);
     }
 }
