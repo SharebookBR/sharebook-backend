@@ -18,7 +18,6 @@ namespace ShareBook.Service
 {
     public class BookUserService : BaseService<BookUser>, IBookUserService
     {
-
         private readonly IBookUserRepository _bookUserRepository;
         private readonly IBookService _bookService;
         private readonly IBookUsersEmailService _bookUsersEmailService;
@@ -55,7 +54,6 @@ namespace ShareBook.Service
         {
             //obtem o livro requisitado e o doador
             var bookRequested = _bookService.GetBookWithAllUsers(bookId);
-            
             var bookUser = new BookUser()
             {
                 BookId = bookId,
@@ -69,9 +67,7 @@ namespace ShareBook.Service
 
             if (_bookUserRepository.Any(x => x.UserId == bookUser.UserId && x.BookId == bookUser.BookId))
                 throw new ShareBookException("O usuário já possui uma requisição para o mesmo livro.");
-
-
-           
+   
             _bookUserRepository.Insert(bookUser);
 
             _bookUsersEmailService.SendEmailBookRequested(bookUser);
@@ -215,13 +211,12 @@ namespace ShareBook.Service
             if (winnerBookUser == null)
                 throw new ShareBookException("Vencedor ainda não foi escolhido");
 
-
             book.TrackingNumber = trackingNumber; 
             _bookService.Update(book);
 
-            //Envia e-mail para avisar o ganhador do tracking number                          
-            _bookUsersEmailService.SendEmailTrackingNumberInformed(winnerBookUser, book);
-            
+            if (winnerBookUser.User.AllowSendingEmail)
+                //Envia e-mail para avisar o ganhador do tracking number                          
+                _bookUsersEmailService.SendEmailTrackingNumberInformed(winnerBookUser, book);
         }
     }
 }

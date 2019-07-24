@@ -51,8 +51,8 @@ namespace ShareBook.Repository.Mapping
             entityBuilder.Property(t => t.Active)
                 .HasDefaultValueSql("1");
 
-
-
+            entityBuilder.Property(t => t.AllowSendingEmail)
+                .HasDefaultValue(true);
         }
     }
 }

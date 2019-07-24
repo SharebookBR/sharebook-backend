@@ -41,5 +41,7 @@ namespace ShareBook.Api.ViewModels
 
         [Required]
         public string Password { get; set; }
+
+        public bool AllowSendingEmail { get; set; } = true;
     }
 }
