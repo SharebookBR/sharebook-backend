@@ -100,7 +100,7 @@ namespace ShareBook.Service
         {
             //obter o endereço do interessado
             var donatedUser = this._userService.Find(bookUser.UserId);
-            if (donatedUser.AllowSendingEmail)
+            if (bookRequested.User.AllowSendingEmail)
             {
                 var vm = new
                 {
