@@ -16,7 +16,8 @@ namespace ShareBook.Api.ViewModels
 
         public Address Address { get; set; }
 
-
         public string Phone { get; set; }
+
+        public bool AllowSendingEmail { get; set; }
     }
 }

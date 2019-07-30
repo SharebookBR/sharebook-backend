@@ -20,6 +20,7 @@ namespace ShareBook.Domain
         public  string Phone{ get; set; }
         public Profile Profile { get;  set; } = Profile.User;
         public bool Active { get; set; } = true;
+        public bool AllowSendingEmail { get; set; } = true;
         public virtual Address Address { get; set; }
         public virtual ICollection<BookUser> BookUsers { get; set; }
         public virtual ICollection<Book> BooksDonated { get; set; }
