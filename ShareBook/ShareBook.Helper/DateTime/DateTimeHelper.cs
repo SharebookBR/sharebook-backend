@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace ShareBook.Helper
 {
     static public class DateTimeHelper
     {
-        static private readonly string SaoPauloTimezoneId = "E. South America Standard Time";
+        static private readonly string SaoPauloTimezoneId = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? "E. South America Standard Time"
+            : "America/Sao_Paulo";
 
         // hora agora.
         static public TimeSpan GetTimeNowSaoPaulo()
