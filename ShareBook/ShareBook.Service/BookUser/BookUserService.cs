@@ -8,6 +8,7 @@ using ShareBook.Repository;
 using ShareBook.Repository.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service.Generic;
+using ShareBook.Service.Muambator;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,11 +22,13 @@ namespace ShareBook.Service
         private readonly IBookUserRepository _bookUserRepository;
         private readonly IBookService _bookService;
         private readonly IBookUsersEmailService _bookUsersEmailService;
+        private readonly IMuambatorService _muambatorService;
 
         public BookUserService(
             IBookUserRepository bookUserRepository, 
             IBookService bookService,
-            IBookUsersEmailService bookUsersEmailService, 
+            IBookUsersEmailService bookUsersEmailService,
+            IMuambatorService muambatorService,
             IUnitOfWork unitOfWork,
             IValidator<BookUser> validator)
             : base(bookUserRepository, unitOfWork, validator)
@@ -33,6 +36,7 @@ namespace ShareBook.Service
             _bookUserRepository = bookUserRepository;
             _bookService = bookService;
             _bookUsersEmailService = bookUsersEmailService;
+            _muambatorService = muambatorService;
         }
 
         public IList<User> GetGranteeUsersByBookId(Guid bookId) =>
@@ -210,6 +214,8 @@ namespace ShareBook.Service
 
             if (winnerBookUser == null)
                 throw new ShareBookException("Vencedor ainda não foi escolhido");
+
+            _muambatorService.AddPackageToTrackerAsync(winnerBookUser.User.Email, trackingNumber);
 
             book.TrackingNumber = trackingNumber; 
             _bookService.Update(book);

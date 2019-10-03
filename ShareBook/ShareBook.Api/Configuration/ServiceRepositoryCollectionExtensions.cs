@@ -10,6 +10,7 @@ using ShareBook.Service;
 using ShareBook.Service.Upload;
 using Sharebook.Jobs;
 using ShareBook.Service.Notification;
+using ShareBook.Service.Muambator;
 
 namespace ShareBook.Api.Configuration
 {
@@ -28,7 +29,7 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IContactUsService, ContactUsService>();
             services.AddScoped<IContactUsEmailService, ContactUsEmailService>();
-            
+            services.AddScoped<IMuambatorService, MuambatorService>();
 
             //repositories
             services.AddScoped<IBookRepository, BookRepository>();
