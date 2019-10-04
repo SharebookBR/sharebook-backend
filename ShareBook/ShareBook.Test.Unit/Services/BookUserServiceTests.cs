@@ -3,6 +3,7 @@ using ShareBook.Domain.Validators;
 using ShareBook.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service;
+using ShareBook.Service.Muambator;
 using ShareBook.Test.Unit.Mocks;
 using System;
 using System.Threading;
@@ -20,6 +21,7 @@ namespace ShareBook.Test.Unit.Services
         readonly Mock<IUnitOfWork> unitOfWorkMock;
         readonly Mock<IBookUsersEmailService> bookUsersEmailService;
         readonly BookUserValidator bookUserValidator;
+        readonly Mock<IMuambatorService> muambatorServiceMock;
 
 
         public BookUserServiceTests()
@@ -30,6 +32,7 @@ namespace ShareBook.Test.Unit.Services
             bookEmailService = new Mock<IBooksEmailService>();
             unitOfWorkMock = new Mock<IUnitOfWork>();
             bookUsersEmailService = new Mock<IBookUsersEmailService>();
+            muambatorServiceMock = new Mock<IMuambatorService>();
 
 
             bookServiceMock.SetReturnsDefault(true);
@@ -41,7 +44,7 @@ namespace ShareBook.Test.Unit.Services
         {
             Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
             var service = new BookUserService(bookUserRepositoryMock.Object,
-                bookServiceMock.Object, bookUsersEmailService.Object, unitOfWorkMock.Object, bookUserValidator);
+                bookServiceMock.Object, bookUsersEmailService.Object, muambatorServiceMock.Object, unitOfWorkMock.Object, bookUserValidator);
 
             string reason = "I need this book because I'm learning a new programming language.";
 
