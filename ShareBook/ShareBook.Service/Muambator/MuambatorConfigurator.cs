@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿
+using System;
 
 namespace ShareBook.Service.Muambator
 {
@@ -8,14 +7,15 @@ namespace ShareBook.Service.Muambator
     {
         public static string Token { get; private set; }
 
-        public static void Configure(string token)
+        public static bool IsActive { get; private set; }
+
+        public static void Configure(string token, string isActive)
         {
-            if (string.IsNullOrEmpty(token))
-            {
+            if ((string.IsNullOrEmpty(token) || string.IsNullOrEmpty(isActive)) || (isActive.ToLower() != "true" && isActive.ToLower() != "false"))
                 return;
-            }
 
             Token = token;
+            IsActive = Convert.ToBoolean(isActive.ToLower());
         }
     }
 }

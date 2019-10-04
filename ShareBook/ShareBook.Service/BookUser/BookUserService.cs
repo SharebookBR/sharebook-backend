@@ -5,7 +5,6 @@ using ShareBook.Domain.Common;
 using ShareBook.Domain.Enums;
 using ShareBook.Domain.Exceptions;
 using ShareBook.Repository;
-using ShareBook.Repository.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service.Generic;
 using ShareBook.Service.Muambator;
@@ -215,7 +214,8 @@ namespace ShareBook.Service
             if (winnerBookUser == null)
                 throw new ShareBookException("Vencedor ainda não foi escolhido");
 
-            _muambatorService.AddPackageToTrackerAsync(winnerBookUser.User.Email, trackingNumber);
+            if(MuambatorConfigurator.IsActive)
+                _muambatorService.AddPackageToTrackerAsync(winnerBookUser.User.Email, trackingNumber);
 
             book.TrackingNumber = trackingNumber; 
             _bookService.Update(book);

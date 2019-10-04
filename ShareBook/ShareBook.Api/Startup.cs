@@ -87,7 +87,7 @@ namespace ShareBook.Api
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
             RollbarConfigurator.Configure(Configuration.GetSection("RollbarEnvironment").Value);
-            MuambatorConfigurator.Configure(Configuration.GetSection("Muambator:Token").Value);
+            MuambatorConfigurator.Configure(Configuration.GetSection("Muambator:Token").Value, Configuration.GetSection("Muambator:IsActive").Value);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

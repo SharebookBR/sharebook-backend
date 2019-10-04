@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Flurl;
+﻿using System.Threading.Tasks;
 using Flurl.Http;
 using ShareBook.Domain.Exceptions;
 

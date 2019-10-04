@@ -15,7 +15,6 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using ShareBook.Helper;
-using ShareBook.Service.Muambator;
 
 namespace ShareBook.Api.Controllers
 {
@@ -28,15 +27,11 @@ namespace ShareBook.Api.Controllers
         private readonly IBookService _service;
         private readonly IUserService _userService;
         private Expression<Func<Book, object>> _defaultOrder = x => x.Id;
-
-        private readonly IMuambatorService _muambatorService;
-
-        public BookController(IBookService bookService, IBookUserService bookUserService, IUserService userService, IMuambatorService muambatorService)
+        public BookController(IBookService bookService, IBookUserService bookUserService, IUserService userService)
         {
             _service = bookService;
             _bookUserService = bookUserService;
             _userService = userService;
-            _muambatorService = muambatorService;
         }
 
         protected void SetDefault(Expression<Func<Book, object>> defaultOrder)
