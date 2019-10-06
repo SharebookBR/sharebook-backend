@@ -22,12 +22,14 @@ namespace ShareBook.Service
         private readonly IBookService _bookService;
         private readonly IBookUsersEmailService _bookUsersEmailService;
         private readonly IMuambatorService _muambatorService;
+        private readonly IBookRepository _bookRepository;
 
         public BookUserService(
             IBookUserRepository bookUserRepository, 
             IBookService bookService,
             IBookUsersEmailService bookUsersEmailService,
             IMuambatorService muambatorService,
+            IBookRepository bookRepository,
             IUnitOfWork unitOfWork,
             IValidator<BookUser> validator)
             : base(bookUserRepository, unitOfWork, validator)
@@ -36,6 +38,7 @@ namespace ShareBook.Service
             _bookService = bookService;
             _bookUsersEmailService = bookUsersEmailService;
             _muambatorService = muambatorService;
+            _bookRepository = bookRepository;
         }
 
         public IList<User> GetGranteeUsersByBookId(Guid bookId) =>
@@ -204,7 +207,10 @@ namespace ShareBook.Service
 
         public void InformTrackingNumber(Guid bookId, string trackingNumber)
         {
-            var book = _bookService.Find(bookId);
+            var book = _bookRepository.Get()
+                                      .Include(d => d.User)
+                                      .Include(f => f.UserFacilitator)
+                                      .FirstOrDefault(id => id.Id == bookId);
             var winnerBookUser = _bookUserRepository
                                         .Get()
                                         .Include(u => u.User)
@@ -215,7 +221,10 @@ namespace ShareBook.Service
                 throw new ShareBookException("Vencedor ainda não foi escolhido");
 
             if(MuambatorConfigurator.IsActive)
-                _muambatorService.AddPackageToTrackerAsync(winnerBookUser.User.Email, trackingNumber);
+                _muambatorService.AddPackageToTrackerAsync(winnerBookUser.User.Email, 
+                                                           book.UserFacilitator == null ? string.Empty : book.UserFacilitator.Email, 
+                                                           book.User == null ? string.Empty : book.User.Email, 
+                                                           trackingNumber);
 
             book.TrackingNumber = trackingNumber; 
             _bookService.Update(book);

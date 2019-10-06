@@ -22,6 +22,7 @@ namespace ShareBook.Test.Unit.Services
         readonly Mock<IBookUsersEmailService> bookUsersEmailService;
         readonly BookUserValidator bookUserValidator;
         readonly Mock<IMuambatorService> muambatorServiceMock;
+        readonly Mock<IBookRepository> bookRepositoryMock;
 
 
         public BookUserServiceTests()
@@ -33,10 +34,9 @@ namespace ShareBook.Test.Unit.Services
             unitOfWorkMock = new Mock<IUnitOfWork>();
             bookUsersEmailService = new Mock<IBookUsersEmailService>();
             muambatorServiceMock = new Mock<IMuambatorService>();
-
+            bookRepositoryMock = new Mock<IBookRepository>();
 
             bookServiceMock.SetReturnsDefault(true);
-
         }
 
         [Fact]
@@ -44,7 +44,8 @@ namespace ShareBook.Test.Unit.Services
         {
             Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
             var service = new BookUserService(bookUserRepositoryMock.Object,
-                bookServiceMock.Object, bookUsersEmailService.Object, muambatorServiceMock.Object, unitOfWorkMock.Object, bookUserValidator);
+                bookServiceMock.Object, bookUsersEmailService.Object, muambatorServiceMock.Object, bookRepositoryMock.Object, 
+                unitOfWorkMock.Object, bookUserValidator);
 
             string reason = "I need this book because I'm learning a new programming language.";
 

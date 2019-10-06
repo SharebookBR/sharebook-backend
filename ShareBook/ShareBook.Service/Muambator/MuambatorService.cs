@@ -6,7 +6,8 @@ namespace ShareBook.Service.Muambator
 {
     public class MuambatorService : IMuambatorService
     {
-        public async Task<MuambatorDTO> AddPackageToTrackerAsync(string emailReceiver, string packageNumber)
+        public async Task<MuambatorDTO> AddPackageToTrackerAsync(string emailReceiver, string emailFacilitator, 
+                                                                 string emailDonor, string packageNumber)
         {
             var url = $"https://www.muambator.com.br/api/clientes/v1/pacotes/{packageNumber}/?api-token={MuambatorConfigurator.Token}";
 
@@ -14,7 +15,7 @@ namespace ShareBook.Service.Muambator
 
             try
             {
-                result = await url.WithHeader("Content-type", "application/json").PostJsonAsync(new { emails = new[] { emailReceiver } })
+                result = await url.WithHeader("Content-type", "application/json").PostJsonAsync(new { emails = new[] { emailReceiver, emailDonor, emailFacilitator } })
                                   .ReceiveJson<MuambatorDTO>();
             }
             catch (FlurlHttpTimeoutException)
