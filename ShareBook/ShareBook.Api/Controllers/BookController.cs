@@ -239,7 +239,7 @@ namespace ShareBook.Api.Controllers
             return Mapper.Map<List<BooksVM>>(donations);
         }
 
-        //[Authorize("Bearer")]
+        [Authorize("Bearer")]
         [ProducesResponseType(typeof(Result), 200)]
         [HttpPost("InformTrackingNumber/{bookId}")]
         public IActionResult InformTrackingNumber(Guid bookId, [FromBody] TrackinNumberBookVM trackingNumberBookVM)
