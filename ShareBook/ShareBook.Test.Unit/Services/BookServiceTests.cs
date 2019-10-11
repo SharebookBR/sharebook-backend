@@ -6,6 +6,7 @@ using ShareBook.Domain.Validators;
 using ShareBook.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service;
+using ShareBook.Service.Muambator;
 using ShareBook.Service.Upload;
 using ShareBook.Test.Unit.Mocks;
 using System;
@@ -22,7 +23,7 @@ namespace ShareBook.Test.Unit.Services
         readonly Mock<IBookRepository> bookRepositoryMock;
         readonly Mock<IBooksEmailService> bookEmailService;
         readonly Mock<IUnitOfWork> unitOfWorkMock;
-        readonly Mock<IBookUserService> bookUserServiceMock; 
+        readonly Mock<IBookUserService> bookUserServiceMock;
 
         public BookServiceTests()
         {

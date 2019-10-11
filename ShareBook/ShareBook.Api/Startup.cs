@@ -10,6 +10,7 @@ using ShareBook.Api.Middleware;
 using ShareBook.Api.Services;
 using ShareBook.Repository;
 using ShareBook.Service;
+using ShareBook.Service.Muambator;
 using ShareBook.Service.Notification;
 using ShareBook.Service.Server;
 using ShareBook.Service.Upload;
@@ -86,6 +87,7 @@ namespace ShareBook.Api
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
             RollbarConfigurator.Configure(Configuration.GetSection("RollbarEnvironment").Value);
+            MuambatorConfigurator.Configure(Configuration.GetSection("Muambator:Token").Value, Configuration.GetSection("Muambator:IsActive").Value);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -26,15 +26,17 @@ namespace ShareBook.Service
             if (book.User == null)
                 book.User = _userService.Find(book.UserId);
 
-            var vm = new
+            if (book.User.AllowSendingEmail)
             {
-                Book = book,
-                book.User,
-                ChooseDate = book.ChooseDate?.ToString("dd/MM/yyyy")
-            };
-
-            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookApprovedTemplate, vm);
-            await _emailService.Send(book.User.Email, book.User.Name, html, BookApprovedTitle, true);
+                var vm = new
+                {
+                    Book = book,
+                    book.User,
+                    ChooseDate = book.ChooseDate?.ToString("dd/MM/yyyy")
+                };
+                var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookApprovedTemplate, vm);
+                await _emailService.Send(book.User.Email, book.User.Name, html, BookApprovedTitle, true);
+            }
         }
 
         public async Task SendEmailNewBookInserted(Book book)
@@ -44,7 +46,8 @@ namespace ShareBook.Service
 
             await SendEmailNewBookInsertedToAdministrators(book);
 
-            await SendEmailWaitingApprovalToUser(book);
+            if (book.User.AllowSendingEmail)
+                await SendEmailWaitingApprovalToUser(book);
         }
 
         private async Task SendEmailNewBookInsertedToAdministrators(Book book)
@@ -55,8 +58,12 @@ namespace ShareBook.Service
 
         private async Task SendEmailWaitingApprovalToUser(Book book)
         {
-            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(WaitingApprovalTemplate, book);
-            await _emailService.Send(book.User.Email, book.User.Name, html, WaitingApprovalTitle, true);
+            if (book.User.AllowSendingEmail)
+            {
+                var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(WaitingApprovalTemplate, book);
+
+                await _emailService.Send(book.User.Email, book.User.Name, html, WaitingApprovalTitle, copyAdmins: true);
+            }
         }
     }
 }

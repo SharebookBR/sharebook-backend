@@ -27,10 +27,9 @@ namespace ShareBook.Service
                 LinkForgotMyPassword = $"{_serverSettings.DefaultUrl}/ForgotPassword/{user.HashCodePassword}",
                 User = user,
             };
-
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(ForgotPasswordTemplate, vm);
-            bool copyAdmins = false;          
-            await _emailService.Send(user.Email, user.Name, html, ForgotPasswordTitle, copyAdmins);
+
+            await _emailService.Send(user.Email, user.Name, html, ForgotPasswordTitle);
         }
     }
 }

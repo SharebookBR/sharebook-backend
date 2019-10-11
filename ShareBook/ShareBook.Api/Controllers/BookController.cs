@@ -27,7 +27,6 @@ namespace ShareBook.Api.Controllers
         private readonly IBookService _service;
         private readonly IUserService _userService;
         private Expression<Func<Book, object>> _defaultOrder = x => x.Id;
-
         public BookController(IBookService bookService, IBookUserService bookUserService, IUserService userService)
         {
             _service = bookService;

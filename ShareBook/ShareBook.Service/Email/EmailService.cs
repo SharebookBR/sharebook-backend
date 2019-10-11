@@ -20,7 +20,7 @@ namespace ShareBook.Service
         public async Task Send(string emailRecipient, string nameRecipient, string messageText, string subject)
             => await Send(emailRecipient, nameRecipient, messageText, subject, false);
 
-        public async Task Send(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins)
+        public async Task Send(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins = false)
         {
             var message = FormatEmail(emailRecipient, nameRecipient, messageText, subject, copyAdmins);
             try
@@ -36,7 +36,7 @@ namespace ShareBook.Service
             }
             catch (System.Exception)
             {
-                //v2 implementar log para exceptions
+                //TODO: v2 implementar log para exceptions
             }
         }
 

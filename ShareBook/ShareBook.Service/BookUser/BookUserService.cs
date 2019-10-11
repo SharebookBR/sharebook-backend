@@ -5,9 +5,9 @@ using ShareBook.Domain.Common;
 using ShareBook.Domain.Enums;
 using ShareBook.Domain.Exceptions;
 using ShareBook.Repository;
-using ShareBook.Repository.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service.Generic;
+using ShareBook.Service.Muambator;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,15 +18,18 @@ namespace ShareBook.Service
 {
     public class BookUserService : BaseService<BookUser>, IBookUserService
     {
-
         private readonly IBookUserRepository _bookUserRepository;
         private readonly IBookService _bookService;
         private readonly IBookUsersEmailService _bookUsersEmailService;
+        private readonly IMuambatorService _muambatorService;
+        private readonly IBookRepository _bookRepository;
 
         public BookUserService(
             IBookUserRepository bookUserRepository, 
             IBookService bookService,
-            IBookUsersEmailService bookUsersEmailService, 
+            IBookUsersEmailService bookUsersEmailService,
+            IMuambatorService muambatorService,
+            IBookRepository bookRepository,
             IUnitOfWork unitOfWork,
             IValidator<BookUser> validator)
             : base(bookUserRepository, unitOfWork, validator)
@@ -34,6 +37,8 @@ namespace ShareBook.Service
             _bookUserRepository = bookUserRepository;
             _bookService = bookService;
             _bookUsersEmailService = bookUsersEmailService;
+            _muambatorService = muambatorService;
+            _bookRepository = bookRepository;
         }
 
         public IList<User> GetGranteeUsersByBookId(Guid bookId) =>
@@ -55,7 +60,6 @@ namespace ShareBook.Service
         {
             //obtem o livro requisitado e o doador
             var bookRequested = _bookService.GetBookWithAllUsers(bookId);
-            
             var bookUser = new BookUser()
             {
                 BookId = bookId,
@@ -69,9 +73,7 @@ namespace ShareBook.Service
 
             if (_bookUserRepository.Any(x => x.UserId == bookUser.UserId && x.BookId == bookUser.BookId))
                 throw new ShareBookException("O usuário já possui uma requisição para o mesmo livro.");
-
-
-           
+   
             _bookUserRepository.Insert(bookUser);
 
             _bookUsersEmailService.SendEmailBookRequested(bookUser);
@@ -205,7 +207,10 @@ namespace ShareBook.Service
 
         public void InformTrackingNumber(Guid bookId, string trackingNumber)
         {
-            var book = _bookService.Find(bookId);
+            var book = _bookRepository.Get()
+                                      .Include(d => d.User)
+                                      .Include(f => f.UserFacilitator)
+                                      .FirstOrDefault(id => id.Id == bookId);
             var winnerBookUser = _bookUserRepository
                                         .Get()
                                         .Include(u => u.User)
@@ -215,13 +220,16 @@ namespace ShareBook.Service
             if (winnerBookUser == null)
                 throw new ShareBookException("Vencedor ainda não foi escolhido");
 
+            if(MuambatorConfigurator.IsActive)
+                _muambatorService.AddPackageToTrackerAsync(book, winnerBookUser.User, trackingNumber);
 
             book.TrackingNumber = trackingNumber; 
             _bookService.Update(book);
 
-            //Envia e-mail para avisar o ganhador do tracking number                          
-            _bookUsersEmailService.SendEmailTrackingNumberInformed(winnerBookUser, book);
-            
+            // TODO: verificar se a notificação do muambator já é suficiente e remover esse trecho.
+            if (winnerBookUser.User.AllowSendingEmail)
+                //Envia e-mail para avisar o ganhador do tracking number                          
+                _bookUsersEmailService.SendEmailTrackingNumberInformed(winnerBookUser, book);
         }
     }
 }
