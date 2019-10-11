@@ -1,10 +1,11 @@
 ﻿using System.Threading.Tasks;
+using ShareBook.Domain;
 
 namespace ShareBook.Service.Muambator
 {
     public interface IMuambatorService
     {
-        Task<MuambatorDTO> AddPackageToTrackerAsync(string emailReceiver, string emailFacilitator, string emailDonor, string packageNumber);
+        Task<dynamic> AddPackageToTrackerAsync(Book book, User winner, string packageNumber);
 
         Task<MuambatorDTO> RemovePackageToTrackerAsync(string packageNumber);
     }
