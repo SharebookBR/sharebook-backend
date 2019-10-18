@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ShareBook.Repository;
 
 namespace ShareBook.Repository.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20191018171400_PasswordUpdateDate")]
+    partial class PasswordUpdateDate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -258,10 +260,6 @@ namespace ShareBook.Repository.Migrations
                     b.Property<DateTime>("HashCodePasswordExpiryDate")
                         .HasColumnType("datetime2(7)");
 
-                    b.Property<DateTime>("LastLogin")
-                        .ValueGeneratedOnAdd()
-                        .HasDefaultValueSql("getdate()");
-
                     b.Property<string>("Linkedin")
                         .HasColumnType("varchar(100)")
                         .HasMaxLength(100);
@@ -275,6 +273,10 @@ namespace ShareBook.Repository.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(50)")
                         .HasMaxLength(50);
+
+                    b.Property<DateTime>("PasswordLastUpdate")
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValue(new DateTime(2019, 10, 18, 14, 14, 0, 510, DateTimeKind.Local).AddTicks(8680));
 
                     b.Property<string>("PasswordSalt")
                         .IsRequired()
