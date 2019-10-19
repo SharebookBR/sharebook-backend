@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ShareBook.Domain;
 
@@ -53,6 +54,9 @@ namespace ShareBook.Repository.Mapping
 
             entityBuilder.Property(t => t.AllowSendingEmail)
                 .HasDefaultValue(true);
+
+            entityBuilder.Property(t => t.LastLogin)
+                .HasDefaultValueSql("getdate()");
         }
     }
 }

@@ -40,6 +40,12 @@ namespace ShareBook.Service
 
             user = _repository.Find(e => e.Email.Equals(user.Email, StringComparison.InvariantCultureIgnoreCase));
 
+            if (user.IsBruteForceLogin())
+            {
+                result.Messages.Add("Login bloquedo por 30 segundos, para proteger sua conta.");
+                return result;
+            }
+
             if (user == null || !IsValidPassword(user, decryptedPass))
             {
                 result.Messages.Add("Email ou senha incorretos");
@@ -52,6 +58,9 @@ namespace ShareBook.Service
                 return result;
             }
 
+            user.LastLogin = DateTime.Now;
+            _userRepository.Update(user);
+
             result.Value = UserCleanup(user);
             return result;
         }
@@ -60,8 +69,7 @@ namespace ShareBook.Service
         {
             var result = Validate(user);
 
-            if (!user.PasswordIsStrong())
-                result.Messages.Add(PASSWORD_IS_WEAK);
+            // Senha forte não é mais obrigatória.
 
             if (_repository.Any(x => x.Email == user.Email))
                 result.Messages.Add("Usuário já possui email cadastrado.");
@@ -123,16 +131,11 @@ namespace ShareBook.Service
 
         public Result<User> ChangeUserPassword(User user, string newPassword)
         {
+            var result = Validate(user);
+
             user.ChangePassword(newPassword);
 
-            var result = Validate(user);         
-
-            if (!user.PasswordIsStrong())
-            {
-                result.Messages.Add(PASSWORD_IS_WEAK);
-                result.Value = null;
-                return result;
-            }
+            // Senha forte não é mais obrigatória.
 
             user = GetUserEncryptedPass(user);
             user = _userRepository.UpdatePassword(user).Result;
