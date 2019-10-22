@@ -8,7 +8,7 @@ namespace ShareBook.Domain.Validators
         #region Messages
         public const string Email = "O email é obrigatório";
         public const string EmailFormat = "O formato do email está inválido";
-        public const string Password = "A senha é obrigatória";
+        public const string Password = "A senha é obrigatória.";
         public const string Name = "O nome é obrigatório";
         public const string PostalCode = "O cep é obrigatório";
         public const string PostalCodeInvalid = "O formato do cep está inválido";
@@ -29,7 +29,9 @@ namespace ShareBook.Domain.Validators
 
             RuleFor(u => u.Password)
               .NotEmpty()
-              .WithMessage(Password);
+              .WithMessage(Password)
+              .Must(x => x.Length >= 6 && x.Length <= 16)
+              .WithMessage("Senha deve ter entre 6 e 16 letras.");
                 
         }
 
