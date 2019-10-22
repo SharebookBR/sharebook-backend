@@ -137,8 +137,8 @@ namespace ShareBook.Service
             var result = Validate(user);
 
             // Senha forte não é mais obrigatória. Apenas validação de tamanho.
-            if (newPassword.Length < 6 || newPassword.Length > 16)
-                throw new ShareBookException("A senha deve ter entre 6 e 16 letras.");
+            if (newPassword.Length < 6 || newPassword.Length > 32)
+                throw new ShareBookException("A senha deve ter entre 6 e 32 letras.");
 
             user.ChangePassword(newPassword);
             user = GetUserEncryptedPass(user);

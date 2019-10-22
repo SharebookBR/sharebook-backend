@@ -30,8 +30,8 @@ namespace ShareBook.Domain.Validators
             RuleFor(u => u.Password)
               .NotEmpty()
               .WithMessage(Password)
-              .Must(x => x != null && x.Length >= 6 && x.Length <= 16)
-              .WithMessage("Senha deve ter entre 6 e 16 letras.");
+              .Must(x => x != null && x.Length >= 6 && x.Length <= 32)
+              .WithMessage("Senha deve ter entre 6 e 32 letras.");
                 
         }
 
