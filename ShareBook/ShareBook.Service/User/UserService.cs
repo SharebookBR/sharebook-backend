@@ -43,7 +43,7 @@ namespace ShareBook.Service
 
             if (user.IsBruteForceLogin())
             {
-                result.Messages.Add("Login bloquedo por 30 segundos, para proteger sua conta.");
+                result.Messages.Add("Login bloqueado por 30 segundos, para proteger sua conta.");
                 return result;
             }
 
