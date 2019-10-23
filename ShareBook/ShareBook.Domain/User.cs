@@ -16,6 +16,7 @@ namespace ShareBook.Domain
         public string PasswordSalt { get; set; }
         public string HashCodePassword { get; set; }
         public DateTime HashCodePasswordExpiryDate { get; set; }
+        public DateTime LastLogin { get; set; } = DateTime.Now;
         public string Linkedin { get; set; }
         public  string Phone{ get; set; }
         public Profile Profile { get;  set; } = Profile.User;
@@ -68,6 +69,12 @@ namespace ShareBook.Domain
         public void ChangePassword(string password)
         {
             this.Password = password;
+        }
+
+        public bool IsBruteForceLogin()
+        {
+            var refDate = DateTime.Now.AddSeconds(-30);
+            return LastLogin > refDate;
         }
 
         public string Location() => Address.City + "-" + Address.State;
