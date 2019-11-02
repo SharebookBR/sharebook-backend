@@ -1,4 +1,7 @@
-﻿using AutoMapper;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
@@ -9,178 +12,155 @@ using ShareBook.Domain.Common;
 using ShareBook.Infra.CrossCutting.Identity;
 using ShareBook.Infra.CrossCutting.Identity.Interfaces;
 using ShareBook.Service;
-using System;
-using System.Collections.Generic;
-using System.Threading;
 
-namespace ShareBook.Api.Controllers
-{
-    [Route("api/[controller]")]
-    [EnableCors("AllowAllHeaders")]
+namespace ShareBook.Api.Controllers {
+    [Route ("api/[controller]")]
+    [EnableCors ("AllowAllHeaders")]
     [GetClaimsFilter]
-    public class AccountController : Controller
-    {
+    public class AccountController : Controller {
         private readonly IUserService _userService;
         private readonly IApplicationSignInManager _signManager;
 
-        public AccountController(IUserService userService, IApplicationSignInManager signManager)
-        {
+        public AccountController (IUserService userService, IApplicationSignInManager signManager) {
             _userService = userService;
             _signManager = signManager;
         }
 
         #region GET
-        [Authorize("Bearer")]
+        [Authorize ("Bearer")]
         [HttpGet]
-        public UserVM Get()
-        {
-            var id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            var user = _userService.Find(id);
+        public UserVM Get () {
+            var id = new Guid (Thread.CurrentPrincipal?.Identity?.Name);
+            var user = _userService.Find (id);
 
-            var userVM = Mapper.Map<User, UserVM>(user);
+            var userVM = Mapper.Map<User, UserVM> (user);
             return userVM;
         }
 
-
-        [Authorize("Bearer")]
-        [HttpGet("Profile")]
-        public object Profile()
-        {
-            var id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            return new { profile = _userService.Find(id).Profile.ToString() };
+        [Authorize ("Bearer")]
+        [HttpGet ("Profile")]
+        public object Profile () {
+            var id = new Guid (Thread.CurrentPrincipal?.Identity?.Name);
+            return new { profile = _userService.Find (id).Profile.ToString () };
         }
 
-
-        [Authorize("Bearer")]
-        [HttpGet("ListFacilitators/{userIdDonator}")]
-        public IActionResult ListFacilitators(Guid userIdDonator)
-        {
-            var facilitators = _userService.GetFacilitators(userIdDonator);
-            var facilitatorsClean = Mapper.Map<List<UserFacilitatorVM>>(facilitators);
-            return Ok(facilitatorsClean);
+        [Authorize ("Bearer")]
+        [HttpGet ("ListFacilitators/{userIdDonator}")]
+        public IActionResult ListFacilitators (Guid userIdDonator) {
+            var facilitators = _userService.GetFacilitators (userIdDonator);
+            var facilitatorsClean = Mapper.Map<List<UserFacilitatorVM>> (facilitators);
+            return Ok (facilitatorsClean);
         }
         #endregion
 
-
         #region POST
-        [HttpPost("Register")]
-        [ProducesResponseType(typeof(object), 200)]
-        [ProducesResponseType(409)]
-        public IActionResult Post([FromBody]RegisterUserVM registerUserVM,
-            [FromServices]SigningConfigurations signingConfigurations,
-            [FromServices]TokenConfigurations tokenConfigurations)
-        {
+        [HttpPost ("Register")]
+        [ProducesResponseType (typeof (object), 200)]
+        [ProducesResponseType (409)]
+        public IActionResult Post ([FromBody] RegisterUserVM registerUserVM, [FromServices] SigningConfigurations signingConfigurations, [FromServices] TokenConfigurations tokenConfigurations) {
             if (!ModelState.IsValid)
-                return BadRequest();
+                return BadRequest ();
 
-            var user = Mapper.Map<RegisterUserVM, User>(registerUserVM);
+            var user = Mapper.Map<RegisterUserVM, User> (registerUserVM);
 
-            var result = _userService.Insert(user);
+            var result = _userService.Insert (user);
 
             if (result.Success)
-                return Ok(_signManager.GenerateTokenAndSetIdentity(result.Value, signingConfigurations, tokenConfigurations));
+                return Ok (_signManager.GenerateTokenAndSetIdentity (result.Value, signingConfigurations, tokenConfigurations));
 
-            return Conflict(result);
+            return Conflict (result);
         }
 
-        [HttpPost("Login")]
-        [ProducesResponseType(typeof(object), 200)]
-        [ProducesResponseType(404)]
-        public IActionResult Login([FromBody]LoginUserVM loginUserVM,
-            [FromServices]SigningConfigurations signingConfigurations,
-            [FromServices]TokenConfigurations tokenConfigurations)
-        {
+        [HttpPost ("Login")]
+        [ProducesResponseType (typeof (object), 200)]
+        [ProducesResponseType (404)]
+        public IActionResult Login ([FromBody] LoginUserVM loginUserVM, [FromServices] SigningConfigurations signingConfigurations, [FromServices] TokenConfigurations tokenConfigurations) {
             if (!ModelState.IsValid)
-                return BadRequest();
+                return BadRequest ();
 
-            var user = Mapper.Map<LoginUserVM, User>(loginUserVM);
+            var user = Mapper.Map<LoginUserVM, User> (loginUserVM);
 
-            var result = _userService.AuthenticationByEmailAndPassword(user);
+            var result = _userService.AuthenticationByEmailAndPassword (user);
 
-            if (result.Success)
-            {
-                var response = new Result
-                {
-                    Value = _signManager.GenerateTokenAndSetIdentity(result.Value, signingConfigurations, tokenConfigurations)
+            if (result.Success) {
+                var response = new Result {
+                    Value = _signManager.GenerateTokenAndSetIdentity (result.Value, signingConfigurations, tokenConfigurations)
                 };
 
-                return Ok(response);
+                return Ok (response);
             }
 
-            return NotFound(result);
+            return NotFound (result);
         }
 
-
-        [HttpPost("ForgotMyPassword")]
-        [ProducesResponseType(typeof(Result), 200)]
-        [ProducesResponseType(404)]
-        public IActionResult ForgotMyPassword([FromBody]ForgotMyPasswordVM forgotMyPasswordVM)
-        {
-            var result = _userService.GenerateHashCodePasswordAndSendEmailToUser(forgotMyPasswordVM.Email);
+        [HttpPost ("ForgotMyPassword")]
+        [ProducesResponseType (typeof (Result), 200)]
+        [ProducesResponseType (404)]
+        public IActionResult ForgotMyPassword ([FromBody] ForgotMyPasswordVM forgotMyPasswordVM) {
+            var result = _userService.GenerateHashCodePasswordAndSendEmailToUser (forgotMyPasswordVM.Email);
 
             if (result.Success)
-                return Ok(result);
+                return Ok (result);
 
-            return NotFound(result);
+            return NotFound (result);
         }
 
         #endregion
 
         #region PUT
-        [Authorize("Bearer")]
+        [Authorize ("Bearer")]
         [HttpPut]
-        [ProducesResponseType(typeof(Result<User>), 200)]
-        [ProducesResponseType(409)]
-        public IActionResult Update([FromBody]UpdateUserVM updateUserVM,
-           [FromServices]SigningConfigurations signingConfigurations,
-           [FromServices]TokenConfigurations tokenConfigurations)
-        {
+        [ProducesResponseType (typeof (Result<User>), 200)]
+        [ProducesResponseType (409)]
+        public IActionResult Update ([FromBody] UpdateUserVM updateUserVM, [FromServices] SigningConfigurations signingConfigurations, [FromServices] TokenConfigurations tokenConfigurations) {
             if (!ModelState.IsValid)
-                return BadRequest();
+                return BadRequest ();
 
-            var user = Mapper.Map<UpdateUserVM, User>(updateUserVM);
+            var user = Mapper.Map<UpdateUserVM, User> (updateUserVM);
 
-            user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+            user.Id = new Guid (Thread.CurrentPrincipal?.Identity?.Name);
 
-            var result = _userService.Update(user);
+            var result = _userService.Update (user);
 
             if (!result.Success)
-                return Conflict(result);
+                return Conflict (result);
 
-            return Ok(_signManager.GenerateTokenAndSetIdentity(result.Value, signingConfigurations, tokenConfigurations));
+            return Ok (_signManager.GenerateTokenAndSetIdentity (result.Value, signingConfigurations, tokenConfigurations));
         }
 
-
-        [Authorize("Bearer")]
-        [HttpPut("ChangePassword")]
-        public Result<User> ChangePassword([FromBody]ChangePasswordUserVM changePasswordUserVM)
-        {
-            var user = new User() { Password = changePasswordUserVM.OldPassword };
-            user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            return _userService.ValidOldPasswordAndChangeUserPassword(user, changePasswordUserVM.NewPassword);
+        [Authorize ("Bearer")]
+        [HttpPut ("ChangePassword")]
+        public Result<User> ChangePassword ([FromBody] ChangePasswordUserVM changePasswordUserVM) {
+            var user = new User () { Password = changePasswordUserVM.OldPassword };
+            user.Id = new Guid (Thread.CurrentPrincipal?.Identity?.Name);
+            return _userService.ValidOldPasswordAndChangeUserPassword (user, changePasswordUserVM.NewPassword);
         }
 
-        [HttpPut("ChangeUserPasswordByHashCode")]
-        [ProducesResponseType(typeof(Result<User>), 200)]
-        [ProducesResponseType(404)]
-        public IActionResult ChangeUserPasswordByHashCode([FromBody]ChangeUserPasswordByHashCodeVM changeUserPasswordByHashCodeVM)
-        {
-            var result = _userService.ConfirmHashCodePassword(changeUserPasswordByHashCodeVM.HashCodePassword);
+        [HttpPut ("ChangeUserPasswordByHashCode")]
+        [ProducesResponseType (typeof (Result<User>), 200)]
+        [ProducesResponseType (404)]
+        public IActionResult ChangeUserPasswordByHashCode ([FromBody] ChangeUserPasswordByHashCodeVM changeUserPasswordByHashCodeVM) {
+            var result = _userService.ConfirmHashCodePassword (changeUserPasswordByHashCodeVM.HashCodePassword);
             if (!result.Success)
-                return NotFound(result);
-
+                return NotFound (result);
             var newPassword = changeUserPasswordByHashCodeVM.NewPassword;
             var user = _userService.Find((result.Value as User).Id);
             user.Password = newPassword;
 
             var resultChangePasswordUser = _userService.ChangeUserPassword(user, newPassword);
+            
             if (!resultChangePasswordUser.Success)
-                return BadRequest(resultChangePasswordUser);
+                return BadRequest (resultChangePasswordUser);
 
-            return Ok(resultChangePasswordUser);
+            return Ok (resultChangePasswordUser);
         }
         #endregion
 
-
+        [HttpGet]
+        [Route ("ForceException")]
+        public IActionResult ForceException () {
+            var teste = 1 / Convert.ToInt32 ("Teste");
+            return BadRequest ();
+        }
     }
 }
