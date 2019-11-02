@@ -37,7 +37,8 @@ namespace ShareBook.Test.Unit.Mocks
                 PasswordSalt = PASSWORD_SALT,
                 Email = "rodrigo@sharebook.com",
                 Linkedin = "linkedin.com/rodrigo",
-                Profile = Profile.User
+                Profile = Profile.User,
+                LastLogin = DateTime.Now.AddMinutes(-60)
             };
         }
 
@@ -52,7 +53,8 @@ namespace ShareBook.Test.Unit.Mocks
                 PasswordSalt = PASSWORD_SALT,
                 Email = "walter@sharebook.com",
                 Linkedin = "linkedin.com/walter",
-                Profile = Profile.User
+                Profile = Profile.User,
+                LastLogin = DateTime.Now.AddMinutes(-60)
             };
         }
 
@@ -65,7 +67,8 @@ namespace ShareBook.Test.Unit.Mocks
                 Password = PASSWORD_HASH,
                 PasswordSalt = PASSWORD_SALT,
                 Email = "cussa@sharebook.com",
-                Profile = Profile.Administrator
+                Profile = Profile.Administrator,
+                LastLogin = DateTime.Now.AddMinutes(-60)
             };
         }
     }

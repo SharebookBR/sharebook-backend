@@ -143,8 +143,12 @@ namespace ShareBook.Api.Controllers {
             var result = _userService.ConfirmHashCodePassword (changeUserPasswordByHashCodeVM.HashCodePassword);
             if (!result.Success)
                 return NotFound (result);
+            var newPassword = changeUserPasswordByHashCodeVM.NewPassword;
+            var user = _userService.Find((result.Value as User).Id);
+            user.Password = newPassword;
 
-            var resultChangePasswordUser = _userService.ChangeUserPassword (result.Value as User, changeUserPasswordByHashCodeVM.NewPassword);
+            var resultChangePasswordUser = _userService.ChangeUserPassword(user, newPassword);
+            
             if (!resultChangePasswordUser.Success)
                 return BadRequest (resultChangePasswordUser);
 

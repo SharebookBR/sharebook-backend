@@ -64,5 +64,19 @@ namespace ShareBook.Test.Unit.Domain
 
             Assert.Equal(user.HashCodePasswordExpiryDate.Date, expectedDay.Date);
         }
+
+        [Fact]
+        public void CheckBruteForceTrue()
+        {
+            var user = new User() { LastLogin = DateTime.Now.AddSeconds(-5) };
+            Assert.True(user.IsBruteForceLogin());
+        }
+
+        [Fact]
+        public void CheckBruteForceFalse()
+        {
+            var user = new User() { LastLogin = DateTime.Now.AddSeconds(-31) };
+            Assert.False(user.IsBruteForceLogin());
+        }
     }
 }
