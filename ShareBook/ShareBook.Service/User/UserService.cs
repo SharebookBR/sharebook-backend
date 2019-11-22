@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.Enums;
+using ShareBook.Domain.Exceptions;
 using ShareBook.Helper.Crypto;
 using ShareBook.Repository;
 
@@ -40,6 +41,17 @@ namespace ShareBook.Service
 
             user = _repository.Find(e => e.Email.Equals(user.Email, StringComparison.InvariantCultureIgnoreCase));
 
+            if (user.IsBruteForceLogin())
+            {
+                result.Messages.Add("Login bloquedo por 30 segundos, para proteger sua conta.");
+                return result;
+            }
+
+            // persiste última tentativa de login ANTES do SUCESSO ou FALHA pra
+            // ter métrica de verificação de brute force.
+            user.LastLogin = DateTime.Now;
+            _userRepository.Update(user);
+
             if (user == null || !IsValidPassword(user, decryptedPass))
             {
                 result.Messages.Add("Email ou senha incorretos");
@@ -60,8 +72,7 @@ namespace ShareBook.Service
         {
             var result = Validate(user);
 
-            if (!user.PasswordIsStrong())
-                result.Messages.Add(PASSWORD_IS_WEAK);
+            // Senha forte não é mais obrigatória.
 
             if (_repository.Any(x => x.Email == user.Email))
                 result.Messages.Add("Usuário já possui email cadastrado.");
@@ -123,20 +134,17 @@ namespace ShareBook.Service
 
         public Result<User> ChangeUserPassword(User user, string newPassword)
         {
+            var result = Validate(user);
+
+            // Senha forte não é mais obrigatória. Apenas validação de tamanho.
+            if (newPassword.Length < 6 || newPassword.Length > 32)
+                throw new ShareBookException("A senha deve ter entre 6 e 32 letras.");
+
             user.ChangePassword(newPassword);
-
-            var result = Validate(user);         
-
-            if (!user.PasswordIsStrong())
-            {
-                result.Messages.Add(PASSWORD_IS_WEAK);
-                result.Value = null;
-                return result;
-            }
-
             user = GetUserEncryptedPass(user);
             user = _userRepository.UpdatePassword(user).Result;
             result.Value = UserCleanup(user);
+
 
             return result;
         }

@@ -2,21 +2,21 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ShareBook.Repository;
 
-namespace ShareBook.Infra.Data.Migrations
+namespace ShareBook.Repository.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20191018183512_LastLogin")]
+    partial class LastLogin
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-
-                .HasAnnotation("ProductVersion", "2.2.6-servicing-10079")
-                .HasAnnotation("Relational:MaxIdentifierLength", 64);
                 .HasAnnotation("ProductVersion", "2.2.4-servicing-10062")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
@@ -189,7 +189,7 @@ namespace ShareBook.Infra.Data.Migrations
                     b.Property<DateTime?>("CreationDate");
 
                     b.Property<string>("Details")
-                        .HasColumnType("varchar(1000)");
+                        .HasColumnType("varchar(max)");
 
                     b.Property<bool>("IsSuccess");
 
@@ -258,7 +258,7 @@ namespace ShareBook.Infra.Data.Migrations
                         .HasMaxLength(200);
 
                     b.Property<DateTime>("HashCodePasswordExpiryDate")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("datetime2(7)");
 
                     b.Property<DateTime>("LastLogin")
                         .ValueGeneratedOnAdd()
