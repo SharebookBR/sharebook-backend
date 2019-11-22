@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Microsoft.Extensions.Logging;
-using Rollbar.NetCore.AspNet;
 using ShareBook.Api.AutoMapper;
 using ShareBook.Api.Configuration;
 using ShareBook.Api.Middleware;
@@ -17,6 +17,7 @@ using ShareBook.Service.Notification;
 using ShareBook.Service.Server;
 using ShareBook.Service.Upload;
 using Swashbuckle.AspNetCore.Swagger;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -60,9 +61,9 @@ namespace ShareBook.Api
             services.Configure<ServerSettings>(options => Configuration.GetSection("ServerSettings").Bind(options));
 
             services.Configure<NotificationSettings>(options => Configuration.GetSection("NotificationSettings").Bind(options));
-
+          
             services.AddHttpContextAccessor();
-
+          
             JWTConfig.RegisterJWT(services, Configuration);
 
             services.AddSwaggerGen(c =>
@@ -91,7 +92,20 @@ namespace ShareBook.Api
                     });
             });
 
-            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            services
+                .AddDbContextPool<ApplicationDbContext>(options =>
+                        options.UseMySql(Configuration.GetConnectionString("DefaultConnection"),
+                            mySqlOptions =>
+                            {
+                                mySqlOptions
+                                .ServerVersion(new Version(8, 5), ServerType.MySql)
+                                .EnableRetryOnFailure(2)
+                                .CharSetBehavior(CharSetBehavior.AppendToAllColumns)
+                                .AnsiCharSet(CharSet.Latin1)
+                                .UnicodeCharSet(CharSet.Utf8mb4);
+                            }
+                        )
+                    );
 
             RollbarConfigurator.Configure(Configuration.GetSection("Rollbar").Value);
             MuambatorConfigurator.Configure(Configuration.GetSection("Muambator:Token").Value, Configuration.GetSection("Muambator:IsActive").Value);
