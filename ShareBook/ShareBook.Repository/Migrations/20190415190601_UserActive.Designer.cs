@@ -3,19 +3,21 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ShareBook.Repository;
 
 namespace ShareBook.Repository.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20190415190601_UserActive")]
+    partial class UserActive
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "2.2.4-servicing-10062")
+                .HasAnnotation("ProductVersion", "2.2.2-servicing-10034")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
@@ -240,10 +242,6 @@ namespace ShareBook.Repository.Migrations
                         .ValueGeneratedOnAdd()
                         .HasDefaultValueSql("1");
 
-                    b.Property<bool>("AllowSendingEmail")
-                        .ValueGeneratedOnAdd()
-                        .HasDefaultValue(true);
-
                     b.Property<DateTime?>("CreationDate");
 
                     b.Property<string>("Email")
@@ -257,10 +255,6 @@ namespace ShareBook.Repository.Migrations
 
                     b.Property<DateTime>("HashCodePasswordExpiryDate")
                         .HasColumnType("datetime2(7)");
-
-                    b.Property<DateTime>("LastLogin")
-                        .ValueGeneratedOnAdd()
-                        .HasDefaultValueSql("getdate()");
 
                     b.Property<string>("Linkedin")
                         .HasColumnType("varchar(100)")

@@ -44,7 +44,7 @@ namespace ShareBook.Repository.Mapping
                 .HasMaxLength(200);
 
             entityBuilder.Property(t => t.HashCodePasswordExpiryDate)
-                .HasColumnType("datetime(6)");
+                .HasColumnType("datetime2(7)");
 
             entityBuilder.HasMany(t => t.BooksDonated)
                 .WithOne(b => b.User);
