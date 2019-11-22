@@ -2,11 +2,10 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ShareBook.Repository;
 
-namespace ShareBook.Repository.Migrations
+namespace ShareBook.Infra.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     partial class ApplicationDbContextModelSnapshot : ModelSnapshot
@@ -15,9 +14,8 @@ namespace ShareBook.Repository.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "2.2.2-servicing-10034")
-                .HasAnnotation("Relational:MaxIdentifierLength", 128)
-                .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                .HasAnnotation("ProductVersion", "2.2.6-servicing-10079")
+                .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("ShareBook.Domain.Address", b =>
                 {
@@ -187,7 +185,7 @@ namespace ShareBook.Repository.Migrations
                     b.Property<DateTime?>("CreationDate");
 
                     b.Property<string>("Details")
-                        .HasColumnType("varchar(max)");
+                        .HasColumnType("varchar(1000)");
 
                     b.Property<bool>("IsSuccess");
 
@@ -256,7 +254,7 @@ namespace ShareBook.Repository.Migrations
                         .HasMaxLength(200);
 
                     b.Property<DateTime>("HashCodePasswordExpiryDate")
-                        .HasColumnType("datetime2(7)");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Linkedin")
                         .HasColumnType("varchar(100)")
