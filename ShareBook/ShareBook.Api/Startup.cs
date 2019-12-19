@@ -4,7 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
+using Microsoft.Extensions.Logging;
+using Rollbar.NetCore.AspNet;
 using ShareBook.Api.AutoMapper;
 using ShareBook.Api.Configuration;
 using ShareBook.Api.Middleware;
@@ -16,7 +17,6 @@ using ShareBook.Service.Notification;
 using ShareBook.Service.Server;
 using ShareBook.Service.Upload;
 using Swashbuckle.AspNetCore.Swagger;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -52,7 +52,10 @@ namespace ShareBook.Api
                 .Configure<ImageSettings>(options => Configuration.GetSection("ImageSettings").Bind(options))
                 .Configure<EmailSettings>(options => Configuration.GetSection("EmailSettings").Bind(options))
                 .Configure<ServerSettings>(options => Configuration.GetSection("ServerSettings").Bind(options))
-                .Configure<NotificationSettings>(options => Configuration.GetSection("NotificationSettings").Bind(options));
+                .Configure<NotificationSettings>(options => Configuration.GetSection("NotificationSettings").Bind(options))
+                .Configure<RollbarOptions>(options => Configuration.GetSection("Rollbar").Bind(options))
+                .AddHttpContextAccessor()
+                .AddRollbarLogger(loggerOptions => loggerOptions.Filter = (loggerName, loglevel) => loglevel >= LogLevel.Trace);
 
             JWTConfig.RegisterJWT(services, Configuration);
 
@@ -67,8 +70,7 @@ namespace ShareBook.Api
                     In = "header",
                     Type = "apiKey"
                 });
-                c.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>> {
-                    { "Bearer", Enumerable.Empty<string>() },
+                c.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>> { { "Bearer", Enumerable.Empty<string> () },
                 });
             });
 
@@ -78,33 +80,22 @@ namespace ShareBook.Api
                     builder =>
                     {
                         builder.AllowAnyOrigin()
-                               .AllowAnyHeader()
-                               .AllowAnyMethod();
+                            .AllowAnyHeader()
+                            .AllowAnyMethod();
                     });
             });
 
-            services
-                .AddDbContextPool<ApplicationDbContext>(options =>
-                        options.UseMySql(Configuration.GetConnectionString("DefaultConnection"),
-                            mySqlOptions =>
-                            {
-                                mySqlOptions
-                                .ServerVersion(new Version(8, 5), ServerType.MySql)
-                                .EnableRetryOnFailure(2)
-                                .CharSetBehavior(CharSetBehavior.AppendToAllColumns)
-                                .AnsiCharSet(CharSet.Latin1)
-                                .UnicodeCharSet(CharSet.Utf8mb4);
-                            }
-                        )
-                    );
+            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
-            RollbarConfigurator.Configure(Configuration.GetSection("RollbarEnvironment").Value);
+            RollbarConfigurator.Configure(Configuration.GetSection("Rollbar").Value);
             MuambatorConfigurator.Configure(Configuration.GetSection("Muambator:Token").Value, Configuration.GetSection("Muambator:IsActive").Value);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+
+            app.UseRollbarMiddleware();
 
             app.UseHealthChecks("/hc");
             app.UseCors("AllowAllHeaders");
@@ -150,5 +141,6 @@ namespace ShareBook.Api
             services.AddHealthChecks()
                 .AddSqlServer(connectionString);
         }
+
     }
 }
