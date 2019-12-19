@@ -49,19 +49,13 @@ namespace ShareBook.Api
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             services
+                .Configure<ImageSettings>(options => Configuration.GetSection("ImageSettings").Bind(options))
+                .Configure<EmailSettings>(options => Configuration.GetSection("EmailSettings").Bind(options))
+                .Configure<ServerSettings>(options => Configuration.GetSection("ServerSettings").Bind(options))
+                .Configure<NotificationSettings>(options => Configuration.GetSection("NotificationSettings").Bind(options))
                 .Configure<RollbarOptions>(options => Configuration.GetSection("Rollbar").Bind(options))
                 .AddHttpContextAccessor()
                 .AddRollbarLogger(loggerOptions => loggerOptions.Filter = (loggerName, loglevel) => loglevel >= LogLevel.Trace);
-
-            services.Configure<ImageSettings>(options => Configuration.GetSection("ImageSettings").Bind(options));
-
-            services.Configure<EmailSettings>(options => Configuration.GetSection("EmailSettings").Bind(options));
-
-            services.Configure<ServerSettings>(options => Configuration.GetSection("ServerSettings").Bind(options));
-
-            services.Configure<NotificationSettings>(options => Configuration.GetSection("NotificationSettings").Bind(options));
-
-            services.AddHttpContextAccessor();
 
             JWTConfig.RegisterJWT(services, Configuration);
 
