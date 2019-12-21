@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ShareBook.Domain;
 
@@ -44,7 +43,7 @@ namespace ShareBook.Repository.Mapping
                 .HasMaxLength(200);
 
             entityBuilder.Property(t => t.HashCodePasswordExpiryDate)
-                .HasColumnType("datetime2(7)");
+                .HasColumnType("datetime(6)");
 
             entityBuilder.HasMany(t => t.BooksDonated)
                 .WithOne(b => b.User);
@@ -54,9 +53,6 @@ namespace ShareBook.Repository.Mapping
 
             entityBuilder.Property(t => t.AllowSendingEmail)
                 .HasDefaultValue(true);
-
-            entityBuilder.Property(t => t.LastLogin)
-                .HasDefaultValueSql("getdate()");
         }
     }
 }
