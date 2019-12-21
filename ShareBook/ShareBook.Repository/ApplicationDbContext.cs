@@ -8,8 +8,8 @@ namespace ShareBook.Repository
 {
     public class ApplicationDbContext : DbContext
     {
+        //public ApplicationDbContext() { }
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
-        public ApplicationDbContext() { }
 
         public DbSet<Book> Books { get; set; }
         public DbSet<User> Users { get; set; }

@@ -5,7 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Rollbar.NetCore.AspNet;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
+using Rollbar.AspNetCore;
 using ShareBook.Api.AutoMapper;
 using ShareBook.Api.Configuration;
 using ShareBook.Api.Middleware;
@@ -17,6 +18,7 @@ using ShareBook.Service.Notification;
 using ShareBook.Service.Server;
 using ShareBook.Service.Upload;
 using Swashbuckle.AspNetCore.Swagger;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -85,7 +87,20 @@ namespace ShareBook.Api
                     });
             });
 
-            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            services
+                .AddDbContext<ApplicationDbContext>(options =>
+                        options.UseMySql(Configuration.GetConnectionString("DefaultConnection"),
+                                mySqlOptions =>
+                                {
+                                    mySqlOptions
+                                        .ServerVersion(new Version(8, 5), ServerType.MySql)
+                                        .EnableRetryOnFailure(2)
+                                        .CharSetBehavior(CharSetBehavior.AppendToAllColumns)
+                                        .AnsiCharSet(CharSet.Latin1)
+                                        .UnicodeCharSet(CharSet.Utf8mb4);
+                                }
+                        )
+                    );
 
             RollbarConfigurator.Configure(Configuration.GetSection("Rollbar").Value);
             MuambatorConfigurator.Configure(Configuration.GetSection("Muambator:Token").Value, Configuration.GetSection("Muambator:IsActive").Value);
@@ -97,7 +112,9 @@ namespace ShareBook.Api
 
             app.UseRollbarMiddleware();
 
+            // Ativando o middlweare de Health Check
             app.UseHealthChecks("/hc");
+
             app.UseCors("AllowAllHeaders");
 
             app.UseDeveloperExceptionPage();
@@ -139,7 +156,7 @@ namespace ShareBook.Api
         private void RegisterHealthChecks(IServiceCollection services, string connectionString)
         {
             services.AddHealthChecks()
-                .AddSqlServer(connectionString);
+                .AddMySql(connectionString);
         }
 
     }
