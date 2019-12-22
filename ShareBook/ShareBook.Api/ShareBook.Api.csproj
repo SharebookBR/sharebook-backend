@@ -1,11 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
-
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
   </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="2.2.0" />
+    <PackageReference Include="AspNetCore.HealthChecks.MySql" Version="2.2.0" />
     <PackageReference Include="AutoMapper" Version="8.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.2.0" />
@@ -24,15 +22,13 @@
     <PackageReference Include="Rollbar" Version="2.2.3" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="4.0.1" />
   </ItemGroup>
-
   <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.3" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\ShareBook.Infra.CrossCutting.Identity\ShareBook.Infra.CrossCutting.Identity.csproj" />
     <ProjectReference Include="..\ShareBook.Service\ShareBook.Service.csproj" />
     <ProjectReference Include="..\Sharebook.Jobs\Sharebook.Jobs.csproj" />
+    <ProjectReference Include="..\ShareBook.Repository\ShareBook.Infra.Data.csproj" />
   </ItemGroup>
-
 </Project>

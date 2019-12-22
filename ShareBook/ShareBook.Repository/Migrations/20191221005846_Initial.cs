@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace ShareBook.Infra.Data.Migrations
 {
-    public partial class ChangeDbToMySql : Migration
+    public partial class Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -67,6 +67,7 @@ namespace ShareBook.Infra.Data.Migrations
                     PasswordSalt = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false),
                     HashCodePassword = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true),
                     HashCodePasswordExpiryDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    LastLogin = table.Column<DateTime>(nullable: false),
                     Linkedin = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true),
                     Phone = table.Column<string>(type: "varchar(30)", maxLength: 30, nullable: true),
                     Profile = table.Column<int>(nullable: false),

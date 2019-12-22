@@ -188,28 +188,30 @@ namespace ShareBook.Service
 
         public IList<User> GetFacilitators(Guid userIdDonator)
         {
-            var sql = @"select 
-                            CONCAT(Name, ' (', total, ')') as Name,
+            var sql = @"SELECT 
+                            CONCAT(Name, ' (', total, ')') AS Name,
                             Id
-                        from 
+                        FROM 
                         (
-                            select top 100
+                            SELECT
                                 u.Name, u.Id,
-                                ( select count(*) as total from Books b 
-                                  where b.UserIdFacilitator = u.Id and b.UserId = {0} 
-                                ) as total
+                                ( SELECT count(*) AS total FROM Books b 
+                                  WHERE b.UserIdFacilitator = u.Id AND b.UserId = {0}
+                                ) AS total
                             FROM
                                 Users u
-                            where u.Profile = 0 -- Administrador
-                            order by total desc, u.Name
+                            WHERE u.Profile = 0 -- Administrador
+                            ORDER BY total desc, u.Name
                         ) sub";
 
-            return _repository.Get().FromSql(sql, userIdDonator.ToString())
-            .Select(x => new User { 
-                Id = x.Id,
-                Name = x.Name
-                })
-            .ToList();
+            return _repository.Get()
+                    .FromSql(sql, userIdDonator.ToString())
+                        .Select(x => new User 
+                        {
+                            Id = x.Id,
+                            Name = x.Name
+                        })
+                        .ToList();
 
         }
         #endregion

@@ -21,7 +21,6 @@ namespace ShareBook.Repository.Mapping
 
             entityBuilder.Property(t => t.Details)
                 .HasColumnType("varchar(1000)");
-
         }
     }
 }

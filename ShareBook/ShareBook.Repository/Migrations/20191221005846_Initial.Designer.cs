@@ -9,8 +9,8 @@ using ShareBook.Repository;
 namespace ShareBook.Infra.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20191122015459_ChangeDbToMySql")]
-    partial class ChangeDbToMySql
+    [Migration("20191221005846_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -257,6 +257,8 @@ namespace ShareBook.Infra.Data.Migrations
 
                     b.Property<DateTime>("HashCodePasswordExpiryDate")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("LastLogin");
 
                     b.Property<string>("Linkedin")
                         .HasColumnType("varchar(100)")
