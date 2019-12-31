@@ -13,53 +13,9 @@ namespace ShareBook.Test.Unit.Domain
         public void BookStatusWaitingApproval()
         {
             var book = new Book();
-            Assert.Equal(BookStatus.WaitingApproval, book.Status());
+            Assert.Equal(BookStatus.WaitingApproval, book.Status);
         }
 
-        [Fact]
-        public void BookStatusAvailable()
-        {
-            var book = new Book
-            {
-                BookUsers = new List<BookUser>(),
-                Approved = true
-            };
-
-            Assert.Equal(BookStatus.Available, book.Status());
-        }
-
-        [Fact]
-        public void BookStatusInvisible()
-        {
-            var bookUsers = new List<BookUser>
-            {
-                new BookUser()
-            };
-
-            var book = new Book
-            {
-                BookUsers = bookUsers
-            };
-
-            Assert.Equal(BookStatus.Invisible, book.Status());
-        }
-
-        [Fact]
-        public void BookStatusDonated()
-        {
-            var bookUsers = new List<BookUser>();
-            var bookUser = new BookUser();
-            bookUser.UpdateBookUser(DonationStatus.Donated, null);
-
-            bookUsers.Add(bookUser);
-
-            var book = new Book
-            {
-                BookUsers = bookUsers
-            };
-
-            Assert.Equal(BookStatus.Donated, book.Status());
-        }
 
         [Fact]
         public void TotalInteresedShouldBeZeroIfBookUsersIsNull()

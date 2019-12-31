@@ -42,7 +42,7 @@ namespace Sharebook.Jobs
 
             foreach (var book in books)
             {
-                if (book.Status() == BookStatus.Available && book.BookUsers.Count > 0)
+                if (book.Status == BookStatus.Available && book.BookUsers.Count > 0)
                 {
                     SendEmail(book);
                     messages.Add(string.Format("Lembrete amigável enviado para '{0}' referente ao livro '{1}'.", book.User.Name, book.Title));
