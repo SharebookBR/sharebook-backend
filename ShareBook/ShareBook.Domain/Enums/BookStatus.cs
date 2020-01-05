@@ -14,8 +14,12 @@ namespace ShareBook.Domain.Enums
         Available,
         [Description("Invisível")]
         Invisible,
-        [Description("Doado")]
-        Donated,
+        [Description("Aguardando envio")]
+        WaitingSend,
+        [Description("Enviado")]
+        Sent,
+        [Description("Recebido")]
+        Received,
         [Description("Cancelado")]
         Canceled
     }

@@ -43,7 +43,7 @@ namespace Sharebook.Jobs
             foreach (var book in books)
             {
                 // Só trata livros disponíves
-                if (book.Status() != BookStatus.Available)
+                if (book.Status != BookStatus.Available)
                 {
                     messages.Add(string.Format("Livro '{0}' não foi processado porque não está disponível.", book.Title));
                     continue;
@@ -51,7 +51,7 @@ namespace Sharebook.Jobs
 
                 if (book.BookUsers.Count > 0)
                 {
-                    book.Approved = false;
+                    book.Status = BookStatus.Invisible;
                     messages.Add(string.Format("Livro '{0}' removido da vitrine.", book.Title));
                 }
                 else

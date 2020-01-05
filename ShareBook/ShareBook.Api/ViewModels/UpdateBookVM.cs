@@ -15,8 +15,6 @@ namespace ShareBook.Api.ViewModels
 
         public Guid UserIdFacilitator { get; set; }
 
-        public bool Approved { get; set; }
-
         public string ImageName { get; set; }
 
         public byte[] ImageBytes { get; set; }

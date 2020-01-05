@@ -105,7 +105,10 @@ namespace ShareBook.Service
 
             DeniedBookUsers(bookId);
 
-            _bookService.HideBook(bookId);
+
+            book.Status = BookStatus.WaitingSend;
+
+            _bookService.Update(book);
 
             // não usamos await nas notificações, pra serem assíncronas de verdade e retornar mais rápido.
 
@@ -131,9 +134,8 @@ namespace ShareBook.Service
             if (!isAdmin && bookUsers != null && bookUsers.Count > 0)
                 throw new ShareBookException("Este livro já possui interessados");
 
-            book.Approved = false;
             book.ChooseDate = null;
-            book.Canceled = true;
+            book.Status = BookStatus.Canceled;
 
             CancelBookUsersAndSendNotification(book);            
 
@@ -223,7 +225,8 @@ namespace ShareBook.Service
             if(MuambatorConfigurator.IsActive)
                 _muambatorService.AddPackageToTrackerAsync(book, winnerBookUser.User, trackingNumber);
 
-            book.TrackingNumber = trackingNumber; 
+            book.TrackingNumber = trackingNumber;
+            book.Status = BookStatus.Sent;
             _bookService.Update(book);
 
             // TODO: verificar se a notificação do muambator já é suficiente e remover esse trecho.
