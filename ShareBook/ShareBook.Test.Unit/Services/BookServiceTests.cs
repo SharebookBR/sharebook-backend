@@ -24,6 +24,7 @@ namespace ShareBook.Test.Unit.Services
         readonly Mock<IBooksEmailService> bookEmailService;
         readonly Mock<IUnitOfWork> unitOfWorkMock;
         readonly Mock<IBookUserService> bookUserServiceMock;
+        readonly Mock<IServiceProvider> serviceProvider;
 
         public BookServiceTests()
         {
@@ -34,6 +35,7 @@ namespace ShareBook.Test.Unit.Services
             bookRepositoryMock = new Mock<IBookRepository>();
             bookEmailService = new Mock<IBooksEmailService>();
             bookUserServiceMock = new Mock<IBookUserService>();
+            serviceProvider = new Mock<IServiceProvider>();
 
             bookRepositoryMock.Setup(repo => repo.Insert(It.IsAny<Book>())).Returns(() =>
             {
@@ -51,7 +53,7 @@ namespace ShareBook.Test.Unit.Services
             Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
             var service = new BookService(bookRepositoryMock.Object, 
                 unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object);
+                uploadServiceMock.Object, bookEmailService.Object, serviceProvider.Object);
             Result<Book> result = service.Insert(new Book()
             {
                 Title = "Lord of the Rings",

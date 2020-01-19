@@ -11,6 +11,11 @@ namespace ShareBook.Service
         private const string WaitingApprovalTitle = "Aguarde aprovação do livro - Sharebook";
         private const string BookApprovedTemplate = "BookApprovedTemplate";
         private const string BookApprovedTitle = "Livro aprovado - Sharebook";
+        private const string BookSentTemplate = "BookSentTemplate";
+        private const string BookReceivedTemplate = "BookReceivedTemplate";
+        private const string BookReceivedTitle = "Livro entregue";
+        private const string BookTrackingNumberNoticeWinnerTitle = "Seu livro foi postado - Sharebook";
+
         private readonly IEmailService _emailService;
         private readonly IUserService _userService;
         private readonly IEmailTemplate _emailTemplate;
@@ -63,6 +68,36 @@ namespace ShareBook.Service
                 var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(WaitingApprovalTemplate, book);
 
                 await _emailService.Send(book.User.Email, book.User.Name, html, WaitingApprovalTitle, copyAdmins: true);
+            }
+        }
+
+        public async Task SendEmailBookSent(BookUser bookUserWinner, Book book)
+        {
+            if (bookUserWinner.User.AllowSendingEmail)
+            {
+                var vm = new
+                {
+                    book = book,
+                    NameFacilitator = book.UserFacilitator.Name,
+                    LinkedInFacilitator = book.UserFacilitator.Linkedin,
+                    ZapFacilitator = book.UserFacilitator.Phone,
+                    EmailFacilitator = book.UserFacilitator.Email,
+                };
+                var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookSentTemplate, vm);
+                await _emailService.Send(bookUserWinner.User.Email, bookUserWinner.User.Name, html, BookTrackingNumberNoticeWinnerTitle, copyAdmins: false);
+            }
+        }
+
+        public async Task SendEmailBookReceived(Book book)
+        {
+            if (book.User.AllowSendingEmail)
+            {
+                var vm = new
+                {
+                    book = book,
+                };
+                var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookReceivedTemplate, vm);
+                await _emailService.Send(book.User.Email, book.User.Name, html, BookReceivedTitle, copyAdmins: false);
             }
         }
     }

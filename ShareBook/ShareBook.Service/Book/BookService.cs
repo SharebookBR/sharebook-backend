@@ -17,6 +17,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
+
 
 namespace ShareBook.Service
 {
@@ -24,17 +26,75 @@ namespace ShareBook.Service
     {
         private readonly IUploadService _uploadService;
         private readonly IBooksEmailService _booksEmailService;
+        private readonly IServiceProvider _serviceProvider;
 
         public BookService(IBookRepository bookRepository,
                     IUnitOfWork unitOfWork, IValidator<Book> validator,
-                    IUploadService uploadService, IBooksEmailService booksEmailService)
+                    IUploadService uploadService, IBooksEmailService booksEmailService, IServiceProvider serviceProvider)
                     : base(bookRepository, unitOfWork, validator)
         {
             _uploadService = uploadService;
             _booksEmailService = booksEmailService;
+            _serviceProvider = serviceProvider;
         }
 
-        public Result<Book> Approve(Guid bookId, DateTime? chooseDate = null)
+
+        public void UpdateStatus(Guid bookId, BookStatus status, bool isAdmin) 
+        {
+            if (status == BookStatus.Available && isAdmin)
+                ChangeBookStatusToAvailable(bookId);
+            else if (status == BookStatus.Sent)
+                ChangeBookStatusToSent(bookId);
+            else if (status == BookStatus.Received)
+                ChangeBookStatusToReceived(bookId);
+            else if (status == BookStatus.Canceled)
+                ChangeBookStatusToCanceled(bookId, isAdmin);
+            else
+                throw new ShareBookException(ShareBookException.Error.Forbidden);
+        }
+
+        private void ChangeBookStatusToReceived(Guid bookId)
+        {
+            var book = _repository.Get().Include(b => b.User).FirstOrDefault(b => b.Id == bookId);
+            if (book == null)
+                throw new ShareBookException(ShareBookException.Error.NotFound);
+
+            book.Status = BookStatus.Received;
+            _repository.Update(book);
+
+            _booksEmailService.SendEmailBookReceived(book);
+        }
+
+        private void ChangeBookStatusToSent(Guid bookId)
+        {
+            var book = _repository.Get()
+                .Include(b => b.UserFacilitator)
+                .Include(b => b.BookUsers).ThenInclude(bu => bu.User)
+                .FirstOrDefault(b => b.Id == bookId);
+
+            if (book == null)
+                throw new ShareBookException(ShareBookException.Error.NotFound);
+
+            book.Status = BookStatus.Sent;
+            _repository.Update(book);
+
+            var bookUserWinner = book.BookUsers.FirstOrDefault(bu => bu.Status == DonationStatus.Donated);
+            _booksEmailService.SendEmailBookSent(bookUserWinner, book);
+        }
+
+        private void ChangeBookStatusToCanceled(Guid bookId, bool isAdmin)
+        {
+            // Usando IServiceProvider para evitar Dependencia Circular entre o BookService e o BookUserService
+            var bookUserService = _serviceProvider.GetRequiredService<IBookUserService>();
+            bookUserService.Cancel(bookId, isAdmin);
+        }
+
+        private void ChangeBookStatusToAvailable(Guid bookId)
+        {
+            Approve(bookId);
+        }
+
+        private Result<Book> Approve(Guid bookId, DateTime? chooseDate = null)
         {
             var book = _repository.Find(bookId);
             if (book == null)
@@ -47,16 +107,6 @@ namespace ShareBook.Service
             _booksEmailService.SendEmailBookApproved(book).Wait();
 
             return new Result<Book>(book);
-        }
-
-        public void HideBook(Guid bookId)
-        {
-            var book = _repository.Find(bookId);
-            if (book == null)
-                throw new ShareBookException(ShareBookException.Error.NotFound);
-
-            book.Status = BookStatus.Invisible;
-            _repository.Update(book);
         }
 
         public IList<dynamic> FreightOptions()

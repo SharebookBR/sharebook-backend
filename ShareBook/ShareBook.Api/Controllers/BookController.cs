@@ -15,6 +15,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using ShareBook.Helper;
+using ShareBook.Domain.Enums;
 
 namespace ShareBook.Api.Controllers
 {
@@ -78,16 +79,6 @@ namespace ShareBook.Api.Controllers
 
         [HttpGet("{id}")]
         public Book GetById(string id) => _service.Find(new Guid(id));
-
-        [Authorize("Bearer")]
-        [HttpPost("Approve/{id}")]
-        [AuthorizationFilter(Permissions.Permission.ApproveBook)]
-        public Result<Book> Approve(string id, [FromBody] ApproveBookVM model) => _service.Approve(new Guid(id), model?.ChooseDate);
-
-        [Authorize("Bearer")]
-        [HttpPost("Cancel/{id}")]
-        [AuthorizationFilter(Permissions.Permission.ApproveBook)]
-        public Result<Book> CancelAdmin(string id) => _bookUserService.Cancel(new Guid(id), true);
 
         [HttpGet("FreightOptions")]
         public IList<dynamic> FreightOptions()
@@ -197,6 +188,23 @@ namespace ShareBook.Api.Controllers
             return Ok(result);
         }
 
+
+        [Authorize("Bearer")]
+        [HttpPut("{bookId}/UpdateStatus/{status}")]
+        public IActionResult UpdateStatus(Guid bookId, BookStatus status)
+        {
+            var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+            var user = _userService.Find(userId);
+
+            if (user == null) return Forbid();
+
+            var isAdmin = user.Profile == Domain.Enums.Profile.Administrator;
+            _service.UpdateStatus(bookId, status, isAdmin);
+
+            return Ok();
+        }
+
+       
         [Authorize("Bearer")]
         [HttpDelete("{id}")]
         [AuthorizationFilter(Permissions.Permission.DonateBook)]

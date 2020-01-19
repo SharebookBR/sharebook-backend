@@ -1,5 +1,6 @@
 ﻿using ShareBook.Domain;
 using ShareBook.Domain.Common;
+using ShareBook.Domain.Enums;
 using ShareBook.Service.Generic;
 using System;
 using System.Collections.Generic;
@@ -8,9 +9,7 @@ namespace ShareBook.Service
 {
     public interface IBookService : IBaseService<Book>
     {
-        Result<Book> Approve(Guid bookId, DateTime? chooseDate);
-
-        void HideBook(Guid bookId);
+        void UpdateStatus(Guid bookId, BookStatus status, bool isAdmin);
 
         IList<dynamic> FreightOptions();
 
