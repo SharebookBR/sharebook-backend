@@ -58,15 +58,8 @@ namespace ShareBook.Service
 
             if (copyAdmins)
             {
-                InternetAddressList list = new InternetAddressList();
-                var admins = GetAdminUsers();
-                foreach (var admin in admins)
-                {
-                    list.Add(new MailboxAddress(admin.Email));
-                }
-
-                message.Cc.AddRange(list);
-
+                var adminsEmails = GetAdminEmails();
+                message.Cc.AddRange(adminsEmails);
             }
 
             message.Subject = subject;
@@ -77,11 +70,24 @@ namespace ShareBook.Service
             return message;
         }
 
-        private List<User> GetAdminUsers()
+        private InternetAddressList GetAdminEmails()
         {
-            return _userRepository.Get()
-            .Where(u => u.Profile == Domain.Enums.Profile.Administrator)
-            .ToList();
+            var admins = _userRepository.Get()
+                .Select(u => new User {
+                    Email = u.Email,
+                    Profile = u.Profile
+                }
+                )
+                .Where(u => u.Profile == Domain.Enums.Profile.Administrator)
+                .ToList();
+
+            InternetAddressList list = new InternetAddressList();
+            foreach (var admin in admins)
+            {
+                list.Add(new MailboxAddress(admin.Email));
+            }
+
+            return list;
         }
 
     }
