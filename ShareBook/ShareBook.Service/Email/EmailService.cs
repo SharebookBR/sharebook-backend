@@ -35,8 +35,12 @@ namespace ShareBook.Service
             {
                 using (var client = new SmtpClient())
                 {
-                    client.ServerCertificateValidationCallback = (s, c, h, e) => true;
-                    client.Connect(_settings.HostName, _settings.Port, true);
+                    if (_settings.UseSSL)
+                    {
+                        client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+                    }
+                    
+                    client.Connect(_settings.HostName, _settings.Port, _settings.UseSSL);
                     client.Authenticate(_settings.Username, _settings.Password);
                     await client.SendAsync(message);
                     client.Disconnect(true);
