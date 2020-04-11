@@ -15,6 +15,8 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using ShareBook.Helper;
+using MimeKit;
+using MailKit.Net.Smtp;
 
 namespace ShareBook.Api.Controllers
 {
@@ -42,11 +44,35 @@ namespace ShareBook.Api.Controllers
         [HttpGet("Ping")]
         public IActionResult Ping()
         {
+            emailTest();
+
             var result = new
             {
                 Message = "Pong!"
             };
             return Ok(result);
+        }
+
+        private void emailTest()
+        {
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress("Sharebook", "contato@sharebook.com.br"));
+            message.To.Add(new MailboxAddress("Raffaello", "raffacabofrio@gmail.com"));
+            message.Subject = "Teste email .net core";
+            message.Body = new TextPart("plain")
+            {
+                Text = @"Testando... " + System.DateTime.Now.ToString()
+            };
+
+            using (var client = new SmtpClient())
+            {
+                client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+                client.Connect("mail.sharebook.com.br", 465, true);
+                client.Authenticate("contato_dev_stg@sharebook.com.br", "W9_m_A__Df5_v:_");
+                client.Send(message);
+                client.Disconnect(true);
+            }
+
         }
 
         [HttpGet()]
