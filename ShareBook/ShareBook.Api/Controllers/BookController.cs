@@ -44,7 +44,8 @@ namespace ShareBook.Api.Controllers
         [HttpGet("Ping")]
         public IActionResult Ping()
         {
-            emailTest();
+            //emailTest();
+            emailTest2();
 
             var result = new
             {
@@ -56,9 +57,10 @@ namespace ShareBook.Api.Controllers
         private void emailTest()
         {
             var message = new MimeMessage();
-            message.From.Add(new MailboxAddress("Sharebook", "contato@sharebook.com.br"));
+            message.From.Add(new MailboxAddress("Sharebook", "contato_dev_stg@sharebook.com.br"));
             message.To.Add(new MailboxAddress("Raffaello", "raffacabofrio@gmail.com"));
-            message.Subject = "Teste email .net core";
+            message.Cc.Add(new MailboxAddress("Sharebook", "contato_dev_stg@sharebook.com.br"));
+            message.Subject = "Teste email SSH";
             message.Body = new TextPart("plain")
             {
                 Text = @"Testando... " + System.DateTime.Now.ToString()
@@ -68,6 +70,31 @@ namespace ShareBook.Api.Controllers
             {
                 client.ServerCertificateValidationCallback = (s, c, h, e) => true;
                 client.Connect("mail.sharebook.com.br", 465, true);
+                client.Authenticate("contato_dev_stg@sharebook.com.br", "W9_m_A__Df5_v:_");
+                client.Send(message);
+                client.Disconnect(true);
+            }
+
+        }
+
+        private void emailTest2()
+        {
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress("Sharebook", "contato_dev_stg@sharebook.com.br"));
+            message.To.Add(new MailboxAddress("Raffaello", "raffacabofrio@gmail.com"));
+            message.Cc.Add(new MailboxAddress("Sharebook", "contato_dev_stg@sharebook.com.br"));
+            message.Subject = "Teste email sem SSH";
+            message.Body = new TextPart("plain")
+            {
+                Text = @"Testando... " + System.DateTime.Now.ToString() +
+                "(sem SSL)"
+            };
+
+            using (var client = new SmtpClient())
+            {
+
+                var useSSL = false;
+                client.Connect("mail.sharebook.com.br", 8889, useSSL);
                 client.Authenticate("contato_dev_stg@sharebook.com.br", "W9_m_A__Df5_v:_");
                 client.Send(message);
                 client.Disconnect(true);
