@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Rollbar;
+using ShareBook.Api.Services;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.Exceptions;
 
@@ -34,13 +35,15 @@ namespace ShareBook.Api.Middleware
                 httpContext.Response.Clear();
                 httpContext.Response.StatusCode = (int)ex.ErrorType;
                 await httpContext.Response.WriteAsync(jsonResponse);
-                return;
             }
             catch (Exception ex)
             {
+                if (RollbarConfigurator.IsActive)
+                {
+                    // TODO: rollbar está mascarando os erros. Buscar alternativa.
+                    await RollbarLocator.RollbarInstance.Error(ex);
+                }
                 throw ex;
-                // TODO: rollbar está mascarando os erros. Buscar alternativa.    
-                // await RollbarLocator.RollbarInstance.Error(ex);
             }
         }
     }

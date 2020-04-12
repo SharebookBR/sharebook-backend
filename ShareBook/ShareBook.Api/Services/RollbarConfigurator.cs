@@ -4,15 +4,19 @@ namespace ShareBook.Api.Services
 {
     public static class RollbarConfigurator
     {
-        public static void Configure(string environment)
-        {
-            if (string.IsNullOrEmpty(environment) || environment == "local")
-            {
-                return;
-            }
+        public static bool IsActive { get; private set; }
 
-            RollbarLocator.RollbarInstance.Configure(new RollbarConfig("2efbb216f34747b58371ef04ee27b074") { Environment = environment });
+        public static void Configure(string environment, string isActive, string token)
+        {
+            if (string.IsNullOrEmpty(environment) || environment == "local" ||
+                isActive == "false" || string.IsNullOrEmpty(isActive) ||
+                string.IsNullOrEmpty(token))
+                return;
+
+            RollbarLocator.RollbarInstance.Configure(new RollbarConfig(token) { Environment = environment });
             RollbarLocator.RollbarInstance.Info($"Rollbar is configured properly in {environment} environment.");
+
+            IsActive = true;
         }
     }
 }

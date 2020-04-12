@@ -86,7 +86,11 @@ namespace ShareBook.Api
 
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
-            RollbarConfigurator.Configure(Configuration.GetSection("RollbarEnvironment").Value);
+            RollbarConfigurator
+                .Configure(environment: Configuration.GetSection("Rollbar:Environment").Value,
+                           isActive: Configuration.GetSection("Rollbar:IsActive").Value,
+                           token: Configuration.GetSection("Rollbar:Token").Value);
+
             MuambatorConfigurator.Configure(Configuration.GetSection("Muambator:Token").Value, Configuration.GetSection("Muambator:IsActive").Value);
         }
 
@@ -130,7 +134,7 @@ namespace ShareBook.Api
                     var sharebookSeeder = new ShareBookSeeder(context);
                     sharebookSeeder.Seed();
                 }
-            }     
+            }
         }
 
         private void RegisterHealthChecks(IServiceCollection services, string connectionString)
