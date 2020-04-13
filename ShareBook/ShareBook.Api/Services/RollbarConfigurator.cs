@@ -8,7 +8,7 @@ namespace ShareBook.Api.Services
 
         public static void Configure(string environment, string isActive, string token)
         {
-            if (string.IsNullOrEmpty(environment) || environment == "local" ||
+            if (string.IsNullOrEmpty(environment) || environment == "Development" ||
                 isActive == "false" || string.IsNullOrEmpty(isActive) ||
                 string.IsNullOrEmpty(token))
                 return;
