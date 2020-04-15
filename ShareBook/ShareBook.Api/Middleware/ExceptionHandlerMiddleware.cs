@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Rollbar;
+using ShareBook.Api.Services;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.Exceptions;
 
@@ -28,18 +29,21 @@ namespace ShareBook.Api.Middleware {
                 httpContext.Response.Clear();
                 httpContext.Response.StatusCode = (int)ex.ErrorType;
                 await httpContext.Response.WriteAsync(jsonResponse);
-
-                RollbarLocator.RollbarInstance.Log(ErrorLevel.Error, jsonResponse);
-
-                return;
-            } catch (Exception ex) {
-                object error = new 
+            }
+            catch (Exception ex)
+            {
+                if (RollbarConfigurator.IsActive)
                 {
-                    Message = ex.Message,
-                    StackTrace = ex.StackTrace,
-                    Source = ex.Source
-                };
-                RollbarLocator.RollbarInstance.Log(ErrorLevel.Critical, error);
+                    // TODO: rollbar está mascarando os erros. Buscar alternativa.
+                    //await RollbarLocator.RollbarInstance.Error(ex);
+                    object error = new 
+                    {
+                      Message = ex.Message,
+                      StackTrace = ex.StackTrace,
+                      Source = ex.Source
+                    };
+                  RollbarLocator.RollbarInstance.Log(ErrorLevel.Critical, error);
+                }
                 throw ex;
             }
         }

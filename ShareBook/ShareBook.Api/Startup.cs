@@ -93,7 +93,12 @@ namespace ShareBook.Api
 
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
-            RollbarConfigurator.Configure(Configuration.GetSection("Rollbar").Value);
+
+            RollbarConfigurator
+                .Configure(environment: Configuration.GetSection("Rollbar:Environment").Value,
+                           isActive: Configuration.GetSection("Rollbar:IsActive").Value,
+                           token: Configuration.GetSection("Rollbar:Token").Value);
+          
             MuambatorConfigurator.Configure(Configuration.GetSection("Muambator:Token").Value, Configuration.GetSection("Muambator:IsActive").Value);
         }
 
