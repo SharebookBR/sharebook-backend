@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Rollbar.NetCore.AspNet;
 using ShareBook.Api.AutoMapper;
 using ShareBook.Api.Configuration;
 using ShareBook.Api.Middleware;
@@ -46,6 +48,11 @@ namespace ShareBook.Api
                 })
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
+            services
+                .Configure<RollbarOptions>(options => Configuration.GetSection("Rollbar").Bind(options))
+                .AddHttpContextAccessor()
+                .AddRollbarLogger(loggerOptions => loggerOptions.Filter = (loggerName, loglevel) => loglevel >= LogLevel.Trace);
+
             services.Configure<ImageSettings>(options => Configuration.GetSection("ImageSettings").Bind(options));
 
             services.Configure<EmailSettings>(options => Configuration.GetSection("EmailSettings").Bind(options));
@@ -54,6 +61,7 @@ namespace ShareBook.Api
 
             services.Configure<NotificationSettings>(options => Configuration.GetSection("NotificationSettings").Bind(options));
 
+            services.AddHttpContextAccessor();
 
             JWTConfig.RegisterJWT(services, Configuration);
 
@@ -68,8 +76,7 @@ namespace ShareBook.Api
                     In = "header",
                     Type = "apiKey"
                 });
-                c.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>> {
-                    { "Bearer", Enumerable.Empty<string>() },
+                c.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>> { { "Bearer", Enumerable.Empty<string> () },
                 });
             });
 
@@ -79,24 +86,27 @@ namespace ShareBook.Api
                     builder =>
                     {
                         builder.AllowAnyOrigin()
-                               .AllowAnyHeader()
-                               .AllowAnyMethod();
+                            .AllowAnyHeader()
+                            .AllowAnyMethod();
                     });
             });
 
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
+
             RollbarConfigurator
                 .Configure(environment: Configuration.GetSection("Rollbar:Environment").Value,
                            isActive: Configuration.GetSection("Rollbar:IsActive").Value,
                            token: Configuration.GetSection("Rollbar:Token").Value);
-
+          
             MuambatorConfigurator.Configure(Configuration.GetSection("Muambator:Token").Value, Configuration.GetSection("Muambator:IsActive").Value);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+
+            app.UseRollbarMiddleware();
 
             app.UseHealthChecks("/hc");
             app.UseCors("AllowAllHeaders");
@@ -142,5 +152,6 @@ namespace ShareBook.Api
             services.AddHealthChecks()
                 .AddSqlServer(connectionString);
         }
+
     }
 }
