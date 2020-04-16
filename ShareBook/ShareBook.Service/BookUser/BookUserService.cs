@@ -73,7 +73,10 @@ namespace ShareBook.Service
 
             if (_bookUserRepository.Any(x => x.UserId == bookUser.UserId && x.BookId == bookUser.BookId))
                 throw new ShareBookException("O usuário já possui uma requisição para o mesmo livro.");
-   
+
+            if (bookRequested.Status() != BookStatus.Available)
+                throw new ShareBookException("Esse livro não está mais disponível para doação.");
+
             _bookUserRepository.Insert(bookUser);
 
             _bookUsersEmailService.SendEmailBookRequested(bookUser);

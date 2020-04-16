@@ -116,7 +116,14 @@ namespace ShareBook.Api
             app.UseDeveloperExceptionPage();
             app.UseExceptionHandlerMiddleware();
 
-            app.UseStaticFiles();
+            app.UseStaticFiles(new StaticFileOptions()
+            {
+                OnPrepareResponse = (context) =>
+                {
+                    // Enable cors
+                    context.Context.Response.Headers["Access-Control-Allow-Origin"] = "*";
+                }
+            });
 
             app.UseSwagger();
             app.UseSwaggerUI(c =>

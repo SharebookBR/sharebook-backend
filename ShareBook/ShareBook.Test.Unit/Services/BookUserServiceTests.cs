@@ -37,6 +37,11 @@ namespace ShareBook.Test.Unit.Services
             bookRepositoryMock = new Mock<IBookRepository>();
 
             bookServiceMock.SetReturnsDefault(true);
+
+            bookServiceMock.Setup(s => s.GetBookWithAllUsers(It.IsAny<Guid>())).Returns(() =>
+            {
+                return BookMock.GetLordTheRings();
+            });
         }
 
         [Fact]
