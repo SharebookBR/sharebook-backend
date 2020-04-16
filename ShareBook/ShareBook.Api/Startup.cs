@@ -17,6 +17,7 @@ using ShareBook.Service.Notification;
 using ShareBook.Service.Server;
 using ShareBook.Service.Upload;
 using Swashbuckle.AspNetCore.Swagger;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -105,8 +106,11 @@ namespace ShareBook.Api
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-
-            app.UseRollbarMiddleware();
+            bool rollbarActive = Convert.ToBoolean(Configuration.GetSection("Rollbar:IsActive").Value.ToLower());
+            if (rollbarActive)
+            {
+                app.UseRollbarMiddleware();
+            }
             
             app.UseHealthChecks("/hc");
             app.UseCors("AllowAllHeaders");
