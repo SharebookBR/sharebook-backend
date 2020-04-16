@@ -16,7 +16,9 @@ namespace ShareBook.Test.Unit.Mocks
                 ImageSlug = "lotr.png",
                 ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
                 User = user,
-                CategoryId = Guid.NewGuid()
+                CategoryId = Guid.NewGuid(),
+                Approved = true,
+                Canceled = false
            };
         }
 
@@ -30,7 +32,9 @@ namespace ShareBook.Test.Unit.Mocks
                 ImageSlug = "lotr.png",
                 ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
                 CategoryId = Guid.NewGuid(),
-                UserId = new Guid("5489A967-9320-4350-E6FC-08D5CC8498F3")
+                UserId = new Guid("5489A967-9320-4350-E6FC-08D5CC8498F3"),
+                Approved = true,
+                Canceled = false
             };
         }
     }
