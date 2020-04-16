@@ -105,9 +105,11 @@ namespace ShareBook.Api
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-
-            app.UseRollbarMiddleware();
-
+            if (!env.IsDevelopment())
+            {
+                app.UseRollbarMiddleware();
+            }
+            
             app.UseHealthChecks("/hc");
             app.UseCors("AllowAllHeaders");
 
