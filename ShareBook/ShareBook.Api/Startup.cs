@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -40,9 +41,13 @@ namespace ShareBook.Api
 
             services.RegisterRepositoryServices();
             //auto mapper start
-            AutoMapperConfig.RegisterMappings();
+            //AutoMapperConfig.RegisterMappings();
 
-            services.AddMvc()
+            services.AddAutoMapper(typeof(Startup));
+
+            services
+                //.AddMvc()
+                .AddControllers()
                 .AddJsonOptions(options =>
                 {
                     options.JsonSerializerOptions.IgnoreNullValues = true;

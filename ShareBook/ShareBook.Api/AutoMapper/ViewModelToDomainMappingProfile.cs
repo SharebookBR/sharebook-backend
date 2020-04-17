@@ -6,19 +6,23 @@ namespace ShareBook.Api.AutoMapper
 {
     public class ViewModelToDomainMappingProfile : Profile
     {
-        public ViewModelToDomainMappingProfile() : this("Profile") { }
+        public ViewModelToDomainMappingProfile() : this("Profile")
+        {
+        }
 
         protected ViewModelToDomainMappingProfile(string profileName) : base(profileName)
         {
             #region [ Book ]
+
             CreateMap<CreateBookVM, Book>().ReverseMap();
             CreateMap<UpdateBookVM, Book>().ReverseMap();
             CreateMap<DonateBookUserVM, BookUser>().ReverseMap();
-            #endregion
+
+            #endregion [ Book ]
 
             #region [ User ]
-            CreateMap<LoginUserVM, User>();
 
+            CreateMap<LoginUserVM, User>();
             CreateMap<RegisterUserVM, User>()
                  .ForPath(dest => dest.Address.Street, opt => opt.MapFrom(src => src.Street))
                  .ForPath(dest => dest.Address.Number, opt => opt.MapFrom(src => src.Number))
@@ -28,17 +32,21 @@ namespace ShareBook.Api.AutoMapper
                  .ForPath(dest => dest.Address.Neighborhood, opt => opt.MapFrom(src => src.Neighborhood))
                  .ForPath(dest => dest.Address.Country, opt => opt.MapFrom(src => src.Country))
                  .ForPath(dest => dest.Address.Complement, opt => opt.MapFrom(src => src.Complement));
-
             CreateMap<UpdateUserVM, User>();
-            #endregion
+
+            #endregion [ User ]
 
             #region [ ContactUs ]
+
             CreateMap<ContactUsVM, ContactUs>();
-            #endregion
+
+            #endregion [ ContactUs ]
 
             #region [ Notification ]
+
             CreateMap<NotificationOnesignalVM, NotificationOnesignal>();
-            #endregion
+
+            #endregion [ Notification ]
         }
     }
 }
