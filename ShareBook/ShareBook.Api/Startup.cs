@@ -46,7 +46,6 @@ namespace ShareBook.Api
             services.AddAutoMapper(typeof(Startup));
 
             services
-                //.AddMvc()
                 .AddControllers()
                 .AddJsonOptions(options =>
                 {
@@ -56,8 +55,8 @@ namespace ShareBook.Api
             //.SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             services
-                .Configure<RollbarOptions>(options => Configuration.GetSection("Rollbar").Bind(options))
                 .AddHttpContextAccessor()
+                .Configure<RollbarOptions>(options => Configuration.GetSection("Rollbar").Bind(options))
                 .AddRollbarLogger(loggerOptions => loggerOptions.Filter = (loggerName, loglevel) => loglevel >= LogLevel.Trace);
 
             services.Configure<ImageSettings>(options => Configuration.GetSection("ImageSettings").Bind(options));
