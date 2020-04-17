@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Rollbar.NetCore.AspNet;
 using ShareBook.Api.AutoMapper;
@@ -35,19 +36,19 @@ namespace ShareBook.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
             RegisterHealthChecks(services, Configuration.GetConnectionString("DefaultConnection"));
 
             services.RegisterRepositoryServices();
-            //auto mapper start 
+            //auto mapper start
             AutoMapperConfig.RegisterMappings();
 
             services.AddMvc()
                 .AddJsonOptions(options =>
                 {
-                    options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
-                })
-                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+                    options.JsonSerializerOptions.IgnoreNullValues = true;
+                    //options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
+                });
+            //.SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             services
                 .Configure<RollbarOptions>(options => Configuration.GetSection("Rollbar").Bind(options))
@@ -66,20 +67,22 @@ namespace ShareBook.Api
 
             JWTConfig.RegisterJWT(services, Configuration);
 
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new Info { Title = "SHAREBOOK API", Version = "v1" });
-                c.ResolveConflictingActions(x => x.First());
-                c.AddSecurityDefinition("Bearer", new ApiKeyScheme
-                {
-                    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
-                    Name = "Authorization",
-                    In = "header",
-                    Type = "apiKey"
-                });
-                c.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>> { { "Bearer", Enumerable.Empty<string> () },
-                });
-            });
+            services.RegisterSwagger();
+
+            //services.AddSwaggerGen(c =>
+            //{
+            //    c.SwaggerDoc("v1", new Info { Title = "SHAREBOOK API", Version = "v1" });
+            //    c.ResolveConflictingActions(x => x.First());
+            //    c.AddSecurityDefinition("Bearer", new ApiKeyScheme
+            //    {
+            //        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+            //        Name = "Authorization",
+            //        In = "header",
+            //        Type = "apiKey"
+            //    });
+            //    c.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>> { { "Bearer", Enumerable.Empty<string> () },
+            //    });
+            //});
 
             services.AddCors(options =>
             {
@@ -94,24 +97,24 @@ namespace ShareBook.Api
 
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
-
             RollbarConfigurator
                 .Configure(environment: Configuration.GetSection("Rollbar:Environment").Value,
                            isActive: Configuration.GetSection("Rollbar:IsActive").Value,
                            token: Configuration.GetSection("Rollbar:Token").Value);
-          
+
             MuambatorConfigurator.Configure(Configuration.GetSection("Muambator:Token").Value, Configuration.GetSection("Muambator:IsActive").Value);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        //public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             bool rollbarActive = Convert.ToBoolean(Configuration.GetSection("Rollbar:IsActive").Value.ToLower());
             if (rollbarActive)
             {
                 app.UseRollbarMiddleware();
             }
-            
+
             app.UseHealthChecks("/hc");
             app.UseCors("AllowAllHeaders");
 
@@ -163,6 +166,5 @@ namespace ShareBook.Api
             services.AddHealthChecks()
                 .AddSqlServer(connectionString);
         }
-
     }
 }

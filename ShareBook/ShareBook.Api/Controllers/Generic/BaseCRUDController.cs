@@ -13,14 +13,21 @@ namespace ShareBook.Api.Controllers
     public class BaseCrudController<T> : BaseCrudController<T, T, T>
         where T : BaseEntity
     {
-        public BaseCrudController(IBaseService<T> service) : base(service) { }
+        protected readonly IMapper _mapper;
+
+        public BaseCrudController(IBaseService<T> service, IMapper mapper) : base(service, mapper)
+        {
+            _mapper = mapper;
+        }
     }
 
     public class BaseCrudController<T, R> : BaseDeleteController<T, R, T>
        where T : BaseEntity
        where R : BaseViewModel
     {
-        public BaseCrudController(IBaseService<T> service) : base(service) { }
+        public BaseCrudController(IBaseService<T> service) : base(service)
+        {
+        }
     }
 
     [GetClaimsFilter]
@@ -30,19 +37,26 @@ namespace ShareBook.Api.Controllers
         where R : IIdProperty
         where A : class
     {
+        protected readonly IMapper _mapper;
 
-        public BaseCrudController(IBaseService<T> service) : base(service) { }
+        public BaseCrudController(IBaseService<T> service, IMapper mapper) : base(service)
+        {
+            _mapper = mapper;
+        }
 
         [Authorize("Bearer")]
         [HttpPost]
         public virtual Result<A> Create([FromBody] R viewModel)
         {
             if (!HasRequestViewModel)
-                return Mapper.Map<Result<A>>(_service.Insert(viewModel as T));
+                return _mapper.Map<Result<A>>(_service.Insert(viewModel as T));
+            //return Mapper.Map<Result<A>>(_service.Insert(viewModel as T));
 
-            var entity = Mapper.Map<T>(viewModel);
+            //var entity = Mapper.Map<T>(viewModel);
+            var entity = _mapper.Map<T>(viewModel);
             var result = _service.Insert(entity);
-            var resultVM = Mapper.Map<Result<A>>(result);
+            //var resultVM = Mapper.Map<Result<A>>(result);
+            var resultVM = _mapper.Map<Result<A>>(result);
             return resultVM;
         }
 
@@ -53,11 +67,14 @@ namespace ShareBook.Api.Controllers
             viewModel.Id = id;
 
             if (!HasRequestViewModel)
-                return Mapper.Map<Result<A>>(_service.Update(viewModel as T));
+                return _mapper.Map<Result<A>>(_service.Update(viewModel as T));
+            //return Mapper.Map<Result<A>>(_service.Update(viewModel as T));
 
-            var entity = Mapper.Map<T>(viewModel);
+            //var entity = Mapper.Map<T>(viewModel);
+            var entity = _mapper.Map<T>(viewModel);
             var result = _service.Update(entity);
-            var resultVM = Mapper.Map<A>(result);
+            //var resultVM = Mapper.Map<A>(result);
+            var resultVM = _mapper.Map<A>(result);
             return new Result<A>(resultVM);
         }
     }

@@ -11,22 +11,19 @@
     <PackageReference Include="LightBDD.XUnit2" Version="3.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="2.2.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
     <PackageReference Include="FluentAssertions" Version="5.4.2" />
     <PackageReference Include="BoDi" Version="1.4.0-alpha1" />
   </ItemGroup>
 
-
   <ItemGroup>
     <Folder Include="Steps\" />
   </ItemGroup>
 
-
   <ItemGroup>
     <ProjectReference Include="..\ShareBook.Api\ShareBook.Api.csproj" />
   </ItemGroup>
-
 
   <ItemGroup>
     <Compile Update="Features\RegisterUserFeature.cs">
@@ -37,11 +34,9 @@
     </Compile>
   </ItemGroup>
 
-
   <ItemGroup>
     <None Update="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
 </Project>
