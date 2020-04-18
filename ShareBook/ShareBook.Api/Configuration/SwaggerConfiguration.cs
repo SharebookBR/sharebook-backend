@@ -1,9 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace ShareBook.Api.Configuration
 {
@@ -25,8 +23,8 @@ namespace ShareBook.Api.Configuration
                     },
                     License = new OpenApiLicense
                     {
-                        Name = "",
-                        //Url = new Uri("")
+                        Name = "MIT License",
+                        Url = new Uri("https://opensource.org/licenses/MIT")
                     }
                 });
                 swagger.ResolveConflictingActions(x => x.First());
