@@ -184,6 +184,8 @@ namespace ShareBook.Service
 
         public IList<User> GetFacilitators(Guid userIdDonator)
         {
+            //TODO: CORRIGIR O PROBLEMA
+
             //string query = @"select
             //                CONCAT(Name, ' (', total, ')') as Name,
             //                Id

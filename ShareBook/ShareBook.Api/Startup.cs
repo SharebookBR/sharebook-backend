@@ -123,7 +123,7 @@ namespace ShareBook.Api
             }
 
             app.UseHealthChecks("/hc");
-            app.UseCors("AllowAllHeaders");
+            //app.UseCors("AllowAllHeaders");
 
             app.UseDeveloperExceptionPage();
             app.UseExceptionHandlerMiddleware();
@@ -155,6 +155,9 @@ namespace ShareBook.Api
             //        defaults: new { controller = "ClientSpa", action = "Index" });
             //});
             app.UseRouting();
+
+            app.UseCors("AllowAllHeaders");
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
