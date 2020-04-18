@@ -12,14 +12,18 @@ namespace ShareBook.Api.Controllers
     public class BaseController<T> : BaseController<T, T, T>
         where T : BaseEntity
     {
-        public BaseController(IBaseService<T> service) : base(service) { }
+        public BaseController(IBaseService<T> service) : base(service)
+        {
+        }
     }
 
     public class BaseController<T, R> : BaseController<T, R, T>
         where T : BaseEntity
         where R : BaseViewModel
     {
-        public BaseController(IBaseService<T> service) : base(service) { }
+        public BaseController(IBaseService<T> service) : base(service)
+        {
+        }
     }
 
     [GetClaimsFilter]
@@ -37,6 +41,7 @@ namespace ShareBook.Api.Controllers
         {
             _service = service;
         }
+
         protected void SetDefault(Expression<Func<T, object>> defaultOrder)
         {
             _defaultOrder = defaultOrder;
@@ -50,7 +55,5 @@ namespace ShareBook.Api.Controllers
 
         [HttpGet("{id}")]
         public T GetById(string id) => _service.Find(new Guid(id));
-
-        
     }
 }
