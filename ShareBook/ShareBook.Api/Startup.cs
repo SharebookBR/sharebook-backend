@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,7 +10,6 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Rollbar.NetCore.AspNet;
-using ShareBook.Api.AutoMapper;
 using ShareBook.Api.Configuration;
 using ShareBook.Api.Middleware;
 using ShareBook.Api.Services;
@@ -21,10 +19,7 @@ using ShareBook.Service.Muambator;
 using ShareBook.Service.Notification;
 using ShareBook.Service.Server;
 using ShareBook.Service.Upload;
-using Swashbuckle.AspNetCore.Swagger;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace ShareBook.Api
 {
@@ -37,15 +32,11 @@ namespace ShareBook.Api
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             RegisterHealthChecks(services, Configuration.GetConnectionString("DefaultConnection"));
 
             services.RegisterRepositoryServices();
-            //auto mapper start
-            //AutoMapperConfig.RegisterMappings();
-
             services.AddAutoMapper(typeof(Startup));
 
             services
@@ -53,9 +44,7 @@ namespace ShareBook.Api
                 .AddJsonOptions(options =>
                 {
                     options.JsonSerializerOptions.IgnoreNullValues = true;
-                    //options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
                 });
-            //.SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             services
                 .AddHttpContextAccessor()
@@ -75,21 +64,6 @@ namespace ShareBook.Api
             JWTConfig.RegisterJWT(services, Configuration);
 
             services.RegisterSwagger();
-
-            //services.AddSwaggerGen(c =>
-            //{
-            //    c.SwaggerDoc("v1", new Info { Title = "SHAREBOOK API", Version = "v1" });
-            //    c.ResolveConflictingActions(x => x.First());
-            //    c.AddSecurityDefinition("Bearer", new ApiKeyScheme
-            //    {
-            //        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
-            //        Name = "Authorization",
-            //        In = "header",
-            //        Type = "apiKey"
-            //    });
-            //    c.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>> { { "Bearer", Enumerable.Empty<string> () },
-            //    });
-            //});
 
             services.AddCors(options =>
             {
@@ -112,8 +86,6 @@ namespace ShareBook.Api
             MuambatorConfigurator.Configure(Configuration.GetSection("Muambator:Token").Value, Configuration.GetSection("Muambator:IsActive").Value);
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        //public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             bool rollbarActive = Convert.ToBoolean(Configuration.GetSection("Rollbar:IsActive").Value.ToLower());
@@ -123,8 +95,6 @@ namespace ShareBook.Api
             }
 
             app.UseHealthChecks("/hc");
-            //app.UseCors("AllowAllHeaders");
-
             app.UseDeveloperExceptionPage();
             app.UseExceptionHandlerMiddleware();
 
@@ -143,17 +113,6 @@ namespace ShareBook.Api
                 c.SwaggerEndpoint("/swagger/v2/swagger.json", "SHAREBOOK API V2");
             });
 
-            // IMPORTANT: Make sure UseCors() is called BEFORE this
-            //app.UseMvc(routes =>
-            //{
-            //    routes.MapRoute(
-            //        name: "default",
-            //        template: "{controller=Book}/{action=Index}/{id?}");
-
-            //    routes.MapSpaFallbackRoute(
-            //        name: "spa-fallback",
-            //        defaults: new { controller = "ClientSpa", action = "Index" });
-            //});
             app.UseRouting();
 
             app.UseCors("AllowAllHeaders");
