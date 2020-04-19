@@ -11,10 +11,10 @@ namespace ShareBook.Api.Configuration
         {
             services.AddSwaggerGen(swagger =>
             {
-                swagger.SwaggerDoc("v2", new OpenApiInfo
+                swagger.SwaggerDoc("v1", new OpenApiInfo
                 {
                     Title = "SHAREBOOK API",
-                    Version = "v2",
+                    Version = "v1",
                     Description = "Open Source project",
                     Contact = new OpenApiContact
                     {
