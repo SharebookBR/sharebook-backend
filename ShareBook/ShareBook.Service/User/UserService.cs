@@ -152,7 +152,8 @@ namespace ShareBook.Service
         public Result GenerateHashCodePasswordAndSendEmailToUser(string email)
         {
             var result = new Result();
-            var user = _repository.Find(e => e.Email.Equals(email, StringComparison.InvariantCultureIgnoreCase));
+            //var user = _repository.Find(e => e.Email.Equals(email, StringComparison.InvariantCultureIgnoreCase));
+            var user = _repository.Find(e => e.Email == email);
 
             if (user == null)
             {
