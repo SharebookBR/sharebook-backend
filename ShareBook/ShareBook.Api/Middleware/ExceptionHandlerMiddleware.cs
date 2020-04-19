@@ -10,7 +10,6 @@ using ShareBook.Domain.Exceptions;
 
 namespace ShareBook.Api.Middleware
 {
-    // You may need to install the Microsoft.AspNetCore.Http.Abstractions package into your project
     public class ExceptionHandlerMiddleware
     {
         private readonly RequestDelegate _next;
@@ -60,7 +59,7 @@ namespace ShareBook.Api.Middleware
                 StackTrace = ex.StackTrace,
                 Source = ex.Source
             };
-            
+
             RollbarLocator.RollbarInstance.Log(ErrorLevel.Critical, error);
         }
     }
