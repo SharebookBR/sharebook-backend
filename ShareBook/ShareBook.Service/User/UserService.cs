@@ -39,7 +39,8 @@ namespace ShareBook.Service
 
             string decryptedPass = user.Password;
 
-            user = _repository.Find(e => e.Email.Equals(user.Email, StringComparison.InvariantCultureIgnoreCase));
+            //user = _repository.Find(e => e.Email.Equals(user.Email, StringComparison.InvariantCultureIgnoreCase));
+            user = _repository.Find(e => e.Email == user.Email);
 
             if (user.IsBruteForceLogin())
             {
@@ -151,7 +152,8 @@ namespace ShareBook.Service
         public Result GenerateHashCodePasswordAndSendEmailToUser(string email)
         {
             var result = new Result();
-            var user = _repository.Find(e => e.Email.Equals(email, StringComparison.InvariantCultureIgnoreCase));
+            //var user = _repository.Find(e => e.Email.Equals(email, StringComparison.InvariantCultureIgnoreCase));
+            var user = _repository.Find(e => e.Email == email);
 
             if (user == null)
             {
@@ -184,33 +186,28 @@ namespace ShareBook.Service
 
         public IList<User> GetFacilitators(Guid userIdDonator)
         {
-            //TODO: CORRIGIR O PROBLEMA
+            string query = @"SELECT
+                            CONCAT(Name, ' (', total, ')') as Name, Id
+                            FROM
+                            (
+                                SELECT TOP 100
+                                    u.Name, u.Id,
+                                    (SELECT COUNT(*) as total FROM Books b
+                                      WHERE b.UserIdFacilitator = u.Id and b.UserId = {0}
+                                    ) as total
+                                FROM
+                                    Users u
+                                WHERE u.Profile = 0 -- Administrador
+                                ORDER BY total desc, u.Name
+                            ) sub";
+            var parameters = new object[] { userIdDonator };
 
-            //string query = @"select
-            //                CONCAT(Name, ' (', total, ')') as Name,
-            //                Id
-            //            from
-            //            (
-            //                select top 100
-            //                    u.Name, u.Id,
-            //                    ( select count(*) as total from Books b
-            //                      where b.UserIdFacilitator = u.Id and b.UserId = {0}
-            //                    ) as total
-            //                FROM
-            //                    Users u
-            //                where u.Profile = 0 -- Administrador
-            //                order by total desc, u.Name
-            //            ) sub";
-
-            //return
-            //    _repository.Get().FromSql(query, userIdDonator.ToString())
-            //    .Select(x => new User
-            //    {
-            //        Id = x.Id,
-            //        Name = x.Name
-            //    })
-            //    .ToList();
-            return new List<User>();
+            return _repository.FromSql(query, parameters)
+                    .Select(x => new User
+                    {
+                        Id = x.Id,
+                        Name = x.Name
+                    }).ToList();
         }
 
         #endregion Public

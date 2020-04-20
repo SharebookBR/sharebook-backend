@@ -35,8 +35,8 @@ namespace ShareBook.Api.Controllers
 
         #region GET
 
-        [Authorize("Bearer")]
         [HttpGet]
+        [Authorize("Bearer")]
         public UserVM Get()
         {
             var id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
@@ -133,8 +133,8 @@ namespace ShareBook.Api.Controllers
 
         #region PUT
 
-        [Authorize("Bearer")]
         [HttpPut]
+        [Authorize("Bearer")]
         [ProducesResponseType(typeof(Result<User>), 200)]
         [ProducesResponseType(409)]
         public IActionResult Update([FromBody] UpdateUserVM updateUserVM, [FromServices] SigningConfigurations signingConfigurations, [FromServices] TokenConfigurations tokenConfigurations)

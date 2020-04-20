@@ -76,7 +76,10 @@ namespace ShareBook.Api
                     });
             });
 
-            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            services
+                .AddDbContext<ApplicationDbContext>(options =>
+                    options
+                        .UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
             RollbarConfigurator
                 .Configure(environment: Configuration.GetSection("Rollbar:Environment").Value,
@@ -116,6 +119,7 @@ namespace ShareBook.Api
             app.UseRouting();
 
             app.UseCors("AllowAllHeaders");
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
