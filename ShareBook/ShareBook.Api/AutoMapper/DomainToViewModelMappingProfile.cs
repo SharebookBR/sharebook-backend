@@ -42,6 +42,10 @@ namespace ShareBook.Api.AutoMapper
             CreateMap<User, UserVM>()
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address));
 
+            CreateMap<User, UserFacilitatorVM>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name));
+
             #endregion [ User ]
 
             #region [ BookUser ]
