@@ -75,12 +75,12 @@ namespace ShareBook.Service
 
         // TODO: renomar para um nome mais significativo. Talvez: Showcase (vitrine)
         public IList<Book> Top15NewBooks()
-             => SearchBooks(x => x.Approved
+             => SearchBooks(x => x.Approved && !x.Canceled
                                  && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated), 1, 99) // não precisamos de limite. Ainda mais levando em consideração a DOAÇÃO RÁPIDA.
                             .Items;
 
         public IList<Book> Random15Books()
-            => SearchBooks(x => x.Approved
+            => SearchBooks(x => x.Approved && !x.Canceled
                                 && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated), 1, 15, x => Guid.NewGuid())
                            .Items;
 
