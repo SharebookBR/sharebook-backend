@@ -340,6 +340,7 @@ namespace ShareBook.Service
                     Title = u.Title,
                     Author = u.Author,
                     Approved = u.Approved,
+                    Canceled = u.Canceled,
                     FreightOption = u.FreightOption,
                     ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
                     Slug = u.Slug,
