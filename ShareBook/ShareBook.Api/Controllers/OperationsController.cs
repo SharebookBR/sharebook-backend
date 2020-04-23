@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using ShareBook.Api.Filters;
 using ShareBook.Helper;
+using ShareBook.Service.Authorization;
 using System;
 
 namespace ShareBook.Api.Controllers
@@ -13,7 +14,7 @@ namespace ShareBook.Api.Controllers
     {
         [HttpGet]
         [Authorize("Bearer")]
-        [AuthorizationFilter]
+        [AuthorizationFilter(Permissions.Permission.ApproveBook)] // adm
         [Route("ForceException")]
         public IActionResult ForceException()
         {

@@ -33,6 +33,7 @@ namespace ShareBook.Api.Middleware
 
                 httpContext.Response.Clear();
                 httpContext.Response.StatusCode = (int)ex.ErrorType;
+                httpContext.Response.Headers.Add("Content-Type", "application/json");
                 await httpContext.Response.WriteAsync(jsonResponse);
             }
             catch (Exception ex)
@@ -47,6 +48,7 @@ namespace ShareBook.Api.Middleware
 
                 httpContext.Response.Clear();
                 httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                httpContext.Response.Headers.Add("Content-Type", "application/json");
                 await httpContext.Response.WriteAsync(jsonResponse);
             }
         }
