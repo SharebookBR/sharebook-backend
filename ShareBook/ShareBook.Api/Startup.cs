@@ -20,6 +20,7 @@ using ShareBook.Service.Notification;
 using ShareBook.Service.Server;
 using ShareBook.Service.Upload;
 using System;
+using System.Text.Json.Serialization;
 
 namespace ShareBook.Api
 {
@@ -44,6 +45,7 @@ namespace ShareBook.Api
                 .AddJsonOptions(options =>
                 {
                     options.JsonSerializerOptions.IgnoreNullValues = true;
+                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
                 });
 
             services
