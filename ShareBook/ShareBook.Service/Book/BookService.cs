@@ -119,9 +119,8 @@ namespace ShareBook.Service
                 result.Value.ImageBytes = null;
 
                 _booksEmailService.SendEmailNewBookInserted(entity);
-                                                                      
             }
-             return result;
+            return result;
         }
 
         public override Result<Book> Update(Book entity)
@@ -132,8 +131,6 @@ namespace ShareBook.Service
                 x => x.Approved,
                 x => x.FreightOption,
                 x => x.Id);
-
-
 
             var bookId = entity.Id;
 
@@ -151,7 +148,6 @@ namespace ShareBook.Service
             if (!bookAlreadyApproved)
                 entity.Slug = SetSlugByTitleOrIncremental(entity);
 
-
             //imagem eh opcional no update
             if (!string.IsNullOrEmpty(entity.ImageName) && entity.ImageBytes.Length > 0)
             {
@@ -167,12 +163,12 @@ namespace ShareBook.Service
             savedBook.ImageSlug = entity.ImageSlug;
             savedBook.Title = entity.Title;
             savedBook.CategoryId = entity.CategoryId;
-            savedBook.Canceled = entity.Canceled;           
+            savedBook.Canceled = entity.Canceled;
 
             savedBook.Synopsis = entity.Synopsis;
             savedBook.TrackingNumber = entity.TrackingNumber;
 
-            if (entity.UserIdFacilitator.HasValue && entity.UserIdFacilitator !=  Guid.Empty)
+            if (entity.UserIdFacilitator.HasValue && entity.UserIdFacilitator != Guid.Empty)
                 savedBook.UserIdFacilitator = entity.UserIdFacilitator;
 
             result.Value = _repository.UpdateAsync(savedBook).Result;
@@ -186,8 +182,6 @@ namespace ShareBook.Service
 
             return result;
         }
-
-    
 
         public PagedList<Book> ByTitle(string title, int page, int itemsPerPage)
             => SearchBooks(x => (x.Approved
@@ -312,7 +306,8 @@ namespace ShareBook.Service
             return books.FirstOrDefault();
         }
 
-        public void RenewChooseDate(Guid bookId) {
+        public void RenewChooseDate(Guid bookId)
+        {
             var book = _repository.Find(bookId);
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
@@ -326,6 +321,7 @@ namespace ShareBook.Service
         }
 
         #region Private
+
         private PagedList<Book> SearchBooks(Expression<Func<Book, bool>> filter, int page, int itemsPerPage)
             => SearchBooks(filter, page, itemsPerPage, x => x.CreationDate);
 
@@ -375,14 +371,19 @@ namespace ShareBook.Service
 
         private string SetSlugByTitleOrIncremental(Book entity)
         {
+            //var slug = _repository.Get()
+            //            .Where(x => x.Title.ToUpperInvariant().Equals(entity.Title.ToUpperInvariant())
+            //                        && !x.Id.Equals(entity.Id))
+            //            .OrderByDescending(x => x.CreationDate)?.FirstOrDefault()?.Slug;
+
             var slug = _repository.Get()
-                        .Where(x => x.Title.ToUpperInvariant().Equals(entity.Title.ToUpperInvariant())
-                                    && !x.Id.Equals(entity.Id))
+                        .Where(x => x.Title.ToLower() == entity.Title.ToLower()
+                                    && x.Id != entity.Id)
                         .OrderByDescending(x => x.CreationDate)?.FirstOrDefault()?.Slug;
 
             return string.IsNullOrWhiteSpace(slug) ? entity.Title.GenerateSlug() : slug.AddIncremental();
         }
 
-        #endregion
+        #endregion Private
     }
 }
