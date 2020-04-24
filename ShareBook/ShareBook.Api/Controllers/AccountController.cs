@@ -140,9 +140,8 @@ namespace ShareBook.Api.Controllers
         public IActionResult Update([FromBody] UpdateUserVM updateUserVM, [FromServices] SigningConfigurations signingConfigurations, [FromServices] TokenConfigurations tokenConfigurations)
         {
             if (!ModelState.IsValid)
-                return BadRequest();
+                return BadRequest(ModelState);
 
-            //var user = Mapper.Map<UpdateUserVM, User>(updateUserVM);
             var user = _mapper.Map<User>(updateUserVM);
 
             user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
