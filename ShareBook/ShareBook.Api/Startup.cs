@@ -46,7 +46,7 @@ namespace ShareBook.Api
                 {
                     options.JsonSerializerOptions.IgnoreNullValues = true;
                     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-                });
+                }).AddNewtonsoftJson();
 
             services
                 .AddHttpContextAccessor()

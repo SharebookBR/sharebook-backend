@@ -15,6 +15,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using ShareBook.Helper;
+using System.Linq;
 
 namespace ShareBook.Api.Controllers
 {
@@ -146,26 +147,25 @@ namespace ShareBook.Api.Controllers
         public PagedList<Book> ByCategoryId(Guid categoryId, int page, int items) => _service.ByCategoryId(categoryId, page, items);
 
         [Authorize("Bearer")]
-        [ProducesResponseType(typeof(Result), 200)]
         [HttpPost("Request")]
+        [ProducesResponseType(typeof(Result), 200)]
         public IActionResult RequestBook([FromBody] RequestBookVM requestBookVM)
         {
             _bookUserService.Insert(requestBookVM.BookId, requestBookVM.Reason);
             return Ok(new Result { SuccessMessage = "Pedido realizado com sucesso!" });
         }
 
-        [Authorize("Bearer")]
         [HttpPost]
+        [Authorize("Bearer")]
         public IActionResult Create([FromBody] CreateBookVM createBookVM)
         {
-            //var book = Mapper.Map<Book>(createBookVM);
             var book = _mapper.Map<Book>(createBookVM);
             _service.Insert(book);
             return Ok(new Result { SuccessMessage = "Livro cadastrado com sucesso! Aguarde aprovação." });
         }
 
-        [Authorize("Bearer")]
         [HttpPut("{id}")]
+        [Authorize("Bearer")]
         [AuthorizationFilter(Permissions.Permission.ApproveBook)]
         public IActionResult Update(Guid id, [FromBody] UpdateBookVM updateBookVM)
         {
