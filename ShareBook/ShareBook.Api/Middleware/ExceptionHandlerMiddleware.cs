@@ -44,6 +44,11 @@ namespace ShareBook.Api.Middleware
                 }
                 var result = new Result();
                 result.Messages.Add(ex.Message);
+
+                // detalhes do erro real pra facilitar o desenvolvimento.
+                if (ex is AggregateException)
+                    result.Messages.Add(ex.InnerException.ToString());
+
                 var jsonResponse = JsonConvert.SerializeObject(result);
 
                 httpContext.Response.Clear();

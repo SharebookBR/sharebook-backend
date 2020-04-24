@@ -54,7 +54,18 @@ namespace ShareBook.Test.Unit.Mocks
                 Email = "walter@sharebook.com",
                 Linkedin = "linkedin.com/walter",
                 Profile = Profile.User,
-                LastLogin = DateTime.Now.AddMinutes(-60)
+                LastLogin = DateTime.Now.AddMinutes(-60),
+                Address = new Address()
+                {
+                    Id = new Guid("C53B3552-606C-40C6-9D7F-FFC87572977E"),
+                    PostalCode = "04473-140",
+                    Street = "Av sharebook",
+                    Number = "5",
+                    City = "São Paulo",
+                    Country = "Brasil",
+                    State = "SP",
+                    Neighborhood = "Interlagos"
+                }
             };
         }
 

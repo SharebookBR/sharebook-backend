@@ -108,7 +108,7 @@ namespace ShareBook.Service
 
             if (result.Success)
             {
-                userAux.Change(user.Email, user.Name, user.Linkedin, user.Phone);
+                userAux.Change(user.Email, user.Name, user.Linkedin, user.Phone, user.AllowSendingEmail);
                 userAux.ChangeAddress(user.Address);
 
                 result.Value = UserCleanup(_repository.Update(userAux));
