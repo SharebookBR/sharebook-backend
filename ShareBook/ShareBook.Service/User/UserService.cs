@@ -39,7 +39,6 @@ namespace ShareBook.Service
 
             string decryptedPass = user.Password;
 
-            //user = _repository.Find(e => e.Email.Equals(user.Email, StringComparison.InvariantCultureIgnoreCase));
             user = _repository.Find(e => e.Email == user.Email);
 
             if (user.IsBruteForceLogin())
@@ -97,7 +96,7 @@ namespace ShareBook.Service
                 x => x.Phone,
                 x => x.Id);
 
-            if (result.Success == false) return result;
+            if (!result.Success) return result;
 
             var userAux = _repository.Find(new IncludeList<User>(x => x.Address), user.Id);
 
@@ -152,7 +151,6 @@ namespace ShareBook.Service
         public Result GenerateHashCodePasswordAndSendEmailToUser(string email)
         {
             var result = new Result();
-            //var user = _repository.Find(e => e.Email.Equals(email, StringComparison.InvariantCultureIgnoreCase));
             var user = _repository.Find(e => e.Email == email);
 
             if (user == null)

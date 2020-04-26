@@ -45,12 +45,10 @@ namespace ShareBook.Api.Controllers
         {
             if (!HasRequestViewModel)
                 return _mapper.Map<Result<A>>(_service.Insert(viewModel as T));
-            //return Mapper.Map<Result<A>>(_service.Insert(viewModel as T));
 
-            //var entity = Mapper.Map<T>(viewModel);
             var entity = _mapper.Map<T>(viewModel);
             var result = _service.Insert(entity);
-            //var resultVM = Mapper.Map<Result<A>>(result);
+
             var resultVM = _mapper.Map<Result<A>>(result);
             return resultVM;
         }
@@ -63,12 +61,9 @@ namespace ShareBook.Api.Controllers
 
             if (!HasRequestViewModel)
                 return _mapper.Map<Result<A>>(_service.Update(viewModel as T));
-            //return Mapper.Map<Result<A>>(_service.Update(viewModel as T));
-
-            //var entity = Mapper.Map<T>(viewModel);
+            
             var entity = _mapper.Map<T>(viewModel);
             var result = _service.Update(entity);
-            //var resultVM = Mapper.Map<A>(result);
             var resultVM = _mapper.Map<A>(result);
             return new Result<A>(resultVM);
         }
