@@ -75,6 +75,7 @@ namespace Sharebook.Jobs
             {
                 success = false;
                 messages.Add(string.Format("Executor: ocorreu um erro fatal. {0}", ex.Message));
+                // TODO: logar no rollbar.
             }
 
             // Executor também loga seu histórico. Precisamos de rastreabilidade.
