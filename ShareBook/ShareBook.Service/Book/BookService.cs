@@ -377,8 +377,8 @@ namespace ShareBook.Service
             //            .OrderByDescending(x => x.CreationDate)?.FirstOrDefault()?.Slug;
 
             var slug = _repository.Get()
-                        .Where(x => x.Title.ToLower() == entity.Title.ToLower()
-                                    && x.Id != entity.Id)
+                        .Where(x => x.Title.ToUpper().Trim().Equals(entity.Title.ToUpper().Trim())
+                                    && !x.Id.Equals(entity.Id))
                         .OrderByDescending(x => x.CreationDate)?.FirstOrDefault()?.Slug;
 
             return string.IsNullOrWhiteSpace(slug) ? entity.Title.GenerateSlug() : slug.AddIncremental();
