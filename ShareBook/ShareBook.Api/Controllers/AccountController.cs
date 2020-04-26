@@ -42,7 +42,6 @@ namespace ShareBook.Api.Controllers
             var id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             var user = _userService.Find(id);
 
-            //var userVM = Mapper.Map<User, UserVM>(user);
             var userVM = _mapper.Map<UserVM>(user);
             return userVM;
         }
@@ -61,7 +60,6 @@ namespace ShareBook.Api.Controllers
         {
             var facilitators = _userService.GetFacilitators(userIdDonator);
 
-            //var facilitatorsClean = Mapper.Map<List<UserFacilitatorVM>>(facilitators);
             var facilitatorsClean = _mapper.Map<List<UserFacilitatorVM>>(facilitators);
 
             return Ok(facilitatorsClean);
@@ -79,7 +77,6 @@ namespace ShareBook.Api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            //var user = Mapper.Map<RegisterUserVM, User>(registerUserVM);
             var user = _mapper.Map<User>(registerUserVM);
 
             var result = _userService.Insert(user);
@@ -98,7 +95,6 @@ namespace ShareBook.Api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            //var user = Mapper.Map<LoginUserVM, User>(loginUserVM);
             var user = _mapper.Map<User>(loginUserVM);
 
             var result = _userService.AuthenticationByEmailAndPassword(user);
