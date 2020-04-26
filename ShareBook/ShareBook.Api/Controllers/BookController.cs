@@ -13,9 +13,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading;
-using System.Threading.Tasks;
-using ShareBook.Helper;
-using System.Linq;
 
 namespace ShareBook.Api.Controllers
 {
@@ -59,7 +56,6 @@ namespace ShareBook.Api.Controllers
             // TODO: parar de usar esse get complicado e fazer uma query linq/ef tradicional usando
             // ThenInclude(). fonte: https://stackoverflow.com/questions/10822656/entity-framework-include-multiple-levels-of-properties
             var books = _service.Get(x => x.Title, page, items, new IncludeList<Book>(x => x.User, x => x.BookUsers, x => x.UserFacilitator));
-            //var responseVM = Mapper.Map<List<BooksVM>>(books.Items);
             var responseVM = _mapper.Map<List<BooksVM>>(books.Items);
 
             return new PagedList<BooksVM>()
@@ -104,7 +100,6 @@ namespace ShareBook.Api.Controllers
             if (!_IsBookOwner(bookId)) return Unauthorized();
 
             var requesters = _bookUserService.GetRequestersList(bookId);
-            //var requestersVM = Mapper.Map<List<RequestersListVM>>(requesters);
             var requestersVM = _mapper.Map<List<RequestersListVM>>(requesters);
 
             return Ok(requestersVM);
@@ -170,7 +165,6 @@ namespace ShareBook.Api.Controllers
         public IActionResult Update(Guid id, [FromBody] UpdateBookVM updateBookVM)
         {
             updateBookVM.Id = id;
-            //var book = Mapper.Map<Book>(updateBookVM);
             var book = _mapper.Map<Book>(updateBookVM);
 
             _service.Update(book);
@@ -216,7 +210,6 @@ namespace ShareBook.Api.Controllers
         public PagedList<MyBookRequestVM> MyRequests(int page, int items)
         {
             var donation = _bookUserService.GetRequestsByUser(page, items);
-            //var myBooksRequestsVM = Mapper.Map<List<MyBookRequestVM>>(donation.Items);
             var myBooksRequestsVM = _mapper.Map<List<MyBookRequestVM>>(donation.Items);
 
             return new PagedList<MyBookRequestVM>()
@@ -234,7 +227,6 @@ namespace ShareBook.Api.Controllers
         {
             Guid userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             var donations = _service.GetUserDonations(userId);
-            //return Mapper.Map<List<BooksVM>>(donations);
             return _mapper.Map<List<BooksVM>>(donations);
         }
 
@@ -266,11 +258,8 @@ namespace ShareBook.Api.Controllers
 
             var book = _service.GetBookWithAllUsers(bookId);
 
-            //var donor = Mapper.Map<UserVM>(book.User);
             var donor = _mapper.Map<UserVM>(book.User);
-            //var facilitator = Mapper.Map<UserVM>(book.UserFacilitator);
             var facilitator = _mapper.Map<UserVM>(book.UserFacilitator);
-            //var winner = Mapper.Map<UserVM>(book.WinnerUser());
             var winner = _mapper.Map<UserVM>(book.WinnerUser());
 
             var result = new MainUsersVM
