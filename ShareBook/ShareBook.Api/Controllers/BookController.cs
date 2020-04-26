@@ -163,9 +163,8 @@ namespace ShareBook.Api.Controllers
         [HttpPut("{id}")]
         [Authorize("Bearer")]
         [AuthorizationFilter(Permissions.Permission.ApproveBook)]
-        public IActionResult Update(Guid id, [FromBody] UpdateBookVM updateBookVM)
+        public IActionResult Update([FromBody] UpdateBookVM updateBookVM)
         {
-            updateBookVM.Id = id;
             var book = _mapper.Map<Book>(updateBookVM);
 
             _service.Update(book);
