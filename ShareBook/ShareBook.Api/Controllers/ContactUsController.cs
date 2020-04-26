@@ -10,19 +10,22 @@ namespace ShareBook.Api.Controllers
 {
     [Route("api/[controller]")]
     [EnableCors("AllowAllHeaders")]
-    public class ContactUsController : Controller
+    public class ContactUsController : ControllerBase
     {
-        IContactUsService _contactUsService;
+        private readonly IContactUsService _contactUsService;
+        private readonly IMapper _mapper;
 
-        public ContactUsController(IContactUsService contactUsService)
+        public ContactUsController(IContactUsService contactUsService,
+                                   IMapper mapper)
         {
             _contactUsService = contactUsService;
+            _mapper = mapper;
         }
 
         [HttpPost("SendMessage")]
         public Result<ContactUs> SendMessage([FromBody]ContactUsVM contactUsVM)
-        { 
-            var contactUS = Mapper.Map<ContactUs>(contactUsVM);
+        {
+            var contactUS = _mapper.Map<ContactUs>(contactUsVM);
 
             return _contactUsService.SendContactUs(contactUS);
         }

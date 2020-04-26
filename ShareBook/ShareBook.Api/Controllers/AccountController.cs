@@ -18,26 +18,31 @@ namespace ShareBook.Api.Controllers
     [Route("api/[controller]")]
     [EnableCors("AllowAllHeaders")]
     [GetClaimsFilter]
-    public class AccountController : Controller
+    public class AccountController : ControllerBase
     {
         private readonly IUserService _userService;
         private readonly IApplicationSignInManager _signManager;
+        private readonly IMapper _mapper;
 
-        public AccountController(IUserService userService, IApplicationSignInManager signManager)
+        public AccountController(IUserService userService,
+                                 IApplicationSignInManager signManager,
+                                 IMapper mapper)
         {
             _userService = userService;
             _signManager = signManager;
+            _mapper = mapper;
         }
 
         #region GET
-        [Authorize("Bearer")]
+
         [HttpGet]
+        [Authorize("Bearer")]
         public UserVM Get()
         {
             var id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             var user = _userService.Find(id);
 
-            var userVM = Mapper.Map<User, UserVM>(user);
+            var userVM = _mapper.Map<UserVM>(user);
             return userVM;
         }
 
@@ -54,12 +59,16 @@ namespace ShareBook.Api.Controllers
         public IActionResult ListFacilitators(Guid userIdDonator)
         {
             var facilitators = _userService.GetFacilitators(userIdDonator);
-            var facilitatorsClean = Mapper.Map<List<UserFacilitatorVM>>(facilitators);
+
+            var facilitatorsClean = _mapper.Map<List<UserFacilitatorVM>>(facilitators);
+
             return Ok(facilitatorsClean);
         }
-        #endregion
+
+        #endregion GET
 
         #region POST
+
         [HttpPost("Register")]
         [ProducesResponseType(typeof(object), 200)]
         [ProducesResponseType(409)]
@@ -68,7 +77,7 @@ namespace ShareBook.Api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            var user = Mapper.Map<RegisterUserVM, User>(registerUserVM);
+            var user = _mapper.Map<User>(registerUserVM);
 
             var result = _userService.Insert(user);
 
@@ -86,7 +95,7 @@ namespace ShareBook.Api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            var user = Mapper.Map<LoginUserVM, User>(loginUserVM);
+            var user = _mapper.Map<User>(loginUserVM);
 
             var result = _userService.AuthenticationByEmailAndPassword(user);
 
@@ -116,19 +125,20 @@ namespace ShareBook.Api.Controllers
             return NotFound(result);
         }
 
-        #endregion
+        #endregion POST
 
         #region PUT
-        [Authorize("Bearer")]
+
         [HttpPut]
+        [Authorize("Bearer")]
         [ProducesResponseType(typeof(Result<User>), 200)]
         [ProducesResponseType(409)]
         public IActionResult Update([FromBody] UpdateUserVM updateUserVM, [FromServices] SigningConfigurations signingConfigurations, [FromServices] TokenConfigurations tokenConfigurations)
         {
             if (!ModelState.IsValid)
-                return BadRequest();
+                return BadRequest(ModelState);
 
-            var user = Mapper.Map<UpdateUserVM, User>(updateUserVM);
+            var user = _mapper.Map<User>(updateUserVM);
 
             user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
 
@@ -168,6 +178,7 @@ namespace ShareBook.Api.Controllers
 
             return Ok(resultChangePasswordUser);
         }
-        #endregion
+
+        #endregion PUT
     }
 }

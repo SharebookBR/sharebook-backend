@@ -23,15 +23,20 @@ namespace ShareBook.Service.Generic
         }
 
         #region GET
+
         public bool Any(Expression<Func<TEntity, bool>> filter) => _repository.Any(filter);
+
         public int Count(Expression<Func<TEntity, bool>> filter) => _repository.Count(filter);
 
         public virtual TEntity Find(object keyValue)
             => _repository.Find(keyValue);
+
         public virtual TEntity Find(IncludeList<TEntity> includes, object keyValue)
             => _repository.Find(includes, keyValue);
+
         public TEntity Find(Expression<Func<TEntity, bool>> filter)
             => _repository.Find(filter);
+
         public TEntity Find(IncludeList<TEntity> includes, Expression<Func<TEntity, bool>> filter) => _repository.Find(includes, filter);
 
         public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, TKey>> order)
@@ -71,9 +76,10 @@ namespace ShareBook.Service.Generic
             };
         }
 
-        #endregion
+        #endregion GET
 
         protected Result<TEntity> Validate(TEntity entity) => new Result<TEntity>(_validator.Validate(entity));
+
         protected Result<TEntity> Validate(TEntity entity, params Expression<Func<TEntity, object>>[] filter) => new Result<TEntity>(_validator.Validate(entity, filter));
 
         public virtual Result<TEntity> Insert(TEntity entity)
@@ -85,6 +91,7 @@ namespace ShareBook.Service.Generic
 
             return result;
         }
+
         public virtual Result<TEntity> Update(TEntity entity)
         {
             var result = Validate(entity);
@@ -94,6 +101,7 @@ namespace ShareBook.Service.Generic
 
             return result;
         }
+
         public Result Delete(params object[] keyValues)
         {
             _repository.Delete(keyValues);
