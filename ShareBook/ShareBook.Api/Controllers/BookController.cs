@@ -163,10 +163,10 @@ namespace ShareBook.Api.Controllers
         [HttpPut("{id}")]
         [Authorize("Bearer")]
         [AuthorizationFilter(Permissions.Permission.ApproveBook)]
-        public IActionResult Update([FromBody] UpdateBookVM updateBookVM)
+        public IActionResult Update(Guid Id, [FromBody] UpdateBookVM updateBookVM)
         {
+            updateBookVM.Id = Id;
             var book = _mapper.Map<Book>(updateBookVM);
-
             _service.Update(book);
             return Ok(new Result { SuccessMessage = "Livro alterado com sucesso!" });
         }
