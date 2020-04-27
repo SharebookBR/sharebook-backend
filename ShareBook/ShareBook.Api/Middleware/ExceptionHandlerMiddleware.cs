@@ -10,7 +10,6 @@ using ShareBook.Domain.Exceptions;
 
 namespace ShareBook.Api.Middleware
 {
-    // You may need to install the Microsoft.AspNetCore.Http.Abstractions package into your project
     public class ExceptionHandlerMiddleware
     {
         private readonly RequestDelegate _next;
@@ -34,6 +33,7 @@ namespace ShareBook.Api.Middleware
 
                 httpContext.Response.Clear();
                 httpContext.Response.StatusCode = (int)ex.ErrorType;
+                httpContext.Response.Headers.Add("Content-Type", "application/json");
                 await httpContext.Response.WriteAsync(jsonResponse);
             }
             catch (Exception ex)
@@ -44,10 +44,16 @@ namespace ShareBook.Api.Middleware
                 }
                 var result = new Result();
                 result.Messages.Add(ex.Message);
+
+                // detalhes do erro real pra facilitar o desenvolvimento.
+                if (ex is AggregateException)
+                    result.Messages.Add(ex.InnerException.ToString());
+
                 var jsonResponse = JsonConvert.SerializeObject(result);
 
                 httpContext.Response.Clear();
                 httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                httpContext.Response.Headers.Add("Content-Type", "application/json");
                 await httpContext.Response.WriteAsync(jsonResponse);
             }
         }
@@ -60,7 +66,7 @@ namespace ShareBook.Api.Middleware
                 StackTrace = ex.StackTrace,
                 Source = ex.Source
             };
-            
+
             RollbarLocator.RollbarInstance.Log(ErrorLevel.Critical, error);
         }
     }

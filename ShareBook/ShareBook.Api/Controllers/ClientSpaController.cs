@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ShareBook.Api.Controllers
 {
-    public class ClientSpaController : Controller
+    public class ClientSpaController : ControllerBase
     {
         public IActionResult Index()
         {

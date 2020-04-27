@@ -48,11 +48,11 @@ namespace ShareBook.Api.Configuration
             //Auth
             services.AddScoped<IApplicationSignInManager, ApplicationSignInManager>();
 
-            //Email 
+            //Email
             services.AddScoped<IEmailService, EmailService>();
             services.AddSingleton<IEmailTemplate, EmailTemplate>();
 
-            //Upload 
+            //Upload
             services.AddScoped<IUploadService, UploadService>();
 
             //UnitOfWork

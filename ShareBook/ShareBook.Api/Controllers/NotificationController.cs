@@ -4,14 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 using ShareBook.Api.Filters;
 using ShareBook.Api.ViewModels;
 using ShareBook.Domain;
-using ShareBook.Domain.Enums;
 using ShareBook.Helper;
 using ShareBook.Service;
 using ShareBook.Service.Notification;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace ShareBook.Api.Controllers
 {
@@ -21,12 +17,16 @@ namespace ShareBook.Api.Controllers
     public class NotificationController : Controller
     {
         private readonly IUserService _userService;
-        private INotificationService _notificationcs;
+        private readonly INotificationService _notificationcs;
+        private readonly IMapper _mapper;
 
-        public NotificationController(INotificationService notificationcs, IUserService userService)
+        public NotificationController(INotificationService notificationcs,
+                                      IUserService userService,
+                                      IMapper mapper)
         {
             _notificationcs = notificationcs;
             _userService = userService;
+            _mapper = mapper;
         }
 
         [HttpGet("Ping")]
@@ -44,16 +44,14 @@ namespace ShareBook.Api.Controllers
             return Ok(result);
         }
 
-
         [HttpPost("notification/")]
         public IActionResult NotificationByEmail([FromBody] NotificationOnesignalVM request)
         {
-            var notification = Mapper.Map<NotificationOnesignal>(request);
+            var notification = _mapper.Map<NotificationOnesignal>(request);
 
-            string result = _notificationcs.SendNotificationByEmail(notification.Value,notification.Title,notification.Content);
+            string result = _notificationcs.SendNotificationByEmail(notification.Value, notification.Title, notification.Content);
 
             return Ok(result);
         }
-
     }
 }

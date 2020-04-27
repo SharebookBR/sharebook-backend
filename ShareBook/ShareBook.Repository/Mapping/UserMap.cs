@@ -53,6 +53,7 @@ namespace ShareBook.Repository.Mapping
                 .HasDefaultValueSql("1");
 
             entityBuilder.Property(t => t.AllowSendingEmail)
+                .ValueGeneratedNever()
                 .HasDefaultValue(true);
 
             entityBuilder.Property(t => t.LastLogin)

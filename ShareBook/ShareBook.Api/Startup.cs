@@ -1,12 +1,15 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Rollbar.NetCore.AspNet;
-using ShareBook.Api.AutoMapper;
 using ShareBook.Api.Configuration;
 using ShareBook.Api.Middleware;
 using ShareBook.Api.Services;
@@ -16,10 +19,8 @@ using ShareBook.Service.Muambator;
 using ShareBook.Service.Notification;
 using ShareBook.Service.Server;
 using ShareBook.Service.Upload;
-using Swashbuckle.AspNetCore.Swagger;
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Text.Json.Serialization;
 
 namespace ShareBook.Api
 {
@@ -32,26 +33,24 @@ namespace ShareBook.Api
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
             RegisterHealthChecks(services, Configuration.GetConnectionString("DefaultConnection"));
 
             services.RegisterRepositoryServices();
-            //auto mapper start 
-            AutoMapperConfig.RegisterMappings();
-
-            services.AddMvc()
-                .AddJsonOptions(options =>
-                {
-                    options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
-                })
-                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddAutoMapper(typeof(Startup));
 
             services
-                .Configure<RollbarOptions>(options => Configuration.GetSection("Rollbar").Bind(options))
+                .AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.IgnoreNullValues = true;
+                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                }).AddNewtonsoftJson();
+
+            services
                 .AddHttpContextAccessor()
+                .Configure<RollbarOptions>(options => Configuration.GetSection("Rollbar").Bind(options))
                 .AddRollbarLogger(loggerOptions => loggerOptions.Filter = (loggerName, loglevel) => loglevel >= LogLevel.Trace);
 
             services.Configure<ImageSettings>(options => Configuration.GetSection("ImageSettings").Bind(options));
@@ -66,20 +65,7 @@ namespace ShareBook.Api
 
             JWTConfig.RegisterJWT(services, Configuration);
 
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new Info { Title = "SHAREBOOK API", Version = "v1" });
-                c.ResolveConflictingActions(x => x.First());
-                c.AddSecurityDefinition("Bearer", new ApiKeyScheme
-                {
-                    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
-                    Name = "Authorization",
-                    In = "header",
-                    Type = "apiKey"
-                });
-                c.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>> { { "Bearer", Enumerable.Empty<string> () },
-                });
-            });
+            services.RegisterSwagger();
 
             services.AddCors(options =>
             {
@@ -92,29 +78,28 @@ namespace ShareBook.Api
                     });
             });
 
-            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
-
+            services
+                .AddDbContext<ApplicationDbContext>(options =>
+                    options
+                        .UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
             RollbarConfigurator
                 .Configure(environment: Configuration.GetSection("Rollbar:Environment").Value,
                            isActive: Configuration.GetSection("Rollbar:IsActive").Value,
                            token: Configuration.GetSection("Rollbar:Token").Value);
-          
+
             MuambatorConfigurator.Configure(Configuration.GetSection("Muambator:Token").Value, Configuration.GetSection("Muambator:IsActive").Value);
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             bool rollbarActive = Convert.ToBoolean(Configuration.GetSection("Rollbar:IsActive").Value.ToLower());
             if (rollbarActive)
             {
                 app.UseRollbarMiddleware();
             }
-            
-            app.UseHealthChecks("/hc");
-            app.UseCors("AllowAllHeaders");
 
+            app.UseHealthChecks("/hc");
             app.UseDeveloperExceptionPage();
             app.UseExceptionHandlerMiddleware();
 
@@ -133,16 +118,29 @@ namespace ShareBook.Api
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "SHAREBOOK API V1");
             });
 
-            // IMPORTANT: Make sure UseCors() is called BEFORE this
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller=Book}/{action=Index}/{id?}");
+            app.UseRouting();
 
-                routes.MapSpaFallbackRoute(
-                    name: "spa-fallback",
-                    defaults: new { controller = "ClientSpa", action = "Index" });
+            app.UseCors("AllowAllHeaders");
+            app.UseAuthorization();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllerRoute(
+                    name: "default",
+                    pattern: "{controller=Book}/{action=Index}/{id?}");
+
+                endpoints.MapFallbackToController("Index", "ClientSpa");
+
+                endpoints.MapHealthChecks("/health", new HealthCheckOptions()
+                {
+                    AllowCachingResponses = false,
+                    ResultStatusCodes =
+                    {
+                        [HealthStatus.Healthy] = StatusCodes.Status200OK,
+                        [HealthStatus.Degraded] = StatusCodes.Status200OK,
+                        [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+                    }
+                });
             });
 
             using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
@@ -163,6 +161,5 @@ namespace ShareBook.Api
             services.AddHealthChecks()
                 .AddSqlServer(connectionString);
         }
-
     }
 }

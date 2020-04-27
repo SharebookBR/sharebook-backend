@@ -58,7 +58,7 @@ namespace ShareBook.Domain
             => BookUsers?.Any(x => x.Status == DonationStatus.Donated) ?? false;
 
         public string Winner()
-            => BookUsers?.FirstOrDefault(x => x.Status == DonationStatus.Donated).User.Name ?? "";
+            => BookUsers?.FirstOrDefault(x => x.Status == DonationStatus.Donated)?.User?.Name ?? "";
 
         public User WinnerUser()
             => BookUsers?.FirstOrDefault(x => x.Status == DonationStatus.Donated)?.User;

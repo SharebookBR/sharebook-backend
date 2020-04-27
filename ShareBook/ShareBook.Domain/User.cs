@@ -52,18 +52,22 @@ namespace ShareBook.Domain
                 && (this.HashCodePasswordExpiryDate.Date == DateTime.Now.AddDays(1).Date
                    || this.HashCodePasswordExpiryDate.Date == DateTime.Now.Date);
 
-        public void Change(string email, string name, string linkedin, string phone)
+        public void Change(string email, string name, string linkedin, string phone, bool AllowSendingEmail)
         {
             this.Email = email;
             this.Name = name;
             this.Linkedin = linkedin;
             this.Phone = phone;
+            this.AllowSendingEmail = AllowSendingEmail;
         }
 
         public void ChangeAddress(Address address)
         {
+            var AddressIdCopy = this.Address.Id;
             this.Address = address;
+
             this.Address.UserId = Id;
+            this.Address.Id = AddressIdCopy;
         }
 
         public void ChangePassword(string password)

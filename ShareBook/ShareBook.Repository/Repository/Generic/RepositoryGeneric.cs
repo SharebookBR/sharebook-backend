@@ -20,8 +20,12 @@ namespace ShareBook.Repository
             _dbSet = _context.Set<TEntity>();
         }
 
+        public IQueryable<TEntity> FromSql(string query, object[] parameters) => _dbSet.FromSqlRaw(query, parameters);
+
         #region Asynchronous
+
         public async Task<TEntity> FindAsync(params object[] keyValues) => await FindAsync(null, keyValues);
+
         public async Task<TEntity> FindAsync(IncludeList<TEntity> includes, params object[] keyValues)
         {
             var result = await _dbSet.FindAsync(keyValues);
@@ -32,6 +36,7 @@ namespace ShareBook.Repository
 
             return result;
         }
+
         public async Task<TEntity> FindAsync(IncludeList<TEntity> includes, Expression<Func<TEntity, bool>> filter)
         {
             var query = _dbSet.AsQueryable();
@@ -122,9 +127,11 @@ namespace ShareBook.Repository
             _context.Remove(entity);
             await _context.SaveChangesAsync();
         }
-        #endregion
+
+        #endregion Asynchronous
 
         #region Synchronous
+
         public IQueryable<TEntity> Get() => _dbSet;
 
         public TEntity Find(object keyValue) => _dbSet.Find(keyValue);
@@ -170,6 +177,7 @@ namespace ShareBook.Repository
         public void Delete(params object[] keyValues) => DeleteAsync(keyValues).Wait();
 
         public void Delete(TEntity entity) => DeleteAsync(entity).Wait();
-        #endregion
+
+        #endregion Synchronous
     }
 }

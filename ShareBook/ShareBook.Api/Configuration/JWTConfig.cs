@@ -10,13 +10,11 @@ namespace ShareBook.Api.Configuration
 {
     public static class JWTConfig
     {
-
         public static void RegisterJWT(IServiceCollection services, IConfiguration configuration)
         {
             var tokenConfigurations = ConfigureToken(services, configuration);
             var signingConfigurations = ConfigureSigning(services);
             ConfigureAuth(services, signingConfigurations, tokenConfigurations);
-
         }
 
         private static TokenConfigurations ConfigureToken(IServiceCollection services, IConfiguration configuration)
@@ -49,7 +47,6 @@ namespace ShareBook.Api.Configuration
                 var paramsValidation = bearerOptions.TokenValidationParameters;
                 paramsValidation.IssuerSigningKey = signingConfigurations.Key;
 
-
                 // Valida a assinatura de um token recebido
                 paramsValidation.ValidateIssuerSigningKey = true;
 
@@ -59,21 +56,18 @@ namespace ShareBook.Api.Configuration
                 // Verifica se um token recebido ainda é válido
                 paramsValidation.ValidateLifetime = true;
 
-                // Tempo de tolerância para a expiração de um token (utilizado
-                // caso haja problemas de sincronismo de horário entre diferentes
-                // computadores envolvidos no processo de comunicação)
+                // Tempo de tolerância para a expiração de um token (utilizado caso haja problemas
+                // de sincronismo de horário entre diferentes computadores envolvidos no processo de comunicação)
                 paramsValidation.ClockSkew = TimeSpan.Zero;
             });
 
-            // Ativa o uso do token como forma de autorizar o acesso
-            // a recursos deste projeto
+            // Ativa o uso do token como forma de autorizar o acesso a recursos deste projeto
             services.AddAuthorization(auth =>
             {
                 auth.AddPolicy("Bearer", new AuthorizationPolicyBuilder()
                     .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme‌​)
                     .RequireAuthenticatedUser().Build());
             });
-
         }
     }
 }

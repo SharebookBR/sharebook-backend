@@ -1,4 +1,8 @@
-﻿using FluentValidation;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
@@ -6,14 +10,9 @@ using ShareBook.Domain.Enums;
 using ShareBook.Domain.Exceptions;
 using ShareBook.Helper.Crypto;
 using ShareBook.Repository;
-
 using ShareBook.Repository.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service.Generic;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 
 namespace ShareBook.Service
 {
@@ -22,7 +21,9 @@ namespace ShareBook.Service
         private readonly IUserRepository _userRepository;
         private readonly IUserEmailService _userEmailService;
         private const string PASSWORD_IS_WEAK = "A senha não atende os requisitos. Mínimo oito caracteres, um caractere especial, um caractere numérico e uma letra em maiúsculo.";
+
         #region Public
+
         public UserService(IUserRepository userRepository,
             IUnitOfWork unitOfWork,
             IValidator<User> validator,
@@ -34,12 +35,11 @@ namespace ShareBook.Service
 
         public Result<User> AuthenticationByEmailAndPassword(User user)
         {
-
             var result = Validate(user, x => x.Email, x => x.Password);
 
             string decryptedPass = user.Password;
 
-            user = _repository.Find(e => e.Email.Equals(user.Email, StringComparison.InvariantCultureIgnoreCase));
+            user = _repository.Find(e => e.Email == user.Email);
 
             if (user.IsBruteForceLogin())
             {
@@ -47,8 +47,8 @@ namespace ShareBook.Service
                 return result;
             }
 
-            // persiste última tentativa de login ANTES do SUCESSO ou FALHA pra
-            // ter métrica de verificação de brute force.
+            // persiste última tentativa de login ANTES do SUCESSO ou FALHA pra ter métrica de
+            // verificação de brute force.
             user.LastLogin = DateTime.Now;
             _userRepository.Update(user);
 
@@ -90,13 +90,13 @@ namespace ShareBook.Service
         {
             user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             Result<User> result = Validate(user, x =>
-                x.Email,
+               x.Email,
                 x => x.Linkedin,
                 x => x.Name,
                 x => x.Phone,
                 x => x.Id);
 
-            if (result.Success == false) return result;
+            if (!result.Success) return result;
 
             var userAux = _repository.Find(new IncludeList<User>(x => x.Address), user.Id);
 
@@ -107,7 +107,7 @@ namespace ShareBook.Service
 
             if (result.Success)
             {
-                userAux.Change(user.Email, user.Name, user.Linkedin, user.Phone);
+                userAux.Change(user.Email, user.Name, user.Linkedin, user.Phone, user.AllowSendingEmail);
                 userAux.ChangeAddress(user.Address);
 
                 result.Value = UserCleanup(_repository.Update(userAux));
@@ -145,14 +145,13 @@ namespace ShareBook.Service
             user = _userRepository.UpdatePassword(user).Result;
             result.Value = UserCleanup(user);
 
-
             return result;
         }
 
         public Result GenerateHashCodePasswordAndSendEmailToUser(string email)
         {
             var result = new Result();
-            var user = _repository.Find(e => e.Email.Equals(email, StringComparison.InvariantCultureIgnoreCase));
+            var user = _repository.Find(e => e.Email == email);
 
             if (user == null)
             {
@@ -160,7 +159,6 @@ namespace ShareBook.Service
                 return result;
             }
 
-            
             user.GenerateHashCodePassword();
             _repository.Update(user);
             _userEmailService.SendEmailForgotMyPasswordToUserAsync(user);
@@ -176,11 +174,9 @@ namespace ShareBook.Service
 
             if (userConfirmedHashCodePassword == null)
                 result.Messages.Add("Hash code não encontrado.");
-
             else if (result.Success && !userConfirmedHashCodePassword.HashCodePasswordIsValid(hashCodePassword))
                 result.Messages.Add("Chave errada ou expirada. Por favor gere outra chave");
-
-            else 
+            else
                 result.Value = UserCleanup(userConfirmedHashCodePassword);
 
             return result;
@@ -188,32 +184,31 @@ namespace ShareBook.Service
 
         public IList<User> GetFacilitators(Guid userIdDonator)
         {
-            var sql = @"select 
-                            CONCAT(Name, ' (', total, ')') as Name,
-                            Id
-                        from 
-                        (
-                            select top 100
-                                u.Name, u.Id,
-                                ( select count(*) as total from Books b 
-                                  where b.UserIdFacilitator = u.Id and b.UserId = {0} 
-                                ) as total
+            string query = @"SELECT
+                            CONCAT(Name, ' (', total, ')') as Name, Id
                             FROM
-                                Users u
-                            where u.Profile = 0 -- Administrador
-                            order by total desc, u.Name
-                        ) sub";
+                            (
+                                SELECT TOP 100
+                                    u.Name, u.Id,
+                                    (SELECT COUNT(*) as total FROM Books b
+                                      WHERE b.UserIdFacilitator = u.Id and b.UserId = {0}
+                                    ) as total
+                                FROM
+                                    Users u
+                                WHERE u.Profile = 0 -- Administrador
+                                ORDER BY total desc, u.Name
+                            ) sub";
+            var parameters = new object[] { userIdDonator };
 
-            return _repository.Get().FromSql(sql, userIdDonator.ToString())
-            .Select(x => new User { 
-                Id = x.Id,
-                Name = x.Name
-                })
-            .ToList();
-
+            return _repository.FromSql(query, parameters)
+                    .Select(x => new User
+                    {
+                        Id = x.Id,
+                        Name = x.Name
+                    }).ToList();
         }
-        #endregion
 
+        #endregion Public
 
         #region Private
 
@@ -248,12 +243,14 @@ namespace ShareBook.Service
             user.Password = Hash.Create(user.Password, user.PasswordSalt);
             return user;
         }
+
         private User UserCleanup(User user)
         {
             user.Password = string.Empty;
             user.PasswordSalt = string.Empty;
             return user;
         }
-        #endregion
+
+        #endregion Private
     }
 }
