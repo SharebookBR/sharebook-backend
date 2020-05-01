@@ -86,7 +86,8 @@ namespace ShareBook.Api
             RollbarConfigurator
                 .Configure(environment: Configuration.GetSection("Rollbar:Environment").Value,
                            isActive: Configuration.GetSection("Rollbar:IsActive").Value,
-                           token: Configuration.GetSection("Rollbar:Token").Value);
+                           token: Configuration.GetSection("Rollbar:Token").Value,
+                           logLevel: Configuration.GetSection("Rollbar:LogLevel").Value);
 
             MuambatorConfigurator.Configure(Configuration.GetSection("Muambator:Token").Value, Configuration.GetSection("Muambator:IsActive").Value);
         }
