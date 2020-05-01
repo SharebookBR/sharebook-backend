@@ -67,7 +67,7 @@ namespace ShareBook.Api.Middleware
                 Source = ex.Source
             };
 
-            RollbarLocator.RollbarInstance.Log(ErrorLevel.Critical, error);
+            RollbarLocator.RollbarInstance.Error(error);
         }
     }
 

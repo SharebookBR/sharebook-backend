@@ -251,3 +251,6 @@ ModelManifest.xml
 
 # do not push dev scripts
 sandbox
+
+# production settings
+appsettings.Production.json
