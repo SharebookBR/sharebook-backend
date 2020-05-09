@@ -74,7 +74,7 @@ namespace ShareBook.Service
             if (_bookUserRepository.Any(x => x.UserId == bookUser.UserId && x.BookId == bookUser.BookId))
                 throw new ShareBookException("O usuário já possui uma requisição para o mesmo livro.");
 
-            if (bookRequested.Status() != BookStatus.Available)
+            if (bookRequested.Status != BookStatus.Available)
                 throw new ShareBookException("Esse livro não está mais disponível para doação.");
 
             _bookUserRepository.Insert(bookUser);
@@ -108,7 +108,7 @@ namespace ShareBook.Service
 
             DeniedBookUsers(bookId);
 
-            _bookService.HideBook(bookId);
+            _bookService.UpdateBookStatus(bookId, BookStatus.WaitingSend);
 
             // não usamos await nas notificações, pra serem assíncronas de verdade e retornar mais rápido.
 
@@ -134,9 +134,8 @@ namespace ShareBook.Service
             if (!isAdmin && bookUsers != null && bookUsers.Count > 0)
                 throw new ShareBookException("Este livro já possui interessados");
 
-            book.Approved = false;
             book.ChooseDate = null;
-            book.Canceled = true;
+            book.Status = BookStatus.Canceled;
 
             CancelBookUsersAndSendNotification(book);            
 
