@@ -35,7 +35,7 @@ namespace ShareBook.Service
 
         public void Approve(Guid bookId, DateTime? chooseDate = null)
         {
-            var book = _repository.Find(bookId);
+            var book = _repository.Get().Include(b => b.Category).FirstOrDefault(b => b.Id == bookId);
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
@@ -46,6 +46,8 @@ namespace ShareBook.Service
             // não precisa esperar o envio de email.
             _booksEmailService.SendEmailBookApproved(book);
         }
+
+        
 
         public void UpdateBookStatus(Guid bookId, BookStatus bookStatus)
         {
