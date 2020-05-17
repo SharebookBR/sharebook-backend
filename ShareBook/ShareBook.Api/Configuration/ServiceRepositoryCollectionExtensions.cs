@@ -65,6 +65,7 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<RemoveBookFromShowcase>();
             services.AddScoped<ChooseDateReminder>();
             services.AddScoped<LateDonationNotification>();
+            services.AddScoped<NewBookNotify>();
 
             //notification
             services.AddScoped<INotificationService, NotificationService>();

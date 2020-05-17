@@ -5,14 +5,15 @@ using System.Text;
 
 namespace ShareBook.Service.AWSSQS.Dto
 {
-    public class AWSSQSMessageNewBookNotify
+    public class AWSSQSMessageNewBookNotifyResponse
     {
+        public string ReceiptHandle { get; set; }
         public string Subject { get; set; }
         public string BodyHTML { get; set; }
-        public IList<Destination> Destinations { get; set; }
+        public IList<DestinationResponse> Destinations { get; set; }
     }
 
-    public class Destination
+    public class DestinationResponse
     {
         public string Name { get; set; }
         public string Email { get; set; }

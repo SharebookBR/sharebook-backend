@@ -6,6 +6,8 @@ namespace ShareBook.Service.AWSSQS
 {
     public interface IAWSSQSService
     {
-        Task SendNewBookNotifyToAWSSQSAsync(AWSSQSMessageNewBookNotify message);
+        Task SendNewBookNotifyToAWSSQSAsync(AWSSQSMessageNewBookNotifyRequest message);
+        Task<AWSSQSMessageNewBookNotifyResponse> GetNewBookNotifyFromAWSSQSAsync();
+        Task DeleteNewBookNotifyFromAWSSQSAsync(string receiptHandle);
     }
 }

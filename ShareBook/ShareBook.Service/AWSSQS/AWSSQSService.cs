@@ -21,7 +21,36 @@ namespace ShareBook.Service.AWSSQS
             _amazonSQSClient = new AmazonSQSClient(awsCreds, Amazon.RegionEndpoint.SAEast1);
         }
 
-        public async Task SendNewBookNotifyToAWSSQSAsync(AWSSQSMessageNewBookNotify message)
+        public async Task DeleteNewBookNotifyFromAWSSQSAsync(string receiptHandle)
+        {
+            var deleteMessageRequest = new DeleteMessageRequest();
+
+            deleteMessageRequest.QueueUrl = _AWSSQSSettings.QueueUrl;
+            deleteMessageRequest.ReceiptHandle = receiptHandle + "aaa";
+
+            await _amazonSQSClient.DeleteMessageAsync(deleteMessageRequest);
+        }
+
+        public async Task<AWSSQSMessageNewBookNotifyResponse> GetNewBookNotifyFromAWSSQSAsync()
+        {
+            var receiveMessageRequest = new ReceiveMessageRequest(_AWSSQSSettings.QueueUrl);
+
+            var result = await _amazonSQSClient.ReceiveMessageAsync(receiveMessageRequest);
+
+            if (result.Messages.Count > 0)
+            {
+                var firstMessageTemp = result.Messages[0].Body;
+                var firstMessage = System.Text.Json.JsonSerializer.Deserialize<AWSSQSMessageNewBookNotifyResponse>(firstMessageTemp);
+                firstMessage.ReceiptHandle = result.Messages[0].ReceiptHandle;
+                return firstMessage;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public async Task SendNewBookNotifyToAWSSQSAsync(AWSSQSMessageNewBookNotifyRequest message)
         {
             var request = new SendMessageRequest
             {

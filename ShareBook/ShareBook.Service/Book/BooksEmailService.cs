@@ -57,7 +57,7 @@ namespace ShareBook.Service
             const int MAX_DESTINATIONS = 50;
 
 
-            var message = new AWSSQSMessageNewBookNotify
+            var message = new AWSSQSMessageNewBookNotifyRequest
             {
                 Subject = $"Chegou um livro de {book.Category.Name}",
                 BodyHTML = "Olá {name}, chegou um livro do seu interesse. <br>" + $"<img src=\"{_serverSettings.DefaultUrl}/Images/Books/{book.ImageSlug}\"> <br><br><a href=\"{_serverSettings.DefaultUrl}/livros/{book.Slug}\">Quero esse livro!</a>",
@@ -71,7 +71,7 @@ namespace ShareBook.Service
 
             for(int i = 1; i <= maxMessages; i++)
             {
-                var destinations = interestedUsers.Skip((i - 1) * MAX_DESTINATIONS).Take(MAX_DESTINATIONS).Select(u => new Destination { Name = u.Name, Email = u.Email });
+                var destinations = interestedUsers.Skip((i - 1) * MAX_DESTINATIONS).Take(MAX_DESTINATIONS).Select(u => new DestinationRequest { Name = u.Name, Email = u.Email });
                 message.Destinations = destinations.ToList();
 
                 await _AWSSQSService.SendNewBookNotifyToAWSSQSAsync(message);
