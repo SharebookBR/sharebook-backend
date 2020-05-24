@@ -20,6 +20,7 @@ namespace ShareBook.Service
         private const string WaitingApprovalTitle = "Aguarde aprovação do livro - Sharebook";
         private const string BookApprovedTemplate = "BookApprovedTemplate";
         private const string BookApprovedTitle = "Livro aprovado - Sharebook";
+        private const string NewBookNotifyTemplate = "NewBookNotifyTemplate";
         private readonly IEmailService _emailService;
         private readonly IUserService _userService;
         private readonly IEmailTemplate _emailTemplate;
@@ -57,10 +58,19 @@ namespace ShareBook.Service
             const int MAX_DESTINATIONS = 50;
 
 
+            var vm = new
+                {
+                    Book = book,
+                    ServerSettings = _serverSettings,
+                    name = "{name}"// recebe {name} pois e o padrao que o servico Consumer reconhece para substituicao para o nome do usuario para o qual ira enviar o email
+                };
+
+            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(NewBookNotifyTemplate, vm);
+
             var message = new AWSSQSMessageNewBookNotifyRequest
             {
                 Subject = $"Chegou um livro de {book.Category.Name}",
-                BodyHTML = "Olá {name}, chegou um livro do seu interesse. <br>" + $"<img src=\"{_serverSettings.DefaultUrl}/Images/Books/{book.ImageSlug}\"> <br><br><a href=\"{_serverSettings.DefaultUrl}/livros/{book.Slug}\">Quero esse livro!</a>",
+                BodyHTML = html
             };
 
 

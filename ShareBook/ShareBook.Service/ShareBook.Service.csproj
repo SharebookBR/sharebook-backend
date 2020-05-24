@@ -24,6 +24,9 @@
     <None Remove="Email\Templates\LateDonationNotification.html" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="Email\Templates\NewBookNotifyTemplate.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Email\Templates\BookDonatedNotifyDonorTemplate.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
