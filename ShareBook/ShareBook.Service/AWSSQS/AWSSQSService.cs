@@ -52,14 +52,17 @@ namespace ShareBook.Service.AWSSQS
 
         public async Task SendNewBookNotifyToAWSSQSAsync(AWSSQSMessageNewBookNotifyRequest message)
         {
-            var request = new SendMessageRequest
+            if (_AWSSQSSettings.IsActive)
             {
-                DelaySeconds = (int)TimeSpan.FromSeconds(5).TotalSeconds,
-                MessageBody = System.Text.Json.JsonSerializer.Serialize(message),
-                QueueUrl = _AWSSQSSettings.QueueUrl
-            };
+                var request = new SendMessageRequest
+                {
+                    DelaySeconds = (int)TimeSpan.FromSeconds(5).TotalSeconds,
+                    MessageBody = System.Text.Json.JsonSerializer.Serialize(message),
+                    QueueUrl = _AWSSQSSettings.QueueUrl
+                };
 
-            await _amazonSQSClient.SendMessageAsync(request);
+                await _amazonSQSClient.SendMessageAsync(request);
+            }
         }
     }
 }
