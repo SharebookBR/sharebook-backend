@@ -88,7 +88,7 @@ namespace ShareBook.Api.Controllers
         }
 
         // TODO: método deprecado. Remover depois que todos usarem o novo 'RequestersList'.
-        [Obsolete]
+        [Obsolete("This is an obsolete method")]
         [Authorize("Bearer")]
         [HttpGet("GranteeUsersByBookId/{bookId}")]
         [AuthorizationFilter(Permissions.Permission.DonateBook)]
