@@ -63,25 +63,6 @@ namespace ShareBook.Domain
         public User WinnerUser()
             => BookUsers?.FirstOrDefault(x => x.Status == DonationStatus.Donated)?.User;
 
-        //public BookStatus Status()
-        //{
-
-        //    if (Donated())
-        //        return BookStatus.Donated;
-
-        //    if (Canceled)
-        //        return BookStatus.Canceled;
-
-        //    if (Approved)
-        //        return BookStatus.Available;
-
-        //    if (TotalInterested() == 0)
-        //        return BookStatus.WaitingApproval;
-
-        //    return BookStatus.Invisible;
-        //}
-
-
         public int TotalInterested()
         {
             return BookUsers?.Count ?? 0;
