@@ -7,6 +7,10 @@ namespace ShareBook.Domain.Common
     public class Result : Result<object>
     {
         public Result() : base(null) { }
+        public Result(string SuccessMessage) : base(null)
+        {
+            this.SuccessMessage = SuccessMessage;
+        }
     }
 
     public class Result<T> where T : class

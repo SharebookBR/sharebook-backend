@@ -9,7 +9,7 @@ namespace ShareBook.Service
 {
     public interface IBookService : IBaseService<Book>
     {
-        Result<Book> Approve(Guid bookId, DateTime? chooseDate);
+        void Approve(Guid bookId, DateTime? chooseDate);
 
         void UpdateBookStatus(Guid bookId, BookStatus bookStatus);
 
