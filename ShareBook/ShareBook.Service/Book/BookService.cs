@@ -33,7 +33,7 @@ namespace ShareBook.Service
             _booksEmailService = booksEmailService;
         }
 
-        public Result<Book> Approve(Guid bookId, DateTime? chooseDate = null)
+        public void Approve(Guid bookId, DateTime? chooseDate = null)
         {
             var book = _repository.Find(bookId);
             if (book == null)
@@ -43,9 +43,8 @@ namespace ShareBook.Service
             book.ChooseDate = chooseDate?.Date ?? DateTime.Today.AddDays(5);
             _repository.Update(book);
 
-            _booksEmailService.SendEmailBookApproved(book).Wait();
-
-            return new Result<Book>(book);
+            // não precisa esperar o envio de email.
+            _booksEmailService.SendEmailBookApproved(book);
         }
 
         public void UpdateBookStatus(Guid bookId, BookStatus bookStatus)

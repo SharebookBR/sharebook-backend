@@ -73,7 +73,11 @@ namespace ShareBook.Api.Controllers
         [Authorize("Bearer")]
         [HttpPost("Approve/{id}")]
         [AuthorizationFilter(Permissions.Permission.ApproveBook)]
-        public Result<Book> Approve(string id, [FromBody] ApproveBookVM model) => _service.Approve(new Guid(id), model?.ChooseDate);
+        public Result Approve(string id, [FromBody] ApproveBookVM model)
+        {
+            _service.Approve(new Guid(id), model?.ChooseDate);
+            return new Result("Livro aprovado com sucesso.");
+        }
 
         [Authorize("Bearer")]
         [HttpPost("Cancel/{id}")]
