@@ -251,6 +251,10 @@ namespace ShareBook.Service
             return user;
         }
 
+        public IList<User> GetBySolicitedBookCategory(Guid bookCategoryId) =>
+            _userRepository.Get().Where(u => u.BookUsers.Any(bu => bu.Book.CategoryId == bookCategoryId)).ToList();
+
+
         #endregion Private
     }
 }

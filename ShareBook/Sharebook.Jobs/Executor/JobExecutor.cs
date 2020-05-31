@@ -19,7 +19,8 @@ namespace Sharebook.Jobs
         public JobExecutor(IJobHistoryRepository jobHistoryRepo,
                            ChooseDateReminder job1,
                            LateDonationNotification job2,
-                           RemoveBookFromShowcase job3)
+                           RemoveBookFromShowcase job3,
+                           NewBookNotify job4)
         {
             _jobHistoryRepo = jobHistoryRepo;
 
@@ -27,7 +28,8 @@ namespace Sharebook.Jobs
             {
                 job1,
                 job2,
-                job3
+                job3,
+                job4
             };
 
         }
