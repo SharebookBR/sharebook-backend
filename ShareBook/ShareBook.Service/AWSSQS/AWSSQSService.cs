@@ -17,8 +17,11 @@ namespace ShareBook.Service.AWSSQS
         {
             _AWSSQSSettings = AWSSQSSettings.Value;
 
+            // usando padrão Reflection
+            var region = (Amazon.RegionEndpoint)typeof(Amazon.RegionEndpoint).GetField(_AWSSQSSettings.Region).GetValue(null);
+
             var awsCreds = new BasicAWSCredentials(AWSSQSSettings.Value.AccessKey, AWSSQSSettings.Value.SecretKey);
-            _amazonSQSClient = new AmazonSQSClient(awsCreds, Amazon.RegionEndpoint.SAEast1);
+            _amazonSQSClient = new AmazonSQSClient(awsCreds, region);
         }
 
         public async Task DeleteNewBookNotifyFromAWSSQSAsync(string receiptHandle)
