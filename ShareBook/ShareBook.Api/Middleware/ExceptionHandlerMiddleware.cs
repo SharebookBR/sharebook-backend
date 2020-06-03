@@ -44,7 +44,7 @@ namespace ShareBook.Api.Middleware
                 }
 
                 // página padrão de erro do core tem mais detalhes.
-                throw ex;
+                throw ex.InnerException;
             }
         }
 
