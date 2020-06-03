@@ -225,6 +225,7 @@ namespace ShareBook.Service
             if(MuambatorConfigurator.IsActive)
                 _muambatorService.AddPackageToTrackerAsync(book, winnerBookUser.User, trackingNumber);
 
+            book.Status = BookStatus.Sent;
             book.TrackingNumber = trackingNumber; 
             _bookService.Update(book);
 
