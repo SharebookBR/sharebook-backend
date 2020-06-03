@@ -10,9 +10,9 @@ namespace ShareBook.Repository
 
         private readonly ApplicationDbContext _context;
 
-        // Teste123@
-        private const string PASSWORD_HASH = "cWrRhnwyLmSOv3FIn7abuRevvV/GkGc1E/c66s02ujQ=";
-        private const string PASSWORD_SALT = "xP+CoqfrCbbfIU9HPCd4rA==";
+        // 123456
+        private const string PASSWORD_HASH = "n71pJuPLLg4EJkRBf+SRDXHD3x5f1sNI+3Fi5bSjdx4=";
+        private const string PASSWORD_SALT = "Uo5G5EKyKh5GnXy0D57i0w==";
 
 
         public ShareBookSeeder(ApplicationDbContext context)
