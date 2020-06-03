@@ -102,7 +102,7 @@ namespace ShareBook.Api
 
             app.UseHealthChecks("/hc");
             app.UseDeveloperExceptionPage();
-            // app.UseExceptionHandlerMiddleware();
+            app.UseExceptionHandlerMiddleware();
 
             app.UseStaticFiles(new StaticFileOptions()
             {
