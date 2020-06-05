@@ -38,10 +38,6 @@ namespace ShareBook.Domain
 
         public Category Category { get; set; }
 
-        public bool Approved { get; set; } = false;
-
-        public bool Canceled { get; set; } = false;
-
         public virtual ICollection<BookUser> BookUsers { get; set; }
 
         public string ImageUrl { get; set; }
@@ -54,31 +50,18 @@ namespace ShareBook.Domain
 
         public string TrackingNumber { get; set; }
 
-        public bool Donated()
-            => BookUsers?.Any(x => x.Status == DonationStatus.Donated) ?? false;
+        public BookStatus Status { get; set; }
+
+        public Book()
+        {
+           Status = BookStatus.WaitingApproval;
+        }
 
         public string Winner()
             => BookUsers?.FirstOrDefault(x => x.Status == DonationStatus.Donated)?.User?.Name ?? "";
 
         public User WinnerUser()
             => BookUsers?.FirstOrDefault(x => x.Status == DonationStatus.Donated)?.User;
-
-        public BookStatus Status()
-        {
-            if (Donated())
-                return BookStatus.Donated;
-
-            if(Canceled)
-                return BookStatus.Canceled;
-
-            if (Approved)
-                return BookStatus.Available;
-
-            if (TotalInterested() == 0)
-                return BookStatus.WaitingApproval;
-
-            return BookStatus.Invisible;
-        }
 
         public int TotalInterested()
         {

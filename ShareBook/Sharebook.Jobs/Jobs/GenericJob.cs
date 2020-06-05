@@ -66,6 +66,11 @@ namespace Sharebook.Jobs
                         result = result.AddDays(-7);
                         break;
                     }
+                case Interval.Each30Minutes:
+                    {
+                        result = result.AddMinutes(-30);
+                        break;
+                    }
             }
 
             return result;

@@ -15,19 +15,31 @@ namespace ShareBook.Api.AutoMapper
         {
             #region [ Book ]
 
-            CreateMap<Book, BooksVM>()
+            CreateMap<Book, BookVMAdm>()
                  .ForMember(dest => dest.Donor, opt => opt.MapFrom(src => src.User.Name))
+                 .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.User.Address.City))
+                 .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.User.Address.State))
                  .ForMember(dest => dest.Facilitator, opt => opt.MapFrom(src => src.UserFacilitator.Name))
                  .ForMember(dest => dest.FacilitatorNotes, opt => opt.MapFrom(src => src.FacilitatorNotes))
-                 .ForMember(dest => dest.Donated, opt => opt.MapFrom(src => src.Donated()))
                  .ForMember(dest => dest.PhoneDonor, opt => opt.MapFrom(src => src.User.Phone))
                  .ForMember(dest => dest.DaysInShowcase, opt => opt.MapFrom(src => src.DaysInShowcase()))
                  .ForMember(dest => dest.TotalInterested, opt => opt.MapFrom(src => src.TotalInterested()))
-                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status().Description()))
+                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.Description()))
+                 .ForMember(dest => dest.FreightOption, opt => opt.MapFrom(src => src.FreightOption.Description()))
                  .ForMember(dest => dest.CreationDate, opt => opt.MapFrom(src => src.CreationDate))
                  .ForMember(dest => dest.ChooseDate, opt => opt.MapFrom(src => src.ChooseDate))
                  .ForMember(dest => dest.Winner, opt => opt.MapFrom(src => src.Winner()))
-                 .ForMember(dest => dest.TrackingNumber, opt => opt.MapFrom(src => src.TrackingNumber));
+                 .ForMember(dest => dest.TrackingNumber, opt => opt.MapFrom(src => src.TrackingNumber))
+                 .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.Name));
+
+            CreateMap<Book, BookVM>()
+                 .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.User.Address.City))
+                 .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.User.Address.State))
+                 .ForMember(dest => dest.PhoneDonor, opt => opt.MapFrom(src => src.User.Phone))
+                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.Description()))
+                 .ForMember(dest => dest.FreightOption, opt => opt.MapFrom(src => src.FreightOption.Description()))
+                 .ForMember(dest => dest.CreationDate, opt => opt.MapFrom(src => src.CreationDate))
+                 .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.Name));
 
             CreateMap<BookUser, MyBookRequestVM>()
                 .ForMember(dest => dest.Author, opt => opt.MapFrom(src => src.Book.Author))

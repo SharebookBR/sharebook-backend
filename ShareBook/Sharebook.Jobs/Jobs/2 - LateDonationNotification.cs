@@ -56,7 +56,7 @@ namespace Sharebook.Jobs
 
                 htmlTable += string.Format("<TR><TD>{0}<BR>{1}</TD><TD>{2}</TD><TD>{3}</TD><TD>{4}<BR>{5}<BR>{6}<BR>{7}</TD><TD>{8}<BR>{9}<BR>{10}<BR>{11}</TD><TD>{12}</TD></TR>", 
                     book.Title, 
-                    book.Status(), 
+                    book.Status, 
                     book.DaysInShowcase(), 
                     book.TotalInterested(),
                     book.User.Name, book.User.Email, book.User.Phone, book.User.Linkedin,

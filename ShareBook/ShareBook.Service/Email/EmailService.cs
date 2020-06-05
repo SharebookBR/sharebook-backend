@@ -94,5 +94,12 @@ namespace ShareBook.Service
             return list;
         }
 
+        public async void Test(string email, string name)
+        {
+            var subject = "Sharebook - teste de email";
+            var message = $"<p>Olá {name},</p> <p>Esse é um email de teste para verificar se o sharebook consegue fazer contato com você. Por favor avise o facilitador quando esse email chegar. Obrigado.</p>";
+            await this.Send(email, name, message, subject);
+        }
+
     }
 }

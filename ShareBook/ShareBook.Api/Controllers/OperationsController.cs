@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Sharebook.Jobs;
 using ShareBook.Api.Filters;
+using ShareBook.Api.ViewModels;
 using ShareBook.Helper;
+using ShareBook.Service;
 using ShareBook.Service.Authorization;
 using ShareBook.Service.Server;
 using System;
@@ -18,11 +20,13 @@ namespace ShareBook.Api.Controllers
 
         protected IJobExecutor _executor;
         protected string _validToken;
+        IEmailService _emailService;
 
-        public OperationsController(IJobExecutor executor, IOptions<ServerSettings> settings)
+        public OperationsController(IJobExecutor executor, IOptions<ServerSettings> settings, IEmailService emailService)
         {
             _executor = executor;
             _validToken = settings.Value.JobExecutorToken;
+            _emailService = emailService;
         }
 
         [HttpGet]
@@ -57,6 +61,18 @@ namespace ShareBook.Api.Controllers
                 return Unauthorized();
             else
                 return Ok(_executor.Execute());
+        }
+
+        [HttpPost("EmailTest")]
+        [Authorize("Bearer")]
+        [AuthorizationFilter(Permissions.Permission.ApproveBook)] // adm
+        public IActionResult EmailTest([FromBody] EmailTestVM emailVM)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            _emailService.Test(emailVM.Email, emailVM.Name);
+            return Ok();
         }
 
         protected bool _IsValidJobToken() => Request.Headers["Authorization"].ToString() == _validToken;

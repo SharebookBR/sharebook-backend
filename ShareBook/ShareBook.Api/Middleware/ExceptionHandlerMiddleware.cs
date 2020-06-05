@@ -42,8 +42,9 @@ namespace ShareBook.Api.Middleware
                 {
                     SendErrorToRollbar(ex);
                 }
+
                 var result = new Result();
-                result.Messages.Add(ex.Message);
+                result.Messages.Add(ex.ToString());
 
                 // detalhes do erro real pra facilitar o desenvolvimento.
                 if (ex is AggregateException)

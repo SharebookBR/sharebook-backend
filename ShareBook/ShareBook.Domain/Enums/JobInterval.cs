@@ -5,6 +5,7 @@ namespace ShareBook.Domain.Enums
     {
         Weekly,
         Dayly,
-        Hourly
+        Hourly,
+        Each30Minutes,
     }
 }

@@ -9,5 +9,7 @@ namespace ShareBook.Service
 
         Task SendEmailBookApproved(Book book);
 
+        Task SendEmailBookToInterestedUsers(Book book);
+
     }
 }
