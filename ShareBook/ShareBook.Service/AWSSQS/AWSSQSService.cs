@@ -17,15 +17,23 @@ namespace ShareBook.Service.AWSSQS
         {
             _AWSSQSSettings = AWSSQSSettings.Value;
 
-            // usando padrão Reflection
-            var region = (Amazon.RegionEndpoint)typeof(Amazon.RegionEndpoint).GetField(_AWSSQSSettings.Region).GetValue(null);
+            if (_AWSSQSSettings.IsActive)
+            {
+                // usando padrão Reflection
+                var region = (Amazon.RegionEndpoint)typeof(Amazon.RegionEndpoint).GetField(_AWSSQSSettings.Region).GetValue(null);
 
-            var awsCreds = new BasicAWSCredentials(AWSSQSSettings.Value.AccessKey, AWSSQSSettings.Value.SecretKey);
-            _amazonSQSClient = new AmazonSQSClient(awsCreds, region);
+                var awsCreds = new BasicAWSCredentials(AWSSQSSettings.Value.AccessKey, AWSSQSSettings.Value.SecretKey);
+                _amazonSQSClient = new AmazonSQSClient(awsCreds, region);
+            }
         }
 
         public async Task DeleteNewBookNotifyFromAWSSQSAsync(string receiptHandle)
         {
+            if (!_AWSSQSSettings.IsActive)
+            {
+                throw new Exception("Serviço aws está desabilitado no appsettings.");
+            }
+
             var deleteMessageRequest = new DeleteMessageRequest();
 
             deleteMessageRequest.QueueUrl = _AWSSQSSettings.QueueUrl;
@@ -36,6 +44,11 @@ namespace ShareBook.Service.AWSSQS
 
         public async Task<AWSSQSMessageNewBookNotifyResponse> GetNewBookNotifyFromAWSSQSAsync()
         {
+            if (!_AWSSQSSettings.IsActive)
+            {
+                throw new Exception("Serviço aws está desabilitado no appsettings.");
+            }
+
             var receiveMessageRequest = new ReceiveMessageRequest(_AWSSQSSettings.QueueUrl);
 
             var result = await _amazonSQSClient.ReceiveMessageAsync(receiveMessageRequest);

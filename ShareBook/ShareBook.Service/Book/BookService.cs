@@ -89,7 +89,13 @@ namespace ShareBook.Service
 
         public override Book Find(object keyValue)
         {
-            var result = _repository.Find(keyValue);
+            var result = _repository.Get()
+                .Include(b => b.User)
+                .ThenInclude(u => u.Address)
+                .Include(b => b.Category)
+                .Include(b => b.UserFacilitator)
+                .Where(b => b.Id == (Guid)keyValue)
+                .FirstOrDefault();
 
             if (result == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);

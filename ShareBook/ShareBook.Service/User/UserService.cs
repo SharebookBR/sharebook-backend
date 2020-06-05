@@ -41,6 +41,12 @@ namespace ShareBook.Service
 
             user = _repository.Find(e => e.Email == user.Email);
 
+            if (user == null)
+            {
+                result.Messages.Add("Não encontramos esse email no Sharebook. Você já se cadastrou?");
+                return result;
+            }
+
             if (user.IsBruteForceLogin())
             {
                 result.Messages.Add("Login bloqueado por 30 segundos, para proteger sua conta.");
@@ -52,7 +58,7 @@ namespace ShareBook.Service
             user.LastLogin = DateTime.Now;
             _userRepository.Update(user);
 
-            if (user == null || !IsValidPassword(user, decryptedPass))
+            if (!IsValidPassword(user, decryptedPass))
             {
                 result.Messages.Add("Email ou senha incorretos");
                 return result;

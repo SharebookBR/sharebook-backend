@@ -43,8 +43,19 @@ namespace ShareBook.Api.Middleware
                     SendErrorToRollbar(ex);
                 }
 
-                // página padrão de erro do core tem mais detalhes.
-                throw ex.InnerException;
+                var result = new Result();
+                result.Messages.Add(ex.ToString());
+
+                // detalhes do erro real pra facilitar o desenvolvimento.
+                if (ex is AggregateException)
+                    result.Messages.Add(ex.InnerException.ToString());
+
+                var jsonResponse = JsonConvert.SerializeObject(result);
+
+                httpContext.Response.Clear();
+                httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                httpContext.Response.Headers.Add("Content-Type", "application/json");
+                await httpContext.Response.WriteAsync(jsonResponse);
             }
         }
 
