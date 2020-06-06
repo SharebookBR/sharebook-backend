@@ -73,14 +73,28 @@ namespace ShareBook.Service
             return enumValues;
         }
 
-        // TODO: renomar para um nome mais significativo. Talvez: Showcase (vitrine)
-        public IList<Book> Top15NewBooks()
-             => SearchBooks(x => x.Status == BookStatus.Available, 1, 99) // não precisamos de limite. Ainda mais levando em consideração a DOAÇÃO RÁPIDA.
-                            .Items;
+        public IList<Book> AvailableBooks()
+        {
+            return _repository.Get()
+                .Include(b => b.User)
+                .ThenInclude(u => u.Address)
+                .Include(b => b.Category)
+                .Where(b => b.Status == BookStatus.Available)
+                .ToList();
+        }
 
         public IList<Book> Random15Books()
-            => SearchBooks(x => x.Status == BookStatus.Available, 1, 15, x => Guid.NewGuid())
-                           .Items;
+        {
+            return _repository.Get()
+                .Include(b => b.User)
+                .ThenInclude(u => u.Address)
+                .Include(b => b.Category)
+                .Where(b => b.Status == BookStatus.Available)
+                .OrderBy(x => Guid.NewGuid()) // ordem aleatória
+                .Take(15) // apenas 15 registros
+                .ToList();
+        }
+
 
         public IList<Book> GetAll(int page, int items)
             => _repository.Get().Include(b => b.User).Include(b => b.BookUsers)
@@ -353,14 +367,8 @@ namespace ShareBook.Service
             return FormatPagedList(query, page, itemsPerPage);
         }
 
-
         private string SetSlugByTitleOrIncremental(Book entity)
         {
-            //var slug = _repository.Get()
-            //            .Where(x => x.Title.ToUpperInvariant().Equals(entity.Title.ToUpperInvariant())
-            //                        && !x.Id.Equals(entity.Id))
-            //            .OrderByDescending(x => x.CreationDate)?.FirstOrDefault()?.Slug;
-
             var slug = _repository.Get()
                         .Where(x => x.Title.ToUpper().Trim().Equals(entity.Title.ToUpper().Trim())
                                     && !x.Id.Equals(entity.Id))

@@ -15,7 +15,7 @@ namespace ShareBook.Service
 
         IList<dynamic> FreightOptions();
 
-        IList<Book> Top15NewBooks();
+        IList<Book> AvailableBooks();
 
         IList<Book> Random15Books();
 

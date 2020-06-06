@@ -127,11 +127,17 @@ namespace ShareBook.Api.Controllers
             return bookVM != null ? (IActionResult)Ok(bookVM) : NotFound();
         }
 
-        [HttpGet("Top15NewBooks")]
-        public IList<Book> Top15NewBooks() => _service.Top15NewBooks();
+        [HttpGet("AvailableBooks")]
+        public IList<BookVM> AvailableBooks() {
+            var books = _service.AvailableBooks();
+            return _mapper.Map<List<BookVM>>(books);
+        }
 
         [HttpGet("Random15Books")]
-        public IList<Book> Random15Books() => _service.Random15Books();
+        public IList<BookVM> Random15Books() {
+            var books = _service.Random15Books();
+            return _mapper.Map<List<BookVM>>(books);
+        } 
 
         [Authorize("Bearer")]
         [HttpGet("Title/{title}/{page}/{items}")]
