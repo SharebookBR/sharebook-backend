@@ -108,6 +108,7 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpGet("Slug/{slug}")]
+        [ProducesResponseType(typeof(BookVM), 200)]
         public IActionResult Get(string slug)
         {
             var book = _service.BySlug(slug);
@@ -116,14 +117,14 @@ namespace ShareBook.Api.Controllers
         }
 
         [Authorize("Bearer")]
-        [HttpGet("FullSearchAdmin/{criteria}")]
         [AuthorizationFilter(Permissions.Permission.ApproveBook)] // apenas adms
+        [ProducesResponseType(typeof(BookVM), 200)]
         [HttpGet("{id}")]
-        public BookVMAdm GetById(string id)
+        public IActionResult GetById(string id)
         {
             var book = _service.Find(new Guid(id));
             var bookVM = _mapper.Map<BookVMAdm>(book);
-            return bookVM;
+            return bookVM != null ? (IActionResult)Ok(bookVM) : NotFound();
         }
 
         [HttpGet("Top15NewBooks")]
