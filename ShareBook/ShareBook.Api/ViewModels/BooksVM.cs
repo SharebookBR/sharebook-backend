@@ -47,6 +47,5 @@ namespace ShareBook.Api.ViewModels
         public string State { get; set; }
         public string Synopsis { get; set; }
         public string Slug { get; set; }
-        public Guid? UserId { get; set; }
     }
 }

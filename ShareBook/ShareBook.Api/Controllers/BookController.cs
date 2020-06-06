@@ -162,7 +162,20 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpGet("Category/{categoryId}/{page}/{items}")]
-        public PagedList<Book> ByCategoryId(Guid categoryId, int page, int items) => _service.ByCategoryId(categoryId, page, items);
+        public PagedList<BookVM> ByCategoryId(Guid categoryId, int page, int items)
+        {
+            var booksPaged = _service.ByCategoryId(categoryId, page, items);
+            var books = booksPaged.Items;
+            var booksVM = _mapper.Map<List<BookVM>>(books);
+
+            return new PagedList<BookVM>()
+            {
+                Page = page,
+                ItemsPerPage = items,
+                TotalItems = booksPaged.TotalItems,
+                Items = booksVM
+            };
+        }
 
         [Authorize("Bearer")]
         [HttpPost("Request")]
