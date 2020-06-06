@@ -192,12 +192,6 @@ namespace ShareBook.Service
             return result;
         }
 
-        public PagedList<Book> ByTitle(string title, int page, int itemsPerPage)
-            => SearchBooks(x => x.Status == BookStatus.Available && x.Title.Contains(title), page, itemsPerPage);
-
-        public PagedList<Book> ByAuthor(string author, int page, int itemsPerPage)
-            => SearchBooks(x => x.Status == BookStatus.Available && x.Author.Contains(author), page, itemsPerPage);
-
         public PagedList<Book> FullSearch(string criteria, int page, int itemsPerPage, bool isAdmin)
         {
             Expression<Func<Book, bool>> filter = x => (x.Author.Contains(criteria)

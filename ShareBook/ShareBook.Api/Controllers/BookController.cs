@@ -139,14 +139,6 @@ namespace ShareBook.Api.Controllers
             return _mapper.Map<List<BookVM>>(books);
         } 
 
-        [Authorize("Bearer")]
-        [HttpGet("Title/{title}/{page}/{items}")]
-        public PagedList<Book> ByTitle(string title, int page, int items) => _service.ByTitle(title, page, items);
-
-        [Authorize("Bearer")]
-        [HttpGet("Author/{author}/{page}/{items}")]
-        public PagedList<Book> ByAuthor(string author, int page, int items) => _service.ByAuthor(author, page, items);
-
         [HttpGet("FullSearch/{criteria}/{page}/{items}")]
         public PagedList<BookVM> FullSearch(string criteria, int page, int items) {
             var books = _service.FullSearch(criteria, page, items);
