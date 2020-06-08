@@ -35,7 +35,6 @@ namespace ShareBook.Api.AutoMapper
             CreateMap<Book, BookVM>()
                  .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.User.Address.City))
                  .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.User.Address.State))
-                 .ForMember(dest => dest.PhoneDonor, opt => opt.MapFrom(src => src.User.Phone))
                  .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.Description()))
                  .ForMember(dest => dest.FreightOption, opt => opt.MapFrom(src => src.FreightOption.Description()))
                  .ForMember(dest => dest.CreationDate, opt => opt.MapFrom(src => src.CreationDate))

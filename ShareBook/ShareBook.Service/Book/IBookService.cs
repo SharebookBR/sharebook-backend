@@ -15,13 +15,9 @@ namespace ShareBook.Service
 
         IList<dynamic> FreightOptions();
 
-        IList<Book> Top15NewBooks();
+        IList<Book> AvailableBooks();
 
         IList<Book> Random15Books();
-
-        PagedList<Book> ByTitle(string title, int page, int itemsPerPage);
-
-        PagedList<Book> ByAuthor(string author, int page, int itemsPerPage);
 
         PagedList<Book> FullSearch(string criteria, int page, int itemsPerPage, bool isAdmin = false);
 
