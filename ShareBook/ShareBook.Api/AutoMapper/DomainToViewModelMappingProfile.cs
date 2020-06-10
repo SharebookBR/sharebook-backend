@@ -24,8 +24,8 @@ namespace ShareBook.Api.AutoMapper
                  .ForMember(dest => dest.PhoneDonor, opt => opt.MapFrom(src => src.User.Phone))
                  .ForMember(dest => dest.DaysInShowcase, opt => opt.MapFrom(src => src.DaysInShowcase()))
                  .ForMember(dest => dest.TotalInterested, opt => opt.MapFrom(src => src.TotalInterested()))
-                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.Description()))
-                 .ForMember(dest => dest.FreightOption, opt => opt.MapFrom(src => src.FreightOption.Description()))
+                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
+                 .ForMember(dest => dest.FreightOption, opt => opt.MapFrom(src => src.FreightOption.ToString()))
                  .ForMember(dest => dest.CreationDate, opt => opt.MapFrom(src => src.CreationDate))
                  .ForMember(dest => dest.ChooseDate, opt => opt.MapFrom(src => src.ChooseDate))
                  .ForMember(dest => dest.Winner, opt => opt.MapFrom(src => src.Winner()))
@@ -35,9 +35,8 @@ namespace ShareBook.Api.AutoMapper
             CreateMap<Book, BookVM>()
                  .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.User.Address.City))
                  .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.User.Address.State))
-                 .ForMember(dest => dest.PhoneDonor, opt => opt.MapFrom(src => src.User.Phone))
-                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.Description()))
-                 .ForMember(dest => dest.FreightOption, opt => opt.MapFrom(src => src.FreightOption.Description()))
+                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
+                 .ForMember(dest => dest.FreightOption, opt => opt.MapFrom(src => src.FreightOption.ToString()))
                  .ForMember(dest => dest.CreationDate, opt => opt.MapFrom(src => src.CreationDate))
                  .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.Name));
 
