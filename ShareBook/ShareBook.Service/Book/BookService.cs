@@ -43,8 +43,11 @@ namespace ShareBook.Service
             book.ChooseDate = chooseDate?.Date ?? DateTime.Today.AddDays(5);
             _repository.Update(book);
 
-            // não precisa esperar o envio de email.
+            // notifica o doador
             _booksEmailService.SendEmailBookApproved(book);
+
+            // notifica possíveis interessados
+            _booksEmailService.SendEmailBookToInterestedUsers(book);
         }
 
         

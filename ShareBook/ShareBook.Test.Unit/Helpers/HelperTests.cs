@@ -92,5 +92,51 @@ namespace ShareBook.Test.Unit.Helpers
 
             Assert.Equal(expected, actual);
         }
+
+        [Fact]
+        public void ClientVersionValidation()
+        {
+            var minVersion = "v0.3.1";
+
+            bool result = Helper.ClientVersionValidation.IsValidVersion("v1.2.3", minVersion);
+            Assert.True(result);
+
+            result = Helper.ClientVersionValidation.IsValidVersion("v1.0.0", minVersion);
+            Assert.True(result);
+
+            result = Helper.ClientVersionValidation.IsValidVersion("v0.4.0", minVersion);
+            Assert.True(result);
+
+            result = Helper.ClientVersionValidation.IsValidVersion("v0.3.2", minVersion);
+            Assert.True(result);
+
+            result = Helper.ClientVersionValidation.IsValidVersion("v0.3.1", minVersion);
+            Assert.True(result);
+
+            result = Helper.ClientVersionValidation.IsValidVersion("v0.3.10", minVersion);
+            Assert.True(result);
+
+            result = Helper.ClientVersionValidation.IsValidVersion("v0.3", minVersion);
+            Assert.False(result);
+
+            result = Helper.ClientVersionValidation.IsValidVersion("v0.3.0", minVersion);
+            Assert.False(result);
+
+            result = Helper.ClientVersionValidation.IsValidVersion("", minVersion);
+            Assert.False(result);
+
+            result = Helper.ClientVersionValidation.IsValidVersion("aaa", minVersion);
+            Assert.False(result);
+
+            result = Helper.ClientVersionValidation.IsValidVersion("0.3.1", minVersion);
+            Assert.False(result);
+
+            result = Helper.ClientVersionValidation.IsValidVersion("v0x3x1", minVersion);
+            Assert.False(result);
+
+            result = Helper.ClientVersionValidation.IsValidVersion("v0.20.0", minVersion);
+            Assert.True(result);
+
+        }
     }
 }
