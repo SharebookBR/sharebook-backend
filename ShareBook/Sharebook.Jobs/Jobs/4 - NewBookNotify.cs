@@ -22,7 +22,7 @@ namespace Sharebook.Jobs
             JobName = "NewBookNotify";
             Description = "Assim que um novo livro é aprovado, notifica, por e-mail, os usuários que já solicitaram algum livro da mesma categoria do novo. " +
                           "Para isso é utilizada a leitura de uma fila da Amazon SQS.";
-            Interval = Interval.Each30Minutes;
+            Interval = Interval.Each5Minutes;
             Active = true;
             BestTimeToExecute = new TimeSpan(9, 0, 0);
 

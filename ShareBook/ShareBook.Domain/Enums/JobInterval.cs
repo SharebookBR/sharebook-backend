@@ -7,5 +7,6 @@ namespace ShareBook.Domain.Enums
         Dayly,
         Hourly,
         Each30Minutes,
+        Each5Minutes,
     }
 }
