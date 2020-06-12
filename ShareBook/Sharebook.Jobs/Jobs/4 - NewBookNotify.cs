@@ -5,6 +5,7 @@ using ShareBook.Service;
 using ShareBook.Service.AWSSQS;
 using System;
 using System.Linq;
+using System.Threading;
 
 namespace Sharebook.Jobs
 {
@@ -41,6 +42,9 @@ namespace Sharebook.Jobs
                 foreach (var destination in message.Destinations)
                 {
                     _emailService.Send(destination.Email, destination.Name, message.BodyHTML.Replace("{name}", destination.Name), message.Subject).Wait();
+
+                    // freio lógico
+                    Thread.Sleep(1000);
                 }
 
                 var receiptHandle = message.ReceiptHandle;
