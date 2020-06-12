@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Org.BouncyCastle.Math.EC.Rfc7748;
 using ShareBook.Domain;
@@ -21,18 +22,28 @@ namespace ShareBook.Service
         private const string BookApprovedTemplate = "BookApprovedTemplate";
         private const string BookApprovedTitle = "Livro aprovado - Sharebook";
         private const string NewBookNotifyTemplate = "NewBookNotifyTemplate";
+
         private readonly IEmailService _emailService;
         private readonly IUserService _userService;
         private readonly IEmailTemplate _emailTemplate;
         private readonly IAWSSQSService _AWSSQSService;
         private readonly ServerSettings _serverSettings;
-        public BooksEmailService(IEmailService emailService, IUserService userService, IEmailTemplate emailTemplate, IAWSSQSService AWSSQSService, IOptions<ServerSettings> serverSettings)
+        private readonly IConfiguration _configuration;
+
+        public BooksEmailService(
+            IEmailService emailService,
+            IUserService userService,
+            IEmailTemplate emailTemplate,
+            IAWSSQSService AWSSQSService,
+            IOptions<ServerSettings> serverSettings,
+            IConfiguration configuration)
         {
             _emailService = emailService;
             _userService = userService;
             _emailTemplate = emailTemplate;
             _AWSSQSService = AWSSQSService;
             _serverSettings = serverSettings.Value;
+            _configuration = configuration;
         }
 
         public void SendEmailBookApproved(Book book)
@@ -55,7 +66,7 @@ namespace ShareBook.Service
 
         public async Task SendEmailBookToInterestedUsers(Book book)
         {
-            const int MAX_DESTINATIONS = 50;
+            int MAX_DESTINATIONS = int.Parse(_configuration["AWSSQSSettings:MaxDestinationsPerMessage"]);
 
             var vm = new
                 {
