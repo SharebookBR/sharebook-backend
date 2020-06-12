@@ -5,6 +5,7 @@ using ShareBook.Service;
 using ShareBook.Service.AWSSQS;
 using System;
 using System.Linq;
+using System.Threading;
 
 namespace Sharebook.Jobs
 {
@@ -22,7 +23,7 @@ namespace Sharebook.Jobs
             JobName = "NewBookNotify";
             Description = "Assim que um novo livro é aprovado, notifica, por e-mail, os usuários que já solicitaram algum livro da mesma categoria do novo. " +
                           "Para isso é utilizada a leitura de uma fila da Amazon SQS.";
-            Interval = Interval.Each30Minutes;
+            Interval = Interval.Each5Minutes;
             Active = true;
             BestTimeToExecute = new TimeSpan(9, 0, 0);
 
@@ -41,6 +42,9 @@ namespace Sharebook.Jobs
                 foreach (var destination in message.Destinations)
                 {
                     _emailService.Send(destination.Email, destination.Name, message.BodyHTML.Replace("{name}", destination.Name), message.Subject).Wait();
+
+                    // freio lógico
+                    Thread.Sleep(1000);
                 }
 
                 var receiptHandle = message.ReceiptHandle;
