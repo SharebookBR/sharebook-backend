@@ -258,7 +258,7 @@ namespace ShareBook.Service
         }
 
         public IList<User> GetBySolicitedBookCategory(Guid bookCategoryId) =>
-            _userRepository.Get().Where(u => u.BookUsers.Any(bu => bu.Book.CategoryId == bookCategoryId)).ToList();
+            _userRepository.Get().Where(u => u.AllowSendingEmail && u.BookUsers.Any(bu => bu.Book.CategoryId == bookCategoryId)).ToList();
 
 
         #endregion Private
