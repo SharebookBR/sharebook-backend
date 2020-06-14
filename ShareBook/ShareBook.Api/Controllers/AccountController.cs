@@ -95,13 +95,19 @@ namespace ShareBook.Api.Controllers
         [HttpPost("Login")]
         [ProducesResponseType(typeof(object), 200)]
         [ProducesResponseType(404)]
-        public IActionResult Login([FromBody] LoginUserVM loginUserVM, [FromServices] SigningConfigurations signingConfigurations, [FromServices] TokenConfigurations tokenConfigurations)
+        public IActionResult Login(
+            [FromBody] LoginUserVM loginUserVM,
+            [FromServices] SigningConfigurations signingConfigurations,
+            [FromServices] TokenConfigurations tokenConfigurations,
+            [FromHeader(Name = "x-requested-with")] string client,
+            [FromHeader(Name = "client-version")] string clientVersion)
         {
+            
             if (!ModelState.IsValid)
-                return BadRequest();
+                return BadRequest(ModelState);
 
             // mensagem amigável para usuários mobile antigos
-            if (!IsValidClientVersion())
+            if (!IsValidClientVersion(client, clientVersion))
                 throw new ShareBookException("Não é possível fazer login porque seu app está desatualizado. Por favor atualize seu app na loja do Google Play.");
 
             var user = _mapper.Map<User>(loginUserVM);
@@ -189,19 +195,21 @@ namespace ShareBook.Api.Controllers
 
         #endregion PUT
 
-        private bool IsValidClientVersion()
+        private bool IsValidClientVersion(string client, string clientVersion)
         {
-            var origin = Request.Headers["origin"].ToString();
-            var clientVersion = Request.Headers["client-version"].ToString();
+            switch (client)
+            {
+                case "web":
+                    return true;
 
-            if (origin == "")
-                return false;
+                // mobile android
+                case "com.makeztec.sharebook":
+                    var minVersion = _configuration["ClientSettings:AndroidMinVersion"];
+                    return Helper.ClientVersionValidation.IsValidVersion(clientVersion, minVersion);
 
-            if (origin != "mobile-android")
-                return true;
-
-            var minVersion = _configuration["ClientSettings:AndroidMinVersion"];
-            return Helper.ClientVersionValidation.IsValidVersion(clientVersion, minVersion);            
+                default:
+                    return false;
+            }                       
         }
     }
 }
