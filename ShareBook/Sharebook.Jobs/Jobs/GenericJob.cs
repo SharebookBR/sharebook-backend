@@ -68,7 +68,6 @@ namespace Sharebook.Jobs
                 }
                 case Interval.Each30Minutes:
                 {
-                    
                     result = result.AddMinutes(-30);
                     break;
                 }
