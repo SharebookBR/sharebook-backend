@@ -78,6 +78,9 @@ namespace Sharebook.Jobs
                 }
             }
 
+            // ajuste de +1 minuto, levando em consideração o tempo que o job
+            // pode precisar para completar em sua última execução.
+            result = result.AddMinutes(+1);
             return result;
         }
 
