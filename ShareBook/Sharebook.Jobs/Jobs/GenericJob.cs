@@ -68,6 +68,7 @@ namespace Sharebook.Jobs
                 }
                 case Interval.Each30Minutes:
                 {
+                    
                     result = result.AddMinutes(-30);
                     break;
                 }
@@ -78,6 +79,9 @@ namespace Sharebook.Jobs
                 }
             }
 
+            // ajuste de +1 minuto, levando em consideração o tempo que o job
+            // pode precisar para completar em sua última execução.
+            result = result.AddMinutes(+1);
             return result;
         }
 
