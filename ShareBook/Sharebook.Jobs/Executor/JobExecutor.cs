@@ -4,6 +4,7 @@ using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Repository;
 using System.Diagnostics;
+using Rollbar;
 
 namespace Sharebook.Jobs
 {
@@ -19,7 +20,8 @@ namespace Sharebook.Jobs
         public JobExecutor(IJobHistoryRepository jobHistoryRepo,
                            ChooseDateReminder job1,
                            LateDonationNotification job2,
-                           RemoveBookFromShowcase job3)
+                           RemoveBookFromShowcase job3,
+                           NewBookNotify job4)
         {
             _jobHistoryRepo = jobHistoryRepo;
 
@@ -27,7 +29,8 @@ namespace Sharebook.Jobs
             {
                 job1,
                 job2,
-                job3
+                job3,
+                job4
             };
 
         }
@@ -75,7 +78,7 @@ namespace Sharebook.Jobs
             {
                 success = false;
                 messages.Add(string.Format("Executor: ocorreu um erro fatal. {0}", ex.Message));
-                // TODO: logar no rollbar.
+                SendErrorToRollbar(ex);
             }
 
             // Executor também loga seu histórico. Precisamos de rastreabilidade.
@@ -101,6 +104,20 @@ namespace Sharebook.Jobs
             };
 
             _jobHistoryRepo.Insert(history);
+        }
+
+        // TODO: criar um service pro rollbar e reaproveitar aqui
+        // e no ExceptionHandlerMiddleware.
+        private void SendErrorToRollbar(Exception ex)
+        {
+            object error = new
+            {
+                Message = ex.Message,
+                StackTrace = ex.StackTrace,
+                Source = ex.Source
+            };
+
+            RollbarLocator.RollbarInstance.Error(error);
         }
     }
 }

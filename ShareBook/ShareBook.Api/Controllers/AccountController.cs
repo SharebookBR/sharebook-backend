@@ -5,10 +5,12 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using ShareBook.Api.Filters;
 using ShareBook.Api.ViewModels;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
+using ShareBook.Domain.Exceptions;
 using ShareBook.Infra.CrossCutting.Identity;
 using ShareBook.Infra.CrossCutting.Identity.Interfaces;
 using ShareBook.Service;
@@ -23,14 +25,17 @@ namespace ShareBook.Api.Controllers
         private readonly IUserService _userService;
         private readonly IApplicationSignInManager _signManager;
         private readonly IMapper _mapper;
+        private readonly IConfiguration _configuration;
 
         public AccountController(IUserService userService,
                                  IApplicationSignInManager signManager,
-                                 IMapper mapper)
+                                 IMapper mapper,
+                                 IConfiguration configuration)
         {
             _userService = userService;
             _signManager = signManager;
             _mapper = mapper;
+            _configuration = configuration;
         }
 
         #region GET
@@ -90,13 +95,22 @@ namespace ShareBook.Api.Controllers
         [HttpPost("Login")]
         [ProducesResponseType(typeof(object), 200)]
         [ProducesResponseType(404)]
-        public IActionResult Login([FromBody] LoginUserVM loginUserVM, [FromServices] SigningConfigurations signingConfigurations, [FromServices] TokenConfigurations tokenConfigurations)
+        public IActionResult Login(
+            [FromBody] LoginUserVM loginUserVM,
+            [FromServices] SigningConfigurations signingConfigurations,
+            [FromServices] TokenConfigurations tokenConfigurations,
+            [FromHeader(Name = "x-requested-with")] string client,
+            [FromHeader(Name = "client-version")] string clientVersion)
         {
+            
             if (!ModelState.IsValid)
-                return BadRequest();
+                return BadRequest(ModelState);
+
+            // mensagem amigável para usuários mobile antigos
+            if (!IsValidClientVersion(client, clientVersion))
+                throw new ShareBookException("Não é possível fazer login porque seu app está desatualizado. Por favor atualize seu app na loja do Google Play.");
 
             var user = _mapper.Map<User>(loginUserVM);
-
             var result = _userService.AuthenticationByEmailAndPassword(user);
 
             if (result.Success)
@@ -180,5 +194,22 @@ namespace ShareBook.Api.Controllers
         }
 
         #endregion PUT
+
+        private bool IsValidClientVersion(string client, string clientVersion)
+        {
+            switch (client)
+            {
+                case "web":
+                    return true;
+
+                // mobile android
+                case "com.makeztec.sharebook":
+                    var minVersion = _configuration["ClientSettings:AndroidMinVersion"];
+                    return Helper.ClientVersionValidation.IsValidVersion(clientVersion, minVersion);
+
+                default:
+                    return false;
+            }                       
+        }
     }
 }

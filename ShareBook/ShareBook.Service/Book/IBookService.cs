@@ -1,5 +1,6 @@
 ﻿using ShareBook.Domain;
 using ShareBook.Domain.Common;
+using ShareBook.Domain.Enums;
 using ShareBook.Service.Generic;
 using System;
 using System.Collections.Generic;
@@ -8,19 +9,15 @@ namespace ShareBook.Service
 {
     public interface IBookService : IBaseService<Book>
     {
-        Result<Book> Approve(Guid bookId, DateTime? chooseDate);
+        void Approve(Guid bookId, DateTime? chooseDate);
 
-        void HideBook(Guid bookId);
+        void UpdateBookStatus(Guid bookId, BookStatus bookStatus);
 
         IList<dynamic> FreightOptions();
 
-        IList<Book> Top15NewBooks();
+        IList<Book> AvailableBooks();
 
         IList<Book> Random15Books();
-
-        PagedList<Book> ByTitle(string title, int page, int itemsPerPage);
-
-        PagedList<Book> ByAuthor(string author, int page, int itemsPerPage);
 
         PagedList<Book> FullSearch(string criteria, int page, int itemsPerPage, bool isAdmin = false);
 

@@ -52,20 +52,30 @@ namespace Sharebook.Jobs
             switch (i)
             {
                 case Interval.Dayly:
-                    {
-                        result = DateTimeHelper.GetTodaySaoPaulo();
-                        break;
-                    }
+                {
+                    result = DateTimeHelper.GetTodaySaoPaulo();
+                    break;
+                }
                 case Interval.Hourly:
-                    {
-                        result = result.AddHours(-1);
-                        break;
-                    }
+                {
+                    result = result.AddHours(-1);
+                    break;
+                }
                 case Interval.Weekly:
-                    {
-                        result = result.AddDays(-7);
-                        break;
-                    }
+                {
+                    result = result.AddDays(-7);
+                    break;
+                }
+                case Interval.Each30Minutes:
+                {
+                    result = result.AddMinutes(-30);
+                    break;
+                }
+                case Interval.Each5Minutes:
+                {
+                    result = result.AddMinutes(-5);
+                    break;
+                }
             }
 
             return result;

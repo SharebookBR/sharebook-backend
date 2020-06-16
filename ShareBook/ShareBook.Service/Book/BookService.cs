@@ -8,7 +8,6 @@ using ShareBook.Helper;
 using ShareBook.Helper.Extensions;
 using ShareBook.Helper.Image;
 using ShareBook.Repository;
-using ShareBook.Repository.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service.Generic;
 using ShareBook.Service.Upload;
@@ -34,28 +33,32 @@ namespace ShareBook.Service
             _booksEmailService = booksEmailService;
         }
 
-        public Result<Book> Approve(Guid bookId, DateTime? chooseDate = null)
+        public void Approve(Guid bookId, DateTime? chooseDate = null)
         {
-            var book = _repository.Find(bookId);
+            var book = _repository.Get().Include(b => b.Category).FirstOrDefault(b => b.Id == bookId);
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
-            book.Approved = true;
+            book.Status = BookStatus.Available;
             book.ChooseDate = chooseDate?.Date ?? DateTime.Today.AddDays(5);
             _repository.Update(book);
 
-            _booksEmailService.SendEmailBookApproved(book).Wait();
+            // notifica o doador
+            _booksEmailService.SendEmailBookApproved(book);
 
-            return new Result<Book>(book);
+            // notifica possíveis interessados
+            _booksEmailService.SendEmailBookToInterestedUsers(book);
         }
 
-        public void HideBook(Guid bookId)
+        
+
+        public void UpdateBookStatus(Guid bookId, BookStatus bookStatus)
         {
             var book = _repository.Find(bookId);
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
-            book.Approved = false;
+            book.Status = bookStatus;
             _repository.Update(book);
         }
 
@@ -73,16 +76,37 @@ namespace ShareBook.Service
             return enumValues;
         }
 
-        // TODO: renomar para um nome mais significativo. Talvez: Showcase (vitrine)
-        public IList<Book> Top15NewBooks()
-             => SearchBooks(x => x.Approved && !x.Canceled
-                                 && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated), 1, 99) // não precisamos de limite. Ainda mais levando em consideração a DOAÇÃO RÁPIDA.
-                            .Items;
+        public IList<Book> AvailableBooks()
+        {
+            return SetImageUrl(
+                _repository.Get()
+                .Include(b => b.User)
+                .ThenInclude(u => u.Address)
+                .Include(b => b.Category)
+                .Where(b => b.Status == BookStatus.Available)
+                .ToList()
+            );
+        }
 
         public IList<Book> Random15Books()
-            => SearchBooks(x => x.Approved && !x.Canceled
-                                && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated), 1, 15, x => Guid.NewGuid())
-                           .Items;
+        {
+            return SetImageUrl(
+                _repository.Get()
+                .Include(b => b.User)
+                .ThenInclude(u => u.Address)
+                .Include(b => b.Category)
+                .Where(b => b.Status == BookStatus.Available)
+                .OrderBy(x => Guid.NewGuid()) // ordem aleatória
+                .Take(15) // apenas 15 registros
+                .ToList()
+             );
+        }
+
+        private IList<Book> SetImageUrl(IList<Book> books)
+        {
+            return books.Select(b => { b.ImageUrl = _uploadService.GetImageUrl(b.ImageSlug, "Books"); return b; }).ToList();
+        }
+
 
         public IList<Book> GetAll(int page, int items)
             => _repository.Get().Include(b => b.User).Include(b => b.BookUsers)
@@ -91,7 +115,13 @@ namespace ShareBook.Service
 
         public override Book Find(object keyValue)
         {
-            var result = _repository.Find(keyValue);
+            var result = _repository.Get()
+                .Include(b => b.User)
+                .ThenInclude(u => u.Address)
+                .Include(b => b.Category)
+                .Include(b => b.UserFacilitator)
+                .Where(b => b.Id == (Guid)keyValue)
+                .FirstOrDefault();
 
             if (result == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
@@ -128,7 +158,6 @@ namespace ShareBook.Service
             Result<Book> result = Validate(entity, x =>
                 x.Title,
                 x => x.Author,
-                x => x.Approved,
                 x => x.FreightOption,
                 x => x.Id);
 
@@ -142,11 +171,6 @@ namespace ShareBook.Service
             if (savedBook == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
-            //Como o objeto foi buscado diretamente do banco, removi a consulta e tratei diretamente no objeto
-            var bookAlreadyApproved = savedBook.Approved;
-
-            if (!bookAlreadyApproved)
-                entity.Slug = SetSlugByTitleOrIncremental(entity);
 
             //imagem eh opcional no update
             if (!string.IsNullOrEmpty(entity.ImageName) && entity.ImageBytes.Length > 0)
@@ -158,12 +182,15 @@ namespace ShareBook.Service
             //preparar o book para atualização
             savedBook.Author = entity.Author;
             savedBook.FreightOption = entity.FreightOption;
-            savedBook.Approved = entity.Approved;
             savedBook.Author = entity.Author;
             savedBook.ImageSlug = entity.ImageSlug;
             savedBook.Title = entity.Title;
             savedBook.CategoryId = entity.CategoryId;
-            savedBook.Canceled = entity.Canceled;
+
+            // Condição efetuada para evitar busca no BD desnecessariamente por conta do SetSlugByTitleOrIncremental()
+            if (savedBook.Slug != entity.Slug)
+                savedBook.Slug = SetSlugByTitleOrIncremental(entity);
+
 
             savedBook.Synopsis = entity.Synopsis;
             savedBook.TrackingNumber = entity.TrackingNumber;
@@ -174,32 +201,15 @@ namespace ShareBook.Service
             result.Value = _repository.UpdateAsync(savedBook).Result;
             result.Value.ImageBytes = null;
 
-            // TODO: pedir pro pessoal de front usar o endpoint correto de aprovação.
-            if (!bookAlreadyApproved && entity.Approved)
-            {
-                this.Approve(entity.Id);
-            }
-
             return result;
         }
-
-        public PagedList<Book> ByTitle(string title, int page, int itemsPerPage)
-            => SearchBooks(x => (x.Approved
-                                && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated))
-                                && x.Title.Contains(title), page, itemsPerPage);
-
-        public PagedList<Book> ByAuthor(string author, int page, int itemsPerPage)
-            => SearchBooks(x => (x.Approved
-                                 && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated))
-                                 && x.Author.Contains(author), page, itemsPerPage);
 
         public PagedList<Book> FullSearch(string criteria, int page, int itemsPerPage, bool isAdmin)
         {
             Expression<Func<Book, bool>> filter = x => (x.Author.Contains(criteria)
                                                         || x.Title.Contains(criteria)
                                                         || x.Category.Name.Contains(criteria))
-                                                        && x.Approved
-                                                        && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated);
+                                                        && x.Status == BookStatus.Available;
 
             if (!isAdmin) filter = x => x.Author.Contains(criteria)
                                         || x.Title.Contains(criteria)
@@ -209,9 +219,7 @@ namespace ShareBook.Service
         }
 
         public PagedList<Book> ByCategoryId(Guid categoryId, int page, int itemsPerPage)
-            => SearchBooks(x => (x.Approved
-                                && !x.BookUsers.Any(y => y.Status == DonationStatus.Donated))
-                                && x.CategoryId == categoryId, page, itemsPerPage);
+            => SearchBooks(x => x.Status == BookStatus.Available && x.CategoryId == categoryId, page, itemsPerPage);
 
         public Book BySlug(string slug)
         {
@@ -273,7 +281,7 @@ namespace ShareBook.Service
             var booksLate = new List<Book>();
             foreach (var book in books)
             {
-                if (book.Status() == BookStatus.Available || book.Status() == BookStatus.Invisible)
+                if (book.Status == BookStatus.Available || book.Status == BookStatus.AwaitingDonorDecision)
                     booksLate.Add(book);
             }
 
@@ -315,7 +323,7 @@ namespace ShareBook.Service
             if (!book.MayChooseWinner())
                 throw new ShareBookException(ShareBookException.Error.BadRequest, "Aguarde a data de decisão.");
 
-            book.Approved = true;
+            book.Status = BookStatus.Available;
             book.ChooseDate = DateTime.Now.AddDays(10);
             _repository.Update(book);
         }
@@ -335,8 +343,7 @@ namespace ShareBook.Service
                     Id = u.Id,
                     Title = u.Title,
                     Author = u.Author,
-                    Approved = u.Approved,
-                    Canceled = u.Canceled,
+                    Status = u.Status,
                     FreightOption = u.FreightOption,
                     ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
                     Slug = u.Slug,
@@ -366,16 +373,8 @@ namespace ShareBook.Service
             return FormatPagedList(query, page, itemsPerPage);
         }
 
-        private bool BookAlreadyApproved(Guid bookId)
-            => _repository.Any(x => x.Approved && x.Id == bookId);
-
         private string SetSlugByTitleOrIncremental(Book entity)
         {
-            //var slug = _repository.Get()
-            //            .Where(x => x.Title.ToUpperInvariant().Equals(entity.Title.ToUpperInvariant())
-            //                        && !x.Id.Equals(entity.Id))
-            //            .OrderByDescending(x => x.CreationDate)?.FirstOrDefault()?.Slug;
-
             var slug = _repository.Get()
                         .Where(x => x.Title.ToUpper().Trim().Equals(entity.Title.ToUpper().Trim())
                                     && !x.Id.Equals(entity.Id))

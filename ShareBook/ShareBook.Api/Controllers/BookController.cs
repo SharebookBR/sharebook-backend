@@ -46,19 +46,19 @@ namespace ShareBook.Api.Controllers
         [HttpGet()]
         [Authorize("Bearer")]
         [AuthorizationFilter(Permissions.Permission.DonateBook)]
-        public PagedList<BooksVM> GetAll() => Paged(1, 15);
+        public PagedList<BookVMAdm> GetAll() => Paged(1, 15);
 
         [HttpGet("{page}/{items}")]
         [Authorize("Bearer")]
         [AuthorizationFilter(Permissions.Permission.DonateBook)]
-        public PagedList<BooksVM> Paged(int page, int items)
+        public PagedList<BookVMAdm> Paged(int page, int items)
         {
             // TODO: parar de usar esse get complicado e fazer uma query linq/ef tradicional usando
             // ThenInclude(). fonte: https://stackoverflow.com/questions/10822656/entity-framework-include-multiple-levels-of-properties
             var books = _service.Get(x => x.Title, page, items, new IncludeList<Book>(x => x.User, x => x.BookUsers, x => x.UserFacilitator));
-            var responseVM = _mapper.Map<List<BooksVM>>(books.Items);
+            var responseVM = _mapper.Map<List<BookVMAdm>>(books.Items);
 
-            return new PagedList<BooksVM>()
+            return new PagedList<BookVMAdm>()
             {
                 Page = page,
                 TotalItems = books.TotalItems,
@@ -67,13 +67,14 @@ namespace ShareBook.Api.Controllers
             };
         }
 
-        [HttpGet("{id}")]
-        public Book GetById(string id) => _service.Find(new Guid(id));
-
         [Authorize("Bearer")]
         [HttpPost("Approve/{id}")]
         [AuthorizationFilter(Permissions.Permission.ApproveBook)]
-        public Result<Book> Approve(string id, [FromBody] ApproveBookVM model) => _service.Approve(new Guid(id), model?.ChooseDate);
+        public Result Approve(string id, [FromBody] ApproveBookVM model)
+        {
+            _service.Approve(new Guid(id), model?.ChooseDate);
+            return new Result("Livro aprovado com sucesso.");
+        }
 
         [Authorize("Bearer")]
         [HttpPost("Cancel/{id}")]
@@ -107,28 +108,49 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpGet("Slug/{slug}")]
+        [ProducesResponseType(typeof(BookVM), 200)]
         public IActionResult Get(string slug)
         {
             var book = _service.BySlug(slug);
-            return book != null ? (IActionResult)Ok(book) : NotFound();
+            var bookVM = _mapper.Map<BookVM>(book);
+            return book != null ? (IActionResult)Ok(bookVM) : NotFound();
         }
 
-        [HttpGet("Top15NewBooks")]
-        public IList<Book> Top15NewBooks() => _service.Top15NewBooks();
+        [Authorize("Bearer")]
+        [AuthorizationFilter(Permissions.Permission.ApproveBook)] // apenas adms
+        [ProducesResponseType(typeof(BookVM), 200)]
+        [HttpGet("{id}")]
+        public IActionResult GetById(string id)
+        {
+            var book = _service.Find(new Guid(id));
+            var bookVM = _mapper.Map<BookVMAdm>(book);
+            return bookVM != null ? (IActionResult)Ok(bookVM) : NotFound();
+        }
+
+        [HttpGet("AvailableBooks")]
+        public IList<BookVM> AvailableBooks() {
+            var books = _service.AvailableBooks();
+            return _mapper.Map<List<BookVM>>(books);
+        }
 
         [HttpGet("Random15Books")]
-        public IList<Book> Random15Books() => _service.Random15Books();
-
-        [Authorize("Bearer")]
-        [HttpGet("Title/{title}/{page}/{items}")]
-        public PagedList<Book> ByTitle(string title, int page, int items) => _service.ByTitle(title, page, items);
-
-        [Authorize("Bearer")]
-        [HttpGet("Author/{author}/{page}/{items}")]
-        public PagedList<Book> ByAuthor(string author, int page, int items) => _service.ByAuthor(author, page, items);
+        public IList<BookVM> Random15Books() {
+            var books = _service.Random15Books();
+            return _mapper.Map<List<BookVM>>(books);
+        } 
 
         [HttpGet("FullSearch/{criteria}/{page}/{items}")]
-        public PagedList<Book> FullSearch(string criteria, int page, int items) => _service.FullSearch(criteria, page, items);
+        public PagedList<BookVM> FullSearch(string criteria, int page, int items) {
+            var books = _service.FullSearch(criteria, page, items);
+            var booksVM = _mapper.Map<List<BookVM>>(books.Items);
+            return new PagedList<BookVM>()
+            {
+                Page = page,
+                TotalItems = books.TotalItems,
+                ItemsPerPage = items,
+                Items = booksVM
+            };
+        }
 
         [Authorize("Bearer")]
         [HttpGet("FullSearchAdmin/{criteria}")]
@@ -140,7 +162,20 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpGet("Category/{categoryId}/{page}/{items}")]
-        public PagedList<Book> ByCategoryId(Guid categoryId, int page, int items) => _service.ByCategoryId(categoryId, page, items);
+        public PagedList<BookVM> ByCategoryId(Guid categoryId, int page, int items)
+        {
+            var booksPaged = _service.ByCategoryId(categoryId, page, items);
+            var books = booksPaged.Items;
+            var booksVM = _mapper.Map<List<BookVM>>(books);
+
+            return new PagedList<BookVM>()
+            {
+                Page = page,
+                ItemsPerPage = items,
+                TotalItems = booksPaged.TotalItems,
+                Items = booksVM
+            };
+        }
 
         [Authorize("Bearer")]
         [HttpPost("Request")]
@@ -223,11 +258,11 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpGet("MyDonations")]
-        public IList<BooksVM> MyDonations()
+        public IList<BookVMAdm> MyDonations()
         {
             Guid userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             var donations = _service.GetUserDonations(userId);
-            return _mapper.Map<List<BooksVM>>(donations);
+            return _mapper.Map<List<BookVMAdm>>(donations);
         }
 
         [Authorize("Bearer")]
