@@ -50,7 +50,18 @@ namespace ShareBook.Service
             _booksEmailService.SendEmailBookToInterestedUsers(book);
         }
 
-        
+        public void Received(Guid bookId, Guid winnerUserId)
+        {
+            var book = _repository.Get().Include(f => f.BookUsers).FirstOrDefault(f => f.Id == bookId);
+            if (book == null)
+                throw new ShareBookException(ShareBookException.Error.NotFound);
+
+            book.Status = BookStatus.Received;
+            _repository.Update(book);
+
+            if(winnerUserId == book.UserId)
+                _booksEmailService.SendEmailBookReceived(book);
+        }
 
         public void UpdateBookStatus(Guid bookId, BookStatus bookStatus)
         {

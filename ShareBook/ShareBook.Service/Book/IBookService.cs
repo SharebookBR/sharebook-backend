@@ -11,6 +11,7 @@ namespace ShareBook.Service
     {
         void Approve(Guid bookId, DateTime? chooseDate);
 
+        void Received(Guid bookId, Guid winnerUserId);
         void UpdateBookStatus(Guid bookId, BookStatus bookStatus);
 
         IList<dynamic> FreightOptions();

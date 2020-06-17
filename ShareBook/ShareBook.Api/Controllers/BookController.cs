@@ -77,6 +77,15 @@ namespace ShareBook.Api.Controllers
         }
 
         [Authorize("Bearer")]
+        [HttpPost("Received/{bookId}")]
+        public Result Received(string bookId)
+        {
+            Guid winnerUserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+            _service.Received(new Guid(bookId), winnerUserId);
+            return new Result("Livro Recebido com sucesso.");
+        }
+
+        [Authorize("Bearer")]
         [HttpPost("Cancel/{id}")]
         [AuthorizationFilter(Permissions.Permission.ApproveBook)]
         public Result<Book> CancelAdmin(string id) => _bookUserService.Cancel(new Guid(id), true);
