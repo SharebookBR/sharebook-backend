@@ -76,7 +76,7 @@ namespace ShareBook.Service
                 {
                     Book = book,
                     book.User,
-                    WinnerName = book.User.Name,
+                    WinnerName = book.WinnerUser(),
                 };
 
                 var htmt = _emailTemplate.GenerateHtmlFromTemplateAsync(BookReceivedTemplate, vm).Result;

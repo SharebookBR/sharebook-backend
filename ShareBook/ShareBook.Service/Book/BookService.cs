@@ -58,9 +58,9 @@ namespace ShareBook.Service
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
-            // Verifica se o usuario é realmente o granhador do livro
+            // Verifica se o usuario é realmente o ganhador do livro
             var winner = book.WinnerUser();
-            if (winner == null || winner.Id != book.UserId)
+            if (winner == null || winner.Id != winnerUserId)
                 throw new ShareBookException(ShareBookException.Error.Forbidden);
 
             book.Status = BookStatus.Received;
