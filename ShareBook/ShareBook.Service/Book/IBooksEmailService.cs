@@ -11,5 +11,7 @@ namespace ShareBook.Service
 
         Task SendEmailBookToInterestedUsers(Book book);
 
+        void SendEmailBookReceived(Book book);
+
     }
 }

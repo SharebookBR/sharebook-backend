@@ -57,7 +57,7 @@ namespace ShareBook.Domain
            Status = BookStatus.WaitingApproval;
         }
 
-        public string Winner()
+        public string WinnerName()
             => BookUsers?.FirstOrDefault(x => x.Status == DonationStatus.Donated)?.User?.Name ?? "";
 
         public User WinnerUser()
