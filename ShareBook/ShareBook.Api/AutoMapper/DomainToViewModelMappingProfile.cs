@@ -28,7 +28,7 @@ namespace ShareBook.Api.AutoMapper
                  .ForMember(dest => dest.FreightOption, opt => opt.MapFrom(src => src.FreightOption.ToString()))
                  .ForMember(dest => dest.CreationDate, opt => opt.MapFrom(src => src.CreationDate))
                  .ForMember(dest => dest.ChooseDate, opt => opt.MapFrom(src => src.ChooseDate))
-                 .ForMember(dest => dest.WinnerName, opt => opt.MapFrom(src => src.WinnerName()))
+                 .ForMember(dest => dest.Winner, opt => opt.MapFrom(src => src.WinnerName()))
                  .ForMember(dest => dest.TrackingNumber, opt => opt.MapFrom(src => src.TrackingNumber))
                  .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.Name));
 
