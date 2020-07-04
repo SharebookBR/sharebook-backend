@@ -39,10 +39,9 @@ namespace ShareBook.Test.Unit.Services
             {
                 return BookMock.GetLordTheRings();
             });
-
             uploadServiceMock.Setup(service => service.UploadImage(null, null, null));
-
             bookServiceMock.Setup(service => service.Insert(It.IsAny<Book>())).Verifiable();
+            
         }
 
         [Fact]
@@ -61,6 +60,28 @@ namespace ShareBook.Test.Unit.Services
                 FreightOption = FreightOption.City,
                 CategoryId = Guid.NewGuid()
                 
+            });
+            Assert.NotNull(result);
+            Assert.True(result.Success);
+        }
+
+        [Fact]
+        public void AddEBook()
+        {
+            Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
+            var service = new BookService(bookRepositoryMock.Object,
+                unitOfWorkMock.Object, new BookValidator(),
+                uploadServiceMock.Object, bookEmailService.Object);
+            Result<Book> result = service.Insert(new Book()
+            {
+                Title = "Lord of the Rings",
+                Author = "J. R. R. Tolkien",
+                ImageName = "lotr.png",
+                ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
+                FreightOption = FreightOption.City,
+                CategoryId = Guid.NewGuid(),
+                Type = BookType.Eletronic,
+                EBookDownloadLink = "download-link-ebook"
             });
             Assert.NotNull(result);
             Assert.True(result.Success);

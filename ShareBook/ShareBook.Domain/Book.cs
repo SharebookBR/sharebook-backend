@@ -52,6 +52,11 @@ namespace ShareBook.Domain
 
         public BookStatus Status { get; set; }
 
+        public BookType Type { get; set; } = BookType.Printed;
+
+        public string EBookDownloadLink { get; set; }
+        public string EBookPdfFile { get; set; }
+
         public Book()
         {
            Status = BookStatus.WaitingApproval;
@@ -82,5 +87,7 @@ namespace ShareBook.Domain
             DateTime ChooseDateMidnight = new DateTime(ChooseDate.Value.Year, ChooseDate.Value.Month, ChooseDate.Value.Day, 0, 0, 0);
             return today >= ChooseDateMidnight;
         }
+
+        
     }
 }
