@@ -21,7 +21,7 @@ namespace ShareBook.Service
             if (!result.Success)
                 return result;
 
-            _contactUsEmailService.SendEmailContactUs(entity);
+            _contactUsEmailService.SendEmailContactUs(entity).Wait();
 
             return result;
         }

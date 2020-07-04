@@ -79,9 +79,9 @@ namespace ShareBook.Service
 
             _bookUserRepository.Insert(bookUser);
 
-            _bookUsersEmailService.SendEmailBookRequested(bookUser);
-            _bookUsersEmailService.SendEmailBookDonor(bookUser, bookRequested);
-            _bookUsersEmailService.SendEmailBookInterested(bookUser, bookRequested);
+            _bookUsersEmailService.SendEmailBookRequested(bookUser).Wait();
+            _bookUsersEmailService.SendEmailBookDonor(bookUser, bookRequested).Wait();
+            _bookUsersEmailService.SendEmailBookInterested(bookUser, bookRequested).Wait();
         }
 
         public void DonateBook(Guid bookId, Guid userId, string note)
@@ -110,16 +110,17 @@ namespace ShareBook.Service
 
             _bookService.UpdateBookStatus(bookId, BookStatus.WaitingSend);
 
-            // não usamos await nas notificações, pra serem assíncronas de verdade e retornar mais rápido.
+            // usamos await nas notificações porque eventualmente tem risco da taks
+            // não completar o trabalho dela. Talvez tenha a ver com o garbage collector.
 
             // avisa o ganhador
-            var taskWinner = _bookUsersEmailService.SendEmailBookDonated(bookUserAccepted);
+            _bookUsersEmailService.SendEmailBookDonated(bookUserAccepted).Wait();
 
             // avisa os perdedores :/
-            var taskLoosers = NotifyInterestedAboutBooksWinner(bookId);
+            NotifyInterestedAboutBooksWinner(bookId).Wait();
 
             // avisa o doador
-            var taskDonator = _bookUsersEmailService.SendEmailBookDonatedNotifyDonor(bookUserAccepted.Book, bookUserAccepted.User);
+            _bookUsersEmailService.SendEmailBookDonatedNotifyDonor(bookUserAccepted.Book, bookUserAccepted.User).Wait();
         }
 
         public Result<Book> Cancel(Guid bookId, bool isAdmin = false)
@@ -232,7 +233,7 @@ namespace ShareBook.Service
             // TODO: verificar se a notificação do muambator já é suficiente e remover esse trecho.
             if (winnerBookUser.User.AllowSendingEmail)
                 //Envia e-mail para avisar o ganhador do tracking number                          
-                _bookUsersEmailService.SendEmailTrackingNumberInformed(winnerBookUser, book);
+                _bookUsersEmailService.SendEmailTrackingNumberInformed(winnerBookUser, book).Wait();
         }
     }
 }
