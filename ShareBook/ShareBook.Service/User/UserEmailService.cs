@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using ShareBook.Domain;
 using ShareBook.Service.Server;
 
@@ -20,7 +21,7 @@ namespace ShareBook.Service
             _serverSettings = serverSettings.Value;
         }
 
-        public async void SendEmailForgotMyPasswordToUserAsync(User user)
+        public async Task SendEmailForgotMyPasswordToUserAsync(User user)
         {
             var vm = new
             {

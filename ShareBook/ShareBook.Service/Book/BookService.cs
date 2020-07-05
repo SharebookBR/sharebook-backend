@@ -44,10 +44,10 @@ namespace ShareBook.Service
             _repository.Update(book);
 
             // notifica o doador
-            _booksEmailService.SendEmailBookApproved(book);
+            _booksEmailService.SendEmailBookApproved(book).Wait();
 
             // notifica possíveis interessados
-            _booksEmailService.SendEmailBookToInterestedUsers(book);
+            _booksEmailService.SendEmailBookToInterestedUsers(book).Wait();
         }
 
         public void Received(Guid bookId, Guid winnerUserId)
@@ -165,7 +165,7 @@ namespace ShareBook.Service
 
                 result.Value.ImageBytes = null;
 
-                _booksEmailService.SendEmailNewBookInserted(entity);
+                _booksEmailService.SendEmailNewBookInserted(entity).Wait();
             }
             return result;
         }

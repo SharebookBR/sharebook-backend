@@ -47,7 +47,7 @@ namespace ShareBook.Service
             _configuration = configuration;
         }
 
-        public void SendEmailBookApproved(Book book)
+        public async Task SendEmailBookApproved(Book book)
         {
             if (book.User == null)
                 book.User = _userService.Find(book.UserId);
@@ -60,8 +60,8 @@ namespace ShareBook.Service
                     book.User,
                     ChooseDate = book.ChooseDate?.ToString("dd/MM/yyyy")
                 };
-                var html = _emailTemplate.GenerateHtmlFromTemplateAsync(BookApprovedTemplate, vm).Result;
-                _emailService.Send(book.User.Email, book.User.Name, html, BookApprovedTitle, true);
+                var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookApprovedTemplate, vm);
+                await _emailService.Send(book.User.Email, book.User.Name, html, BookApprovedTitle, true);
             }
         }
 
