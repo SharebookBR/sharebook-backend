@@ -83,16 +83,12 @@ namespace ShareBook.Test.Unit.Domain
             Assert.Equal(bookType, book.Type);
         }
 
-        [Theory]
-        [InlineData("", "")]
-        [InlineData(null, null)]
-        public void BookTypeShouldBePhysicalIfNemBookIsCreatedByDefault(string downloadLink, string eBookPdfFile)
+        [Fact]
+        public void BookTypeShouldBePrintedIfNemBookIsCreatedByDefault()
         {
             BookType expected = BookType.Printed;
-            var book = new Book() { EBookDownloadLink = downloadLink, EBookPdfFile = eBookPdfFile };
-            var book2 = new Book();
+            var book = new Book();
             Assert.Equal(expected, book.Type);
-            Assert.Equal(expected, book2.Type);
         }
 
     }
