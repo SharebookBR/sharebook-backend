@@ -40,7 +40,7 @@ namespace Sharebook.Jobs
             .Where(x => x.CreationDate > DateLimit &&
                    x.JobName == JobName &&
                    x.IsSuccess == true)
-            .ToList().Any<JobHistory>();
+            .ToList().Any();
 
             return !hasHistory;
         }

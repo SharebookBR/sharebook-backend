@@ -25,7 +25,7 @@ namespace Sharebook.Jobs
                           "Para isso é utilizada a leitura de uma fila da Amazon SQS.";
             Interval = Interval.Each5Minutes;
             Active = true;
-            BestTimeToExecute = new TimeSpan(9, 0, 0);
+            BestTimeToExecute = null;
 
             _emailService = emailService;
             _AWSSQSService = AWSSQSService;
