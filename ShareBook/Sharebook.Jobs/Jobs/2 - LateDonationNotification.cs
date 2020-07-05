@@ -71,7 +71,7 @@ namespace Sharebook.Jobs
             var vm = new { htmlTable };
             var emailBodyHTML = _emailTemplate.GenerateHtmlFromTemplateAsync("LateDonationNotification", vm).Result;
 
-            _emailService.SendToAdmins(emailBodyHTML, emailSubject);
+            _emailService.SendToAdmins(emailBodyHTML, emailSubject).Wait();
         }
 
         #endregion
