@@ -55,6 +55,7 @@ namespace ShareBook.Service
             var book = _repository.Get().Include(f => f.BookUsers)
                 .ThenInclude(bu => bu.User)
                 .FirstOrDefault(f => f.Id == bookId);
+
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
