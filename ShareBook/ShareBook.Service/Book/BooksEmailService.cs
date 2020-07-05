@@ -22,6 +22,7 @@ namespace ShareBook.Service
         private const string BookApprovedTemplate = "BookApprovedTemplate";
         private const string BookApprovedTitle = "Livro aprovado - Sharebook";
         private const string NewBookNotifyTemplate = "NewBookNotifyTemplate";
+        private const string BookReceivedTemplate = "BookReceivedTemplate";
 
         private readonly IEmailService _emailService;
         private readonly IUserService _userService;
@@ -46,7 +47,7 @@ namespace ShareBook.Service
             _configuration = configuration;
         }
 
-        public void SendEmailBookApproved(Book book)
+        public async Task SendEmailBookApproved(Book book)
         {
             if (book.User == null)
                 book.User = _userService.Find(book.UserId);
@@ -59,8 +60,27 @@ namespace ShareBook.Service
                     book.User,
                     ChooseDate = book.ChooseDate?.ToString("dd/MM/yyyy")
                 };
-                var html = _emailTemplate.GenerateHtmlFromTemplateAsync(BookApprovedTemplate, vm).Result;
-                _emailService.Send(book.User.Email, book.User.Name, html, BookApprovedTitle, true);
+                var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookApprovedTemplate, vm);
+                await _emailService.Send(book.User.Email, book.User.Name, html, BookApprovedTitle, true);
+            }
+        }
+
+        public void SendEmailBookReceived(Book book)
+        {
+            if (book.User == null)
+                book.User = _userService.Find(book.UserId);
+
+            if (book.User.AllowSendingEmail)
+            {
+                var vm = new
+                {
+                    Book = book,
+                    book.User,
+                    WinnerName = book.WinnerName(),
+                };
+
+                var htmt = _emailTemplate.GenerateHtmlFromTemplateAsync(BookReceivedTemplate, vm).Result;
+                _emailService.Send(book.User.Email, book.User.Name, htmt, BookReceivedTemplate, true);
             }
         }
 

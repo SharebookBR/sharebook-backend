@@ -167,7 +167,7 @@ namespace ShareBook.Service
 
             user.GenerateHashCodePassword();
             _repository.Update(user);
-            _userEmailService.SendEmailForgotMyPasswordToUserAsync(user);
+            _userEmailService.SendEmailForgotMyPasswordToUserAsync(user).Wait();
             result.SuccessMessage = "E-mail enviado com as instruções para recuperação da senha.";
             return result;
         }

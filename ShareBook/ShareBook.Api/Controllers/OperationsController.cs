@@ -71,7 +71,7 @@ namespace ShareBook.Api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            _emailService.Test(emailVM.Email, emailVM.Name);
+            _emailService.Test(emailVM.Email, emailVM.Name).Wait();
             return Ok();
         }
 
