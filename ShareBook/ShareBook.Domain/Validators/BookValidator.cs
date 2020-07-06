@@ -46,6 +46,8 @@ namespace ShareBook.Domain.Validators
             RuleFor(b => b.CategoryId)
                .NotEmpty()
                .WithMessage(Categoria);
+
+                
         }
 
 
@@ -62,5 +64,7 @@ namespace ShareBook.Domain.Validators
         {
             return !string.IsNullOrEmpty(freightOption.ToString());
         }
+
+      
     }
 }

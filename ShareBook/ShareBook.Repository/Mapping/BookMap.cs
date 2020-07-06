@@ -47,6 +47,8 @@ namespace ShareBook.Repository.Mapping
 
             entityBuilder.Ignore(t => t.ImageName);
 
+            entityBuilder.Ignore(t => t.EBookPdfBytes);
+
             entityBuilder.HasOne(t => t.User);
 
             entityBuilder.HasOne(t => t.UserFacilitator);
