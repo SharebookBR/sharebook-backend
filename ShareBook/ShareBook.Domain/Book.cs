@@ -56,6 +56,7 @@ namespace ShareBook.Domain
 
         public string EBookDownloadLink { get; set; }
         public string EBookPdfFile { get; set; }
+        public byte[] EBookPdfBytes {get; set; }
 
         public Book()
         {
@@ -87,6 +88,14 @@ namespace ShareBook.Domain
             DateTime ChooseDateMidnight = new DateTime(ChooseDate.Value.Year, ChooseDate.Value.Month, ChooseDate.Value.Day, 0, 0, 0);
             return today >= ChooseDateMidnight;
         }
+
+        public bool IsEbookPdfValid()
+        {
+            return Type == BookType.Eletronic
+                && EBookPdfBytes != null
+                && EBookPdfBytes.Length > 0;
+        }
+
 
         
     }

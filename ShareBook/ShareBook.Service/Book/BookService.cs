@@ -161,6 +161,9 @@ namespace ShareBook.Service
 
                 entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, entity.Slug);
 
+                if (entity.IsEbookPdfValid())
+                    entity.EBookPdfFile = _uploadService.UploadPdf(entity.EBookPdfBytes, entity.EBookPdfFile, "EBooks");
+
                 result.Value = _repository.Insert(entity);
 
                 result.Value.ImageUrl = _uploadService.UploadImage(entity.ImageBytes, entity.ImageSlug, "Books");
@@ -409,7 +412,7 @@ namespace ShareBook.Service
                 string.IsNullOrEmpty(entity.EBookDownloadLink) &&
                 string.IsNullOrEmpty(entity.EBookPdfFile))
             {
-                throw new ShareBookException(ShareBookException.Error.BadRequest, 
+                throw new ShareBookException(ShareBookException.Error.BadRequest,
                     "Necessário informar o link ou o arquivo em caso de um E-Book.");
             }
         }

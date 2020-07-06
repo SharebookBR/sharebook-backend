@@ -66,7 +66,7 @@ namespace ShareBook.Test.Unit.Services
         }
 
         [Fact]
-        public void AddEBook()
+        public void AddEBookByLink()
         {
             Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
             var service = new BookService(bookRepositoryMock.Object,
@@ -82,6 +82,29 @@ namespace ShareBook.Test.Unit.Services
                 CategoryId = Guid.NewGuid(),
                 Type = BookType.Eletronic,
                 EBookDownloadLink = "download-link-ebook"
+            });
+            Assert.NotNull(result);
+            Assert.True(result.Success);
+        }
+
+        [Fact]
+        public void AddEBookByPdfFile()
+        {
+            Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
+            var service = new BookService(bookRepositoryMock.Object,
+                unitOfWorkMock.Object, new BookValidator(),
+                uploadServiceMock.Object, bookEmailService.Object);
+            Result<Book> result = service.Insert(new Book()
+            {
+                Title = "Lord of the Rings",
+                Author = "J. R. R. Tolkien",
+                ImageName = "lotr.png",
+                ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
+                FreightOption = FreightOption.City,
+                CategoryId = Guid.NewGuid(),
+                Type = BookType.Eletronic,
+                EBookPdfFile = "pdf-ebook",
+                EBookPdfBytes = Encoding.UTF8.GetBytes("STRINGBASE64")
             });
             Assert.NotNull(result);
             Assert.True(result.Success);
