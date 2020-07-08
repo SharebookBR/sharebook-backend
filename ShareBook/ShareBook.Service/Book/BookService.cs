@@ -102,6 +102,7 @@ namespace ShareBook.Service
                 .ThenInclude(u => u.Address)
                 .Include(b => b.Category)
                 .Where(b => b.Status == BookStatus.Available)
+                .OrderByDescending(b => b.CreationDate)
                 .ToList()
             );
         }
