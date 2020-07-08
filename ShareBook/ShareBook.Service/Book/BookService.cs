@@ -55,6 +55,7 @@ namespace ShareBook.Service
             var book = _repository.Get().Include(f => f.BookUsers)
                 .ThenInclude(bu => bu.User)
                 .FirstOrDefault(f => f.Id == bookId);
+
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
@@ -101,6 +102,7 @@ namespace ShareBook.Service
                 .ThenInclude(u => u.Address)
                 .Include(b => b.Category)
                 .Where(b => b.Status == BookStatus.Available)
+                .OrderByDescending(b => b.CreationDate)
                 .ToList()
             );
         }
@@ -152,12 +154,17 @@ namespace ShareBook.Service
         {
             entity.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
 
+            EBookValidate(entity);
+
             var result = Validate(entity);
             if (result.Success)
             {
                 entity.Slug = SetSlugByTitleOrIncremental(entity);
 
                 entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, entity.Slug);
+
+                if (entity.IsEbookPdfValid())
+                    entity.EBookPdfFile = _uploadService.UploadPdf(entity.EBookPdfBytes, entity.EBookPdfFile, "EBooks");
 
                 result.Value = _repository.Insert(entity);
 
@@ -188,6 +195,7 @@ namespace ShareBook.Service
             if (savedBook == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
+            EBookValidate(entity);
 
             //imagem eh opcional no update
             if (!string.IsNullOrEmpty(entity.ImageName) && entity.ImageBytes.Length > 0)
@@ -398,6 +406,17 @@ namespace ShareBook.Service
                         .OrderByDescending(x => x.CreationDate)?.FirstOrDefault()?.Slug;
 
             return string.IsNullOrWhiteSpace(slug) ? entity.Title.GenerateSlug() : slug.AddIncremental();
+        }
+
+        private void EBookValidate(Book entity)
+        {
+            if (entity.Type == BookType.Eletronic &&
+                string.IsNullOrEmpty(entity.EBookDownloadLink) &&
+                string.IsNullOrEmpty(entity.EBookPdfFile))
+            {
+                throw new ShareBookException(ShareBookException.Error.BadRequest,
+                    "Necessário informar o link ou o arquivo em caso de um E-Book.");
+            }
         }
 
         #endregion Private
