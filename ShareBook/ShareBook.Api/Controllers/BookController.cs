@@ -298,7 +298,7 @@ namespace ShareBook.Api.Controllers
         [HttpGet("MainUsers/{bookId}")]
         public IActionResult MainUsers(Guid bookId)
         {
-            if (!_IsBookOwner(bookId)) return Unauthorized();
+            if (!IsBookMainUser(bookId)) return Unauthorized();
 
             var book = _service.GetBookWithAllUsers(bookId);
 
@@ -327,6 +327,7 @@ namespace ShareBook.Api.Controllers
             return Ok();
         }
 
+        // apenas doador e adm
         private bool _IsBookOwner(Guid bookId)
         {
             var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
@@ -334,11 +335,33 @@ namespace ShareBook.Api.Controllers
             if (user == null)
                 return false;
 
+            // Adm
             if (user.Profile == Domain.Enums.Profile.Administrator)
                 return true;
 
-            var book = _service.Find(bookId);
-            return book.UserId == userId;
+            // Doador
+            var book = _service.GetBookWithAllUsers(bookId);
+            if (book.UserId == userId)
+                return true;
+
+            return false;
+        }
+
+        // doador, adm e ganhador
+        private bool IsBookMainUser(Guid bookId)
+        {
+            if (_IsBookOwner(bookId))
+                return true;
+
+            var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+            var book = _service.GetBookWithAllUsers(bookId);
+
+            // Ganhador
+            var winner = book.WinnerUser();
+            if (winner.Id == userId)
+                return true;
+
+            return false;
         }
     }
 }
