@@ -298,7 +298,7 @@ namespace ShareBook.Api.Controllers
         [HttpGet("MainUsers/{bookId}")]
         public IActionResult MainUsers(Guid bookId)
         {
-            if (!IsBookMainUser(bookId)) return Unauthorized();
+            if (!_IsBookMainUser(bookId)) return Unauthorized();
 
             var book = _service.GetBookWithAllUsers(bookId);
 
@@ -348,7 +348,7 @@ namespace ShareBook.Api.Controllers
         }
 
         // doador, adm e ganhador
-        private bool IsBookMainUser(Guid bookId)
+        private bool _IsBookMainUser(Guid bookId)
         {
             if (_IsBookOwner(bookId))
                 return true;
