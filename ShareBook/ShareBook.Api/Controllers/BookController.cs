@@ -146,7 +146,14 @@ namespace ShareBook.Api.Controllers
         public IList<BookVM> Random15Books() {
             var books = _service.Random15Books();
             return _mapper.Map<List<BookVM>>(books);
-        } 
+        }
+
+        [HttpGet("Random15EBooks")]
+        public IList<BookVM> Random15EBooks()
+        {
+            var books = _service.Random15EBooks();
+            return _mapper.Map<List<BookVM>>(books);
+        }
 
         [HttpGet("FullSearch/{criteria}/{page}/{items}")]
         public PagedList<BookVM> FullSearch(string criteria, int page, int items) {
