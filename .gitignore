@@ -255,5 +255,5 @@ sandbox
 # production settings
 appsettings.Production.json
 
-# docker app files
+# docker app build files
 Sharebook/out/*
