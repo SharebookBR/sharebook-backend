@@ -121,6 +121,20 @@ namespace ShareBook.Service
              );
         }
 
+        public IList<Book> Random15EBooks()
+        {
+            return SetImageUrl(
+                _repository.Get()
+                .Include(b => b.User)
+                .ThenInclude(u => u.Address)
+                .Include(b => b.Category)
+                .Where(b => b.Status == BookStatus.Available && b.Type == BookType.Eletronic)
+                .OrderBy(x => Guid.NewGuid()) // ordem aleatória
+                .Take(15) // apenas 15 registros
+                .ToList()
+             );
+        }
+
         private IList<Book> SetImageUrl(IList<Book> books)
         {
             return books.Select(b => { b.ImageUrl = _uploadService.GetImageUrl(b.ImageSlug, "Books"); return b; }).ToList();
