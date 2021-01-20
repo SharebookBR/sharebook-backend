@@ -13,7 +13,7 @@
     <ProjectReference Include="..\ShareBook.Service\ShareBook.Service.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Rollbar" Version="3.12.0" />
-    <PackageReference Include="Rollbar.NetCore.AspNet" Version="3.12.0" />
+    <PackageReference Include="Rollbar" Version="3.14.0" />
+    <PackageReference Include="Rollbar.NetCore.AspNet" Version="3.14.0" />
   </ItemGroup>
 </Project>
