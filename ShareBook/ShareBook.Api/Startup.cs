@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Rollbar.NetCore.AspNet;
+using Rollbar.NetPlatformExtensions;
 using ShareBook.Api.Configuration;
 using ShareBook.Api.Middleware;
 using ShareBook.Api.Services;
