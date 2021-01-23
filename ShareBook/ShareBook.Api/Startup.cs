@@ -36,7 +36,11 @@ namespace ShareBook.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
-            RegisterHealthChecks(services, Configuration.GetConnectionString("DefaultConnection"));
+            
+            var isDocker = Environment.GetEnvironmentVariable("IS_DOCKER");
+            var connectionStringKey = isDocker == "1" ? "DefaultConnectionDocker" : "DefaultConnection";
+
+            RegisterHealthChecks(services, Configuration.GetConnectionString(connectionStringKey));
 
             services.RegisterRepositoryServices();
             services.AddAutoMapper(typeof(Startup));
@@ -84,7 +88,7 @@ namespace ShareBook.Api
             services
                 .AddDbContext<ApplicationDbContext>(options =>
                     options
-                        .UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+                        .UseSqlServer(Configuration.GetConnectionString(connectionStringKey)));
 
             RollbarConfigurator
                 .Configure(environment: Configuration.GetSection("Rollbar:Environment").Value,
