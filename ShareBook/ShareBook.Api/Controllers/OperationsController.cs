@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Sharebook.Jobs;
@@ -10,6 +11,7 @@ using ShareBook.Service;
 using ShareBook.Service.Authorization;
 using ShareBook.Service.Server;
 using System;
+using System.Reflection;
 
 namespace ShareBook.Api.Controllers
 {
@@ -21,12 +23,14 @@ namespace ShareBook.Api.Controllers
         protected IJobExecutor _executor;
         protected string _validToken;
         IEmailService _emailService;
+        private readonly IWebHostEnvironment _env;
 
-        public OperationsController(IJobExecutor executor, IOptions<ServerSettings> settings, IEmailService emailService)
+        public OperationsController(IJobExecutor executor, IOptions<ServerSettings> settings, IEmailService emailService, IWebHostEnvironment env)
         {
             _executor = executor;
             _validToken = settings.Value.JobExecutorToken;
             _emailService = emailService;
+            _env = env;
         }
 
         [HttpGet]
@@ -44,11 +48,10 @@ namespace ShareBook.Api.Controllers
         {
             var result = new
             {
-                ServerNow = DateTime.Now,
-                SaoPauloNow = DateTimeHelper.ConvertDateTimeSaoPaulo(DateTime.Now),
-                ServerToday = DateTime.Today,
-                SaoPauloToday = DateTimeHelper.GetTodaySaoPaulo(),
-                Message = "Pong!"
+                Service = Assembly.GetEntryAssembly().GetName().Name.ToString(),
+                Version = Assembly.GetEntryAssembly().GetName().Version.ToString(),
+                DotNetVersion = System.Environment.Version.ToString(),
+                Env = _env.EnvironmentName,
             };
             return Ok(result);
         }
