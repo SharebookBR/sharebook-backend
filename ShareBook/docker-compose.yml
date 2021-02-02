@@ -1,0 +1,17 @@
+version: '3.4'
+
+services:
+  sharebook.api:
+    image: ${DOCKER_REGISTRY-}sharebookapi
+    ports:
+        - "50708:80"
+    build:
+      context: .
+      dockerfile: ShareBook.Api/Dockerfile
+    networks:
+        - sharebook
+
+
+networks: 
+  sharebook: 
+    driver: bridge

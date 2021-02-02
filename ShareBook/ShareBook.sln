@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2010
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30907.101
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1 - Api", "1 - Api", "{9BD0B701-8938-47B7-9310-410F72171C27}"
 EndProject
@@ -33,7 +33,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sharebook.Jobs", "Sharebook
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShareBook.Infra.Data", "ShareBook.Repository\ShareBook.Infra.Data.csproj", "{4A07DFF3-3909-4081-8495-714179019A08}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShareBook.Tests.BDD", "ShareBook.Tests.BDD\ShareBook.Tests.BDD.csproj", "{84A85292-2B58-49C6-AC0F-5843D5962FDD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShareBook.Tests.BDD", "ShareBook.Tests.BDD\ShareBook.Tests.BDD.csproj", "{84A85292-2B58-49C6-AC0F-5843D5962FDD}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{14E41C46-AA7A-43A0-86CB-66B3D8BB49B5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -77,6 +79,10 @@ Global
 		{84A85292-2B58-49C6-AC0F-5843D5962FDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{84A85292-2B58-49C6-AC0F-5843D5962FDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{84A85292-2B58-49C6-AC0F-5843D5962FDD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{14E41C46-AA7A-43A0-86CB-66B3D8BB49B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14E41C46-AA7A-43A0-86CB-66B3D8BB49B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14E41C46-AA7A-43A0-86CB-66B3D8BB49B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14E41C46-AA7A-43A0-86CB-66B3D8BB49B5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
