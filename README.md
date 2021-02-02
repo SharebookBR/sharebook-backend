@@ -1,3 +1,6 @@
+![.NET](https://github.com/danilobbezerra/sharebook-backend/workflows/.NET/badge.svg)
+
+
 # PRIMEIROS PASSOS DEVELOPER BACKEND
 
 ## 1 - CONHEÇA O PROJETO SHAREBOOK
