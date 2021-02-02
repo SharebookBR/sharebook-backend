@@ -21,5 +21,5 @@ jobs:
       run: dotnet restore ./ShareBook/ShareBook.sln
     - name: Build
       run: dotnet build ./ShareBook/ShareBook.sln --configuration Release
-    - name: Test
-      run: dotnet test ./ShareBook/ShareBook.sln --configuration Release
+    #- name: Test
+     # run: dotnet test ./ShareBook/ShareBook.sln --configuration Release
