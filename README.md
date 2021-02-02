@@ -1,4 +1,5 @@
 ![.NET](https://github.com/danilobbezerra/sharebook-backend/workflows/.NET/badge.svg)
+![Docker Image CI](https://github.com/danilobbezerra/sharebook-backend/workflows/Docker%20Image%20CI/badge.svg)
 
 
 # PRIMEIROS PASSOS DEVELOPER BACKEND
