@@ -15,7 +15,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Build the Docker image
-    - uses: actions/checkout@v2
+    - uses: docker/build-push-action@v1
       with:
         uses: actions/checkout@v2
         name: Build the Docker image
