@@ -16,6 +16,8 @@ jobs:
     - uses: actions/checkout@v2
     - name: Build the Docker image
       with:
+        uses: actions/checkout@v2
+        name: Build the Docker image
         context: ./ShareBook/ShareBook.Api
         tags: docker/image/name:latest
         file: ./Dockerfile      
