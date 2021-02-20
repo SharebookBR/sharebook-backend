@@ -55,6 +55,7 @@ namespace ShareBook.Api.Controllers
                 TimeZone = TimeZoneInfo.Local.DisplayName
             };
             return Ok(result);
+
         }
 
         [HttpGet("JobExecutor")]
