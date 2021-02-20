@@ -11,8 +11,8 @@ services:
       dockerfile: ShareBook.Api/Dockerfile
     depends_on:
         - db
-    networks:
-        - sharebook
+    #networks:
+    #    - sharebook
 
   db:
     image: microsoft/mssql-server-linux:2017-latest
