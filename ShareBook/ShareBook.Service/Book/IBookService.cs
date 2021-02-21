@@ -20,6 +20,8 @@ namespace ShareBook.Service
 
         IList<Book> Random15Books();
 
+        IList<Book> Random15EBooks();
+
         PagedList<Book> FullSearch(string criteria, int page, int itemsPerPage, bool isAdmin = false);
 
         PagedList<Book> ByCategoryId(Guid categoryId, int page, int items);

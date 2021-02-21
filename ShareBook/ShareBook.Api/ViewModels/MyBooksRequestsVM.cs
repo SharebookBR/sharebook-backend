@@ -19,5 +19,9 @@ namespace ShareBook.Api.ViewModels
         public string BookStatus { get; set; }
 
         public string TrackingNumber { get; set; }
+
+        public Guid BookId { get; set; }
+
+        public string Slug { get; set; }
     }
 }

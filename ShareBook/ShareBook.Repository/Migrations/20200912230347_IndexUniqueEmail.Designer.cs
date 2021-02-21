@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ShareBook.Repository;
 
 namespace ShareBook.Repository.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200912230347_IndexUniqueEmail")]
+    partial class IndexUniqueEmail
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -91,12 +93,6 @@ namespace ShareBook.Repository.Migrations
                     b.Property<DateTime?>("CreationDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("EBookDownloadLink")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("EBookPdfFile")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("FacilitatorNotes")
                         .HasColumnType("varchar(2000)")
                         .HasMaxLength(2000);
@@ -127,9 +123,6 @@ namespace ShareBook.Repository.Migrations
 
                     b.Property<string>("TrackingNumber")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
 
                     b.Property<Guid?>("UserId")
                         .HasColumnType("uniqueidentifier");
