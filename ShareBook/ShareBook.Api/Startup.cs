@@ -8,8 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Rollbar.NetPlatformExtensions;
+using Rollbar.NetCore.AspNet;
 using ShareBook.Api.Configuration;
 using ShareBook.Api.Middleware;
 using ShareBook.Api.Services;
@@ -22,6 +21,7 @@ using ShareBook.Service.Server;
 using ShareBook.Service.Upload;
 using System;
 using System.Text.Json.Serialization;
+
 
 namespace ShareBook.Api
 {
@@ -53,10 +53,7 @@ namespace ShareBook.Api
                     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
                 }).AddNewtonsoftJson();
 
-            services
-                .AddHttpContextAccessor()
-                .Configure<RollbarOptions>(options => Configuration.GetSection("Rollbar").Bind(options))
-                .AddRollbarLogger(loggerOptions => loggerOptions.Filter = (loggerName, loglevel) => loglevel >= LogLevel.Trace);
+            services.AddHttpContextAccessor();
 
             services.Configure<ImageSettings>(options => Configuration.GetSection("ImageSettings").Bind(options));
 
@@ -95,6 +92,8 @@ namespace ShareBook.Api
                            isActive: Configuration.GetSection("Rollbar:IsActive").Value,
                            token: Configuration.GetSection("Rollbar:Token").Value,
                            logLevel: Configuration.GetSection("Rollbar:LogLevel").Value);
+
+            services.AddRollbarLogger();
 
             MuambatorConfigurator.Configure(Configuration.GetSection("Muambator:Token").Value, Configuration.GetSection("Muambator:IsActive").Value);
         }
