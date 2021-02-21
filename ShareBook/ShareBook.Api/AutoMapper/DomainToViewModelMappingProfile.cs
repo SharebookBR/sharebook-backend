@@ -44,7 +44,10 @@ namespace ShareBook.Api.AutoMapper
                 .ForMember(dest => dest.Author, opt => opt.MapFrom(src => src.Book.Author))
                 .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Book.Title))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
-                .ForMember(dest => dest.RequestId, opt => opt.MapFrom(src => src.Id));
+                .ForMember(dest => dest.RequestId, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.BookStatus, opt => opt.MapFrom(src => src.Book.Status.ToString()))
+                .ForMember(dest => dest.TrackingNumber, opt => opt.MapFrom(src => src.Book.TrackingNumber))
+                .ForMember(dest => dest.Slug, opt => opt.MapFrom(src => src.Book.Slug));
 
             #endregion [ Book ]
 

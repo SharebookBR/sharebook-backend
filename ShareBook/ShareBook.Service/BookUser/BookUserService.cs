@@ -171,7 +171,16 @@ namespace ShareBook.Service
                 .Where(x => x.UserId == userId)
                 .OrderByDescending(x => x.CreationDate);
 
-            return FormatPagedList(query, page, itemsPerPage);
+            var result = FormatPagedList(query, page, itemsPerPage);
+
+            // só mostra o código de rastreio se ele for o ganhador.
+            result.Items = result.Items.Select(bu =>
+            {
+                bu.Book.TrackingNumber = bu.Status == DonationStatus.Donated ? bu.Book.TrackingNumber : null;
+                return bu;
+            }).ToList();
+
+            return result;
         }
 
         public async Task NotifyInterestedAboutBooksWinner(Guid bookId)

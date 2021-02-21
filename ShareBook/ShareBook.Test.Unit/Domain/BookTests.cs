@@ -70,5 +70,26 @@ namespace ShareBook.Test.Unit.Domain
             var book = new Book { ChooseDate = DateTimeHelper.GetTodaySaoPaulo().AddDays(1) };
             Assert.False(book.MayChooseWinner());
         }
+
+        [Theory]
+        [InlineData(BookType.Eletronic ,"downloadLink", null)]
+        [InlineData(BookType.Eletronic, "downloadLink", "")]
+        [InlineData(BookType.Eletronic, null, "ebookPdfFile")]
+        [InlineData(BookType.Eletronic, "", "ebookPdfFile")]
+        [InlineData(BookType.Eletronic, "downloadLink", "ebookPdfFile")]
+        public void BookTypeShouldBeEletronicIfNemBookIsCreatedWithEBookDownloadLinkOrEbookPdfFile(BookType bookType, string downloadLink, string eBookPdfFile)
+        {
+            var book = new Book() { Type = bookType, EBookDownloadLink = downloadLink, EBookPdfFile = eBookPdfFile};
+            Assert.Equal(bookType, book.Type);
+        }
+
+        [Fact]
+        public void BookTypeShouldBePrintedIfNemBookIsCreatedByDefault()
+        {
+            BookType expected = BookType.Printed;
+            var book = new Book();
+            Assert.Equal(expected, book.Type);
+        }
+
     }
 }
