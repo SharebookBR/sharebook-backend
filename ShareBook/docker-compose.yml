@@ -1,4 +1,4 @@
-version: '3.4'
+﻿version: '3.4'
 
 services:
   sharebook.api:
@@ -25,7 +25,7 @@ services:
     expose:
       - '1433'
     container_name: sharebook-sql-server
-    #    volumes: ( volume n�o funciona no Mac )
+    #    volumes: ( volume não funciona no Mac )
     #      - /home/sample:/var/opt/mssql
 
 # networks: 
