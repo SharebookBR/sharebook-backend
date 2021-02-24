@@ -52,7 +52,8 @@ namespace ShareBook.Api.Controllers
                 Version = Assembly.GetEntryAssembly().GetName().Version.ToString(),
                 DotNetVersion = System.Environment.Version.ToString(),
                 Env = _env.EnvironmentName,
-                TimeZone = TimeZoneInfo.Local.DisplayName
+                TimeZone = TimeZoneInfo.Local.DisplayName,
+                System.Runtime.InteropServices.RuntimeInformation.OSDescription
             };
             return Ok(result);
         }
