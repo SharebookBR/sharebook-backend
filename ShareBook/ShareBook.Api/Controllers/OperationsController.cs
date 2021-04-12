@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Sharebook.Jobs;
 using ShareBook.Api.Filters;
@@ -24,13 +25,15 @@ namespace ShareBook.Api.Controllers
         protected string _validToken;
         IEmailService _emailService;
         private readonly IWebHostEnvironment _env;
+        private readonly IConfiguration _configuration;
 
-        public OperationsController(IJobExecutor executor, IOptions<ServerSettings> settings, IEmailService emailService, IWebHostEnvironment env)
+        public OperationsController(IJobExecutor executor, IOptions<ServerSettings> settings, IEmailService emailService, IWebHostEnvironment env, IConfiguration configuration)
         {
             _executor = executor;
             _validToken = settings.Value.JobExecutorToken;
             _emailService = emailService;
             _env = env;
+            _configuration = configuration;
         }
 
         [HttpGet]
@@ -53,8 +56,9 @@ namespace ShareBook.Api.Controllers
                 DotNetVersion = System.Environment.Version.ToString(),
                 Env = _env.EnvironmentName,
                 TimeZone = TimeZoneInfo.Local.DisplayName,
-                System.Runtime.InteropServices.RuntimeInformation.OSDescription
-            };
+                System.Runtime.InteropServices.RuntimeInformation.OSDescription,
+                DaysInShowcase = int.Parse(_configuration["SharebookSettings:DaysInShowcase"])
+        };
             return Ok(result);
         }
 
