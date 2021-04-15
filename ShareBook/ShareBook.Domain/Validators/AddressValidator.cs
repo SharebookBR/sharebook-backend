@@ -49,16 +49,16 @@ namespace ShareBook.Domain.Validators
                 .WithMessage("Rua deve ter no máximo 80 caracteres");
 
             RuleFor(x => x.Complement)
-                .Must(x => OptionalFieldIsValid(x))
+                .Must(x => OptionalFieldIsValid(x, 0 , 50))
                 .WithMessage("Complemento deve ter no máximo 50 caracteres");
         }
 
-        private bool OptionalFieldIsValid(string phone)
+        private bool OptionalFieldIsValid(string value, int minimum, int maximum)
         {
-            if (phone == null)
+            if (value == null)
                 return true;
 
-            return phone.Length > 0 && phone.Length < 100;
+            return value.Length > minimum && value.Length < maximum;
         }
     }
 }

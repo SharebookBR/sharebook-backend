@@ -58,12 +58,12 @@ namespace ShareBook.Domain.Validators
             return true;
         }
 
-        private bool OptionalFieldIsValid(string phone)
+        private bool OptionalFieldIsValid(string value)
         {
-            if (phone == null)
+            if (value == null)
                 return true;
 
-            return phone.Length > 0 && phone.Length < 100;
+            return value.Length > 0 && value.Length < 100;
         }
     }
 }
