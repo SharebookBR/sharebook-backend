@@ -40,9 +40,7 @@ namespace ShareBook.Api.Middleware
             catch (Exception ex)
             {
                 if (RollbarConfigurator.IsActive)
-                {
                     SendErrorToRollbar(ex);
-                }
 
                 var result = new Result();
                 result.Messages.Add(ex.ToString());
