@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using System.Collections.Generic;
+using ShareBook.Domain.Common;
 using System.Linq;
 
 namespace ShareBook.Api.Filters
@@ -16,7 +16,7 @@ namespace ShareBook.Api.Filters
                         .Select(v => v.ErrorMessage)
                         .ToList();
 
-                var response = new ErrorMessage<object>();
+                var response = new Result();
                 foreach (var error in errors)
                     response.Messages.Add(error);
 
@@ -25,14 +25,6 @@ namespace ShareBook.Api.Filters
                     StatusCode = 400
                 };
             }
-        }
-        internal class ErrorMessage<T>
-        {
-            public T Value { get; set; }
-            public IList<string> Messages { get; } = new List<string>();
-            public string SuccessMessage { get; set; }
-
-            public bool Success { get { return Messages.Count == 0; } }
         }
     }
 }
