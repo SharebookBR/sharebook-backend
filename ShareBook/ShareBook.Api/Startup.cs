@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,6 +11,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Rollbar.NetCore.AspNet;
 using ShareBook.Api.Configuration;
+using ShareBook.Api.Filters;
 using ShareBook.Api.Middleware;
 using ShareBook.Api.Services;
 using ShareBook.Repository;
@@ -36,7 +38,7 @@ namespace ShareBook.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
-            
+
             var isDocker = Environment.GetEnvironmentVariable("IS_DOCKER");
             var connectionStringKey = isDocker == "1" ? "DefaultConnectionDocker" : "DefaultConnection";
 
@@ -46,12 +48,20 @@ namespace ShareBook.Api
             services.AddAutoMapper(typeof(Startup));
 
             services
-                .AddControllers()
+                .AddControllers(x =>
+                {
+                    x.Filters.Add(typeof(ValidateModelStateFilterAttribute));
+                })
                 .AddJsonOptions(options =>
                 {
                     options.JsonSerializerOptions.IgnoreNullValues = true;
                     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
                 }).AddNewtonsoftJson();
+
+            services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.SuppressModelStateInvalidFilter = true;
+            });
 
             services.AddHttpContextAccessor();
 
@@ -100,7 +110,7 @@ namespace ShareBook.Api
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            bool rollbarActive = Convert.ToBoolean(Configuration.GetSection("Rollbar:IsActive").Value.ToLower());
+            bool rollbarActive = Configuration.GetSection("Rollbar:IsActive").Value == null ? false : Convert.ToBoolean(Configuration.GetSection("Rollbar:IsActive").Value.ToLower());
             if (rollbarActive)
             {
                 app.UseRollbarMiddleware();

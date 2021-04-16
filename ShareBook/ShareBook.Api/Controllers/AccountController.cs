@@ -79,9 +79,6 @@ namespace ShareBook.Api.Controllers
         [ProducesResponseType(409)]
         public IActionResult Post([FromBody] RegisterUserVM registerUserVM, [FromServices] SigningConfigurations signingConfigurations, [FromServices] TokenConfigurations tokenConfigurations)
         {
-            if (!ModelState.IsValid)
-                return BadRequest();
-
             var user = _mapper.Map<User>(registerUserVM);
 
             var result = _userService.Insert(user);
@@ -102,7 +99,7 @@ namespace ShareBook.Api.Controllers
             [FromHeader(Name = "x-requested-with")] string client,
             [FromHeader(Name = "client-version")] string clientVersion)
         {
-            
+
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
@@ -209,7 +206,7 @@ namespace ShareBook.Api.Controllers
 
                 default:
                     return false;
-            }                       
+            }
         }
     }
 }

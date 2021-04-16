@@ -5,6 +5,7 @@ using ShareBook.Repository.Repository;
 using System;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace ShareBook.Repository
@@ -100,10 +101,35 @@ namespace ShareBook.Repository
 
         public async Task<TEntity> InsertAsync(TEntity entity)
         {
-            _context.Add(entity);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.Add(entity);
+                await _context.SaveChangesAsync();
 
-            return entity;
+                return entity;
+            }
+            catch (DbUpdateException ex)
+            {
+                Exception db = HandleDbUpdateException(ex);
+                throw db;
+            }
+        }
+
+        private Exception HandleDbUpdateException(DbUpdateException dbUpdate)
+        {
+            var builder = new StringBuilder("A DbUpdateException was caught while saving changes.");
+            try
+            {
+                builder.AppendLine($"Message: {dbUpdate.InnerException.Message}");
+                foreach (var entries in dbUpdate.Entries)
+                    builder.AppendLine($"Entity of type {entries.Entity.GetType().Name} in state {entries.State} could not be updated");
+            }
+            catch (Exception e)
+            {
+                builder.Append("Error parsing DbUpdateException: " + e.ToString());
+            }
+            string message = builder.ToString();
+            return new Exception(message, dbUpdate);
         }
 
         public virtual async Task<TEntity> UpdateAsync(TEntity entity)
