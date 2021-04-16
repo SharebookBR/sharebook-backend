@@ -1,5 +1,6 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.Enums;
@@ -23,24 +24,28 @@ namespace ShareBook.Service
     {
         private readonly IUploadService _uploadService;
         private readonly IBooksEmailService _booksEmailService;
+        private readonly IConfiguration _configuration;
 
         public BookService(IBookRepository bookRepository,
                     IUnitOfWork unitOfWork, IValidator<Book> validator,
-                    IUploadService uploadService, IBooksEmailService booksEmailService)
+                    IUploadService uploadService, IBooksEmailService booksEmailService, IConfiguration configuration)
                     : base(bookRepository, unitOfWork, validator)
         {
             _uploadService = uploadService;
             _booksEmailService = booksEmailService;
+            _configuration = configuration;
         }
 
         public void Approve(Guid bookId, DateTime? chooseDate = null)
         {
+            var daysInShowcase = int.Parse(_configuration["SharebookSettings:DaysInShowcase"]);
+
             var book = _repository.Get().Include(b => b.Category).FirstOrDefault(b => b.Id == bookId);
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
             book.Status = BookStatus.Available;
-            book.ChooseDate = chooseDate?.Date ?? DateTime.Today.AddDays(5);
+            book.ChooseDate = chooseDate?.Date ?? DateTime.Today.AddDays(daysInShowcase);
             _repository.Update(book);
 
             // notifica o doador

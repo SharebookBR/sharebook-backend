@@ -77,6 +77,9 @@ namespace ShareBook.Service
         public override Result<User> Insert(User user)
         {
             var result = Validate(user);
+            
+            if (!result.Success)
+                return result;
 
             // Senha forte não é mais obrigatória.
 

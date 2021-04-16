@@ -17,22 +17,37 @@ namespace ShareBook.Domain.Validators
 
         public UserValidator()
         {
+            RuleFor(u => u.Name)
+                .NotEmpty()
+                .WithMessage(Name)
+                .Must(x => x != null && x.Length < 100)
+                .WithMessage("Nome deve ter no máximo 100 caracteres");
+
             RuleFor(u => u.Email)
                .EmailAddress()
                .WithMessage(EmailFormat)
                .NotEmpty()
-               .WithMessage(Email);
-
-            RuleFor(u => u.Name)
-                .NotEmpty()
-                .WithMessage(Name);
+               .WithMessage(Email)
+               .MaximumLength(100)
+               .WithMessage("Email deve ter no máximo 100 caracteres");
 
             RuleFor(u => u.Password)
               .NotEmpty()
               .WithMessage(Password)
               .Must(x => x != null && x.Length >= 6 && x.Length <= 32)
               .WithMessage("Senha deve ter entre 6 e 32 letras.");
-                
+
+            RuleFor(u => u.Linkedin)
+                .Must(x => OptionalFieldIsValid(x))
+                .WithMessage("Linkedln deve ter no máximo 100 caracteres");
+
+            RuleFor(u => u.Phone)
+                .Must(x => OptionalFieldIsValid(x))
+                .WithMessage("Telefone deve ter no máximo 100 caracteres");
+
+            RuleFor(x => x.Address)
+                .SetValidator(new AddressValidator());
+
         }
 
         private bool PostalCodeIsValid(string postalCode)
@@ -41,6 +56,14 @@ namespace ShareBook.Domain.Validators
             if (string.IsNullOrEmpty(postalCode) || !Rgx.IsMatch(postalCode)) return false;
 
             return true;
+        }
+
+        private bool OptionalFieldIsValid(string value)
+        {
+            if (value == null)
+                return true;
+
+            return value.Length > 0 && value.Length < 100;
         }
     }
 }
