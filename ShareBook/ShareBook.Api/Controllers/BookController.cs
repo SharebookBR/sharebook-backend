@@ -88,7 +88,12 @@ namespace ShareBook.Api.Controllers
         [Authorize("Bearer")]
         [HttpPost("Cancel/{id}")]
         [AuthorizationFilter(Permissions.Permission.ApproveBook)]
-        public Result<Book> CancelAdmin(string id) => _bookUserService.Cancel(new Guid(id), true);
+        public Result<CancelBookDonationVM> CancelAdmin(string id)
+        {
+            var returnBook =  _bookUserService.Cancel(new Guid(id), true).Value;
+            var returnBookVm = _mapper.Map<CancelBookDonationVM>(returnBook);
+            return new Result<CancelBookDonationVM>(returnBookVm);
+        }
 
         [HttpGet("FreightOptions")]
         public IList<dynamic> FreightOptions()

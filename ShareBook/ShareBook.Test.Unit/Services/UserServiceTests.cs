@@ -91,7 +91,6 @@ namespace ShareBook.Test.Unit.Services
         [Fact]
         public void RegisterInvalidUser()
         {
-           
             var service = new UserService(userRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), userEmailServiceMock.Object);
 
             Result<User> result = service.Insert(new User()
@@ -118,7 +117,7 @@ namespace ShareBook.Test.Unit.Services
                 Linkedin = "https://www.linkedin.com/in/sergiopratesdossantos/",
                 Name = "Sergio1",
                 Phone = "584558999",
-                Address = new Address ()
+                Address = new Address()
                 {
                     PostalCode = "04473-140",
                     Street = "Av sharebook",

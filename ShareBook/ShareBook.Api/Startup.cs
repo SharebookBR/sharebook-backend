@@ -3,14 +3,15 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Rollbar.NetPlatformExtensions;
+using Rollbar.NetCore.AspNet;
 using ShareBook.Api.Configuration;
+using ShareBook.Api.Filters;
 using ShareBook.Api.Middleware;
 using ShareBook.Api.Services;
 using ShareBook.Repository;
@@ -22,6 +23,7 @@ using ShareBook.Service.Server;
 using ShareBook.Service.Upload;
 using System;
 using System.Text.Json.Serialization;
+
 
 namespace ShareBook.Api
 {
@@ -36,7 +38,7 @@ namespace ShareBook.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
-            
+
             var isDocker = Environment.GetEnvironmentVariable("IS_DOCKER");
             var connectionStringKey = isDocker == "1" ? "DefaultConnectionDocker" : "DefaultConnection";
 
@@ -46,17 +48,22 @@ namespace ShareBook.Api
             services.AddAutoMapper(typeof(Startup));
 
             services
-                .AddControllers()
+                .AddControllers(x =>
+                {
+                    x.Filters.Add(typeof(ValidateModelStateFilterAttribute));
+                })
                 .AddJsonOptions(options =>
                 {
                     options.JsonSerializerOptions.IgnoreNullValues = true;
                     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
                 }).AddNewtonsoftJson();
 
-            services
-                .AddHttpContextAccessor()
-                .Configure<RollbarOptions>(options => Configuration.GetSection("Rollbar").Bind(options))
-                .AddRollbarLogger(loggerOptions => loggerOptions.Filter = (loggerName, loglevel) => loglevel >= LogLevel.Trace);
+            services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.SuppressModelStateInvalidFilter = true;
+            });
+
+            services.AddHttpContextAccessor();
 
             services.Configure<ImageSettings>(options => Configuration.GetSection("ImageSettings").Bind(options));
 
@@ -96,12 +103,14 @@ namespace ShareBook.Api
                            token: Configuration.GetSection("Rollbar:Token").Value,
                            logLevel: Configuration.GetSection("Rollbar:LogLevel").Value);
 
+            services.AddRollbarLogger();
+
             MuambatorConfigurator.Configure(Configuration.GetSection("Muambator:Token").Value, Configuration.GetSection("Muambator:IsActive").Value);
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            bool rollbarActive = Convert.ToBoolean(Configuration.GetSection("Rollbar:IsActive").Value.ToLower());
+            bool rollbarActive = Configuration.GetSection("Rollbar:IsActive").Value == null ? false : Convert.ToBoolean(Configuration.GetSection("Rollbar:IsActive").Value.ToLower());
             if (rollbarActive)
             {
                 app.UseRollbarMiddleware();
