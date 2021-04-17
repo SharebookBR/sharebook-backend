@@ -26,6 +26,7 @@ namespace ShareBook.Test.Unit.Validators
 				Password = "Password.123",
 				Name = "João da Silva",
 				Linkedin = "linkedin.com/joao-silva",
+                Phone = "11 95316-8850"
             };
 
             ValidationResult result = userValidation.Validate(user);

@@ -42,7 +42,9 @@ namespace ShareBook.Domain.Validators
                 .WithMessage("Linkedln deve ter no máximo 100 caracteres");
 
             RuleFor(u => u.Phone)
-                .Must(x => OptionalFieldIsValid(x))
+                .NotNull()
+                .WithMessage("Telefone é obrigatório")
+                .MaximumLength(100)
                 .WithMessage("Telefone deve ter no máximo 100 caracteres");
 
             RuleFor(x => x.Address)
@@ -60,7 +62,7 @@ namespace ShareBook.Domain.Validators
 
         private bool OptionalFieldIsValid(string value)
         {
-            if (value == null)
+            if (value == null || value.Length == 0 || value == string.Empty)
                 return true;
 
             return value.Length > 0 && value.Length < 100;
