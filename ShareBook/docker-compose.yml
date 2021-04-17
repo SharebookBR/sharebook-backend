@@ -1,18 +1,19 @@
-version: '3'
-
-# SHAREBOOK
+﻿version: '3.4'
 
 services:
-  api:
-    image: sharebook
+  sharebook.api:
+    container_name: sharebook-api
+    image: ${DOCKER_REGISTRY-}sharebookapi
     ports:
-      - "50709:80"
+        - "50709:80"
     build:
-      context: ./ShareBook
-      dockerfile: Dockerfile      
+      context: .
+      dockerfile: ShareBook.Api/Dockerfile
     depends_on:
         - db
-    container_name: sharebook-api
+    #networks:
+    #    - sharebook
+
   db:
     image: microsoft/mssql-server-linux:2017-latest
     restart: always
@@ -26,6 +27,7 @@ services:
     container_name: sharebook-sql-server
     #    volumes: ( volume não funciona no Mac )
     #      - /home/sample:/var/opt/mssql
+
 # networks: 
 #  sharebook: 
 #    driver: bridge
