@@ -22,6 +22,7 @@ namespace ShareBook.Tests.BDD.Features
                 City = "São Paulo",
                 PostalCode = "04473-150",
                 Linkedin = "linkedin.com/joaquim",
+                Phone = "11 93354-0025",
                 Neighborhood = "Vila Olimpia",
                 Street = "Rua teste",
                 Country = "Brasil",

@@ -55,7 +55,7 @@ namespace ShareBook.Domain.Validators
 
         private bool OptionalFieldIsValid(string value, int minimum, int maximum)
         {
-            if (value == null)
+            if (value == null || value.Length == 0 || value == string.Empty)
                 return true;
 
             return value.Length > minimum && value.Length < maximum;
