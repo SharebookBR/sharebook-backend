@@ -91,7 +91,7 @@ namespace Sharebook.Jobs
 
                 details += "E-mail enviado para o usuário: " + book.User.Name;
 
-                _emailService.Send(book.User.Email, book.User.Name, html, emailSubject, copyAdmins: false);
+                _emailService.Send(book.User.Email, book.User.Name, html, emailSubject, copyAdmins: false).Wait();
             }
         }
 
