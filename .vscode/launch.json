@@ -10,7 +10,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/ShareBook/ShareBook.Api/bin/Debug/netcoreapp2.2/ShareBook.Api.dll",
+            "program": "${workspaceFolder}/ShareBook/ShareBook.Api/bin/Debug/net5.0/ShareBook.Api.dll",
             "args": [],
             "cwd": "${workspaceFolder}/ShareBook/ShareBook.Api",
             "stopAtEntry": false,
