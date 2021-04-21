@@ -227,7 +227,12 @@ namespace ShareBook.Service
                 await _emailService.Send(bookUserWinner.User.Email, bookUserWinner.User.Name, html, BookTrackingNumberNoticeWinnerTitle, copyAdmins: false);
             }
         }
-    
-    
+
+        public async Task SendEmailMaxRequests(Book bookRequested)
+        {
+            var subject = "Limite de pedidos";
+            var body = $"Prezados adms, o livro <b>{bookRequested.Title}</b> atingiu o limite de pedidos e foi removido automaticamente da vitrine. A data de decisão foi configurada pra amanhã. Obrigado.";
+            await _emailService.SendToAdmins(body, subject);
+        }
     }
 }
