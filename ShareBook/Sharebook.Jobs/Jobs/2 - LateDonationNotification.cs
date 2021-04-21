@@ -81,7 +81,7 @@ namespace Sharebook.Jobs
         {
             foreach (var book in books)
             {
-                var html = "<p>Bom dia! Aqui é o Sharebook. Vim aqui pra te ajudar a concluir a doação do seu livro.</p>";
+                var html = "<p>Bom dia! Aqui é o Sharebook. Vim aqui pra te ajudar a concluir a doação do seu livro. =)</p>";
                 html += "<p>Por favor entre no Sharebook e escolha o ganhador.</p>";
                 html += "<p>Para sua conveniência use esse link: <a href='https://www.sharebook.com.br/book/donations' target='_blank'>Minhas doações</a></p>";
                 html += "<p>Obrigado. Qualquer dúvida pode entrar em contato com o seu facilitador. É um prazer ajudar.</p>";
@@ -91,7 +91,7 @@ namespace Sharebook.Jobs
 
                 details += "E-mail enviado para o usuário: " + book.User.Name;
 
-                _emailService.Send(book.User.Email, book.User.Name, html, emailSubject, true);
+                _emailService.Send(book.User.Email, book.User.Name, html, emailSubject, copyAdmins: false);
             }
         }
 
