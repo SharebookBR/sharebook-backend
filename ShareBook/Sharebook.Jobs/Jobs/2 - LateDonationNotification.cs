@@ -34,7 +34,10 @@ namespace Sharebook.Jobs
         {
             var booksLate = _bookService.GetBooksChooseDateIsLate();
             var details = string.Format("Encontradas {0} doações em atraso.", booksLate.Count);
-            if (booksLate.Count > 0) SendEmail(booksLate);
+            if (booksLate.Count > 0){
+                SendEmailAdmin(booksLate);
+                SendEmailDonators(booksLate, ref details);
+            }
 
             return new JobHistory()
             {
@@ -46,7 +49,7 @@ namespace Sharebook.Jobs
 
         #region métodos privados de apoio
 
-        private void SendEmail(IList<Book> books)
+        private void SendEmailAdmin(IList<Book> books)
         {
             var htmlTable = "<TABLE border=1 cellpadding=3 cellspacing=0><TR bgcolor='#ffff00'><TD><b>LIVRO</b></TD><TD><b>DIAS NA <BR>VITRINE</b></TD><TD><b>TOTAL <br>INTERESSADOS</b></TD><TD><b>DOADOR</b></TD><TD><b>FACILITADOR</b></TD><TD><b>ANOTAÇÕES</b></TD></TR>";
 
@@ -72,6 +75,24 @@ namespace Sharebook.Jobs
             var emailBodyHTML = _emailTemplate.GenerateHtmlFromTemplateAsync("LateDonationNotification", vm).Result;
 
             _emailService.SendToAdmins(emailBodyHTML, emailSubject).Wait();
+        }
+
+        private void SendEmailDonators(IList<Book> books, ref string details)
+        {
+            foreach (var book in books)
+            {
+                var html = "<p>Bom dia! Aqui é o Sharebook. Vim aqui pra te ajudar a concluir a doação do seu livro.</p>";
+                html += "<p>Por favor entre no Sharebook e escolha o ganhador.</p>";
+                html += "<p>Para sua conveniência use esse link: <a href='https://www.sharebook.com.br/book/donations' target='_blank'>Minhas doações</a></p>";
+                html += "<p>Obrigado. Qualquer dúvida pode entrar em contato com o seu facilitador. É um prazer ajudar.</p>";
+                html += "<p>Sharebook</p>";
+
+                var emailSubject = "Lembrete do Sharebook";
+
+                details += "E-mail enviado para o usuário: " + book.User.Name;
+
+                _emailService.Send(book.User.Email, book.User.Name, html, emailSubject, true);
+            }
         }
 
         #endregion

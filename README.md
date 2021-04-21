@@ -33,9 +33,17 @@ https://github.com/SharebookBR/sharebook-backend
 
 Hora de colocar a mão na massa. A parte mais divertida, trabalhar no código-fonte. Depois de concluir e testar, envie e aguarde o PULL REQUEST ser aprovado.
 
-### 5 MISSÃO CUMPRIDA. VC AJUDOU O PROJETO. ❤️
+## 5 - MISSÃO CUMPRIDA. VC AJUDOU O PROJETO. ❤️
 
-# Rodar o app pela primeira vez?
+## 6 - Rodar o app pela primeira vez?
 https://github.com/SharebookBR/sharebook-backend/wiki/Como-rodar-o-projeto%3F
 
+## 7 - Dicas Visual Studio Code
+Instalar o .NET SDK 5 (stable)
 
+Executar comando: dotnet restore ./ShareBook/ShareBook.sln
+
+Extensions:
+- [C# Extensions](https://marketplace.visualstudio.com/items?itemName=jchannon.csharpextensions)
+- [Netcore Extension Pack](https://marketplace.visualstudio.com/items?itemName=doggy8088.netcore-extension-pack)
+- [GitLens](https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens)
