@@ -79,9 +79,9 @@ namespace ShareBook.Service
 
             _bookUserRepository.Insert(bookUser);
 
-            _bookUsersEmailService.SendEmailBookRequested(bookUser).Wait();
-            _bookUsersEmailService.SendEmailBookDonor(bookUser, bookRequested).Wait();
-            _bookUsersEmailService.SendEmailBookInterested(bookUser, bookRequested).Wait();
+            //_bookUsersEmailService.SendEmailBookRequested(bookUser).Wait();
+            //_bookUsersEmailService.SendEmailBookDonor(bookUser, bookRequested).Wait();
+            //_bookUsersEmailService.SendEmailBookInterested(bookUser, bookRequested).Wait();
         }
 
         public void DonateBook(Guid bookId, Guid userId, string note)
