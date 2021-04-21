@@ -1,6 +1,7 @@
 ﻿using MailKit.Net.Smtp;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using Rollbar;
 using ShareBook.Domain;
 using ShareBook.Repository;
 using System.Collections.Generic;
@@ -48,9 +49,7 @@ namespace ShareBook.Service
             }
             catch (System.Exception e)
             {
-                //TODO: v2 implementar log para exceptions
-                throw e;
-
+                RollbarLocator.RollbarInstance.Error(e);
             }
         }
 

@@ -52,7 +52,9 @@ namespace ShareBook.Service
             _booksEmailService.SendEmailBookApproved(book).Wait();
 
             // notifica possíveis interessados
-            _booksEmailService.SendEmailBookToInterestedUsers(book).Wait();
+            // todo: desacoplar o próprio enfileiramento numa outra fila.
+            // aprove >> fila 1 >> fila 2 >> notifica interessados.
+            // _booksEmailService.SendEmailBookToInterestedUsers(book).Wait();
         }
 
         public void Received(Guid bookId, Guid winnerUserId)
