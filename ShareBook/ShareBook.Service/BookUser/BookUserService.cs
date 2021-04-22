@@ -97,7 +97,7 @@ namespace ShareBook.Service
                 return;
 
             bookRequested.Status = BookStatus.AwaitingDonorDecision;
-            bookRequested.ChooseDate = DateTime.Now.AddDays(1);
+            bookRequested.ChooseDate = DateTime.Today.AddDays(1);
             _bookRepository.Update(bookRequested);
 
             _bookUsersEmailService.SendEmailMaxRequests(bookRequested).Wait();
