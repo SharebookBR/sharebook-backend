@@ -4,6 +4,7 @@ using ShareBook.Repository;
 using ShareBook.Service;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Sharebook.Jobs
 {
@@ -33,10 +34,12 @@ namespace Sharebook.Jobs
         public override JobHistory Work()
         {
             var booksLate = _bookService.GetBooksChooseDateIsLate();
-            var details = string.Format("Encontradas {0} doações em atraso.", booksLate.Count);
+            var donators = GetDistinctDonators(booksLate);
+
+            var details = $"Encontradas {booksLate.Count} doações em atraso de {donators.Count} doadores distintos.";
             if (booksLate.Count > 0){
                 SendEmailAdmin(booksLate);
-                SendEmailDonators(booksLate, ref details);
+                SendEmailDonators(donators, ref details);
             }
 
             return new JobHistory()
@@ -47,7 +50,14 @@ namespace Sharebook.Jobs
             };
         }
 
+
+
         #region métodos privados de apoio
+
+        private List<User> GetDistinctDonators(IList<Book> booksLate)
+        {
+            return booksLate.Select(b => b.User).Distinct().ToList();
+        }
 
         private void SendEmailAdmin(IList<Book> books)
         {
@@ -77,21 +87,21 @@ namespace Sharebook.Jobs
             _emailService.SendToAdmins(emailBodyHTML, emailSubject).Wait();
         }
 
-        private void SendEmailDonators(IList<Book> books, ref string details)
+        private void SendEmailDonators(IList<User> donators, ref string details)
         {
-            foreach (var book in books)
+            foreach (var donator in donators)
             {
-                var html = "<p>Bom dia! Aqui é o Sharebook. Vim aqui pra te ajudar a concluir a doação do seu livro. =)</p>";
+                var html = "<p>Bom dia! Aqui é o Sharebook. Vim aqui pra te ajudar a concluir a doação do seu livro.</p>";
                 html += "<p>Por favor entre no Sharebook e escolha o ganhador.</p>";
                 html += "<p>Para sua conveniência use esse link: <a href='https://www.sharebook.com.br/book/donations' target='_blank'>Minhas doações</a></p>";
-                html += "<p>Obrigado. Qualquer dúvida pode entrar em contato com o seu facilitador. É um prazer ajudar.</p>";
+                html += "<p>Obrigado. Qualquer dúvida pode entrar em contato com o seu facilitador. É um prazer ajudar. =)</p>";
                 html += "<p>Sharebook</p>";
 
                 var emailSubject = "Lembrete do Sharebook";
 
-                details += "E-mail enviado para o usuário: " + book.User.Name;
+                details += "E-mail enviado para o usuário: " + donator.Name;
 
-                _emailService.Send(book.User.Email, book.User.Name, html, emailSubject, copyAdmins: false).Wait();
+                _emailService.Send(donator.Email, donator.Name, html, emailSubject, copyAdmins: false).Wait();
             }
         }
 
