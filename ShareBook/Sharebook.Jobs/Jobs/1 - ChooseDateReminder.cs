@@ -66,7 +66,7 @@ namespace Sharebook.Jobs
 
         private void SendEmail(Book book)
         {
-            var emailSubject = "SHAREBOOK - É HOJE!";
+            var emailSubject = "Hoje é o dia de escolher o ganhador!";
 
             var vm = new
             {
@@ -79,9 +79,7 @@ namespace Sharebook.Jobs
             };
             var emailBodyHTML = _emailTemplate.GenerateHtmlFromTemplateAsync("ChooseDateReminderTemplate", vm).Result;
 
-            // TODO: não enviar cópia para admins quando o job já estiver bem testado e amadurecido.
-            var copyAdmins = true;
-            _emailService.Send(book.User.Email, book.User.Name, emailBodyHTML, emailSubject, copyAdmins);
+            _emailService.Send(book.User.Email, book.User.Name, emailBodyHTML, emailSubject, copyAdmins: false);
         }
 
         #endregion
