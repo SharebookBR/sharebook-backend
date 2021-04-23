@@ -87,12 +87,15 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpPost("Cancel/{id}")]
-        [AuthorizationFilter(Permissions.Permission.ApproveBook)]
-        public Result<CancelBookDonationVM> CancelAdmin(string id)
+        [ProducesResponseType(typeof(Result<CancelBookDonationVM>), 200)]
+        public IActionResult Cancel(string id)
         {
+            if (!_IsBookOwner(new Guid(id))) return Unauthorized();
+
             var returnBook =  _bookUserService.Cancel(new Guid(id), true).Value;
             var returnBookVm = _mapper.Map<CancelBookDonationVM>(returnBook);
-            return new Result<CancelBookDonationVM>(returnBookVm);
+            var result = new Result<CancelBookDonationVM>(returnBookVm);
+            return Ok(result);
         }
 
         [HttpGet("FreightOptions")]
