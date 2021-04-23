@@ -151,9 +151,6 @@ namespace ShareBook.Service
 
             var bookUsers = _bookUserRepository.Get().Where(x => x.BookId == bookId).ToList();
 
-            if (!isAdmin && bookUsers != null && bookUsers.Count > 0)
-                throw new ShareBookException("Este livro já possui interessados");
-
             book.ChooseDate = null;
             book.Status = BookStatus.Canceled;
 
