@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
+using ShareBook.Domain.DTOs;
 using ShareBook.Domain.Enums;
 using ShareBook.Domain.Exceptions;
 using ShareBook.Helper;
@@ -438,6 +439,28 @@ namespace ShareBook.Service
                 throw new ShareBookException(ShareBookException.Error.BadRequest,
                     "Necessário informar o link ou o arquivo em caso de um E-Book.");
             }
+        }
+
+        public BookTotalStatusDTO GetTotalStatus()
+        {
+            var groupedStatus = _repository.Get()
+                .GroupBy(b => b.Status)
+                .Select(g => new
+                {
+                    Status = g.Key,
+                    Total = g.Count()
+                })
+                .ToList();
+
+            var status = new BookTotalStatusDTO();
+
+            status.TotalWaitingApproval = groupedStatus.Where(g => g.Status == BookStatus.WaitingApproval).FirstOrDefault().Total;
+
+            status.TotalOk = groupedStatus
+                .Where(g => g.Status == BookStatus.WaitingSend || g.Status == BookStatus.Sent || g.Status == BookStatus.Received)
+                .Sum(g => g.Total);
+
+            return status;
         }
 
         #endregion Private
