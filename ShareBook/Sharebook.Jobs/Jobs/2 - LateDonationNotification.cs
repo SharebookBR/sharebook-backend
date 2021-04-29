@@ -1,4 +1,5 @@
 ﻿using ShareBook.Domain;
+using ShareBook.Domain.DTOs;
 using ShareBook.Domain.Enums;
 using ShareBook.Repository;
 using ShareBook.Service;
@@ -20,7 +21,7 @@ namespace Sharebook.Jobs
             IEmailTemplate emailTemplate) : base(jobHistoryRepo)
         {
             JobName     = "LateDonationNotification";
-            Description = "Notifica o facilitador com lista de doações em atraso " +
+            Description = "Notifica o facilitador e doador com lista de doações em atraso " +
                           "ordenado pelo mais atrasado.";
             Interval    = Interval.Dayly;
             Active      = true;
@@ -33,12 +34,13 @@ namespace Sharebook.Jobs
 
         public override JobHistory Work()
         {
+            var status = _bookService.GetTotalStatus();
             var booksLate = _bookService.GetBooksChooseDateIsLate();
             var donators = GetDistinctDonators(booksLate);
 
             var details = $"Encontradas {booksLate.Count} doações em atraso de {donators.Count} doadores distintos.";
             if (booksLate.Count > 0){
-                SendEmailAdmin(booksLate);
+                SendEmailAdmin(booksLate, status);
                 SendEmailDonators(donators, ref details);
             }
 
@@ -59,11 +61,11 @@ namespace Sharebook.Jobs
             return booksLate.Select(b => b.User).Distinct().ToList();
         }
 
-        private void SendEmailAdmin(IList<Book> books)
+        private void SendEmailAdmin(IList<Book> booksLate, BookTotalStatusDTO status)
         {
             var htmlTable = "<TABLE border=1 cellpadding=3 cellspacing=0><TR bgcolor='#ffff00'><TD><b>LIVRO</b></TD><TD><b>DIAS NA <BR>VITRINE</b></TD><TD><b>TOTAL <br>INTERESSADOS</b></TD><TD><b>DOADOR</b></TD><TD><b>FACILITADOR</b></TD><TD><b>ANOTAÇÕES</b></TD></TR>";
 
-            foreach (var book in books)
+            foreach (var book in booksLate)
             {
                 var notes = book.FacilitatorNotes?.Replace("\n", "<BR>");
 
@@ -79,9 +81,14 @@ namespace Sharebook.Jobs
 
             htmlTable += "</TABLE>";
 
-            var emailSubject = "SHAREBOOK - LISTA DE DOAÇÕES EM ATRASO.";
+            var emailSubject = "SHAREBOOK - STATUS DO DIA.";
 
-            var vm = new { htmlTable };
+            var vm = new { 
+                htmlTable, 
+                totalWaitingApproval = status.TotalWaitingApproval,
+                totalLate = booksLate.Count,
+                totalOk = status.TotalOk
+            };
             var emailBodyHTML = _emailTemplate.GenerateHtmlFromTemplateAsync("LateDonationNotification", vm).Result;
 
             _emailService.SendToAdmins(emailBodyHTML, emailSubject).Wait();
@@ -91,6 +98,12 @@ namespace Sharebook.Jobs
         {
             foreach (var donator in donators)
             {
+                if (!donator.Active)
+                {
+                    details += "E-mail NÃO enviado para o usuário: " + donator.Name + " porque está INATIVO.";
+                    continue;
+                }  
+                
                 var html = "<p>Bom dia! Aqui é o Sharebook. Vim aqui pra te ajudar a concluir a doação do seu livro.</p>";
                 html += "<p>Por favor entre no Sharebook e escolha o ganhador.</p>";
                 html += "<p>Para sua conveniência use esse link: <a href='https://www.sharebook.com.br/book/donations' target='_blank'>Minhas doações</a></p>";

@@ -1,5 +1,6 @@
 ﻿using ShareBook.Domain;
 using ShareBook.Domain.Common;
+using ShareBook.Domain.DTOs;
 using ShareBook.Domain.Enums;
 using ShareBook.Service.Generic;
 using System;
@@ -43,5 +44,6 @@ namespace ShareBook.Service
         Book GetBookWithAllUsers(Guid bookId);
 
         void RenewChooseDate(Guid bookId);
+        BookTotalStatusDTO GetTotalStatus();
     }
 }

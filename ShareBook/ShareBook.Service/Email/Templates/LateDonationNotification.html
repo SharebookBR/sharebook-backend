@@ -2,14 +2,20 @@
 <html>
     <head>
         <meta charset="utf-8" />
-        <title>SHAREBOOK - LISTA DE DOAÇÕES EM ATRASO.</title>
+        <title>SHAREBOOK - STATUS DO DIA.</title>
     </head>
     <body>
         <p>
-            Prezados facilitadores,
+            Bom dia! Segue o status de hoje:
         </p>
 
-        <p>Segue abaixo a lista de doações em atraso. :/</p>
+        <ul>
+            <li><b>Aguardando aprovação:</b> {totalWaitingApproval}</li>
+            <li><b>Em atraso:</b> {totalLate}</li>
+            <li><b>Concluídas:</b> {totalOk}</li>
+        </ul>
+
+        <p>Cada doação concluída, faz uma pessoa feliz. Bora Pra cima!</p>
 
         {htmlTable}
 
