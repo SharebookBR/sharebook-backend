@@ -454,7 +454,9 @@ namespace ShareBook.Service
 
             var status = new BookTotalStatusDTO();
 
-            status.TotalWaitingApproval = groupedStatus.Where(g => g.Status == BookStatus.WaitingApproval).FirstOrDefault().Total;
+            status.TotalWaitingApproval = groupedStatus.Where(g => g.Status == BookStatus.WaitingApproval).Any()
+                ? groupedStatus.Where(g => g.Status == BookStatus.WaitingApproval).FirstOrDefault().Total
+                : 0;
 
             status.TotalOk = groupedStatus
                 .Where(g => g.Status == BookStatus.WaitingSend || g.Status == BookStatus.Sent || g.Status == BookStatus.Received)
