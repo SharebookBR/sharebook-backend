@@ -189,8 +189,6 @@ namespace ShareBook.Service
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
-            var bookUsers = _bookUserRepository.Get().Where(x => x.BookId == bookId).ToList();
-
             book.ChooseDate = null;
             book.Status = BookStatus.Canceled;
 
