@@ -97,7 +97,7 @@ namespace ShareBook.Service
         {
             DateTime rightNow = DateTime.Now;
 
-            bool sendEmail = rightNow.Subtract(_timeReference).Hours <= 1;
+            bool sendEmail = rightNow.Subtract(_timeReference).Hours >= 1;
 
             if (sendEmail)
             {
