@@ -20,6 +20,5 @@ namespace ShareBook.Domain
             this.Status = status;
             this.Note = note;
         }
-
     }
 }

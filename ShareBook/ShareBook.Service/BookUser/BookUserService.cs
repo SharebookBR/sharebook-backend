@@ -86,10 +86,11 @@ namespace ShareBook.Service
 
             // Remove da vitrine caso o número de pedidos estiver grande demais.
             MaxRequestsValidation(bookRequested);
-            
+
             SendRequestEmailIfPossible();
 
-            
+            //_bookUsersEmailService.SendEmailBookDonor(bookUser, bookRequested).Wait();
+            //_bookUsersEmailService.SendEmailBookInterested(bookUser, bookRequested).Wait();
         }
 
         private void SendRequestEmailIfPossible()
@@ -123,14 +124,9 @@ namespace ShareBook.Service
 
                     foreach (var email in emailsList)
                     {
-
+                        _bookUsersEmailService.SendEmailBookRequested(email.Value).Wait();
                     }
-
-                    //_bookUsersEmailService.SendEmailBookRequested(bookUser).Wait();
-                    //_bookUsersEmailService.SendEmailBookDonor(bookUser, bookRequested).Wait();
-                    //_bookUsersEmailService.SendEmailBookInterested(bookUser, bookRequested).Wait();
                 }
-
             }
         }
 

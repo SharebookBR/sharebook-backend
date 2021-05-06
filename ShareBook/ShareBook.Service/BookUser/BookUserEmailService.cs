@@ -1,8 +1,8 @@
 ﻿using ShareBook.Domain;
 using ShareBook.Repository.Repository;
 using ShareBook.Service.Notification;
-using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace ShareBook.Service
@@ -77,24 +77,24 @@ namespace ShareBook.Service
             }
         }
 
-        public async Task SendEmailBookRequested(List<BookUser> bookUser)
+        public async Task SendEmailBookRequested(List<BookUser> bookUsers)
         {
-            throw new NotImplementedException();
-            //var includeList = new IncludeList<Book>(x => x.User);
-            //var bookRequested = _bookService.Find(includeList, bookUser.BookId);
-            //var requestingUser = _userService.Find(bookUser.UserId);
+            var bookUser = bookUsers.First();
+            var includeList = new IncludeList<Book>(x => x.User);
+            var bookRequested = _bookService.Find(includeList, bookUser.BookId);
+            var requestingUsers = (from b in bookUsers
+                                   let requestingUser = _userService.Find(b.UserId)
+                                   where requestingUser.AllowSendingEmail
+                                   select requestingUser).ToList();
 
-            //if (requestingUser.AllowSendingEmail)
-            //{
-            //    var vm = new
-            //    {
-            //        Request = bookUser,
-            //        Book = bookRequested,
-            //        RequestingUser = requestingUser,
-            //    };
-            //    var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookRequestedTemplate, vm);
-            //    await _emailService.SendToAdmins(html, BookRequestedTitle);
-            //}
+            var vm = new
+            {
+                Request = bookUsers.First(),
+                Book = bookRequested,
+                RequestingUsers = requestingUsers,
+            };
+            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookRequestedTemplate, vm);
+            await _emailService.SendToAdmins(html, BookRequestedTitle);
         }
 
         public async Task SendEmailBookDonor(BookUser bookUser, Book bookRequested)
@@ -114,7 +114,6 @@ namespace ShareBook.Service
                         ChooseDate = string.Format("{0:dd/MM/yyyy}", bookRequested.ChooseDate.Value)
                     },
                     RequestingUser = new { bookUser.NickName },
-
                 };
 
                 _notificationService.SendNotificationByEmail(
@@ -138,7 +137,7 @@ namespace ShareBook.Service
                     LinkedinFacilitator = book.UserFacilitator.Linkedin,
                     PhoneFacilitator = book.UserFacilitator.Phone,
                     EmailFacilitator = book.UserFacilitator.Email,
-                    ChooseDate = string.Format("{0:dd/MM/yyyy}", book.ChooseDate.Value) ,
+                    ChooseDate = string.Format("{0:dd/MM/yyyy}", book.ChooseDate.Value),
                     NameInterested = bookUser.User.Name,
                 };
 
@@ -161,7 +160,6 @@ namespace ShareBook.Service
 
             if (donatedUser.Address == null) return ND;
 
-
             var address = donatedUser.Address;
             string location = string.Empty;
 
@@ -169,10 +167,9 @@ namespace ShareBook.Service
                 location = address.City.ToUpper();
 
             if (!string.IsNullOrEmpty(address.State))
-                location += $"/{address.State}";            
+                location += $"/{address.State}";
 
             return location;
-
         }
 
         public async Task SendEmailDonationDeclined(Book book, BookUser bookUserWinner, List<BookUser> bookUsersDeclined)
@@ -190,7 +187,6 @@ namespace ShareBook.Service
                 if (bookUser.User.AllowSendingEmail)
                     _emailService.Send(bookUser.User.Email, bookUser.User.Name, html, emailSubject).Wait();
             });
-
         }
 
         public async Task SendEmailDonationCanceled(Book book, List<BookUser> bookUsers)
@@ -203,7 +199,6 @@ namespace ShareBook.Service
                 if (bookUser.User.AllowSendingEmail)
                     _emailService.Send(bookUser.User.Email, bookUser.User.Name, html, $"SHAREBOOK - DOAÇÃO CANCELADA").Wait();
             });
-            
         }
 
         public async Task SendEmailBookCanceledToAdmins(Book book)
@@ -211,7 +206,7 @@ namespace ShareBook.Service
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookCanceledTemplate, book);
             await _emailService.SendToAdmins(html, BookCanceledTitle);
         }
-    
+
         public async Task SendEmailTrackingNumberInformed(BookUser bookUserWinner, Book book)
         {
             if (bookUserWinner.User.AllowSendingEmail)

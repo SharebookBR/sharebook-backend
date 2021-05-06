@@ -6,23 +6,23 @@ namespace ShareBook.Service
 {
     public interface IBookUsersEmailService
     {
-        Task SendEmailBookRequested(List<BookUser> bookUserGroup);
+       public Task SendEmailBookRequested(List<BookUser> bookUserGroup);
 
-        Task SendEmailBookDonated(BookUser bookUser);
+        public Task SendEmailBookDonated(BookUser bookUser);
 
-        Task SendEmailBookDonatedNotifyDonor(Book book, User winner);
+        public Task SendEmailBookDonatedNotifyDonor(Book book, User winner);
 
-        Task SendEmailBookDonor(BookUser bookUser, Book bookRequested);
+        public Task SendEmailBookDonor(BookUser bookUser, Book bookRequested);
 
-        Task SendEmailBookInterested(BookUser bookUser, Book book);
+        public Task SendEmailBookInterested(BookUser bookUser, Book book);
 
-        Task SendEmailDonationDeclined(Book book, BookUser bookUserWinner, List<BookUser> bookUsersDeclined);
+        public Task SendEmailDonationDeclined(Book book, BookUser bookUserWinner, List<BookUser> bookUsersDeclined);
 
-        Task SendEmailDonationCanceled(Book book, List<BookUser> bookUsers);
+        public Task SendEmailDonationCanceled(Book book, List<BookUser> bookUsers);
 
-        Task SendEmailBookCanceledToAdmins(Book book);
+        public Task SendEmailBookCanceledToAdmins(Book book);
 
-        Task SendEmailTrackingNumberInformed(BookUser bookUserWinner, Book book);
-        Task SendEmailMaxRequests(Book bookRequested);
+        public Task SendEmailTrackingNumberInformed(BookUser bookUserWinner, Book book);
+        public Task SendEmailMaxRequests(Book bookRequested);
     }
 }
