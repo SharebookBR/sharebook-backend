@@ -153,7 +153,7 @@ namespace ShareBook.Service
         /// </summary>
         /// <param name="donatedUser"></param>
         /// <returns></returns>
-        private string GenerateDonatedLocation(User donatedUser)
+        private static string GenerateDonatedLocation(User donatedUser)
         {
             string ND = "N/D";
             if (donatedUser == null) return ND;
