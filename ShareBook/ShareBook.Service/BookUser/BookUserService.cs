@@ -25,7 +25,6 @@ namespace ShareBook.Service
         private readonly IMuambatorService _muambatorService;
         private readonly IBookRepository _bookRepository;
         private readonly IConfiguration _configuration;
-        private readonly DateTime _timeReference;
 
         public BookUserService(
             IBookUserRepository bookUserRepository,
@@ -43,7 +42,6 @@ namespace ShareBook.Service
             _muambatorService = muambatorService;
             _bookRepository = bookRepository;
             _configuration = configuration;
-            _timeReference = DateTime.Now;
         }
 
         public IList<User> GetGranteeUsersByBookId(Guid bookId) =>
@@ -87,47 +85,8 @@ namespace ShareBook.Service
             // Remove da vitrine caso o número de pedidos estiver grande demais.
             MaxRequestsValidation(bookRequested);
 
-            SendRequestEmailIfPossible();
-
             //_bookUsersEmailService.SendEmailBookDonor(bookUser, bookRequested).Wait();
             //_bookUsersEmailService.SendEmailBookInterested(bookUser, bookRequested).Wait();
-        }
-
-        private void SendRequestEmailIfPossible()
-        {
-            DateTime rightNow = DateTime.Now;
-
-            bool sendEmail = rightNow.Subtract(_timeReference).Hours >= 1;
-
-            if (sendEmail)
-            {
-                var bookUsers = _bookUserRepository.Get().Where(b => b.CreationDate >= _timeReference && b.CreationDate <= rightNow).ToList();
-                if (bookUsers.Count > 0)
-                {
-                    var emailsList = new List<KeyValuePair<Guid, List<BookUser>>>();
-
-                    //Separa por chave e valor numa lista
-                    foreach (var bookUser in bookUsers)
-                    {
-                        if (emailsList.Any(x => x.Key == bookUser.User.Id))
-                        {
-                            var email = emailsList.Find(x => x.Key == bookUser.User.Id);
-                            email.Value.Add(bookUser);
-                        }
-                        else
-                        {
-                            emailsList.Add(new KeyValuePair<Guid, List<BookUser>>(bookUser.User.Id, new List<BookUser>()));
-                            var email = emailsList.Find(x => x.Key == bookUser.User.Id);
-                            email.Value.Add(bookUser);
-                        }
-                    }
-
-                    foreach (var email in emailsList)
-                    {
-                        _bookUsersEmailService.SendEmailBookRequested(email.Value).Wait();
-                    }
-                }
-            }
         }
 
         private void MaxRequestsValidation(Book bookRequested)

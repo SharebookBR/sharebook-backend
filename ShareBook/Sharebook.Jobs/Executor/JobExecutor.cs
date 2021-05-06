@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Rollbar;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Repository;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using Rollbar;
 
 namespace Sharebook.Jobs
 {
@@ -18,6 +18,7 @@ namespace Sharebook.Jobs
         private Stopwatch _stopwatch;
 
         public JobExecutor(IJobHistoryRepository jobHistoryRepo,
+                           RequestBook job0,
                            ChooseDateReminder job1,
                            LateDonationNotification job2,
                            RemoveBookFromShowcase job3,
@@ -27,12 +28,12 @@ namespace Sharebook.Jobs
 
             _jobs = new List<IJob>
             {
+                job0,
                 job1,
                 job2,
                 job3,
                 job4
             };
-
         }
 
         public JobExecutorResult Execute()
@@ -54,7 +55,6 @@ namespace Sharebook.Jobs
 
                     if (job.HasWork())
                     {
-
                         if (job.Execute())
                         {
                             messages.Add(string.Format("Job {0}: job executado com sucesso.", job.JobName));
@@ -74,7 +74,7 @@ namespace Sharebook.Jobs
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 success = false;
                 messages.Add(string.Format("Executor: ocorreu um erro fatal. {0}", ex.Message));
