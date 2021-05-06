@@ -77,19 +77,19 @@ namespace ShareBook.Service
             }
         }
 
-        public async Task SendEmailBookRequested(List<BookUser> bookUsers)
+        public async Task SendEmailBookRequested(List<BookUser> bookUserGroup)
         {
-            var bookUser = bookUsers.First();
+            var bookUser = bookUserGroup.First();
             var includeList = new IncludeList<Book>(x => x.User);
             var bookRequested = _bookService.Find(includeList, bookUser.BookId);
-            var requestingUsers = (from b in bookUsers
+            var requestingUsers = (from b in bookUserGroup
                                    let requestingUser = _userService.Find(b.UserId)
                                    where requestingUser.AllowSendingEmail
                                    select requestingUser).ToList();
 
             var vm = new
             {
-                Request = bookUsers.First(),
+                Request = bookUserGroup.First(),
                 Book = bookRequested,
                 RequestingUsers = requestingUsers,
             };
