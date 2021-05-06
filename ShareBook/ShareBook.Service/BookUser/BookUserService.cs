@@ -25,7 +25,7 @@ namespace ShareBook.Service
         private readonly IMuambatorService _muambatorService;
         private readonly IBookRepository _bookRepository;
         private readonly IConfiguration _configuration;
-        private DateTime _timeReference;
+        private readonly DateTime _timeReference;
 
         public BookUserService(
             IBookUserRepository bookUserRepository,
