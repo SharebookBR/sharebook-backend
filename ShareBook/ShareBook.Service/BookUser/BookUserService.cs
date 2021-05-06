@@ -25,9 +25,10 @@ namespace ShareBook.Service
         private readonly IMuambatorService _muambatorService;
         private readonly IBookRepository _bookRepository;
         private readonly IConfiguration _configuration;
+        private DateTime _timeReference;
 
         public BookUserService(
-            IBookUserRepository bookUserRepository, 
+            IBookUserRepository bookUserRepository,
             IBookService bookService,
             IBookUsersEmailService bookUsersEmailService,
             IMuambatorService muambatorService,
@@ -42,6 +43,7 @@ namespace ShareBook.Service
             _muambatorService = muambatorService;
             _bookRepository = bookRepository;
             _configuration = configuration;
+            _timeReference = DateTime.Now;
         }
 
         public IList<User> GetGranteeUsersByBookId(Guid bookId) =>
@@ -84,10 +86,52 @@ namespace ShareBook.Service
 
             // Remove da vitrine caso o número de pedidos estiver grande demais.
             MaxRequestsValidation(bookRequested);
+            
+            SendRequestEmailIfPossible();
 
-            //_bookUsersEmailService.SendEmailBookRequested(bookUser).Wait();
-            //_bookUsersEmailService.SendEmailBookDonor(bookUser, bookRequested).Wait();
-            //_bookUsersEmailService.SendEmailBookInterested(bookUser, bookRequested).Wait();
+            
+        }
+
+        private void SendRequestEmailIfPossible()
+        {
+            DateTime rightNow = DateTime.Now;
+
+            bool sendEmail = rightNow.Subtract(_timeReference).Hours <= 1;
+
+            if (sendEmail)
+            {
+                var bookUsers = _bookUserRepository.Get().Where(b => b.CreationDate >= _timeReference && b.CreationDate <= rightNow).ToList();
+                if (bookUsers.Count > 0)
+                {
+                    var emailsList = new List<KeyValuePair<Guid, List<BookUser>>>();
+
+                    //Separa por chave e valor numa lista
+                    foreach (var bookUser in bookUsers)
+                    {
+                        if (emailsList.Any(x => x.Key == bookUser.User.Id))
+                        {
+                            var email = emailsList.Find(x => x.Key == bookUser.User.Id);
+                            email.Value.Add(bookUser);
+                        }
+                        else
+                        {
+                            emailsList.Add(new KeyValuePair<Guid, List<BookUser>>(bookUser.User.Id, new List<BookUser>()));
+                            var email = emailsList.Find(x => x.Key == bookUser.User.Id);
+                            email.Value.Add(bookUser);
+                        }
+                    }
+
+                    foreach (var email in emailsList)
+                    {
+
+                    }
+
+                    //_bookUsersEmailService.SendEmailBookRequested(bookUser).Wait();
+                    //_bookUsersEmailService.SendEmailBookDonor(bookUser, bookRequested).Wait();
+                    //_bookUsersEmailService.SendEmailBookInterested(bookUser, bookRequested).Wait();
+                }
+
+            }
         }
 
         private void MaxRequestsValidation(Book bookRequested)
@@ -154,7 +198,7 @@ namespace ShareBook.Service
             book.ChooseDate = null;
             book.Status = BookStatus.Canceled;
 
-            CancelBookUsersAndSendNotification(book);            
+            CancelBookUsersAndSendNotification(book);
 
             _bookService.Update(book);
             _bookUsersEmailService.SendEmailBookCanceledToAdmins(book).Wait();
@@ -174,7 +218,8 @@ namespace ShareBook.Service
             }
         }
 
-        private void CancelBookUsersAndSendNotification(Book book){
+        private void CancelBookUsersAndSendNotification(Book book)
+        {
             DeniedBookUsers(book.Id);
             NotifyUsersBookCanceled(book);
         }
@@ -211,26 +256,22 @@ namespace ShareBook.Service
             var winnerBookUser = bookUsers.Where(bu => bu.Status == DonationStatus.Donated).FirstOrDefault();
 
             //Book
-            var book =  winnerBookUser.Book;
+            var book = winnerBookUser.Book;
 
             //usuarios que perderam a doação :(
             var losersBookUser = bookUsers.Where(bu => bu.Status == DonationStatus.Denied).ToList();
 
             //enviar e-mails
-           await this._bookUsersEmailService.SendEmailDonationDeclined(book, winnerBookUser, losersBookUser);
-
+            await this._bookUsersEmailService.SendEmailDonationDeclined(book, winnerBookUser, losersBookUser);
         }
 
-        public void NotifyUsersBookCanceled(Book book){
-
-            
+        public void NotifyUsersBookCanceled(Book book)
+        {
             List<BookUser> bookUsers = _bookUserRepository.Get()
                                             .Include(u => u.User)
                                             .Where(x => x.BookId == book.Id).ToList();
 
-            
             this._bookUsersEmailService.SendEmailDonationCanceled(book, bookUsers).Wait();
-
         }
 
         public void InformTrackingNumber(Guid bookId, string trackingNumber)
@@ -248,16 +289,16 @@ namespace ShareBook.Service
             if (winnerBookUser == null)
                 throw new ShareBookException("Vencedor ainda não foi escolhido");
 
-            if(MuambatorConfigurator.IsActive)
+            if (MuambatorConfigurator.IsActive)
                 _muambatorService.AddPackageToTrackerAsync(book, winnerBookUser.User, trackingNumber);
 
             book.Status = BookStatus.Sent;
-            book.TrackingNumber = trackingNumber; 
+            book.TrackingNumber = trackingNumber;
             _bookService.Update(book);
 
             // TODO: verificar se a notificação do muambator já é suficiente e remover esse trecho.
             if (winnerBookUser.User.AllowSendingEmail)
-                //Envia e-mail para avisar o ganhador do tracking number                          
+                //Envia e-mail para avisar o ganhador do tracking number
                 _bookUsersEmailService.SendEmailTrackingNumberInformed(winnerBookUser, book).Wait();
         }
     }

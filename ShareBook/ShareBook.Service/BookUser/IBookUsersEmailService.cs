@@ -6,7 +6,7 @@ namespace ShareBook.Service
 {
     public interface IBookUsersEmailService
     {
-        Task SendEmailBookRequested(BookUser bookUser);
+        Task SendEmailBookRequested(List<BookUser> bookUserGroup);
 
         Task SendEmailBookDonated(BookUser bookUser);
 

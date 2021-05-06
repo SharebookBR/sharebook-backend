@@ -77,23 +77,24 @@ namespace ShareBook.Service
             }
         }
 
-        public async Task SendEmailBookRequested(BookUser bookUser)
+        public async Task SendEmailBookRequested(List<BookUser> bookUser)
         {
-            var includeList = new IncludeList<Book>(x => x.User);
-            var bookRequested = _bookService.Find(includeList, bookUser.BookId);
-            var requestingUser = _userService.Find(bookUser.UserId);
+            throw new NotImplementedException();
+            //var includeList = new IncludeList<Book>(x => x.User);
+            //var bookRequested = _bookService.Find(includeList, bookUser.BookId);
+            //var requestingUser = _userService.Find(bookUser.UserId);
 
-            if (requestingUser.AllowSendingEmail)
-            {
-                var vm = new
-                {
-                    Request = bookUser,
-                    Book = bookRequested,
-                    RequestingUser = requestingUser,
-                };
-                var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookRequestedTemplate, vm);
-                await _emailService.SendToAdmins(html, BookRequestedTitle);
-            }
+            //if (requestingUser.AllowSendingEmail)
+            //{
+            //    var vm = new
+            //    {
+            //        Request = bookUser,
+            //        Book = bookRequested,
+            //        RequestingUser = requestingUser,
+            //    };
+            //    var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookRequestedTemplate, vm);
+            //    await _emailService.SendToAdmins(html, BookRequestedTitle);
+            //}
         }
 
         public async Task SendEmailBookDonor(BookUser bookUser, Book bookRequested)
