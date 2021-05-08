@@ -47,6 +47,7 @@ namespace ShareBook.Service
 
             book.Status = BookStatus.Available;
             book.ChooseDate = chooseDate?.Date ?? DateTime.Today.AddDays(daysInShowcase);
+            book.QuantityValidatons += 1; //Incrementa quantidade de aprovações
             _repository.Update(book);
 
             // notifica o doador
