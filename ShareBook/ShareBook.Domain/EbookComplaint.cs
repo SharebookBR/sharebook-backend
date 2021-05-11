@@ -7,12 +7,14 @@ namespace ShareBook.Domain
     {
         public Guid BookId { get; set; }
         public Book Book { get; set; }
-        public User User { get; set; }
         public Guid UserId { get; set; }
+        public User User { get; set; }
+        public string ReasonMessage { get; set; }
 
-        public EbookComplaint(Guid bookId)
+        public EbookComplaint(Guid bookId, string reasonMessage = "")
         {
             BookId = bookId;
+            ReasonMessage = reasonMessage;
         }
     }
 }

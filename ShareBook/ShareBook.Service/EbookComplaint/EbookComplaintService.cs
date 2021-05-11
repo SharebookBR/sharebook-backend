@@ -27,7 +27,7 @@ namespace ShareBook.Service
             entity.Book = _bookService.Find(b => b.Id == entity.BookId);
 
             var result = Validate(entity);
-            if(result.Success)
+            if (result.Success)
             {
                 _ebookComplaintRepository.Insert(entity);
             }

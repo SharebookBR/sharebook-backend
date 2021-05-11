@@ -6,13 +6,8 @@ using ShareBook.Api.Filters;
 using ShareBook.Api.ViewModels;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
-using ShareBook.Repository.Repository;
 using ShareBook.Service;
-using ShareBook.Service.Authorization;
 using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Threading;
 
 namespace ShareBook.Api.Controllers
 {
@@ -22,17 +17,24 @@ namespace ShareBook.Api.Controllers
     public class EbookController : ControllerBase
     {
         private readonly IEbookComplaintService _ebookComplaintService;
+        private readonly IMapper _mapper;
 
-        public EbookController(IEbookComplaintService ebookComplaintService)
+        public EbookController(IEbookComplaintService ebookComplaintService, IMapper mapper)
         {
             _ebookComplaintService = ebookComplaintService;
+            _mapper = mapper;
         }
 
         [Authorize("Bearer")]
         [HttpPost("complaint/{bookId}")]
-        public IActionResult ComplaintEbook(Guid bookId)
+        public IActionResult ComplaintEbook(Guid bookId, [FromQuery]string reasonMessage)
         {
-            _ebookComplaintService.Insert(new EbookComplaint(bookId));
+            var vm = new EbookComplaintVM()
+            {
+                BookId = bookId,
+                ReasonMessage = reasonMessage
+            };
+            _ebookComplaintService.Insert(_mapper.Map<EbookComplaint>(vm));
             return Ok(new Result("Denúncia registrada com sucesso!"));
         }
     }
