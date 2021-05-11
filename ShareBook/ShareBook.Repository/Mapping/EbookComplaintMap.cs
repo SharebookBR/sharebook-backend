@@ -9,6 +9,9 @@ namespace ShareBook.Repository.Mapping
         {
             entityBuilder
              .HasKey(bu => new { bu.Id, bu.BookId, bu.UserId });
+
+            entityBuilder.HasOne(t => t.User);
+            entityBuilder.HasOne(t => t.Book);
         }
     }
 }
