@@ -51,23 +51,23 @@ namespace ShareBook.Test.Unit.Domain
         }
 
         [Fact]
-        public void MayChooseWinnerWhenChooseDateIsYesterday()
+        public void MayNotChooseWinnerAvailable()
         {
-            var book = new Book { ChooseDate = DateTimeHelper.GetTodaySaoPaulo().AddDays(-1) };
+            var book = new Book { Status = BookStatus.Available };
+            Assert.False(book.MayChooseWinner());
+        }
+
+        [Fact]
+        public void MayChooseWinnerWhenAwaitingDonorDecision()
+        {
+            var book = new Book { Status = BookStatus.AwaitingDonorDecision };
             Assert.True(book.MayChooseWinner());
         }
 
         [Fact]
-        public void MayChooseWinnerWhenChooseDateIsToday()
+        public void MayNotChooseWinnerWaitingSend()
         {
-            var book = new Book { ChooseDate = DateTimeHelper.GetTodaySaoPaulo() };
-            Assert.True(book.MayChooseWinner());
-        }
-
-        [Fact]
-        public void MayNotChooseWinnerWhenChooseDateIsTomorrow()
-        {
-            var book = new Book { ChooseDate = DateTimeHelper.GetTodaySaoPaulo().AddDays(1) };
+            var book = new Book { Status = BookStatus.WaitingSend };
             Assert.False(book.MayChooseWinner());
         }
 
