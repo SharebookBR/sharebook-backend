@@ -481,6 +481,8 @@ namespace ShareBook.Service
             if (result.Status == BookStatus.WaitingApproval)
                 revoked = true;
 
+            if (revoked)
+                _booksEmailService.SendEmailRevokedBookToWaitingApprovalAsync(book);
             return revoked;
         }
 
