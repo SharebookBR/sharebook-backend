@@ -1,14 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
-using Org.BouncyCastle.Math.EC.Rfc7748;
 using ShareBook.Domain;
 using ShareBook.Service.AWSSQS;
 using ShareBook.Service.AWSSQS.Dto;
 using ShareBook.Service.Server;
-using System;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace ShareBook.Service
@@ -23,6 +19,7 @@ namespace ShareBook.Service
         private const string BookApprovedTitle = "Livro aprovado - Sharebook";
         private const string NewBookNotifyTemplate = "NewBookNotifyTemplate";
         private const string BookReceivedTemplate = "BookReceivedTemplate";
+        private const string EbookRevokedToWaitingApproval = "EbookRevokedToWaitingApprovalTemplate";
 
         private readonly IEmailService _emailService;
         private readonly IUserService _userService;
@@ -127,6 +124,16 @@ namespace ShareBook.Service
 
             if (book.User.AllowSendingEmail)
                 await SendEmailWaitingApprovalToUser(book);
+        }
+
+        public async Task SendEmailRevokedBookToWaitingApprovalAsync(Book book)
+        {
+            if (book.Type == Domain.Enums.BookType.Eletronic)
+            {
+                var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(EbookRevokedToWaitingApproval, book);
+                await _emailService.SendToAdmins(html, EbookRevokedToWaitingApproval);
+            }
+            //Caso algum dia queira revogar algum book para WaitingApproval por algum comportamento basta criar o else
         }
 
         private async Task SendEmailNewBookInsertedToAdministrators(Book book)
