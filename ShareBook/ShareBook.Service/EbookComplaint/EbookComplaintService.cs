@@ -7,6 +7,7 @@ using ShareBook.Repository.UoW;
 using ShareBook.Service.Generic;
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace ShareBook.Service
 {
@@ -30,6 +31,7 @@ namespace ShareBook.Service
             if (result.Success)
             {
                 _ebookComplaintRepository.Insert(entity);
+                _bookService.RevokeBookToWaitingApproval(entity.BookId);
             }
             return result;
         }

@@ -466,6 +466,24 @@ namespace ShareBook.Service
             return status;
         }
 
+        public bool RevokeBookToWaitingApproval(Guid bookId)
+        {
+            bool revoked = false;
+            var book = Get(x => x.Id == bookId).Items.FirstOrDefault(y => y.Id == bookId);
+            if (book == null)
+                return revoked;
+
+            if (book.Status == BookStatus.WaitingApproval)
+                return true;
+
+            book.Status = BookStatus.WaitingApproval;
+            var result = _repository.Update(book);
+            if (result.Status == BookStatus.WaitingApproval)
+                revoked = true;
+
+            return revoked;
+        }
+
         #endregion Private
     }
 }
