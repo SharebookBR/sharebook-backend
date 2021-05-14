@@ -26,8 +26,8 @@ namespace ShareBook.Api.Controllers
         }
 
         [Authorize("Bearer")]
-        [HttpPost("complaint/{bookId}")]
-        public IActionResult ComplaintEbook(Guid bookId, [FromQuery]string reasonMessage)
+        [HttpPost("ebook/{bookId}")]
+        public IActionResult EbookComplaint(Guid bookId, [FromQuery]string reasonMessage)
         {
             var vm = new EbookComplaintVM()
             {
