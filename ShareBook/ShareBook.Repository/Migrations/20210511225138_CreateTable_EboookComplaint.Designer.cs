@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ShareBook.Repository;
 
 namespace ShareBook.Repository.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210511225138_CreateTable_EboookComplaint")]
+    partial class CreateTable_EboookComplaint
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -109,6 +111,11 @@ namespace ShareBook.Repository.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
+                    b.Property<byte>("QuantityValidatons")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint")
+                        .HasDefaultValue((byte)0);
+
                     b.Property<string>("Slug")
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
@@ -124,11 +131,6 @@ namespace ShareBook.Repository.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
-
-                    b.Property<byte>("TotalAdminReviews")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("tinyint")
-                        .HasDefaultValue((byte)0);
 
                     b.Property<string>("TrackingNumber")
                         .HasColumnType("nvarchar(max)");
@@ -223,10 +225,6 @@ namespace ShareBook.Repository.Migrations
 
                     b.Property<DateTime?>("CreationDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("ReasonMessage")
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
 
                     b.HasKey("Id", "BookId", "UserId");
 

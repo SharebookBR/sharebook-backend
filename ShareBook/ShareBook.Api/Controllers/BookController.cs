@@ -342,6 +342,7 @@ namespace ShareBook.Api.Controllers
             return Ok();
         }
 
+        #region Private methods
         // apenas doador e adm
         private bool _IsBookOwner(Guid bookId)
         {
@@ -378,5 +379,6 @@ namespace ShareBook.Api.Controllers
 
             return false;
         }
+        #endregion
     }
 }

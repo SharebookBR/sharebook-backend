@@ -45,5 +45,6 @@ namespace ShareBook.Service
 
         void RenewChooseDate(Guid bookId);
         BookTotalStatusDTO GetTotalStatus();
+        bool RevokeBookToWaitingApproval(Guid bookId);
     }
 }
