@@ -41,7 +41,7 @@ namespace ShareBook.Repository.Mapping
                .HasColumnType("varchar(2000)")
                .HasMaxLength(2000);
 
-            entityBuilder.Property(t => t.QuantityValidatons)
+            entityBuilder.Property(t => t.TotalAdminReviews)
                .HasColumnType("tinyint")
                .HasDefaultValue(0);
 

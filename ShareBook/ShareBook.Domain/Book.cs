@@ -57,7 +57,7 @@ namespace ShareBook.Domain
         public string EBookDownloadLink { get; set; }
         public string EBookPdfFile { get; set; }
         public byte[] EBookPdfBytes {get; set; }
-        public int QuantityValidatons { get; set; }
+        public int TotalAdminReviews { get; set; }
 
         public Book()
         {
