@@ -14,12 +14,12 @@ namespace ShareBook.Api.Controllers
     [Route("api/[controller]")]
     [GetClaimsFilter]
     [EnableCors("AllowAllHeaders")]
-    public class EbookController : ControllerBase
+    public class ComplaintController : ControllerBase
     {
         private readonly IEbookComplaintService _ebookComplaintService;
         private readonly IMapper _mapper;
 
-        public EbookController(IEbookComplaintService ebookComplaintService, IMapper mapper)
+        public ComplaintController(IEbookComplaintService ebookComplaintService, IMapper mapper)
         {
             _ebookComplaintService = ebookComplaintService;
             _mapper = mapper;
