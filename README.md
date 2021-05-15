@@ -6,7 +6,7 @@ https://www.linkedin.com/pulse/projeto-sharebook-raffaello-damgaard/
 
 ## 2 - ENTRE NO SLACK
 
-https://join.slack.com/t/sharebookworkspace/shared_invite/zt-4fb3uu8m-VPrkhzdI9u3lsOlS1OkVvg
+https://join.slack.com/t/sharebookworkspace/shared_invite/enQtMzQ2Nzc5OTk3MDc4LTZlMmJlMjA3NGE1NDczN2QxYzc2ZWZhM2UxMzFkMDIyYjliMGI3YzdlYzg2ZjZhYjQ2YWY1ZTUyZGViNzViOWQ
 
 ### 2.2 - LÁ NO SLACK, ENTRE NO CANAL #BACKEND
 
