@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Org.BouncyCastle.Math.EC.Rfc7748;
 using ShareBook.Domain;
+using ShareBook.Domain.DTOs;
 using ShareBook.Service.AWSSQS;
 using ShareBook.Service.AWSSQS.Dto;
 using ShareBook.Service.Server;
@@ -61,7 +62,7 @@ namespace ShareBook.Service
                     ChooseDate = book.ChooseDate?.ToString("dd/MM/yyyy")
                 };
                 var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookApprovedTemplate, vm);
-                await _emailService.Send(book.User.Email, book.User.Name, html, BookApprovedTitle, true);
+                await _emailService.Send(book.User.Email, book.User.Name, html, BookApprovedTitle, copyAdmins: true);
             }
         }
 
@@ -123,15 +124,23 @@ namespace ShareBook.Service
             if (book.User == null)
                 book.User = _userService.Find(book.UserId);
 
-            await SendEmailNewBookInsertedToAdministrators(book);
+            var userStats = _userService.GetStats(book.UserId);
+
+            await SendEmailNewBookInsertedToAdministrators(book, userStats);
 
             if (book.User.AllowSendingEmail)
                 await SendEmailWaitingApprovalToUser(book);
         }
 
-        private async Task SendEmailNewBookInsertedToAdministrators(Book book)
+        private async Task SendEmailNewBookInsertedToAdministrators(Book book, UserStatsDTO userStats)
         {
-            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(NewBookInsertedTemplate, book);
+            var model = new
+            {
+                Book = book,
+                UserStats = userStats
+            };
+
+            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(NewBookInsertedTemplate, model);
             await _emailService.SendToAdmins(html, NewBookInsertedTitle);
         }
 
@@ -141,7 +150,7 @@ namespace ShareBook.Service
             {
                 var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(WaitingApprovalTemplate, book);
 
-                await _emailService.Send(book.User.Email, book.User.Name, html, WaitingApprovalTitle, copyAdmins: true);
+                await _emailService.Send(book.User.Email, book.User.Name, html, WaitingApprovalTitle, copyAdmins: false);
             }
         }
     }

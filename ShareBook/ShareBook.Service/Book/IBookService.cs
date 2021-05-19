@@ -44,6 +44,6 @@ namespace ShareBook.Service
         Book GetBookWithAllUsers(Guid bookId);
 
         void RenewChooseDate(Guid bookId);
-        BookTotalStatusDTO GetTotalStatus();
+        BookStatsDTO GetStats();
     }
 }

@@ -34,7 +34,7 @@ namespace Sharebook.Jobs
 
         public override JobHistory Work()
         {
-            var status = _bookService.GetTotalStatus();
+            var status = _bookService.GetStats();
             var booksLate = _bookService.GetBooksChooseDateIsLate();
             var donators = GetDistinctDonators(booksLate);
 
@@ -61,7 +61,7 @@ namespace Sharebook.Jobs
             return booksLate.Select(b => b.User).Distinct().ToList();
         }
 
-        private void SendEmailAdmin(IList<Book> booksLate, BookTotalStatusDTO status)
+        private void SendEmailAdmin(IList<Book> booksLate, BookStatsDTO status)
         {
             var htmlTable = "<TABLE border=1 cellpadding=3 cellspacing=0><TR bgcolor='#ffff00'><TD><b>LIVRO</b></TD><TD><b>DIAS NA <BR>VITRINE</b></TD><TD><b>TOTAL <br>INTERESSADOS</b></TD><TD><b>DOADOR</b></TD><TD><b>FACILITADOR</b></TD><TD><b>ANOTAÇÕES</b></TD></TR>";
 

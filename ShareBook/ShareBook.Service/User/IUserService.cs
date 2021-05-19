@@ -1,5 +1,6 @@
 ﻿using ShareBook.Domain;
 using ShareBook.Domain.Common;
+using ShareBook.Domain.DTOs;
 using ShareBook.Service.Generic;
 using System;
 using System.Collections.Generic;
@@ -16,5 +17,6 @@ namespace ShareBook.Service
         Result ConfirmHashCodePassword(string hashCodePassword);
         IList<User> GetFacilitators(Guid userIdDonator);
         IList<User> GetBySolicitedBookCategory(Guid BookCategoryId);
+        UserStatsDTO GetStats(Guid? userId);
     }
 }
