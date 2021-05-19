@@ -13,10 +13,28 @@
     </p>
 
     <ul>
-        <li><strong>Livro: </strong>{Title}</li>
-        <li><strong>Autor: </strong>{Author}</li>
-        <li><strong>Usuário: </strong>{User.Name}</li>
+        <li><strong>Livro: </strong>{Book.Title}</li>
+        <li><strong>Autor: </strong>{Book.Author}</li>
+        <li><strong>Usuário: </strong>{Book.User.Name}</li>
     </ul>
+
+    <p>
+        Informações sobre o usuário:
+    </p>
+
+    <ul>
+        <li><strong>Data de Cadastro: </strong>{UserStats.CreationDate}</li>
+        <li><strong>Total doações concluídas: </strong>{UserStats.TotalOk}</li>
+        <li><strong>Total doações canceladas: </strong>{UserStats.TotalCanceled}</li>
+        <li><strong>Total doações em atraso: </strong>{UserStats.TotalLate}</li>
+    </ul>
+
+    <p>
+        Use esse link para revisar e aprovar: <a href="https://www.sharebook.com.br/book/form/{Book.Id}">https://www.sharebook.com.br/book/form/{Book.Id}</a>
+    </p>
+
+
+    
 
     <p>Sharebook</p>
 </body>

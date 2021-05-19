@@ -441,7 +441,7 @@ namespace ShareBook.Service
             }
         }
 
-        public BookTotalStatusDTO GetTotalStatus()
+        public BookStatsDTO GetStats()
         {
             var groupedStatus = _repository.Get()
                 .GroupBy(b => b.Status)
@@ -452,7 +452,7 @@ namespace ShareBook.Service
                 })
                 .ToList();
 
-            var status = new BookTotalStatusDTO();
+            var status = new BookStatsDTO();
 
             status.TotalWaitingApproval = groupedStatus.Where(g => g.Status == BookStatus.WaitingApproval).Any()
                 ? groupedStatus.Where(g => g.Status == BookStatus.WaitingApproval).FirstOrDefault().Total

@@ -22,6 +22,7 @@ namespace ShareBook.Test.Unit.Services
         readonly Mock<IUserService> userServiceMock;
         readonly Mock<IApplicationSignInManager> signManagerMock;
         readonly Mock<IUserRepository> userRepositoryMock;
+        readonly Mock<IBookRepository> bookRepositoryMock;
         readonly Mock<IUnitOfWork> unitOfWorkMock;
         readonly Mock<IUserEmailService> userEmailServiceMock;
 
@@ -32,6 +33,7 @@ namespace ShareBook.Test.Unit.Services
             signManagerMock = new Mock<IApplicationSignInManager>();
             unitOfWorkMock = new Mock<IUnitOfWork>();
             userRepositoryMock = new Mock<IUserRepository>();
+            bookRepositoryMock = new Mock<IBookRepository>();
             userEmailServiceMock = new Mock<IUserEmailService>();
 
             //Simula login do usuario
@@ -73,7 +75,7 @@ namespace ShareBook.Test.Unit.Services
         [Fact]
         public void RegisterValidUser()
         {
-            var service = new UserService(userRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), userEmailServiceMock.Object);
+            var service = new UserService(userRepositoryMock.Object, bookRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), userEmailServiceMock.Object);
 
             Result<User> result = service.Insert(new User()
             {
@@ -91,7 +93,7 @@ namespace ShareBook.Test.Unit.Services
         [Fact]
         public void RegisterInvalidUser()
         {
-            var service = new UserService(userRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), userEmailServiceMock.Object);
+            var service = new UserService(userRepositoryMock.Object, bookRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), userEmailServiceMock.Object);
 
             Result<User> result = service.Insert(new User()
             {
@@ -108,7 +110,7 @@ namespace ShareBook.Test.Unit.Services
         [Fact]
         public void UpdateValidUser()
         {
-            var service = new UserService(userRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), userEmailServiceMock.Object);
+            var service = new UserService(userRepositoryMock.Object, bookRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), userEmailServiceMock.Object);
 
             Result<User> result = service.Update(new User()
             {
@@ -136,7 +138,7 @@ namespace ShareBook.Test.Unit.Services
         [Fact]
         public void UpdateInvalidUser()
         {
-            var service = new UserService(userRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), userEmailServiceMock.Object);
+            var service = new UserService(userRepositoryMock.Object, bookRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), userEmailServiceMock.Object);
 
             Result<User> result = service.Update(new User()
             {
@@ -153,7 +155,7 @@ namespace ShareBook.Test.Unit.Services
         [Fact]
         public void UpdateUserNotExists()
         {
-            var service = new UserService(userRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), userEmailServiceMock.Object);
+            var service = new UserService(userRepositoryMock.Object, bookRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), userEmailServiceMock.Object);
 
             Result<User> result = service.Update(new User()
             {
@@ -171,7 +173,7 @@ namespace ShareBook.Test.Unit.Services
         [Fact]
         public void LoginValidUser()
         {
-            var service = new UserService(userRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), userEmailServiceMock.Object);
+            var service = new UserService(userRepositoryMock.Object, bookRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), userEmailServiceMock.Object);
             Result<User> result = service.AuthenticationByEmailAndPassword(new User()
             {
                 Email = "walter@sharebook.com",
@@ -187,7 +189,7 @@ namespace ShareBook.Test.Unit.Services
         [Fact]
         public void LoginInvalidPassword()
         {
-            var service = new UserService(userRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), userEmailServiceMock.Object);
+            var service = new UserService(userRepositoryMock.Object, bookRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), userEmailServiceMock.Object);
             Result<User> result = service.AuthenticationByEmailAndPassword(new User()
             {
                 Email = "walter@sharebook.com",
@@ -200,7 +202,7 @@ namespace ShareBook.Test.Unit.Services
         [Fact]
         public void LoginInvalidEmail()
         {
-            var service = new UserService(userRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), userEmailServiceMock.Object);
+            var service = new UserService(userRepositoryMock.Object, bookRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), userEmailServiceMock.Object);
             Result<User> result = service.AuthenticationByEmailAndPassword(new User()
             {
                 Email = "joao@sharebook.com",

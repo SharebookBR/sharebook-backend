@@ -9,8 +9,9 @@ namespace ShareBook.Test.Unit.Mocks
     {
         public static Book GetLordTheRings(User user)
         {
-           return new Book()
+            return new Book()
             {
+                Id = new Guid("d9f5fde8-ee7c-4cf5-aa90-35eca3c170b9"),
                 Title = "Lord of the Rings",
                 Author = "J. R. R. Tolkien",
                 ImageSlug = "lotr.png",
