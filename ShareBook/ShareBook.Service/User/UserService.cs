@@ -6,6 +6,7 @@ using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
+using ShareBook.Domain.DTOs;
 using ShareBook.Domain.Enums;
 using ShareBook.Domain.Exceptions;
 using ShareBook.Helper.Crypto;
@@ -19,18 +20,20 @@ namespace ShareBook.Service
     public class UserService : BaseService<User>, IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly IBookRepository _bookRepository;
         private readonly IUserEmailService _userEmailService;
         private const string PASSWORD_IS_WEAK = "A senha não atende os requisitos. Mínimo oito caracteres, um caractere especial, um caractere numérico e uma letra em maiúsculo.";
 
         #region Public
 
-        public UserService(IUserRepository userRepository,
+        public UserService(IUserRepository userRepository, IBookRepository bookRepository,
             IUnitOfWork unitOfWork,
             IValidator<User> validator,
             IUserEmailService userEmailService) : base(userRepository, unitOfWork, validator)
         {
             _userRepository = userRepository;
             _userEmailService = userEmailService;
+            _bookRepository = bookRepository;
         }
 
         public Result<User> AuthenticationByEmailAndPassword(User user)
@@ -262,6 +265,23 @@ namespace ShareBook.Service
 
         public IList<User> GetBySolicitedBookCategory(Guid bookCategoryId) =>
             _userRepository.Get().Where(u => u.AllowSendingEmail && u.BookUsers.Any(bu => bu.Book.CategoryId == bookCategoryId)).ToList();
+
+        public UserStatsDTO GetStats(Guid? userId)
+        {
+            var user = _userRepository.Find(userId);
+            var books = _bookRepository.Get().Where(b => b.UserId == userId).ToList();
+
+            if (user == null) throw new ShareBookException(ShareBookException.Error.NotFound, "Usuário não encontrado.");
+
+            var stats = new UserStatsDTO
+            {
+                CreationDate = user.CreationDate,
+                TotalLate = books.Where(b => b.ChooseDate < DateTime.Today && b.Status == BookStatus.AwaitingDonorDecision).Count(),
+                TotalOk = books.Where(b => b.Status == BookStatus.WaitingSend || b.Status == BookStatus.Sent || b.Status == BookStatus.Received).Count(),
+                TotalCanceled = books.Where(b => b.Status == BookStatus.Canceled).Count()
+            };
+            return stats;
+        }
 
 
         #endregion Private

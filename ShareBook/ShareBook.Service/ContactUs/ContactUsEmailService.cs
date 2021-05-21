@@ -35,7 +35,7 @@ namespace ShareBook.Service
         private async Task SendEmailNotificationToUser(ContactUs contactUs)
         {
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(ContactUsNotificationTemplate, contactUs);
-            await _emailService.Send(contactUs.Email, contactUs.Name, html, ContactUsNotificationTitle, true);
+            await _emailService.Send(contactUs.Email, contactUs.Name, html, ContactUsNotificationTitle, copyAdmins: false);
         }
     }
 }

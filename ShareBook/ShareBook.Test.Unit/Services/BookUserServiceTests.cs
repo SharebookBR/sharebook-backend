@@ -1,4 +1,5 @@
-﻿using Moq;
+﻿using Microsoft.Extensions.Configuration;
+using Moq;
 using ShareBook.Domain.Validators;
 using ShareBook.Repository;
 using ShareBook.Repository.UoW;
@@ -23,6 +24,7 @@ namespace ShareBook.Test.Unit.Services
         readonly BookUserValidator bookUserValidator;
         readonly Mock<IMuambatorService> muambatorServiceMock;
         readonly Mock<IBookRepository> bookRepositoryMock;
+        readonly Mock<IConfiguration> configurationMock;
 
 
         public BookUserServiceTests()
@@ -35,6 +37,9 @@ namespace ShareBook.Test.Unit.Services
             bookUsersEmailService = new Mock<IBookUsersEmailService>();
             muambatorServiceMock = new Mock<IMuambatorService>();
             bookRepositoryMock = new Mock<IBookRepository>();
+            configurationMock = new Mock<IConfiguration>();
+
+            configurationMock.Setup(c => c["SharebookSettings:MaxRequestsPerBook"]).Returns("50");
 
             bookServiceMock.SetReturnsDefault(true);
 
@@ -49,8 +54,9 @@ namespace ShareBook.Test.Unit.Services
         {
             Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
             var service = new BookUserService(bookUserRepositoryMock.Object,
-                bookServiceMock.Object, bookUsersEmailService.Object, muambatorServiceMock.Object, bookRepositoryMock.Object, 
-                unitOfWorkMock.Object, bookUserValidator);
+                bookServiceMock.Object, bookUsersEmailService.Object, muambatorServiceMock.Object, bookRepositoryMock.Object,
+                unitOfWorkMock.Object, bookUserValidator, configurationMock.Object);
+
 
             string reason = "I need this book because I'm learning a new programming language.";
 

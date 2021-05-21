@@ -179,10 +179,9 @@ namespace ShareBook.Service
             var vm = new
             {
                 BookTitle = book.Title,
-                BookWinner = bookUserWinner.User.Name
             };
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookNoticeDeclinedUsersTemplate, vm);
-            var emailSubject = $"SHAREBOOK - GANHADOR DO LIVRO {book.Title.ToUpper()}";
+            var emailSubject = $"Resultado da doação do livro {book.Title}.";
 
             bookUsersDeclined.ForEach(bookUser =>
             {
@@ -200,7 +199,7 @@ namespace ShareBook.Service
             bookUsers.ForEach(bookUser =>
             {
                 if (bookUser.User.AllowSendingEmail)
-                    _emailService.Send(bookUser.User.Email, bookUser.User.Name, html, $"SHAREBOOK - DOAÇÃO CANCELADA").Wait();
+                    _emailService.Send(bookUser.User.Email, bookUser.User.Name, html, $"Resultado da doação do livro {book.Title}.").Wait();
             });
             
         }
@@ -227,7 +226,12 @@ namespace ShareBook.Service
                 await _emailService.Send(bookUserWinner.User.Email, bookUserWinner.User.Name, html, BookTrackingNumberNoticeWinnerTitle, copyAdmins: false);
             }
         }
-    
-    
+
+        public async Task SendEmailMaxRequests(Book bookRequested)
+        {
+            var subject = "Limite de pedidos";
+            var body = $"Prezados adms, o livro <b>{bookRequested.Title}</b> atingiu o limite de pedidos e foi removido automaticamente da vitrine. A data de decisão foi configurada pra amanhã. Obrigado.";
+            await _emailService.SendToAdmins(body, subject);
+        }
     }
 }
