@@ -179,10 +179,9 @@ namespace ShareBook.Service
             var vm = new
             {
                 BookTitle = book.Title,
-                BookWinner = bookUserWinner.User.Name
             };
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookNoticeDeclinedUsersTemplate, vm);
-            var emailSubject = $"SHAREBOOK - GANHADOR DO LIVRO {book.Title.ToUpper()}";
+            var emailSubject = $"Resultado da doação do livro {book.Title}.";
 
             bookUsersDeclined.ForEach(bookUser =>
             {
@@ -200,7 +199,7 @@ namespace ShareBook.Service
             bookUsers.ForEach(bookUser =>
             {
                 if (bookUser.User.AllowSendingEmail)
-                    _emailService.Send(bookUser.User.Email, bookUser.User.Name, html, $"SHAREBOOK - DOAÇÃO CANCELADA").Wait();
+                    _emailService.Send(bookUser.User.Email, bookUser.User.Name, html, $"Resultado da doação do livro {book.Title}.").Wait();
             });
             
         }
