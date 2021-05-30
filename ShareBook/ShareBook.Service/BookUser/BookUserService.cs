@@ -85,9 +85,14 @@ namespace ShareBook.Service
             // Remove da vitrine caso o número de pedidos estiver grande demais.
             MaxRequestsValidation(bookRequested);
 
-            //_bookUsersEmailService.SendEmailBookRequested(bookUser).Wait();
-            //_bookUsersEmailService.SendEmailBookDonor(bookUser, bookRequested).Wait();
-            //_bookUsersEmailService.SendEmailBookInterested(bookUser, bookRequested).Wait();
+            var sendEmailBookRequested = bool.Parse(_configuration["EmailSettings:SendEmailBookRequested"]);
+
+            if (sendEmailBookRequested)
+            {
+                _bookUsersEmailService.SendEmailBookRequested(bookUser).Wait();
+                _bookUsersEmailService.SendEmailBookDonor(bookUser, bookRequested).Wait();
+                _bookUsersEmailService.SendEmailBookInterested(bookUser, bookRequested).Wait();
+            }
         }
 
         private void MaxRequestsValidation(Book bookRequested)
