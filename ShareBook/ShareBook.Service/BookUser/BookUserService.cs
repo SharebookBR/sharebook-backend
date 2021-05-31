@@ -87,9 +87,9 @@ namespace ShareBook.Service
 
             var sendEmailBookRequested = bool.Parse(_configuration["EmailSettings:SendEmailBookRequested"]);
 
+            // TODO: não vamos precisar dessa configuração quando o email estiver agrupado.
             if (sendEmailBookRequested)
             {
-                _bookUsersEmailService.SendEmailBookRequested(bookUser).Wait();
                 _bookUsersEmailService.SendEmailBookDonor(bookUser, bookRequested).Wait();
                 _bookUsersEmailService.SendEmailBookInterested(bookUser, bookRequested).Wait();
             }
