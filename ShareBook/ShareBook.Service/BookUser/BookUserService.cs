@@ -260,7 +260,6 @@ namespace ShareBook.Service
             book.TrackingNumber = trackingNumber; 
             _bookService.Update(book);
 
-            // TODO: verificar se a notificação do muambator já é suficiente e remover esse trecho.
             if (winnerBookUser.User.AllowSendingEmail)
                 //Envia e-mail para avisar o ganhador do tracking number                          
                 _bookUsersEmailService.SendEmailTrackingNumberInformed(winnerBookUser, book).Wait();

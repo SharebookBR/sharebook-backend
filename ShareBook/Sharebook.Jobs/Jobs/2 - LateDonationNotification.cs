@@ -63,7 +63,7 @@ namespace Sharebook.Jobs
 
         private void SendEmailAdmin(IList<Book> booksLate, BookStatsDTO status)
         {
-            var htmlTable = "<TABLE border=1 cellpadding=3 cellspacing=0><TR bgcolor='#ffff00'><TD><b>LIVRO</b></TD><TD><b>DIAS NA <BR>VITRINE</b></TD><TD><b>TOTAL <br>INTERESSADOS</b></TD><TD><b>DOADOR</b></TD><TD><b>FACILITADOR</b></TD><TD><b>ANOTAÇÕES</b></TD></TR>";
+            var htmlTable = "<TABLE border=1 cellpadding=3 cellspacing=0><TR bgcolor='#ffff00'><TD><b>LIVRO</b></TD><TD><b>DIAS DE <BR>ATRASO</b></TD><TD><b>TOTAL <br>INTERESSADOS</b></TD><TD><b>DOADOR</b></TD><TD><b>FACILITADOR</b></TD><TD><b>ANOTAÇÕES</b></TD></TR>";
 
             foreach (var book in booksLate)
             {
@@ -72,7 +72,7 @@ namespace Sharebook.Jobs
                 htmlTable += string.Format("<TR><TD>{0}<BR>{1}</TD><TD>{2}</TD><TD>{3}</TD><TD>{4}<BR>{5}<BR>{6}<BR>{7}</TD><TD>{8}<BR>{9}<BR>{10}<BR>{11}</TD><TD>{12}</TD></TR>", 
                     book.Title, 
                     book.Status, 
-                    book.DaysInShowcase(), 
+                    book.DaysLate(), 
                     book.TotalInterested(),
                     book.User.Name, book.User.Email, book.User.Phone, book.User.Linkedin,
                     book.UserFacilitator.Name, book.UserFacilitator.Email, book.UserFacilitator.Phone, book.UserFacilitator.Linkedin,
