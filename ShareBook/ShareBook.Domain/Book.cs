@@ -80,6 +80,16 @@ namespace ShareBook.Domain
             return diff.Days;
         }
 
+        public int DaysLate()
+        {
+            if (Status != BookStatus.AwaitingDonorDecision) return 0;
+
+            if (ChooseDate >= DateTime.Today) return 0;
+
+            TimeSpan diff = (TimeSpan)(DateTime.Today - ChooseDate);
+            return diff.Days;
+        }
+
         public bool MayChooseWinner()
         {
             return Status == BookStatus.AwaitingDonorDecision;
