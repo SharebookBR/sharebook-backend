@@ -13,6 +13,7 @@ namespace ShareBook.Api.ViewModels
         public string FacilitatorNotes { get; set; }
         public string PhoneDonor { get; set; }
         public int DaysInShowcase { get; set; }
+        public int DaysLate { get; set; }
         public int TotalInterested { get; set; }
         public string Status { get; set; }
         public string TrackingNumber { get; set; }

@@ -85,9 +85,14 @@ namespace ShareBook.Service
             // Remove da vitrine caso o número de pedidos estiver grande demais.
             MaxRequestsValidation(bookRequested);
 
-            //_bookUsersEmailService.SendEmailBookRequested(bookUser).Wait();
-            //_bookUsersEmailService.SendEmailBookDonor(bookUser, bookRequested).Wait();
-            //_bookUsersEmailService.SendEmailBookInterested(bookUser, bookRequested).Wait();
+            var sendEmailBookRequested = bool.Parse(_configuration["EmailSettings:SendEmailBookRequested"]);
+
+            // TODO: não vamos precisar dessa configuração quando o email estiver agrupado.
+            if (sendEmailBookRequested)
+            {
+                _bookUsersEmailService.SendEmailBookDonor(bookUser, bookRequested).Wait();
+                _bookUsersEmailService.SendEmailBookInterested(bookUser, bookRequested).Wait();
+            }
         }
 
         private void MaxRequestsValidation(Book bookRequested)
@@ -255,7 +260,6 @@ namespace ShareBook.Service
             book.TrackingNumber = trackingNumber; 
             _bookService.Update(book);
 
-            // TODO: verificar se a notificação do muambator já é suficiente e remover esse trecho.
             if (winnerBookUser.User.AllowSendingEmail)
                 //Envia e-mail para avisar o ganhador do tracking number                          
                 _bookUsersEmailService.SendEmailTrackingNumberInformed(winnerBookUser, book).Wait();

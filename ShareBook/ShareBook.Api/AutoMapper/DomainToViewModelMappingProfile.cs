@@ -23,6 +23,7 @@ namespace ShareBook.Api.AutoMapper
                  .ForMember(dest => dest.FacilitatorNotes, opt => opt.MapFrom(src => src.FacilitatorNotes))
                  .ForMember(dest => dest.PhoneDonor, opt => opt.MapFrom(src => src.User.Phone))
                  .ForMember(dest => dest.DaysInShowcase, opt => opt.MapFrom(src => src.DaysInShowcase()))
+                 .ForMember(dest => dest.DaysLate, opt => opt.MapFrom(src => src.DaysLate()))
                  .ForMember(dest => dest.TotalInterested, opt => opt.MapFrom(src => src.TotalInterested()))
                  .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
                  .ForMember(dest => dest.FreightOption, opt => opt.MapFrom(src => src.FreightOption.ToString()))

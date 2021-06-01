@@ -58,33 +58,7 @@ namespace ShareBook.Test.Unit.Services
             Assert.Contains("<li><strong>Usuário: </strong>Rodrigo</li>", result);
             Assert.Contains("https://www.sharebook.com.br/book/form/d9f5fde8-ee7c-4cf5-aa90-35eca3c170b9", result);
         
-        }
-
-        [Fact]
-        public void VerifyEmailBookRequestedParse()
-        {
-            var vm = new
-            {
-                Book = book,
-                RequestingUser = requestingUser,
-                Request = bookRequested
-            };
-
-            var result = emailTemplate.GenerateHtmlFromTemplateAsync("BookRequestedTemplate", vm).Result;
-            //<!DOCTYPE html>\r\n<html lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\">\r\n<head>\r\n    <meta charset=\"utf-8\" />\r\n    <title>Um livro foi solicitado - Sharebook</title>\r\n</head>\r\n<body>\r\n    <p>\r\n        Olá Cussa Mitre,\r\n    </p>\r\n    <p>\r\n        Um livro foi solicitado. Veja mais informações abaixo:\r\n    </p>\r\n\r\n    <ul>\r\n        <li><strong>Livro: </strong>Lord of the Rings</li>\r\n        <li><strong>Donatario: </strong>Walter Vinicius</li>\r\n        <li><strong>Linkedin Donatario:</strong>linkedin.com/walter</li>\r\n        <li><strong>Doador: </strong>Rodrigo</li>\r\n        <li><strong>Linkedin Doador:</strong>linkedin.com/rodrigo</li>\r\n    </ul>\r\n\r\n    <p>Sharebook</p>\r\n</body>\r\n</html>
-
-            Assert.Contains("Olá Administrador(a),", result);
-            Assert.Contains("<li><strong>Livro: </strong>Lord of the Rings</li>", result);
-            Assert.Contains("<li><strong>Nome: </strong>Walter Vinicius</li>", result);
-            Assert.Contains("<li><strong>Linkedin: </strong>linkedin.com/walter</li>", result);
-            Assert.Contains("<li><strong>Telefone: </strong></li>", result);
-            Assert.Contains("<li><strong>Email: </strong>walter@sharebook.com</li>", result);
-            Assert.Contains("<li><strong>Nome: </strong>Rodrigo</li>", result);
-            Assert.Contains("<li><strong>Linkedin: </strong>linkedin.com/rodrigo</li>", result);
-            Assert.Contains("<li><strong>Telefone: </strong></li>", result);
-            Assert.Contains("<li><strong>Email: </strong>rodrigo@sharebook.com</li>", result);
-            Assert.Contains("<pre>MOTIVO</pre>", result);
-        }
+        }        
 
         [Fact]
         public void VerifyEmailBookApprovedParse()

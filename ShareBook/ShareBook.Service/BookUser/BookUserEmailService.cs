@@ -9,7 +9,6 @@ namespace ShareBook.Service
 {
     public class BookUserEmailService : IBookUsersEmailService
     {
-        private const string BookRequestedTemplate = "BookRequestedTemplate";
         private const string BookNoticeDonorTemplate = "BookNoticeDonorTemplate";
         private const string BookDonatedTemplate = "BookDonatedTemplate";
         private const string BookDonatedTemplateNotifyDonor = "BookDonatedNotifyDonorTemplate";
@@ -18,7 +17,6 @@ namespace ShareBook.Service
         private const string BookTrackingNumberNoticeWinnerTemplate = "BookTrackingNumberNoticeWinnerTemplate";
         private const string BookDonatedTitle = "Parabéns você foi selecionado!";
         private const string BookDonatedTitleNotifyDonor = "Parabéns você escolheu um ganhador!";
-        private const string BookRequestedTitle = "Um livro foi solicitado - Sharebook";
         private const string BookNoticeDonorTitle = "Seu livro foi solicitado - Sharebook";
         private const string BookCanceledTemplate = "BookCanceledTemplate";
         private const string BookCanceledTitle = "Livro cancelado - Sharebook";
@@ -55,7 +53,7 @@ namespace ShareBook.Service
                     bookUser.User
                 };
                 var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookDonatedTemplate, vm);
-                await _emailService.Send(bookUser.User.Email, bookUser.User.Name, html, BookDonatedTitle, true);
+                await _emailService.Send(bookUser.User.Email, bookUser.User.Name, html, BookDonatedTitle, copyAdmins: false);
             }
         }
 
@@ -74,25 +72,6 @@ namespace ShareBook.Service
 
                 // TODO: não enviar cópia para admins quando esse processo estiver bem amadurecido.
                 await _emailService.Send(book.User.Email, book.User.Name, html, BookDonatedTitleNotifyDonor, copyAdmins: true);
-            }
-        }
-
-        public async Task SendEmailBookRequested(BookUser bookUser)
-        {
-            var includeList = new IncludeList<Book>(x => x.User);
-            var bookRequested = _bookService.Find(includeList, bookUser.BookId);
-            var requestingUser = _userService.Find(bookUser.UserId);
-
-            if (requestingUser.AllowSendingEmail)
-            {
-                var vm = new
-                {
-                    Request = bookUser,
-                    Book = bookRequested,
-                    RequestingUser = requestingUser,
-                };
-                var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookRequestedTemplate, vm);
-                await _emailService.SendToAdmins(html, BookRequestedTitle);
             }
         }
 
