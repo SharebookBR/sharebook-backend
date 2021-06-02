@@ -319,18 +319,11 @@ namespace ShareBook.Service
         {
             DateTime today = DateTime.Today;
 
-            var books = _repository
+            var booksLate = _repository
             .Get().Include(x => x.User).Include(x => x.BookUsers).Include(x => x.UserFacilitator)
-            .Where(x => x.ChooseDate < today || x.ChooseDate == null)
-            .OrderBy(x => x.CreationDate)
+            .Where(x => x.ChooseDate < today && x.Status == BookStatus.AwaitingDonorDecision)
+            .OrderBy(x => x.ChooseDate)
             .ToList();
-
-            var booksLate = new List<Book>();
-            foreach (var book in books)
-            {
-                if (book.Status == BookStatus.Available || book.Status == BookStatus.AwaitingDonorDecision)
-                    booksLate.Add(book);
-            }
 
             return booksLate;
         }
