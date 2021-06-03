@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Sharebook.Jobs;
@@ -26,14 +27,16 @@ namespace ShareBook.Api.Controllers
         IEmailService _emailService;
         private readonly IWebHostEnvironment _env;
         private readonly IConfiguration _configuration;
+        private IMemoryCache _cache;
 
-        public OperationsController(IJobExecutor executor, IOptions<ServerSettings> settings, IEmailService emailService, IWebHostEnvironment env, IConfiguration configuration)
+        public OperationsController(IJobExecutor executor, IOptions<ServerSettings> settings, IEmailService emailService, IWebHostEnvironment env, IConfiguration configuration, IMemoryCache memoryCache)
         {
             _executor = executor;
             _validToken = settings.Value.JobExecutorToken;
             _emailService = emailService;
             _env = env;
             _configuration = configuration;
+            _cache = memoryCache;
         }
 
         [HttpGet]
@@ -57,8 +60,8 @@ namespace ShareBook.Api.Controllers
                 Env = _env.EnvironmentName,
                 TimeZone = TimeZoneInfo.Local.DisplayName,
                 System.Runtime.InteropServices.RuntimeInformation.OSDescription,
-                DaysInShowcase = int.Parse(_configuration["SharebookSettings:DaysInShowcase"])
-        };
+                MemoryCacheCount = ((MemoryCache)_cache).Count
+            };
             return Ok(result);
         }
 
