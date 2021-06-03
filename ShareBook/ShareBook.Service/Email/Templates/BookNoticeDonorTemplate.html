@@ -11,23 +11,15 @@
     </p>
     <br />
     <p>
-        Seu livro foi solicitado. Veja mais informações abaixo:
+        Seu livro <b>"{Donor.BookTitle}"</b> foi solicitado.
     </p>
-    <h2>Interessado</h2>
-    <ul>
-        <li><strong>Livro: </strong>{Book.Title}</li>
-        <li><strong>Apelido: </strong>{RequestingUser.NickName}</li>
-        <li><strong>Local de destino: </strong>{DonatedLocation}</li>
-    </ul>
-    
-    <h2>Motivo</h2>
-    <pre>{Request.Reason}</pre>
 
-   <h3>Importante!</h3>
-   <p>
-	Este é apenas uma aviso que mostra que alguém está interessado no livro que você disponibilizou.<br>
-	É necessário no entanto aguardar até a data de <strong>{Donor.ChooseDate}</strong> para escolher o ganhador.
-   </p>
+    {HtmlTable}
+
+    <p>
+        <b>Atenção!</b> Este é apenas uma aviso que alguém está interessado no seu livro.<br>
+        É necessário no entanto aguardar até a data de <strong>{Donor.ChooseDate}</strong> para escolher o ganhador. Blz?
+    </p>
     <p>
         Atenciosamente,
     </p>
