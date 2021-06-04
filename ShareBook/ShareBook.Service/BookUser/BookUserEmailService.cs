@@ -124,7 +124,7 @@ namespace ShareBook.Service
             var html = "<table border=1 cellpadding=3 cellspacing=0>";
             html += "<tr><td bgcolor = '#ffff00'><b> APELIDO </b></td><td bgcolor = '#ffff00'><b> PEDIDO </b></td></tr>";
 
-            var requests = bookRequested.BookUsers.Where(r => r.CreationDate >= DateTime.Now.AddMinutes(-60)).OrderByDescending(r => r.CreationDate);
+            var requests = bookRequested.BookUsers.Where(r => r.CreationDate >= DateTime.Now.AddMinutes(-180)).OrderByDescending(r => r.CreationDate);
 
             foreach (var request in requests)
             {
@@ -148,7 +148,6 @@ namespace ShareBook.Service
         {
             var key = $"BookRequested_{bookRequested.UserId}_{bookRequested.Id}";
 
-            // TODO. AUMENTAR PRA 1 hora depois do debug.
             var cacheOptions = new MemoryCacheEntryOptions()
                 .SetSlidingExpiration(TimeSpan.FromMinutes(60));
 
