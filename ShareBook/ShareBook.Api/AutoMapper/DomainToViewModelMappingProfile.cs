@@ -61,6 +61,10 @@ namespace ShareBook.Api.AutoMapper
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name));
 
+            CreateMap<AccessHistory, AccessHistoryVM>()
+                .ForMember(dest => dest.Profile, opt => opt.MapFrom(src => src.Profile.ToString()))
+                .ForMember(dest => dest.VisitingDay, opt => opt.MapFrom(src => src.CreationDate));
+
             #endregion [ User ]
 
             #region [ BookUser ]

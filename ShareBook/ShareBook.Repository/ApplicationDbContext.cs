@@ -18,6 +18,7 @@ namespace ShareBook.Repository
         public DbSet<Category> Categories { get; set; }
         public DbSet<Address> Addresses { get; set; }
         public DbSet<JobHistory> JobHistories { get; set; }
+        public DbSet<AccessHistory> AccessHistories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -29,6 +30,9 @@ namespace ShareBook.Repository
             new CategoryMap(modelBuilder.Entity<Category>());
             new AddressMap(modelBuilder.Entity<Address>());
             new JobHistoryMap(modelBuilder.Entity<JobHistory>());
+
+            //O Contexto procura pelas classes que implementam IEntityTypeConfiguration adicionando o mapeamento de forma automática.
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
         }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken))

@@ -13,6 +13,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading;
+using System.Threading.Tasks;
+using Flurl.Util;
+using ShareBook.Domain.Enums;
 
 namespace ShareBook.Api.Controllers
 {
@@ -24,18 +27,21 @@ namespace ShareBook.Api.Controllers
         private readonly IBookUserService _bookUserService;
         private readonly IBookService _service;
         private readonly IUserService _userService;
+        private readonly IAccessHistoryService _accessHistoryService;
         private Expression<Func<Book, object>> _defaultOrder = x => x.Id;
         private readonly IMapper _mapper;
 
         public BookController(IBookService bookService,
                               IBookUserService bookUserService,
                               IUserService userService,
-                              IMapper mapper)
+                              IMapper mapper, 
+                              IAccessHistoryService accessHistoryService)
         {
             _service = bookService;
             _bookUserService = bookUserService;
             _userService = userService;
             _mapper = mapper;
+            _accessHistoryService = accessHistoryService;
         }
 
         protected void SetDefault(Expression<Func<Book, object>> defaultOrder)
@@ -311,7 +317,7 @@ namespace ShareBook.Api.Controllers
         [Authorize("Bearer")]
         [ProducesResponseType(typeof(MainUsersVM), 200)]
         [HttpGet("MainUsers/{bookId}")]
-        public IActionResult MainUsers(Guid bookId)
+        public async Task<IActionResult> MainUsers(Guid bookId)
         {
             if (!_IsBookMainUser(bookId)) return Unauthorized();
 
@@ -321,14 +327,44 @@ namespace ShareBook.Api.Controllers
             var facilitator = _mapper.Map<UserVM>(book.UserFacilitator);
             var winner = _mapper.Map<UserVM>(book.WinnerUser());
 
-            var result = new MainUsersVM
-            {
-                Donor = donor,
-                Facilitator = facilitator,
+            var result = new MainUsersVM {
+                Donor = donor, 
+                Facilitator = facilitator, 
                 Winner = winner
             };
 
+            var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+            var visitor = _userService.Find(userId);
+            var visitorProfile = GetVisitorProfile(result);
+
+            await _accessHistoryService.InsertVisitor(book.User, visitor, visitorProfile);
+
             return Ok(result);
+
+            VisitorProfile GetVisitorProfile(MainUsersVM mainUsers) {                                                       
+                if (mainUsers is null) return VisitorProfile.Undefined;
+
+                var facilitatorId = Guid.Empty;
+                if (mainUsers.Facilitator is not null) {
+                    facilitatorId = mainUsers.Facilitator.Id;
+                }
+
+                var winnerId = Guid.Empty;
+                if (mainUsers.Winner is not null) {
+                    winnerId = mainUsers.Winner.Id;
+                }
+
+                var donorId = Guid.Empty;
+                if (mainUsers.Donor is not null) {
+                    donorId = mainUsers.Donor.Id;
+                }
+
+                //O id do usuário logado é comparado com o doador, facilitador e ganhador 
+                if (visitor.Id.Equals(facilitatorId)) return VisitorProfile.Facilitator;
+                else if (visitor.Id.Equals(winnerId)) return VisitorProfile.Winner;
+                else if (visitor.Id.Equals(donorId)) return VisitorProfile.Donor;
+                else return VisitorProfile.Undefined;
+            }
         }
 
         [Authorize("Bearer")]

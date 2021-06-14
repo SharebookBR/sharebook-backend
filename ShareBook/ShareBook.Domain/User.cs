@@ -25,6 +25,7 @@ namespace ShareBook.Domain
         public virtual Address Address { get; set; }
         public virtual ICollection<BookUser> BookUsers { get; set; }
         public virtual ICollection<Book> BooksDonated { get; set; }
+        public virtual ICollection<AccessHistory> Visitors { get; set; }
 
         public bool PasswordIsStrong()
         {
