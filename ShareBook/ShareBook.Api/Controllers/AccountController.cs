@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using ShareBook.Api.Filters;
@@ -13,6 +15,7 @@ using ShareBook.Domain.Common;
 using ShareBook.Domain.Exceptions;
 using ShareBook.Infra.CrossCutting.Identity;
 using ShareBook.Infra.CrossCutting.Identity.Interfaces;
+using ShareBook.Repository;
 using ShareBook.Service;
 
 namespace ShareBook.Api.Controllers
@@ -20,29 +23,32 @@ namespace ShareBook.Api.Controllers
     [Route("api/[controller]")]
     [EnableCors("AllowAllHeaders")]
     [GetClaimsFilter]
-    public class AccountController : ControllerBase
+    public class AccountController : ControllerBase 
     {
         private readonly IUserService _userService;
         private readonly IApplicationSignInManager _signManager;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
+        private readonly IAccessHistoryRepository _historyRepository;
 
         public AccountController(IUserService userService,
-                                 IApplicationSignInManager signManager,
-                                 IMapper mapper,
-                                 IConfiguration configuration)
+            IApplicationSignInManager signManager,
+            IMapper mapper,
+            IConfiguration configuration,
+            IAccessHistoryRepository historyRepository) 
         {
             _userService = userService;
             _signManager = signManager;
             _mapper = mapper;
             _configuration = configuration;
+            _historyRepository = historyRepository;
         }
 
         #region GET
 
         [HttpGet]
         [Authorize("Bearer")]
-        public UserVM Get()
+        public UserVM Get() 
         {
             var id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             var user = _userService.Find(id);
@@ -53,7 +59,7 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpGet("Profile")]
-        public object Profile()
+        public object Profile() 
         {
             var id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             return new { profile = _userService.Find(id).Profile.ToString() };
@@ -61,13 +67,32 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpGet("ListFacilitators/{userIdDonator}")]
-        public IActionResult ListFacilitators(Guid userIdDonator)
+        public IActionResult ListFacilitators(Guid userIdDonator) 
         {
             var facilitators = _userService.GetFacilitators(userIdDonator);
 
             var facilitatorsClean = _mapper.Map<List<UserFacilitatorVM>>(facilitators);
 
             return Ok(facilitatorsClean);
+        }
+
+        [Authorize("Bearer")]
+        [HttpGet("WhoAccessed/{userId:Guid}")]
+        [ProducesResponseType(typeof(AccessHistoryVM), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> WhoAccessedMyProfile(Guid userId) 
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            if (userId.Equals(null) || userId.Equals(Guid.Empty)) return BadRequest(ModelState);
+
+            var whoAccessHistory = _mapper.Map<IEnumerable<AccessHistory>, IEnumerable<AccessHistoryVM>>(
+                await _historyRepository.GetWhoAccessedMyProfile(userId));
+
+            if (whoAccessHistory is null) return NotFound(userId);
+
+            return Ok(whoAccessHistory);
         }
 
         #endregion GET

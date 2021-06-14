@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -38,7 +39,6 @@ namespace ShareBook.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
-
             var isDocker = Environment.GetEnvironmentVariable("IS_DOCKER");
             var connectionStringKey = isDocker == "1" ? "DefaultConnectionDocker" : "DefaultConnection";
 
@@ -106,6 +106,8 @@ namespace ShareBook.Api
             services.AddRollbarLogger();
 
             MuambatorConfigurator.Configure(Configuration.GetSection("Muambator:Token").Value, Configuration.GetSection("Muambator:IsActive").Value);
+
+            services.AddMemoryCache();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

@@ -1,8 +1,10 @@
-﻿using ShareBook.Domain;
+﻿using Microsoft.Extensions.Caching.Memory;
+using ShareBook.Domain;
 using ShareBook.Repository.Repository;
 using ShareBook.Service.Notification;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace ShareBook.Service
@@ -17,7 +19,7 @@ namespace ShareBook.Service
         private const string BookTrackingNumberNoticeWinnerTemplate = "BookTrackingNumberNoticeWinnerTemplate";
         private const string BookDonatedTitle = "Parabéns você foi selecionado!";
         private const string BookDonatedTitleNotifyDonor = "Parabéns você escolheu um ganhador!";
-        private const string BookNoticeDonorTitle = "Seu livro foi solicitado - Sharebook";
+        private const string BookNoticeDonorTitle = "Seu livro foi solicitado!";
         private const string BookCanceledTemplate = "BookCanceledTemplate";
         private const string BookCanceledTitle = "Livro cancelado - Sharebook";
         private const string BookTrackingNumberNoticeWinnerTitle = "Seu livro foi postado - Sharebook";
@@ -29,14 +31,16 @@ namespace ShareBook.Service
         private readonly IEmailService _emailService;
         private readonly IEmailTemplate _emailTemplate;
         private readonly INotificationService _notificationService;
+        private IMemoryCache _cache;
 
-        public BookUserEmailService(IUserService userService, IBookService bookService, IEmailService emailService, IEmailTemplate emailTemplate, INotificationService notificationService)
+        public BookUserEmailService(IUserService userService, IBookService bookService, IEmailService emailService, IEmailTemplate emailTemplate, INotificationService notificationService, IMemoryCache memoryCache)
         {
             _userService = userService;
             _bookService = bookService;
             _emailService = emailService;
             _emailTemplate = emailTemplate;
             _notificationService = notificationService;
+            _cache = memoryCache;
         }
 
         public async Task SendEmailBookDonated(BookUser bookUser)
@@ -77,36 +81,85 @@ namespace ShareBook.Service
 
         public async Task SendEmailBookDonor(BookUser bookUser, Book bookRequested)
         {
+            // envia no máximo 1 email por hora. Pra não sobrecarregar o doador.
+            if (!MaxEmailsDonorValid(bookRequested))
+                return;
+
             //obter o endereço do interessado
             var donatedUser = this._userService.Find(bookUser.UserId);
             if (bookRequested.User.AllowSendingEmail)
             {
+                var htmlTable = GenerateInterestedListHtml(bookRequested);
+
                 var vm = new
                 {
-                    Request = bookUser,
-                    Book = bookRequested,
-                    DonatedLocation = GenerateDonatedLocation(donatedUser),
+                    HtmlTable = htmlTable,
                     Donor = new
                     {
                         Name = bookRequested.User.Name,
-                        ChooseDate = string.Format("{0:dd/MM/yyyy}", bookRequested.ChooseDate.Value)
+                        ChooseDate = string.Format("{0:dd/MM/yyyy}", bookRequested.ChooseDate.Value),
+                        BookTitle = bookRequested.Title,
                     },
                     RequestingUser = new { bookUser.NickName },
 
                 };
 
+                // push notification
                 _notificationService.SendNotificationByEmail(
                     bookRequested.User.Email,
                     $"Seu livro foi solicitado", $" O Interessado é {vm.RequestingUser.NickName}"
                 );
 
                 var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookNoticeDonorTemplate, vm);
-                await _emailService.Send(bookRequested.User.Email, bookRequested.User.Name, html, BookNoticeDonorTitle);
+
+                // TODO: remover cópia adm quando esse processo estiver amadurecido.
+                await _emailService.Send(bookRequested.User.Email, bookRequested.User.Name, html, BookNoticeDonorTitle, copyAdmins: true);
+
+                EmailsDonorAddCache(bookRequested);
             }
+        }
+
+        private string GenerateInterestedListHtml(Book bookRequested)
+        {
+            var html = "<table border=1 cellpadding=3 cellspacing=0>";
+            html += "<tr><td bgcolor = '#ffff00'><b> APELIDO </b></td><td bgcolor = '#ffff00'><b> PEDIDO </b></td></tr>";
+
+            var requests = bookRequested.BookUsers.Where(r => r.CreationDate >= DateTime.Now.AddMinutes(-180)).OrderByDescending(r => r.CreationDate);
+
+            foreach (var request in requests)
+            {
+                html += "<tr><td>" + request.NickName + "</td><td><pre>" + request.Reason + "</pre></td></tr>";
+            }
+
+            html += "<tr><td colspan=\"2\"> Para ver a lista completa de interessados, use esse link: <a href=\"https://www.sharebook.com.br/book/donate/" + bookRequested.Slug + "?returnUrl=book%2Fdonations\">" + bookRequested.Title + "</a>.</td></tr>";
+            html += "</table>";
+
+            return html;
+        }
+
+        private bool MaxEmailsDonorValid(Book bookRequested)
+        {
+            var key = $"BookRequested_{bookRequested.UserId}_{bookRequested.Id}";
+            var hasCache = _cache.TryGetValue(key, out bool value);
+            return !hasCache;
+        }
+
+        private void EmailsDonorAddCache(Book bookRequested)
+        {
+            var key = $"BookRequested_{bookRequested.UserId}_{bookRequested.Id}";
+
+            var cacheOptions = new MemoryCacheEntryOptions()
+                .SetSlidingExpiration(TimeSpan.FromMinutes(60));
+
+            _cache.Set(key, true, cacheOptions);
         }
 
         public async Task SendEmailBookInterested(BookUser bookUser, Book book)
         {
+            // lazy load depression
+            if (bookUser.User == null)
+                bookUser.User = _userService.Find(bookUser.UserId);
+
             if (bookUser.User.AllowSendingEmail)
             {
                 var vm = new
@@ -120,6 +173,7 @@ namespace ShareBook.Service
                     NameInterested = bookUser.User.Name,
                 };
 
+                // push notification
                 _notificationService.SendNotificationByEmail(bookUser.User.Email, $"Você solicitou o livro {vm.NameBook}", $"Aguarde até o dia {vm.ChooseDate} que será anunciado o ganhador. Boa sorte!");
 
                 var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookNoticeInterestedTemplate, vm);
