@@ -278,7 +278,9 @@ namespace ShareBook.Service
                 CreationDate = user.CreationDate,
                 TotalLate = books.Where(b => b.ChooseDate < DateTime.Today && b.Status == BookStatus.AwaitingDonorDecision).Count(),
                 TotalOk = books.Where(b => b.Status == BookStatus.WaitingSend || b.Status == BookStatus.Sent || b.Status == BookStatus.Received).Count(),
-                TotalCanceled = books.Where(b => b.Status == BookStatus.Canceled).Count()
+                TotalCanceled = books.Where(b => b.Status == BookStatus.Canceled).Count(),
+                TotalWaitingApproval = books.Where(b => b.Status == BookStatus.WaitingApproval).Count(),
+                TotalAvailable = books.Where(b => b.Status == BookStatus.Available).Count(),
             };
             return stats;
         }
