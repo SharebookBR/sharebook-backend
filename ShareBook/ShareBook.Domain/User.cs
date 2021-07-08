@@ -86,5 +86,12 @@ namespace ShareBook.Domain
         public int TotalBooksWon() => BookUsers.Where(b => b.Status == DonationStatus.Donated).ToList().Count ;
 
         public int TotalBooksDonated() => BooksDonated.Count;
+
+        // TODO: precisamos do lazy load pra esse método ser mais confiável.
+        public bool HasAbandonedDonation(int maxLateDonationDays = 15)
+        {
+            if (BooksDonated == null) return false;
+            return BooksDonated.Any(b => b.Status == BookStatus.AwaitingDonorDecision && (DateTime.Now - b.ChooseDate).Value.Days > maxLateDonationDays);
+        }
     }
 }
