@@ -49,7 +49,6 @@ namespace ShareBook.Service
             .Where(x => x.BookId == bookId && x.Status == DonationStatus.WaitingAction)
             .Select(x => x.User.Cleanup()).ToList();
 
-        // TODO: avaliar se o uso de custom sql melhora significativamente a performance. Muitos includes.
         public IList<BookUser> GetRequestersList(Guid bookId) =>
             _bookUserRepository.Get()
             .Include(x => x.User).ThenInclude(u => u.Address)
