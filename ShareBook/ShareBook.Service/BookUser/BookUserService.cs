@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
+using ShareBook.Domain.DTOs;
 using ShareBook.Domain.Enums;
 using ShareBook.Domain.Exceptions;
 using ShareBook.Repository;
@@ -49,7 +50,6 @@ namespace ShareBook.Service
             .Where(x => x.BookId == bookId && x.Status == DonationStatus.WaitingAction)
             .Select(x => x.User.Cleanup()).ToList();
 
-        // TODO: avaliar se o uso de custom sql melhora significativamente a performance. Muitos includes.
         public IList<BookUser> GetRequestersList(Guid bookId) =>
             _bookUserRepository.Get()
             .Include(x => x.User).ThenInclude(u => u.Address)
@@ -147,24 +147,22 @@ namespace ShareBook.Service
             _bookUsersEmailService.SendEmailBookDonatedNotifyDonor(bookUserAccepted.Book, bookUserAccepted.User).Wait();
         }
 
-        public Result<Book> Cancel(Guid bookId, bool isAdmin = false)
+        public Result<Book> Cancel(BookCancelationDTO dto)
         {
-            var book = _bookService.Find(bookId);
-
-            if (book == null)
+            if (dto.Book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
-            var bookUsers = _bookUserRepository.Get().Where(x => x.BookId == bookId).ToList();
+            var bookUsers = _bookUserRepository.Get().Where(x => x.BookId == dto.Book.Id).ToList();
 
-            book.ChooseDate = null;
-            book.Status = BookStatus.Canceled;
+            dto.Book.ChooseDate = null;
+            dto.Book.Status = BookStatus.Canceled;
 
-            CancelBookUsersAndSendNotification(book);            
+            CancelBookUsersAndSendNotification(dto.Book);            
 
-            _bookService.Update(book);
-            _bookUsersEmailService.SendEmailBookCanceledToAdmins(book).Wait();
+            _bookService.Update(dto.Book);
+            _bookUsersEmailService.SendEmailBookCanceledToAdminsAndDonor(dto).Wait();
 
-            return new Result<Book>(book);
+            return new Result<Book>(dto.Book);
         }
 
         public void DeniedBookUsers(Guid bookId)

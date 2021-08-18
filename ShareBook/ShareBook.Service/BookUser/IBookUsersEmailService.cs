@@ -1,4 +1,5 @@
 ﻿using ShareBook.Domain;
+using ShareBook.Domain.DTOs;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -18,7 +19,7 @@ namespace ShareBook.Service
 
         Task SendEmailDonationCanceled(Book book, List<BookUser> bookUsers);
 
-        Task SendEmailBookCanceledToAdmins(Book book);
+        Task SendEmailBookCanceledToAdminsAndDonor(BookCancelationDTO dto);
 
         Task SendEmailTrackingNumberInformed(BookUser bookUserWinner, Book book);
         Task SendEmailMaxRequests(Book bookRequested);

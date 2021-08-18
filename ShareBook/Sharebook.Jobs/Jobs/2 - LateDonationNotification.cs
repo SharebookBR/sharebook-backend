@@ -1,4 +1,5 @@
-﻿using ShareBook.Domain;
+﻿using Microsoft.Extensions.Configuration;
+using ShareBook.Domain;
 using ShareBook.Domain.DTOs;
 using ShareBook.Domain.Enums;
 using ShareBook.Repository;
@@ -15,10 +16,13 @@ namespace Sharebook.Jobs
         private readonly IEmailTemplate _emailTemplate;
         private readonly IBookService _bookService;
 
+        private readonly int maxLateDonationDays;
+        private readonly IConfiguration _configuration;
+
         public LateDonationNotification(IJobHistoryRepository jobHistoryRepo,
             IBookService bookService,
             IEmailService emailService,
-            IEmailTemplate emailTemplate) : base(jobHistoryRepo)
+            IEmailTemplate emailTemplate, IConfiguration configuration) : base(jobHistoryRepo)
         {
             JobName     = "LateDonationNotification";
             Description = "Notifica o facilitador e doador com lista de doações em atraso " +
@@ -30,6 +34,9 @@ namespace Sharebook.Jobs
             _bookService = bookService;
             _emailService = emailService;
             _emailTemplate = emailTemplate;
+
+            _configuration = configuration;
+            maxLateDonationDays = int.Parse(_configuration["SharebookSettings:MaxLateDonationDays"]);
         }
 
         public override JobHistory Work()
@@ -102,20 +109,44 @@ namespace Sharebook.Jobs
                 {
                     details += "E-mail NÃO enviado para o usuário: " + donator.Name + " porque está INATIVO.";
                     continue;
-                }  
+                }
+
+                if (donator.HasAbandonedDonation(maxLateDonationDays))
+                    SendEmailDonatorHard(donator);
+                else
+                    SendEmailDonatorSoft(donator);
                 
-                var html = "<p>Bom dia! Aqui é o Sharebook. Vim aqui pra te ajudar a concluir a doação do seu livro.</p>";
-                html += "<p>Por favor entre no Sharebook e escolha o ganhador.</p>";
-                html += "<p>Para sua conveniência use esse link: <a href='https://www.sharebook.com.br/book/donations' target='_blank'>Minhas doações</a></p>";
-                html += "<p>Obrigado. Qualquer dúvida pode entrar em contato com o seu facilitador. É um prazer ajudar. =)</p>";
-                html += "<p>Sharebook</p>";
-
-                var emailSubject = "Lembrete do Sharebook";
-
                 details += "E-mail enviado para o usuário: " + donator.Name;
-
-                _emailService.Send(donator.Email, donator.Name, html, emailSubject, copyAdmins: false).Wait();
             }
+        }
+
+        private void SendEmailDonatorHard(User donator)
+        {
+            var html = $"<p>Bom dia. Consta em nosso sistema que você tem uma doação abandonada no sharebook com mais de {maxLateDonationDays} dias de atraso.</p>";
+            html += "<p>Essa é uma situação grave porque temos muitos usuários aguardando sua decisão. Pessoas humildes que desejam e precisam do livro que vc se propôs a doar em nosso app.</p>";
+            html += "<p>Para sua conveniência use esse link para <strong>concluir</strong> ou <strong>cancelar</strong>: <a href='https://www.sharebook.com.br/book/donations' target='_blank'>Minhas doações</a></p>";
+            html += "<p>Esse é nosso último aviso. Caso não responda, vamos considerar que a doação foi abandonada e sua conta será bloqueada em nosso sistema.</p>";
+            
+            html += "<p>Conto com sua compreensão e colaboração.</p>";
+            html += "<p>Sinceramente,</p>";
+            html += "<p>Sharebook</p>";
+
+            var emailSubject = "Doação abandonada no Sharebook. Urgente!";
+
+            _emailService.Send(donator.Email, donator.Name, html, emailSubject, copyAdmins: true).Wait();
+        }
+
+        private void SendEmailDonatorSoft(User donator)
+        {
+            var html = "<p>Bom dia! Aqui é o Sharebook. Vim aqui pra te ajudar a concluir a doação do seu livro.</p>";
+            html += "<p>Por favor entre no Sharebook e escolha o ganhador.</p>";
+            html += "<p>Para sua conveniência use esse link: <a href='https://www.sharebook.com.br/book/donations' target='_blank'>Minhas doações</a></p>";
+            html += "<p>Obrigado. Qualquer dúvida pode entrar em contato com o seu facilitador. É um prazer ajudar. =)</p>";
+            html += "<p>Sharebook</p>";
+
+            var emailSubject = "Lembrete do Sharebook";
+
+            _emailService.Send(donator.Email, donator.Name, html, emailSubject, copyAdmins: false).Wait();
         }
 
         #endregion

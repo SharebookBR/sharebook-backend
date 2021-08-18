@@ -1,5 +1,6 @@
 ﻿using ShareBook.Domain;
 using ShareBook.Domain.Common;
+using ShareBook.Domain.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -26,7 +27,7 @@ namespace ShareBook.Service
         /// <param name="bookId"></param>
         Task NotifyInterestedAboutBooksWinner(Guid bookId);
 
-        Result<Book> Cancel(Guid bookId, bool isAdmin = false);
+        Result<Book> Cancel(BookCancelationDTO dto);
 
         void InformTrackingNumber(Guid bookId, string trackingNumber);
     }
