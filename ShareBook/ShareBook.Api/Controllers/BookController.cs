@@ -6,6 +6,7 @@ using ShareBook.Api.Filters;
 using ShareBook.Api.ViewModels;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
+using ShareBook.Domain.DTOs;
 using ShareBook.Repository.Repository;
 using ShareBook.Service;
 using ShareBook.Service.Authorization;
@@ -88,11 +89,18 @@ namespace ShareBook.Api.Controllers
         [Authorize("Bearer")]
         [HttpPost("Cancel/{id}")]
         [ProducesResponseType(typeof(Result<CancelBookDonationVM>), 200)]
-        public IActionResult Cancel(string id)
+        public IActionResult Cancel(string id, [FromQuery] string reason = "")
         {
             if (!_IsBookOwner(new Guid(id))) return Unauthorized();
 
-            var returnBook =  _bookUserService.Cancel(new Guid(id), true).Value;
+            var cancelationDTO = new BookCancelationDTO
+            {
+                Book = _service.Find(new Guid(id)),
+                CanceledBy = GetSessionUser().Name,
+                Reason = reason
+            };
+
+            var returnBook =  _bookUserService.Cancel(cancelationDTO).Value;
             var returnBookVm = _mapper.Map<CancelBookDonationVM>(returnBook);
             var result = new Result<CancelBookDonationVM>(returnBookVm);
             return Ok(result);
@@ -377,6 +385,12 @@ namespace ShareBook.Api.Controllers
                 return true;
 
             return false;
+        }
+
+        private User GetSessionUser()
+        {
+            var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+            return _userService.Find(userId);
         }
     }
 }
