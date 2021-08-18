@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using ShareBook.Domain;
+using ShareBook.Domain.DTOs;
 using ShareBook.Repository.Repository;
 using ShareBook.Service.Notification;
 using System;
@@ -21,7 +22,7 @@ namespace ShareBook.Service
         private const string BookDonatedTitleNotifyDonor = "Parabéns você escolheu um ganhador!";
         private const string BookNoticeDonorTitle = "Seu livro foi solicitado!";
         private const string BookCanceledTemplate = "BookCanceledTemplate";
-        private const string BookCanceledTitle = "Livro cancelado - Sharebook";
+        private const string BookCanceledTitle = "Doação cancelada";
         private const string BookTrackingNumberNoticeWinnerTitle = "Seu livro foi postado - Sharebook";
         private const string BookNoticeInterestedTemplate = "BookNoticeInterestedTemplate";
         private const string BookNoticeInterestedTitle = "Sharebook - Você solicitou um livro";
@@ -237,10 +238,20 @@ namespace ShareBook.Service
             
         }
 
-        public async Task SendEmailBookCanceledToAdmins(Book book)
+        public async Task SendEmailBookCanceledToAdminsAndDonor(BookCancelationDTO dto)
         {
-            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookCanceledTemplate, book);
-            await _emailService.SendToAdmins(html, BookCanceledTitle);
+            var donor = dto.Book.User;
+
+            var templateData = new
+            {
+                Title = dto.Book.Title,
+                Donor = donor.Name,
+                CanceledBy = dto.CanceledBy,
+                Reason = dto.Reason
+            };
+
+            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookCanceledTemplate, templateData);
+            _emailService.Send(donor.Email, donor.Name, html, BookCanceledTitle, copyAdmins: true).Wait();
         }
     
         public async Task SendEmailTrackingNumberInformed(BookUser bookUserWinner, Book book)
