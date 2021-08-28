@@ -13,7 +13,7 @@ namespace ShareBook.Api.Configuration
         public static void RegisterJWT(IServiceCollection services, IConfiguration configuration)
         {
             var tokenConfigurations = ConfigureToken(services, configuration);
-            var signingConfigurations = ConfigureSigning(services);
+            var signingConfigurations = ConfigureSigning(services, configuration);
             ConfigureAuth(services, signingConfigurations, tokenConfigurations);
         }
 
@@ -28,9 +28,9 @@ namespace ShareBook.Api.Configuration
             return tokenConfigurations;
         }
 
-        private static SigningConfigurations ConfigureSigning(IServiceCollection services)
+        private static SigningConfigurations ConfigureSigning(IServiceCollection services, IConfiguration configuration)
         {
-            var signingConfigurations = new SigningConfigurations();
+            var signingConfigurations = new SigningConfigurations(configuration["TokenConfigurations:SecretJwtKey"]);
             services.AddSingleton(signingConfigurations);
 
             return signingConfigurations;

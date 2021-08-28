@@ -32,6 +32,7 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<IContactUsEmailService, ContactUsEmailService>();
             services.AddScoped<IMuambatorService, MuambatorService>();
             services.AddSingleton<IAWSSQSService, AWSSQSService>();
+            services.AddScoped<IAccessHistoryService, AccessHistoryService>();
 
             //repositories
             services.AddScoped<IBookRepository, BookRepository>();
@@ -39,6 +40,7 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IJobHistoryRepository, JobHistoryRepository>();
+            services.AddScoped<IAccessHistoryRepository, AccessHistoryRepository>();
 
             //validators
             services.AddScoped<IValidator<User>, UserValidator>();
@@ -47,6 +49,7 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<IValidator<ContactUs>, ContactUsValidator>();
             services.AddScoped<IValidator<BookUser>, BookUserValidator>();
             services.AddScoped<IValidator<Address>, AddressValidator>();
+            services.AddScoped<IValidator<AccessHistory>, AccessHistoryValidator>();
 
             //Auth
             services.AddScoped<IApplicationSignInManager, ApplicationSignInManager>();
