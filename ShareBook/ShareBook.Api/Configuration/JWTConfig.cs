@@ -30,7 +30,7 @@ namespace ShareBook.Api.Configuration
 
         private static SigningConfigurations ConfigureSigning(IServiceCollection services, IConfiguration configuration)
         {
-            var signingConfigurations = new SigningConfigurations(configuration["SecretJwtKey"]);
+            var signingConfigurations = new SigningConfigurations(configuration["TokenConfigurations:SecretJwtKey"]);
             services.AddSingleton(signingConfigurations);
 
             return signingConfigurations;
