@@ -11,15 +11,11 @@ namespace ShareBook.Infra.CrossCutting.Identity
 
         public SigningConfigurations(string secretJwtKey)
         {
-            /*using (var provider = new RSACryptoServiceProvider(2048))
-            {
-                Key = new RsaSecurityKey(provider.ExportParameters(true));
-            }*/
             Key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(secretJwtKey));            
 
             SigningCredentials = new SigningCredentials(
-                Key, SecurityAlgorithms.RsaSha256Signature);
+                Key, SecurityAlgorithms.HmacSha256Signature);
         }
     }
 }
