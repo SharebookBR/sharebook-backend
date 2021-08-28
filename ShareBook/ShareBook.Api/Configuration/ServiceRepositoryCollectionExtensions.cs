@@ -66,6 +66,7 @@ namespace ShareBook.Api.Configuration
 
             //Jobs
             services.AddScoped<IJobExecutor, JobExecutor>();
+            services.AddScoped<CancelAbandonedDonations>();
             services.AddScoped<RemoveBookFromShowcase>();
             services.AddScoped<ChooseDateReminder>();
             services.AddScoped<LateDonationNotification>();

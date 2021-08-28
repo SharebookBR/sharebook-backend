@@ -18,6 +18,7 @@ namespace Sharebook.Jobs
         private Stopwatch _stopwatch;
 
         public JobExecutor(IJobHistoryRepository jobHistoryRepo,
+                            CancelAbandonedDonations job0,
                            ChooseDateReminder job1,
                            LateDonationNotification job2,
                            RemoveBookFromShowcase job3,
@@ -27,6 +28,7 @@ namespace Sharebook.Jobs
 
             _jobs = new List<IJob>
             {
+                job0,
                 job1,
                 job2,
                 job3,
