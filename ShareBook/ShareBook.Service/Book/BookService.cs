@@ -1,6 +1,8 @@
 using FluentValidation;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.DTOs;
@@ -13,28 +15,33 @@ using ShareBook.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service.Generic;
 using ShareBook.Service.Upload;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
+using System.Threading.Tasks;
 
-namespace ShareBook.Service
-{
-    public class BookService : BaseService<Book>, IBookService
-    {
+namespace ShareBook.Service {
+    public class BookService : BaseService<Book>, IBookService {
         private readonly IUploadService _uploadService;
         private readonly IBooksEmailService _booksEmailService;
         private readonly IConfiguration _configuration;
+        private readonly IBookRepository _bookRepository;
 
         public BookService(IBookRepository bookRepository,
-                    IUnitOfWork unitOfWork, IValidator<Book> validator,
-                    IUploadService uploadService, IBooksEmailService booksEmailService, IConfiguration configuration)
+                    IUnitOfWork unitOfWork, 
+                    IValidator<Book> validator,
+                    IUploadService uploadService, 
+                    IBooksEmailService booksEmailService, 
+                    IConfiguration configuration)
                     : base(bookRepository, unitOfWork, validator)
         {
             _uploadService = uploadService;
             _booksEmailService = booksEmailService;
             _configuration = configuration;
+            _bookRepository = bookRepository;
         }
 
         public void Approve(Guid bookId, DateTime? chooseDate = null)
@@ -433,6 +440,8 @@ namespace ShareBook.Service
                     "Necessário informar o link ou o arquivo em caso de um E-Book.");
             }
         }
+        #endregion Private
+
 
         public BookStatsDTO GetStats()
         {
@@ -458,6 +467,14 @@ namespace ShareBook.Service
             return status;
         }
 
-        #endregion Private
+        public async IAsyncEnumerable<string> CancelBooksByDonor(Guid donorId) {
+            var booksForCancellation = await _bookRepository.GetBooksByDonor(donorId);
+
+            foreach (var book in booksForCancellation) {
+                book.UpdateStatus(BookStatus.Canceled, "Livro cancelado por anonimização do doador");
+                Update(book);
+                yield return $"Book Id: {book.Id} | Slug: {book.Slug}";
+            }
+        }
     }
 }

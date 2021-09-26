@@ -1,5 +1,9 @@
 ﻿using FluentValidation;
+
 using Microsoft.Extensions.DependencyInjection;
+
+using Sharebook.Jobs;
+
 using ShareBook.Domain;
 using ShareBook.Domain.Validators;
 using ShareBook.Infra.CrossCutting.Identity;
@@ -7,14 +11,12 @@ using ShareBook.Infra.CrossCutting.Identity.Interfaces;
 using ShareBook.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service;
-using ShareBook.Service.Upload;
-using Sharebook.Jobs;
-using ShareBook.Service.Notification;
-using ShareBook.Service.Muambator;
 using ShareBook.Service.AWSSQS;
+using ShareBook.Service.Muambator;
+using ShareBook.Service.Notification;
+using ShareBook.Service.Upload;
 
-namespace ShareBook.Api.Configuration
-{
+namespace ShareBook.Api.Configuration {
     public static class ServiceRepositoryCollectionExtensions
     {
         public static IServiceCollection RegisterRepositoryServices(
@@ -33,6 +35,7 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<IMuambatorService, MuambatorService>();
             services.AddSingleton<IAWSSQSService, AWSSQSService>();
             services.AddScoped<IAccessHistoryService, AccessHistoryService>();
+            services.AddScoped<IUserCancellantionInfoService, UserCancellationInfoService>();
 
             //repositories
             services.AddScoped<IBookRepository, BookRepository>();
@@ -41,6 +44,7 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IJobHistoryRepository, JobHistoryRepository>();
             services.AddScoped<IAccessHistoryRepository, AccessHistoryRepository>();
+            services.AddScoped<IUserCancellationInfoRepository, UserCancellationInfoRepository>();
 
             //validators
             services.AddScoped<IValidator<User>, UserValidator>();
@@ -50,6 +54,7 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<IValidator<BookUser>, BookUserValidator>();
             services.AddScoped<IValidator<Address>, AddressValidator>();
             services.AddScoped<IValidator<AccessHistory>, AccessHistoryValidator>();
+            services.AddScoped<IValidator<UserCancellationInfo>, UserCancellationInfoValidator>();
 
             //Auth
             services.AddScoped<IApplicationSignInManager, ApplicationSignInManager>();

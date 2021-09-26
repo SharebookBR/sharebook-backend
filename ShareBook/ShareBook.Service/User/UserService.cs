@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using FluentValidation;
-using Microsoft.EntityFrameworkCore;
+﻿using FluentValidation;
+
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.DTOs;
@@ -15,8 +11,13 @@ using ShareBook.Repository.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service.Generic;
 
-namespace ShareBook.Service
-{
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace ShareBook.Service {
     public class UserService : BaseService<User>, IUserService
     {
         private readonly IUserRepository _userRepository;
@@ -220,6 +221,10 @@ namespace ShareBook.Service
                     }).ToList();
         }
 
+        public async Task UpdateAsync(User user) {
+            await _userRepository.UpdateAsync(user);
+        }
+
         #endregion Public
 
         #region Private
@@ -284,8 +289,7 @@ namespace ShareBook.Service
             };
             return stats;
         }
-
-
+        
         #endregion Private
     }
 }

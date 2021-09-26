@@ -2,11 +2,12 @@
 using ShareBook.Domain.Common;
 using ShareBook.Domain.DTOs;
 using ShareBook.Service.Generic;
+
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace ShareBook.Service
-{
+namespace ShareBook.Service {
     public interface IUserService : IBaseService<User>
     {
         Result<User> AuthenticationByEmailAndPassword(User user);
@@ -18,5 +19,6 @@ namespace ShareBook.Service
         IList<User> GetFacilitators(Guid userIdDonator);
         IList<User> GetBySolicitedBookCategory(Guid BookCategoryId);
         UserStatsDTO GetStats(Guid? userId);
+        Task UpdateAsync(User user);
     }
 }

@@ -1,12 +1,13 @@
 ﻿using ShareBook.Domain.Common;
 using ShareBook.Repository.Repository;
+
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace ShareBook.Repository
-{
+namespace ShareBook.Repository {
     public interface IRepositoryGeneric<TEntity> where TEntity : class
     {
         Task<TEntity> FindAsync(params object[] keyValues);
@@ -35,6 +36,8 @@ namespace ShareBook.Repository
         /// Get the DbSet as a IQueryable
         /// </summary>
         IQueryable<TEntity> Get();
+
+        Task<IEnumerable<TEntity>> GetWhereAsync(IncludeList<TEntity> includes, Expression<Func<TEntity, bool>> predicate);
 
         /// <summary>
         /// Execute a Find on the DbSet using the <paramref name="keyValues"/>.

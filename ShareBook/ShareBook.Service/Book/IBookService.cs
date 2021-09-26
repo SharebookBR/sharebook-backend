@@ -3,13 +3,13 @@ using ShareBook.Domain.Common;
 using ShareBook.Domain.DTOs;
 using ShareBook.Domain.Enums;
 using ShareBook.Service.Generic;
+
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace ShareBook.Service
-{
-    public interface IBookService : IBaseService<Book>
-    {
+namespace ShareBook.Service {
+    public interface IBookService : IBaseService<Book> {
         void Approve(Guid bookId, DateTime? chooseDate);
 
         void Received(Guid bookId, Guid winnerUserId);
@@ -45,5 +45,6 @@ namespace ShareBook.Service
 
         void RenewChooseDate(Guid bookId);
         BookStatsDTO GetStats();
+        IAsyncEnumerable<string> CancelBooksByDonor(Guid donorId);
     }
 }

@@ -1,15 +1,16 @@
 ﻿using ShareBook.Domain.Common;
 using ShareBook.Domain.Enums;
-using ShareBook.Helper.Crypto;
+using ShareBook.Helper.Extensions;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.RegularExpressions;
 
-namespace ShareBook.Domain
-{
-    public class User : BaseEntity
-    {
+namespace ShareBook.Domain {
+    public class User : BaseEntity {
         public string Name { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
@@ -26,6 +27,7 @@ namespace ShareBook.Domain
         public virtual ICollection<BookUser> BookUsers { get; set; }
         public virtual ICollection<Book> BooksDonated { get; set; }
         public virtual ICollection<AccessHistory> Visitors { get; set; }
+        public UserCancellationInfo UserCancellationInfo { get; set; }
 
         public bool PasswordIsStrong()
         {
@@ -93,6 +95,50 @@ namespace ShareBook.Domain
         {
             if (BooksDonated == null) return false;
             return BooksDonated.Any(b => b.Status == BookStatus.AwaitingDonorDecision && (DateTime.Now - b.ChooseDate).Value.Days > maxLateDonationDays);
+        }
+
+        /// <summary>
+        /// Anonymize the user for auto-request
+        /// Clear personal data and address data
+        /// Update the e-mail field with hash code
+        /// </summary>
+        public void AnonymizeMe() {
+            var encodedEmail = Encoding.ASCII.GetBytes($"{Email}|{DateTime.Now}");
+            var encryptedEmail = new MD5CryptoServiceProvider().ComputeHash(encodedEmail).ByteArrayToString();
+            SetEmail(encryptedEmail);
+            SetLinkedin(string.Empty);
+            SetName("USUÁRIO ANONIMIZADO");
+            SetPhone(string.Empty);
+            NotAllowSendingEmail();
+            Disable();
+            Address?.Clear();
+        }
+
+        private void Disable() {
+            Active = false;
+        }
+
+        private void SetEmail(string email) {
+            if (string.IsNullOrEmpty(email)) return;
+
+            Email = email;
+        }
+
+        private void SetLinkedin(string linkedin) {
+            Linkedin = linkedin;
+        }
+
+        private void SetName(string name) {
+            if (string.IsNullOrEmpty(name)) return;
+            Name = name;
+        }
+
+        private void SetPhone(string phone) {
+            Phone = phone;
+        }
+
+        private void NotAllowSendingEmail() {
+            AllowSendingEmail = false;
         }
     }
 }

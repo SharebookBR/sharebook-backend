@@ -1,13 +1,12 @@
 ﻿using ShareBook.Domain.Common;
 using ShareBook.Domain.Enums;
-using ShareBook.Helper;
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 
-namespace ShareBook.Domain
-{
+namespace ShareBook.Domain {
     public class Book : BaseEntity
     {
         public string Title { get; set; }
@@ -53,6 +52,7 @@ namespace ShareBook.Domain
         public BookStatus Status { get; set; }
 
         public BookType Type { get; set; } = BookType.Printed;
+        public string Notes { get; set; }
 
         public string EBookDownloadLink { get; set; }
         public string EBookPdfFile { get; set; }
@@ -102,7 +102,11 @@ namespace ShareBook.Domain
                 && EBookPdfBytes.Length > 0;
         }
 
+        public void UpdateStatus(BookStatus status, string notes) {
+            Status = status;
+            if (string.IsNullOrEmpty(notes)) return;
 
-        
+            Notes = notes;
+        }
     }
 }

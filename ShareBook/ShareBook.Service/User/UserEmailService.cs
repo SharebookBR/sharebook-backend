@@ -1,13 +1,16 @@
-﻿using System.Threading.Tasks;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
+
 using ShareBook.Domain;
+using ShareBook.Domain.DTOs;
 using ShareBook.Service.Server;
 
-namespace ShareBook.Service
-{
+using System.Threading.Tasks;
+
+namespace ShareBook.Service {
     public class UserEmailService : IUserEmailService
     {
         private const string ForgotPasswordTemplate = "ForgotPasswordTemplate";
+        private const string UserCanceledTemplate = "UserCanceledTemplate";
         private const string ForgotPasswordTitle = "Esqueceu sua senha - Sharebook";
 
         private readonly IEmailService _emailService;
@@ -31,6 +34,11 @@ namespace ShareBook.Service
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(ForgotPasswordTemplate, vm);
 
             await _emailService.Send(user.Email, user.Name, html, ForgotPasswordTitle);
+        }
+
+        public async Task SendEmailUserCancellation(UserCancellationDto dto) {
+            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(UserCanceledTemplate, dto);
+            await _emailService.SendToAdmins(html, "Usuário solicitou cancelamento e foi anonimizado!");
         }
     }
 }

@@ -15,6 +15,9 @@ namespace ShareBook.Domain.Enums
         Donated,
 
         [Description("Não foi dessa vez")]
-        Denied
+        Denied,
+
+        [Description("Doação cancelada")]
+        Canceled
     }
 }

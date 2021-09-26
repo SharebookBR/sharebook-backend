@@ -35,6 +35,8 @@ namespace ShareBook.Api.AutoMapper
                  .ForPath(dest => dest.Address.Complement, opt => opt.MapFrom(src => src.Complement));
             CreateMap<UpdateUserVM, User>();
 
+            CreateMap<UserCancellationInfoVM, UserCancellationInfo>();
+
             #endregion [ User ]
 
             #region [ ContactUs ]

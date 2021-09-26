@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+
 using ShareBook.Api.Filters;
 using ShareBook.Api.ViewModels;
 using ShareBook.Domain;
@@ -18,30 +16,42 @@ using ShareBook.Infra.CrossCutting.Identity.Interfaces;
 using ShareBook.Repository;
 using ShareBook.Service;
 
-namespace ShareBook.Api.Controllers
-{
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace ShareBook.Api.Controllers {
+    [ApiController]
     [Route("api/[controller]")]
     [EnableCors("AllowAllHeaders")]
     [GetClaimsFilter]
-    public class AccountController : ControllerBase 
-    {
+    public class AccountController : ControllerBase {
         private readonly IUserService _userService;
         private readonly IApplicationSignInManager _signManager;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
         private readonly IAccessHistoryRepository _historyRepository;
+        private readonly IAccessHistoryService _accessHistory;
+        private readonly IUserCancellantionInfoService _userCancellationInfoService;
 
         public AccountController(IUserService userService,
             IApplicationSignInManager signManager,
             IMapper mapper,
             IConfiguration configuration,
-            IAccessHistoryRepository historyRepository) 
+            IAccessHistoryRepository historyRepository,
+            IUserCancellantionInfoService userCancellationInfoService,
+            IAccessHistoryService accessHistory)
+
+
         {
             _userService = userService;
             _signManager = signManager;
             _mapper = mapper;
             _configuration = configuration;
             _historyRepository = historyRepository;
+            _userCancellationInfoService = userCancellationInfoService;
+            _accessHistory = accessHistory;
         }
 
         #region GET
@@ -98,6 +108,23 @@ namespace ShareBook.Api.Controllers
         #endregion GET
 
         #region POST
+
+        [HttpPost("cancel")]
+        [ProducesResponseType(typeof(UserCancellationInfoVM), 200)]
+        [ProducesResponseType(typeof(UserCancellationInfoVM), 400)]
+        public async Task<IActionResult> Cancel(UserCancellationInfoVM userCancellationInfoVm) {
+            if (!ModelState.IsValid) return BadRequest(userCancellationInfoVm);
+
+            var user = _userService.Find(userCancellationInfoVm.UserId);
+            if (user is null || user.Active == false) return NotFound(userCancellationInfoVm);
+
+            //processar a anonimizaçao utilizando o serviço
+            var userCancellationInfo = _mapper.Map<UserCancellationInfo>(userCancellationInfoVm);
+            var succes = await _userCancellationInfoService.ToProceed(userCancellationInfo);
+            if (succes is false) return BadRequest(userCancellationInfoVm);
+
+            return Ok(userCancellationInfoVm);
+        }
 
         [HttpPost("Register")]
         [ProducesResponseType(typeof(object), 200)]

@@ -1,12 +1,13 @@
 ﻿using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.DTOs;
+
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace ShareBook.Service
-{
+namespace ShareBook.Service {
     public interface IBookUserService 
     {
         void Insert(Guid bookId, string reason);
@@ -30,5 +31,8 @@ namespace ShareBook.Service
         Result<Book> Cancel(BookCancelationDTO dto);
 
         void InformTrackingNumber(Guid bookId, string trackingNumber);
+        Task<IEnumerable<BookUser>> GetWhereAsync(Expression<Func<BookUser, bool>> predicate);
+        IAsyncEnumerable<string> CancelDonationRequestsByDonor(Guid donorId);
+        IAsyncEnumerable<string> CancelDonationRequestsByRequester(Guid requesterId);
     }
 }

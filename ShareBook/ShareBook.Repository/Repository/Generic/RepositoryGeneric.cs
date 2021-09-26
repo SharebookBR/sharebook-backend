@@ -1,22 +1,22 @@
 ﻿using Microsoft.EntityFrameworkCore;
+
 using ShareBook.Domain.Common;
 using ShareBook.Domain.Exceptions;
 using ShareBook.Repository.Repository;
+
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ShareBook.Repository
-{
-    public class RepositoryGeneric<TEntity> : IRepositoryGeneric<TEntity> where TEntity : class
-    {
+namespace ShareBook.Repository {
+    public class RepositoryGeneric<TEntity> : IRepositoryGeneric<TEntity> where TEntity : class {
         protected readonly ApplicationDbContext _context;
         protected readonly DbSet<TEntity> _dbSet;
 
-        public RepositoryGeneric(ApplicationDbContext context)
-        {
+        public RepositoryGeneric(ApplicationDbContext context) {
             _context = context;
             _dbSet = _context.Set<TEntity>();
         }
@@ -25,10 +25,20 @@ namespace ShareBook.Repository
 
         #region Asynchronous
 
+        public async Task<IEnumerable<TEntity>> GetWhereAsync(IncludeList<TEntity> includes, Expression<Func<TEntity, bool>> predicate) {
+            var query = _dbSet.AsQueryable();
+            if (includes is not null) {
+                query = includes.Aggregate(query, (current, include) => current.Include(include));
+            }
+
+            query.Where(predicate);
+            var list = await query.ToListAsync();
+            return list;
+        }
+
         public async Task<TEntity> FindAsync(params object[] keyValues) => await FindAsync(null, keyValues);
 
-        public async Task<TEntity> FindAsync(IncludeList<TEntity> includes, params object[] keyValues)
-        {
+        public async Task<TEntity> FindAsync(IncludeList<TEntity> includes, params object[] keyValues) {
             var result = await _dbSet.FindAsync(keyValues);
 
             if (includes != null)
@@ -38,8 +48,7 @@ namespace ShareBook.Repository
             return result;
         }
 
-        public async Task<TEntity> FindAsync(IncludeList<TEntity> includes, Expression<Func<TEntity, bool>> filter)
-        {
+        public async Task<TEntity> FindAsync(IncludeList<TEntity> includes, Expression<Func<TEntity, bool>> filter) {
             var query = _dbSet.AsQueryable();
 
             if (includes != null)
@@ -59,8 +68,7 @@ namespace ShareBook.Repository
            Expression<Func<TEntity, bool>> filter,
            Expression<Func<TEntity, TKey>> order,
            int page,
-           int itemsPerPage)
-        {
+           int itemsPerPage) {
             return await GetAsync(filter, order, page, itemsPerPage, null);
         }
 
@@ -69,8 +77,7 @@ namespace ShareBook.Repository
             Expression<Func<TEntity, TKey>> order,
             int page,
             int itemsPerPage,
-            IncludeList<TEntity> includes)
-        {
+            IncludeList<TEntity> includes) {
             var skip = (page - 1) * itemsPerPage;
             var query = _dbSet.AsQueryable();
 
@@ -86,8 +93,7 @@ namespace ShareBook.Repository
                 .Take(itemsPerPage)
                 .ToListAsync();
 
-            return new PagedList<TEntity>()
-            {
+            return new PagedList<TEntity>() {
                 Page = page,
                 ItemsPerPage = itemsPerPage,
                 TotalItems = total,
@@ -99,57 +105,46 @@ namespace ShareBook.Repository
 
         public async Task<bool> AnyAsync(Expression<Func<TEntity, bool>> filter) => await CountAsync(filter) > 0;
 
-        public async Task<TEntity> InsertAsync(TEntity entity)
-        {
-            try
-            {
+        public async Task<TEntity> InsertAsync(TEntity entity) {
+            try {
                 _context.Add(entity);
                 await _context.SaveChangesAsync();
 
                 return entity;
-            }
-            catch (DbUpdateException ex)
-            {
+            } catch (DbUpdateException ex) {
                 Exception db = HandleDbUpdateException(ex);
                 throw db;
             }
         }
 
-        private Exception HandleDbUpdateException(DbUpdateException dbUpdate)
-        {
+        private Exception HandleDbUpdateException(DbUpdateException dbUpdate) {
             var builder = new StringBuilder("A DbUpdateException was caught while saving changes.");
-            try
-            {
+            try {
                 builder.AppendLine($"Message: {dbUpdate.InnerException.Message}");
                 foreach (var entries in dbUpdate.Entries)
                     builder.AppendLine($"Entity of type {entries.Entity.GetType().Name} in state {entries.State} could not be updated");
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 builder.Append("Error parsing DbUpdateException: " + e.ToString());
             }
             string message = builder.ToString();
             return new Exception(message, dbUpdate);
         }
 
-        public virtual async Task<TEntity> UpdateAsync(TEntity entity)
-        {
+        public virtual async Task<TEntity> UpdateAsync(TEntity entity) {
             _context.Update(entity);
             await _context.SaveChangesAsync();
 
             return entity;
         }
 
-        public async Task DeleteAsync(params object[] keyValues)
-        {
+        public async Task DeleteAsync(params object[] keyValues) {
             var entity = await FindAsync(keyValues);
             if (entity == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
             await DeleteAsync(entity);
         }
 
-        public async Task DeleteAsync(TEntity entity)
-        {
+        public async Task DeleteAsync(TEntity entity) {
             _context.Remove(entity);
             await _context.SaveChangesAsync();
         }
@@ -159,7 +154,7 @@ namespace ShareBook.Repository
         #region Synchronous
 
         public IQueryable<TEntity> Get() => _dbSet;
-
+        
         public TEntity Find(object keyValue) => _dbSet.Find(keyValue);
 
         public TEntity Find(IncludeList<TEntity> includes, object keyValue) => FindAsync(includes, keyValue).Result;

@@ -1,6 +1,8 @@
 ﻿using FluentValidation;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.DTOs;
@@ -10,16 +12,17 @@ using ShareBook.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service.Generic;
 using ShareBook.Service.Muambator;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using ShareBook.Repository.Repository;
 
-namespace ShareBook.Service
-{
-    public class BookUserService : BaseService<BookUser>, IBookUserService
-    {
+namespace ShareBook.Service {
+    public class BookUserService : BaseService<BookUser>, IBookUserService {
         private readonly IBookUserRepository _bookUserRepository;
         private readonly IBookService _bookService;
         private readonly IBookUsersEmailService _bookUsersEmailService;
@@ -28,15 +31,14 @@ namespace ShareBook.Service
         private readonly IConfiguration _configuration;
 
         public BookUserService(
-            IBookUserRepository bookUserRepository, 
+            IBookUserRepository bookUserRepository,
             IBookService bookService,
             IBookUsersEmailService bookUsersEmailService,
             IMuambatorService muambatorService,
             IBookRepository bookRepository,
             IUnitOfWork unitOfWork,
             IValidator<BookUser> validator, IConfiguration configuration)
-            : base(bookUserRepository, unitOfWork, validator)
-        {
+            : base(bookUserRepository, unitOfWork, validator) {
             _bookUserRepository = bookUserRepository;
             _bookService = bookService;
             _bookUsersEmailService = bookUsersEmailService;
@@ -59,11 +61,11 @@ namespace ShareBook.Service
             .OrderBy(x => x.CreationDate)
             .ToList();
 
-        public void Insert(Guid bookId, string reason)
+        public void Insert(Guid bookId, string reason) 
         {
             //obtem o livro requisitado e o doador
             var bookRequested = _bookService.GetBookWithAllUsers(bookId);
-            var bookUser = new BookUser()
+            var bookUser = new BookUser() 
             {
                 BookId = bookId,
                 UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name),
@@ -88,14 +90,14 @@ namespace ShareBook.Service
             var sendEmailBookRequested = bool.Parse(_configuration["EmailSettings:SendEmailBookRequested"]);
 
             // TODO: não vamos precisar dessa configuração quando o email estiver enfileirado.
-            if (sendEmailBookRequested)
+            if (sendEmailBookRequested) 
             {
                 _bookUsersEmailService.SendEmailBookDonor(bookUser, bookRequested).Wait();
                 _bookUsersEmailService.SendEmailBookInterested(bookUser, bookRequested).Wait();
             }
         }
 
-        private void MaxRequestsValidation(Book bookRequested)
+        private void MaxRequestsValidation(Book bookRequested) 
         {
             var maxRequestsPerBook = int.Parse(_configuration["SharebookSettings:MaxRequestsPerBook"]);
             if (bookRequested.BookUsers.Count < maxRequestsPerBook)
@@ -108,7 +110,7 @@ namespace ShareBook.Service
             _bookUsersEmailService.SendEmailMaxRequests(bookRequested).Wait();
         }
 
-        public void DonateBook(Guid bookId, Guid userId, string note)
+        public void DonateBook(Guid bookId, Guid userId, string note) 
         {
             var book = _bookService.Find(bookId);
             if (!book.MayChooseWinner())
@@ -147,7 +149,7 @@ namespace ShareBook.Service
             _bookUsersEmailService.SendEmailBookDonatedNotifyDonor(bookUserAccepted.Book, bookUserAccepted.User).Wait();
         }
 
-        public Result<Book> Cancel(BookCancelationDTO dto)
+        public Result<Book> Cancel(BookCancelationDTO dto) 
         {
             if (dto.Book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
@@ -157,7 +159,7 @@ namespace ShareBook.Service
             dto.Book.ChooseDate = null;
             dto.Book.Status = BookStatus.Canceled;
 
-            CancelBookUsersAndSendNotification(dto.Book);            
+            CancelBookUsersAndSendNotification(dto.Book);
 
             _bookService.Update(dto.Book);
             _bookUsersEmailService.SendEmailBookCanceledToAdminsAndDonor(dto).Wait();
@@ -165,11 +167,11 @@ namespace ShareBook.Service
             return new Result<Book>(dto.Book);
         }
 
-        public void DeniedBookUsers(Guid bookId)
+        public void DeniedBookUsers(Guid bookId) 
         {
             var bookUsersDenied = _bookUserRepository.Get().Where(x => x.BookId == bookId
             && x.Status == DonationStatus.WaitingAction).ToList();
-            foreach (var item in bookUsersDenied)
+            foreach (var item in bookUsersDenied) 
             {
                 string note = string.Empty;
                 item.UpdateBookUser(DonationStatus.Denied, note);
@@ -177,12 +179,12 @@ namespace ShareBook.Service
             }
         }
 
-        private void CancelBookUsersAndSendNotification(Book book){
+        private void CancelBookUsersAndSendNotification(Book book) {
             DeniedBookUsers(book.Id);
             NotifyUsersBookCanceled(book);
         }
 
-        public PagedList<BookUser> GetRequestsByUser(int page, int itemsPerPage)
+        public PagedList<BookUser> GetRequestsByUser(int page, int itemsPerPage) 
         {
             var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             var query = _bookUserRepository.Get()
@@ -193,7 +195,7 @@ namespace ShareBook.Service
             var result = FormatPagedList(query, page, itemsPerPage);
 
             // só mostra o código de rastreio se ele for o ganhador.
-            result.Items = result.Items.Select(bu =>
+            result.Items = result.Items.Select(bu => 
             {
                 bu.Book.TrackingNumber = bu.Status == DonationStatus.Donated ? bu.Book.TrackingNumber : null;
                 return bu;
@@ -202,7 +204,7 @@ namespace ShareBook.Service
             return result;
         }
 
-        public async Task NotifyInterestedAboutBooksWinner(Guid bookId)
+        public async Task NotifyInterestedAboutBooksWinner(Guid bookId) 
         {
             //Obter todos os users do livro
             var bookUsers = _bookUserRepository.Get()
@@ -214,29 +216,29 @@ namespace ShareBook.Service
             var winnerBookUser = bookUsers.Where(bu => bu.Status == DonationStatus.Donated).FirstOrDefault();
 
             //Book
-            var book =  winnerBookUser.Book;
+            var book = winnerBookUser.Book;
 
             //usuarios que perderam a doação :(
             var losersBookUser = bookUsers.Where(bu => bu.Status == DonationStatus.Denied).ToList();
 
             //enviar e-mails
-           await this._bookUsersEmailService.SendEmailDonationDeclined(book, winnerBookUser, losersBookUser);
+            await this._bookUsersEmailService.SendEmailDonationDeclined(book, winnerBookUser, losersBookUser);
 
         }
 
-        public void NotifyUsersBookCanceled(Book book){
+        public void NotifyUsersBookCanceled(Book book) {
 
-            
+
             List<BookUser> bookUsers = _bookUserRepository.Get()
                                             .Include(u => u.User)
                                             .Where(x => x.BookId == book.Id).ToList();
 
-            
+
             this._bookUsersEmailService.SendEmailDonationCanceled(book, bookUsers).Wait();
 
         }
 
-        public void InformTrackingNumber(Guid bookId, string trackingNumber)
+        public void InformTrackingNumber(Guid bookId, string trackingNumber) 
         {
             var book = _bookRepository.Get()
                                       .Include(d => d.User)
@@ -251,16 +253,42 @@ namespace ShareBook.Service
             if (winnerBookUser == null)
                 throw new ShareBookException("Vencedor ainda não foi escolhido");
 
-            if(MuambatorConfigurator.IsActive)
+            if (MuambatorConfigurator.IsActive)
                 _muambatorService.AddPackageToTrackerAsync(book, winnerBookUser.User, trackingNumber);
 
             book.Status = BookStatus.Sent;
-            book.TrackingNumber = trackingNumber; 
+            book.TrackingNumber = trackingNumber;
             _bookService.Update(book);
 
             if (winnerBookUser.User.AllowSendingEmail)
                 //Envia e-mail para avisar o ganhador do tracking number                          
                 _bookUsersEmailService.SendEmailTrackingNumberInformed(winnerBookUser, book).Wait();
+        }
+
+        public async Task<IEnumerable<BookUser>> GetWhereAsync(Expression<Func<BookUser, bool>> predicate) {
+            return await _repository.GetWhereAsync(new IncludeList<BookUser>(a => a.Book, b => b.User), predicate);
+        }
+
+        public async IAsyncEnumerable<string> CancelDonationRequestsByDonor(Guid donorId) {
+            var donationRequests = await _bookUserRepository.GetDonationRequestsByDonor(donorId);
+            if (donationRequests is not null) {
+                foreach (var order in donationRequests) {
+                    order.UpdateBookUser(DonationStatus.Canceled, "Pedido de doação cancelada por anonimização do doador");
+                    Update(order);
+                    yield return  $"Donation request Id: {order.Id} | Slug: {order.Book.Slug}";
+                }
+            }
+        }
+
+        public async IAsyncEnumerable<string> CancelDonationRequestsByRequester(Guid requesterId) {
+            var donationRequests = await _bookUserRepository.GetDonationRequestsByRequester(requesterId);
+            if (donationRequests is not null) {
+                foreach (var order in donationRequests) {
+                    order.UpdateBookUser(DonationStatus.Canceled, "Pedido de doação cancelada por anonimização do requisitante");
+                    Update(order);
+                    yield return $"Donation request Id: {order.Id} | Slug: {order.Book.Slug}";
+                }
+            }
         }
     }
 }

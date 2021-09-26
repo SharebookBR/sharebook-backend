@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
 using ShareBook.Domain;
 
-namespace ShareBook.Repository.Mapping
-{
+namespace ShareBook.Repository.Mapping {
     public class BookMap
     {
         public BookMap(EntityTypeBuilder<Book> entityBuilder)
@@ -40,6 +40,9 @@ namespace ShareBook.Repository.Mapping
             entityBuilder.Property(t => t.FacilitatorNotes)
                .HasColumnType("varchar(2000)")
                .HasMaxLength(2000);
+
+            entityBuilder.Property(t => t.Notes)
+                .HasMaxLength(300);
 
             entityBuilder.Ignore(t => t.ImageBytes);
 
