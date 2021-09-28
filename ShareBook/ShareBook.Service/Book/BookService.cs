@@ -341,7 +341,7 @@ namespace ShareBook.Service
             var books = _repository
             .Get().Include(x => x.User).Include(x => x.BookUsers).Include(x => x.UserFacilitator)
             .Where(x =>
-                x.ChooseDate <= endDateTime
+                x.ChooseDate <= endDateTime && x.Status == BookStatus.Available
             ).ToList();
 
             return books;
