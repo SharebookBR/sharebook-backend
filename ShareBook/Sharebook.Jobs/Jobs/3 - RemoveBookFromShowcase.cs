@@ -36,7 +36,7 @@ namespace Sharebook.Jobs
         {
             var messages = new List<string>();
 
-            var books = _bookService.GetBooksChooseDateIsToday();
+            var books = _bookService.GetBooksChooseDateIsTodayOrLate();
 
             if (books.Count == 0) messages.Add("Nenhum livro encontrado.");
 
