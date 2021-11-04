@@ -76,12 +76,14 @@ namespace Sharebook.Jobs
             {
                 var notes = book.FacilitatorNotes?.Replace("\n", "<BR>");
 
+                var whatsappLink = GetWhatsappLink(book.User.Phone);
+
                 htmlTable += string.Format("<TR><TD>{0}<BR>{1}</TD><TD>{2}</TD><TD>{3}</TD><TD>{4}<BR>{5}<BR>{6}<BR>{7}</TD><TD>{8}<BR>{9}<BR>{10}<BR>{11}</TD><TD>{12}</TD></TR>", 
                     book.Title, 
                     book.Status, 
                     book.DaysLate(), 
                     book.TotalInterested(),
-                    book.User.Name, book.User.Email, book.User.Phone, book.User.Linkedin,
+                    book.User.Name, book.User.Email, whatsappLink, book.User.Linkedin,
                     book.UserFacilitator.Name, book.UserFacilitator.Email, book.UserFacilitator.Phone, book.UserFacilitator.Linkedin,
                     notes);
             }
@@ -99,6 +101,16 @@ namespace Sharebook.Jobs
             var emailBodyHTML = _emailTemplate.GenerateHtmlFromTemplateAsync("LateDonationNotification", vm).Result;
 
             _emailService.SendToAdmins(emailBodyHTML, emailSubject).Wait();
+        }
+
+        private string GetWhatsappLink(string phone)
+        {
+            if (string.IsNullOrEmpty(phone)) return "";
+
+            string justNumbers = new String(phone.Where(Char.IsDigit).ToArray());
+            string link = $"<a href='https://wa.me/55{justNumbers}'>{phone}</a>";
+
+            return link;
         }
 
         private void SendEmailDonators(IList<User> donators, ref string details)
