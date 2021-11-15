@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ShareBook.Api.ViewModels;
 using ShareBook.Domain;
+using ShareBook.Domain.DTOs;
 
 namespace ShareBook.Api.AutoMapper
 {
@@ -24,7 +25,7 @@ namespace ShareBook.Api.AutoMapper
             #region [ User ]
 
             CreateMap<LoginUserVM, User>();
-            CreateMap<RegisterUserVM, User>()
+            CreateMap<RegisterUserDTO, User>()
                  .ForPath(dest => dest.Address.Street, opt => opt.MapFrom(src => src.Street))
                  .ForPath(dest => dest.Address.Number, opt => opt.MapFrom(src => src.Number))
                  .ForPath(dest => dest.Address.PostalCode, opt => opt.MapFrom(src => src.PostalCode))

@@ -18,5 +18,7 @@ namespace ShareBook.Service
         IList<User> GetFacilitators(Guid userIdDonator);
         IList<User> GetBySolicitedBookCategory(Guid BookCategoryId);
         UserStatsDTO GetStats(Guid? userId);
+        Result<User> Insert(RegisterUserDTO userDto);
+        void ParentAproval(string parentHashCodeAproval);
     }
 }
