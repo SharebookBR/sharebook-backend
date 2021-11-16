@@ -1,5 +1,6 @@
 ﻿using LightBDD.XUnit2;
 using ShareBook.Api.ViewModels;
+using ShareBook.Domain.DTOs;
 using ShareBook.Tests.BDD.Services;
 using System.Net;
 using System.Net.Http;
@@ -9,12 +10,12 @@ namespace ShareBook.Tests.BDD.Features
 {
 	public partial class RegisterUserFeature: FeatureFixture
 	{
-        private RegisterUserVM viewModel;
+        private RegisterUserDTO viewModel;
         private HttpResponseMessage response;
 
         private void Given_new_user_want_to_join_with_this_datas()
 		{
-            viewModel = new RegisterUserVM()
+            viewModel = new RegisterUserDTO()
             {
                 Name = "Joaquim",
                 Password = "Joa.2019!",

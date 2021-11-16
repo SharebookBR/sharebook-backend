@@ -39,6 +39,8 @@ namespace ShareBook.Service
 
         IList<Book> GetBooksChooseDateIsLate();
 
+        IList<Book> GetBooksChooseDateIsTodayOrLate();
+
         void AddFacilitatorNotes(Guid bookId, string facilitatorNotes);
 
         Book GetBookWithAllUsers(Guid bookId);

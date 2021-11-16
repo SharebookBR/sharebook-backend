@@ -328,6 +328,25 @@ namespace ShareBook.Service
             return booksLate;
         }
 
+        /// <summary>
+        /// Bom para remover o livro da vitrine.
+        /// </summary>
+        /// <returns></returns>
+        public IList<Book> GetBooksChooseDateIsTodayOrLate()
+        {
+            // limite é o dia de hoje.
+            DateTime endDateTime = DateTime.Today.AddDays(1).AddTicks(-1); //Today at 23:59:59
+
+            // livros em que o choosedate é hoje.
+            var books = _repository
+            .Get().Include(x => x.User).Include(x => x.BookUsers).Include(x => x.UserFacilitator)
+            .Where(x =>
+                x.ChooseDate <= endDateTime && x.Status == BookStatus.Available
+            ).ToList();
+
+            return books;
+        }
+
         public void AddFacilitatorNotes(Guid bookId, string facilitatorNotes)
         {
             var book = _repository.Find(bookId);

@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using ShareBook.Api.ViewModels;
+using ShareBook.Domain.DTOs;
 using ShareBook.Tests.BDD.Base;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ namespace ShareBook.Tests.BDD.Services
 {
     public class UserService : BaseIntegrationTest
     {
-        public async Task<HttpResponseMessage> RegisterAsync(RegisterUserVM viewModel)
+        public async Task<HttpResponseMessage> RegisterAsync(RegisterUserDTO viewModel)
         {
             try
             {
