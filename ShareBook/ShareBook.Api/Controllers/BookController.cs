@@ -220,6 +220,13 @@ namespace ShareBook.Api.Controllers
         [ProducesResponseType(typeof(Result), 200)]
         public IActionResult RequestBook([FromBody] RequestBookVM requestBookVM)
         {
+            User user = GetUser();
+            if (_IsDonator(requestBookVM.BookId, user) && !_IsAdmin(user)) //Permitido solicitar o próprio livro somente para Admin
+            {
+                Result<object> result = new Result<object>(new { ErrorMessage = "Não é possivel solicitar a doação deste livro pois você é o doador."  }); 
+                return BadRequest(result);
+            }
+
             _bookUserService.Insert(requestBookVM.BookId, requestBookVM.Reason);
             return Ok(new Result { SuccessMessage = "Pedido realizado com sucesso!" });
         }
@@ -389,21 +396,36 @@ namespace ShareBook.Api.Controllers
         // apenas doador e adm
         private bool _IsBookOwner(Guid bookId)
         {
-            var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            var user = _userService.Find(userId);
+            User user = GetUser();
             if (user == null)
                 return false;
 
             // Adm
-            if (user.Profile == Domain.Enums.Profile.Administrator)
-                return true;
+            if (_IsAdmin(user)) return true;
 
             // Doador
-            var book = _service.GetBookWithAllUsers(bookId);
-            if (book.UserId == userId)
-                return true;
+            return _IsDonator(bookId, user);
+        }
 
-            return false;
+        private bool _IsDonator(Guid bookId, User user)
+        {
+            if (user == null || user.Id == Guid.Empty) return false;
+            Book book = _service.GetBookWithAllUsers(bookId);
+            if (book == null || book.Id == Guid.Empty) return false;
+            
+            return book.UserId == user.Id;
+        }
+
+        private User GetUser()
+        {
+            var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+            return _userService.Find(userId);
+        }
+
+        private bool _IsAdmin(User user)
+        {
+            if (user == null || user?.Profile == null) return false;
+            return user.Profile.Equals(Domain.Enums.Profile.Administrator);
         }
 
         // doador, adm e ganhador
