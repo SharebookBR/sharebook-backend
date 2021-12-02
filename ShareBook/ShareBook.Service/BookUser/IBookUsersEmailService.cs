@@ -23,6 +23,6 @@ namespace ShareBook.Service
         Task SendEmailBookCanceledToAdmins(Book book);
 
         Task SendEmailTrackingNumberInformed(BookUser bookUserWinner, Book book);
-        
+        Task SendEmailMaxRequests(Book bookRequested);
     }
 }

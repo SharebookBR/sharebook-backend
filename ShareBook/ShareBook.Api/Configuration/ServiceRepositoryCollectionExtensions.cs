@@ -25,6 +25,7 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<IBookUsersEmailService, BookUserEmailService>();
             services.AddScoped<IBookService, BookService>();
             services.AddScoped<IBookUserService, BookUserService>();
+            services.AddScoped<IEbookComplaintService, EbookComplaintService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IUserEmailService, UserEmailService>();
             services.AddScoped<ICategoryService, CategoryService>();
@@ -36,6 +37,7 @@ namespace ShareBook.Api.Configuration
             //repositories
             services.AddScoped<IBookRepository, BookRepository>();
             services.AddScoped<IBookUserRepository, BookUserRepository>();
+            services.AddScoped<IEbookComplaintRepository, EbookComplaintRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IJobHistoryRepository, JobHistoryRepository>();
@@ -43,6 +45,7 @@ namespace ShareBook.Api.Configuration
             //validators
             services.AddScoped<IValidator<User>, UserValidator>();
             services.AddScoped<IValidator<Book>, BookValidator>();
+            services.AddScoped<IValidator<EbookComplaint>, EbookComplaintValidator>();
             services.AddScoped<IValidator<Category>, CategoryValidator>();
             services.AddScoped<IValidator<ContactUs>, ContactUsValidator>();
             services.AddScoped<IValidator<BookUser>, BookUserValidator>();

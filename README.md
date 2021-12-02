@@ -6,7 +6,7 @@ https://www.linkedin.com/pulse/projeto-sharebook-raffaello-damgaard/
 
 ## 2 - ENTRE NO SLACK
 
-https://join.slack.com/t/sharebookworkspace/shared_invite/enQtMzQ2Nzc5OTk3MDc4LTZlMmJlMjA3NGE1NDczN2QxYzc2ZWZhM2UxMzFkMDIyYjliMGI3YzdlYzg2ZjZhYjQ2YWY1ZTUyZGViNzViOWQ
+https://join.slack.com/t/sharebookworkspace/shared_invite/zt-4fb3uu8m-VPrkhzdI9u3lsOlS1OkVvg
 
 ### 2.2 - LÁ NO SLACK, ENTRE NO CANAL #BACKEND
 
@@ -47,3 +47,5 @@ Extensions:
 - [C# Extensions](https://marketplace.visualstudio.com/items?itemName=jchannon.csharpextensions)
 - [Netcore Extension Pack](https://marketplace.visualstudio.com/items?itemName=doggy8088.netcore-extension-pack)
 - [GitLens](https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens)
+- [SQL Server (mssql)](https://marketplace.visualstudio.com/items?itemName=ms-mssql.mssql)
+- [Docker](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker)

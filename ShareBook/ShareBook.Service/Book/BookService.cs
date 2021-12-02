@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
+using ShareBook.Domain.DTOs;
 using ShareBook.Domain.Enums;
 using ShareBook.Domain.Exceptions;
 using ShareBook.Helper;
@@ -46,6 +47,7 @@ namespace ShareBook.Service
 
             book.Status = BookStatus.Available;
             book.ChooseDate = chooseDate?.Date ?? DateTime.Today.AddDays(daysInShowcase);
+            book.TotalAdminReviews += 1; //Incrementa quantidade de aprovações
             _repository.Update(book);
 
             // notifica o doador
@@ -438,6 +440,50 @@ namespace ShareBook.Service
                 throw new ShareBookException(ShareBookException.Error.BadRequest,
                     "Necessário informar o link ou o arquivo em caso de um E-Book.");
             }
+        }
+
+        public BookTotalStatusDTO GetTotalStatus()
+        {
+            var groupedStatus = _repository.Get()
+                .GroupBy(b => b.Status)
+                .Select(g => new
+                {
+                    Status = g.Key,
+                    Total = g.Count()
+                })
+                .ToList();
+
+            var status = new BookTotalStatusDTO();
+
+            status.TotalWaitingApproval = groupedStatus.Where(g => g.Status == BookStatus.WaitingApproval).Any()
+                ? groupedStatus.Where(g => g.Status == BookStatus.WaitingApproval).FirstOrDefault().Total
+                : 0;
+
+            status.TotalOk = groupedStatus
+                .Where(g => g.Status == BookStatus.WaitingSend || g.Status == BookStatus.Sent || g.Status == BookStatus.Received)
+                .Sum(g => g.Total);
+
+            return status;
+        }
+
+        public bool RevokeBookToWaitingApproval(Guid bookId)
+        {
+            bool revoked = false;
+            var book = Get(x => x.Id == bookId).Items.FirstOrDefault(y => y.Id == bookId);
+            if (book == null)
+                return revoked;
+
+            if (book.Status == BookStatus.WaitingApproval)
+                return true;
+
+            book.Status = BookStatus.WaitingApproval;
+            var result = _repository.Update(book);
+            if (result.Status == BookStatus.WaitingApproval)
+                revoked = true;
+
+            if (revoked)
+                _booksEmailService.SendEmailRevokedBookToWaitingApprovalAsync(book);
+            return revoked;
         }
 
         #endregion Private

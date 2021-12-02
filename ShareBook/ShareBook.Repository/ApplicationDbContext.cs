@@ -12,6 +12,7 @@ namespace ShareBook.Repository
         public ApplicationDbContext() { }
 
         public DbSet<Book> Books { get; set; }
+        public DbSet<EbookComplaint> EbookComplaints { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<LogEntry> LogEntries { get; set; }
         public DbSet<BookUser> BookUser { get; set; }
@@ -29,6 +30,7 @@ namespace ShareBook.Repository
             new CategoryMap(modelBuilder.Entity<Category>());
             new AddressMap(modelBuilder.Entity<Address>());
             new JobHistoryMap(modelBuilder.Entity<JobHistory>());
+            new EbookComplaintMap(modelBuilder.Entity<EbookComplaint>());
         }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken))

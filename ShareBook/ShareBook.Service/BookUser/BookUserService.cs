@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.Enums;
@@ -23,6 +24,7 @@ namespace ShareBook.Service
         private readonly IBookUsersEmailService _bookUsersEmailService;
         private readonly IMuambatorService _muambatorService;
         private readonly IBookRepository _bookRepository;
+        private readonly IConfiguration _configuration;
 
         public BookUserService(
             IBookUserRepository bookUserRepository, 
@@ -31,7 +33,7 @@ namespace ShareBook.Service
             IMuambatorService muambatorService,
             IBookRepository bookRepository,
             IUnitOfWork unitOfWork,
-            IValidator<BookUser> validator)
+            IValidator<BookUser> validator, IConfiguration configuration)
             : base(bookUserRepository, unitOfWork, validator)
         {
             _bookUserRepository = bookUserRepository;
@@ -39,6 +41,7 @@ namespace ShareBook.Service
             _bookUsersEmailService = bookUsersEmailService;
             _muambatorService = muambatorService;
             _bookRepository = bookRepository;
+            _configuration = configuration;
         }
 
         public IList<User> GetGranteeUsersByBookId(Guid bookId) =>
@@ -79,9 +82,25 @@ namespace ShareBook.Service
 
             _bookUserRepository.Insert(bookUser);
 
+            // Remove da vitrine caso o número de pedidos estiver grande demais.
+            MaxRequestsValidation(bookRequested);
+
             //_bookUsersEmailService.SendEmailBookRequested(bookUser).Wait();
             //_bookUsersEmailService.SendEmailBookDonor(bookUser, bookRequested).Wait();
             //_bookUsersEmailService.SendEmailBookInterested(bookUser, bookRequested).Wait();
+        }
+
+        private void MaxRequestsValidation(Book bookRequested)
+        {
+            var maxRequestsPerBook = int.Parse(_configuration["SharebookSettings:MaxRequestsPerBook"]);
+            if (bookRequested.BookUsers.Count < maxRequestsPerBook)
+                return;
+
+            bookRequested.Status = BookStatus.AwaitingDonorDecision;
+            bookRequested.ChooseDate = DateTime.Today.AddDays(1);
+            _bookRepository.Update(bookRequested);
+
+            _bookUsersEmailService.SendEmailMaxRequests(bookRequested).Wait();
         }
 
         public void DonateBook(Guid bookId, Guid userId, string note)
@@ -131,9 +150,6 @@ namespace ShareBook.Service
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
             var bookUsers = _bookUserRepository.Get().Where(x => x.BookId == bookId).ToList();
-
-            if (!isAdmin && bookUsers != null && bookUsers.Count > 0)
-                throw new ShareBookException("Este livro já possui interessados");
 
             book.ChooseDate = null;
             book.Status = BookStatus.Canceled;

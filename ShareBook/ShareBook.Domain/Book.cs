@@ -57,6 +57,7 @@ namespace ShareBook.Domain
         public string EBookDownloadLink { get; set; }
         public string EBookPdfFile { get; set; }
         public byte[] EBookPdfBytes {get; set; }
+        public int TotalAdminReviews { get; set; }
 
         public Book()
         {
@@ -82,11 +83,7 @@ namespace ShareBook.Domain
 
         public bool MayChooseWinner()
         {
-            if (ChooseDate == null) return false;
-
-            var today = DateTimeHelper.GetTodaySaoPaulo();
-            DateTime ChooseDateMidnight = new DateTime(ChooseDate.Value.Year, ChooseDate.Value.Month, ChooseDate.Value.Day, 0, 0, 0);
-            return today >= ChooseDateMidnight;
+            return Status == BookStatus.AwaitingDonorDecision;
         }
 
         public bool IsEbookPdfValid()

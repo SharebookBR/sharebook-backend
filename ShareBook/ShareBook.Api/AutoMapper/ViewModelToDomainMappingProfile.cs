@@ -21,6 +21,10 @@ namespace ShareBook.Api.AutoMapper
 
             #endregion [ Book ]
 
+            #region [ EbookComplaint ]
+            CreateMap<EbookComplaintVM, EbookComplaint>().ReverseMap();
+            #endregion
+
             #region [ User ]
 
             CreateMap<LoginUserVM, User>();
