@@ -17,6 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Flurl.Util;
 using ShareBook.Domain.Enums;
+using ShareBook.Domain.Exceptions;
 
 namespace ShareBook.Api.Controllers
 {
@@ -222,10 +223,7 @@ namespace ShareBook.Api.Controllers
         {
             User user = GetUser();
             if (_IsDonator(requestBookVM.BookId, user) && !_IsAdmin(user)) //Permitido solicitar o próprio livro somente para Admin
-            {
-                Result<object> result = new Result<object>(new { ErrorMessage = "Não é possivel solicitar a doação deste livro pois você é o doador."  }); 
-                return BadRequest(result);
-            }
+                throw new ShareBookException("Não é possivel solicitar esse livro pois você é o doador.");
 
             _bookUserService.Insert(requestBookVM.BookId, requestBookVM.Reason);
             return Ok(new Result { SuccessMessage = "Pedido realizado com sucesso!" });
