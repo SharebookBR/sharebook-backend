@@ -318,6 +318,9 @@ namespace ShareBook.Service
             if (user == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound, "Nenhum usuário encontrado.");
 
+            if (user.ParentAproved)
+                throw new ShareBookException(ShareBookException.Error.NotFound, "O acesso já foi liberado anteriormente. Tudo certo.");
+
             user.ParentAproved = true;
             _userRepository.Update(user);
 
