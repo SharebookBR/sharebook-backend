@@ -1,9 +1,6 @@
 ﻿using ShareBook.Domain;
-using ShareBook.Domain.Enums;
 using ShareBook.Service;
 using ShareBook.Test.Unit.Mocks;
-using System;
-using System.Text;
 using Xunit;
 
 namespace ShareBook.Test.Unit.Services
@@ -11,7 +8,6 @@ namespace ShareBook.Test.Unit.Services
     public class EmailTemplateTests
     {
         readonly IEmailTemplate emailTemplate;
-        readonly IBookUsersEmailService bookUserEmailService;
 
         private User user;
         private Book book;

@@ -2,7 +2,6 @@
 using ShareBook.Api.ViewModels;
 using ShareBook.Tests.BDD.Base;
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
