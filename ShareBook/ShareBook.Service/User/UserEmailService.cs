@@ -43,7 +43,6 @@ namespace ShareBook.Service
 
             var title = "Consentimento dos pais";
             _emailService.Send(userDto.ParentEmail, "Pais", html, title).Wait();
-            _emailService.Send(user.Email, user.Name, html, title).Wait();
         }
 
         public void SendEmailParentAprovedNotifyUser(User user)
