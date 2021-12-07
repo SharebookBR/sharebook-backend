@@ -18,7 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ShareBook.Api\ShareBook.Api.csproj" />
     <ProjectReference Include="..\ShareBook.Domain\ShareBook.Domain.csproj" />
     <ProjectReference Include="..\ShareBook.Infra.CrossCutting.Identity\ShareBook.Infra.CrossCutting.Identity.csproj" />
     <ProjectReference Include="..\ShareBook.Service\ShareBook.Service.csproj" />
