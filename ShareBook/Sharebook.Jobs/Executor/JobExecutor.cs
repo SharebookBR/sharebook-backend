@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Rollbar;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Repository;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using Rollbar;
 
 namespace Sharebook.Jobs
 {

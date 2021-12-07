@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
@@ -14,6 +11,9 @@ using ShareBook.Domain.Exceptions;
 using ShareBook.Infra.CrossCutting.Identity;
 using ShareBook.Infra.CrossCutting.Identity.Interfaces;
 using ShareBook.Service;
+using System;
+using System.Collections.Generic;
+using System.Threading;
 
 namespace ShareBook.Api.Controllers
 {

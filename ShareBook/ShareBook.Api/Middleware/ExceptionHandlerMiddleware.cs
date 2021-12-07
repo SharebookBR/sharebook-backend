@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -8,6 +6,8 @@ using Rollbar;
 using ShareBook.Api.Services;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.Exceptions;
+using System;
+using System.Threading.Tasks;
 
 namespace ShareBook.Api.Middleware
 {

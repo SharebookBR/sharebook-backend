@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
+using Sharebook.Jobs;
 using ShareBook.Domain;
 using ShareBook.Domain.Validators;
 using ShareBook.Infra.CrossCutting.Identity;
@@ -7,11 +8,10 @@ using ShareBook.Infra.CrossCutting.Identity.Interfaces;
 using ShareBook.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service;
-using ShareBook.Service.Upload;
-using Sharebook.Jobs;
-using ShareBook.Service.Notification;
-using ShareBook.Service.Muambator;
 using ShareBook.Service.AWSSQS;
+using ShareBook.Service.Muambator;
+using ShareBook.Service.Notification;
+using ShareBook.Service.Upload;
 
 namespace ShareBook.Api.Configuration
 {
