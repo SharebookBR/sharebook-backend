@@ -5,24 +5,9 @@
   <ItemGroup>
     <PackageReference Include="JsonDiffPatch.Net" Version="2.3.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.14.1" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.14.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ShareBook.Domain\ShareBook.Domain.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Microsoft.IdentityModel.Tokens">
-      <HintPath>C:\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.identitymodel.tokens\5.1.4\lib\netstandard1.4\Microsoft.IdentityModel.Tokens.dll</HintPath>
-    </Reference>
-    <Reference Include="System.IdentityModel.Tokens.Jwt">
-      <HintPath>C:\Program Files\dotnet\sdk\NuGetFallbackFolder\system.identitymodel.tokens.jwt\5.1.4\lib\netstandard1.4\System.IdentityModel.Tokens.Jwt.dll</HintPath>
-    </Reference>
   </ItemGroup>
 </Project>
