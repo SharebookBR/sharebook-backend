@@ -8,7 +8,6 @@ using Microsoft.Extensions.Options;
 using Sharebook.Jobs;
 using ShareBook.Api.Filters;
 using ShareBook.Api.ViewModels;
-using ShareBook.Helper;
 using ShareBook.Service;
 using ShareBook.Service.Authorization;
 using ShareBook.Service.Server;

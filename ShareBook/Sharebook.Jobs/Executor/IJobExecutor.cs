@@ -1,5 +1,4 @@
-﻿using System;
-using ShareBook.Domain.Common;
+﻿using ShareBook.Domain.Common;
 
 namespace Sharebook.Jobs
 {
