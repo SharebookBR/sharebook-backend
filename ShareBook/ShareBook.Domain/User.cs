@@ -27,6 +27,11 @@ namespace ShareBook.Domain
         public virtual ICollection<Book> BooksDonated { get; set; }
         public virtual ICollection<AccessHistory> Visitors { get; set; }
 
+        public string ParentEmail { get; set; }
+        public string ParentHashCodeAproval { get; set; }
+        public bool ParentAproved { get; set; } = true;
+
+
         public bool PasswordIsStrong()
         {
             Regex rgx = new Regex(@"(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9])[A-Za-z0-9\d$@$!%_*_?&#.,-_:;]{8,}");

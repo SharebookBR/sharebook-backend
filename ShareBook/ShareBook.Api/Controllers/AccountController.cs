@@ -12,6 +12,7 @@ using ShareBook.Api.Filters;
 using ShareBook.Api.ViewModels;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
+using ShareBook.Domain.DTOs;
 using ShareBook.Domain.Exceptions;
 using ShareBook.Infra.CrossCutting.Identity;
 using ShareBook.Infra.CrossCutting.Identity.Interfaces;
@@ -102,14 +103,18 @@ namespace ShareBook.Api.Controllers
         [HttpPost("Register")]
         [ProducesResponseType(typeof(object), 200)]
         [ProducesResponseType(409)]
-        public IActionResult Post([FromBody] RegisterUserVM registerUserVM, [FromServices] SigningConfigurations signingConfigurations, [FromServices] TokenConfigurations tokenConfigurations)
+        public IActionResult Post([FromBody] RegisterUserDTO registerUserDto, [FromServices] SigningConfigurations signingConfigurations, [FromServices] TokenConfigurations tokenConfigurations)
         {
-            var user = _mapper.Map<User>(registerUserVM);
-
-            var result = _userService.Insert(user);
+            var result = _userService.Insert(registerUserDto);
 
             if (result.Success)
-                return Ok(_signManager.GenerateTokenAndSetIdentity(result.Value, signingConfigurations, tokenConfigurations));
+            {
+                if (registerUserDto.Age > 12)
+                    return Ok(_signManager.GenerateTokenAndSetIdentity(result.Value, signingConfigurations, tokenConfigurations));
+                else
+                    return Ok(new Result(SuccessMessage: "Seu cadastro foi realizado com sucesso. Foi enviado um email para os pais solicitando o consentimento. Vamos te avisar por email quando seu acesso for liberado. Obrigado. =)"));
+            }
+                
 
             return Conflict(result);
         }
@@ -213,6 +218,18 @@ namespace ShareBook.Api.Controllers
                 return BadRequest(resultChangePasswordUser);
 
             return Ok(resultChangePasswordUser);
+        }
+
+        [HttpPut("ParentAproval")]
+        public IActionResult ParentAproval([FromBody] ParentAprovalVM parentAprovalVM)
+        {
+            var ParentHashCodeAproval = parentAprovalVM.ParentHashCodeAproval;
+
+            if (string.IsNullOrEmpty(ParentHashCodeAproval) || !Guid.TryParse(ParentHashCodeAproval, out _))
+                throw new ShareBookException("Código inválido.");
+            
+            _userService.ParentAproval(ParentHashCodeAproval);
+            return Ok();
         }
 
         #endregion PUT

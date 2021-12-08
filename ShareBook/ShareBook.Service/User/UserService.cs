@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using AutoMapper;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using ShareBook.Domain;
@@ -22,18 +23,21 @@ namespace ShareBook.Service
         private readonly IUserRepository _userRepository;
         private readonly IBookRepository _bookRepository;
         private readonly IUserEmailService _userEmailService;
-        private const string PASSWORD_IS_WEAK = "A senha não atende os requisitos. Mínimo oito caracteres, um caractere especial, um caractere numérico e uma letra em maiúsculo.";
+        private readonly IMapper _mapper;
+
 
         #region Public
 
         public UserService(IUserRepository userRepository, IBookRepository bookRepository,
             IUnitOfWork unitOfWork,
             IValidator<User> validator,
+            IMapper mapper,
             IUserEmailService userEmailService) : base(userRepository, unitOfWork, validator)
         {
             _userRepository = userRepository;
             _userEmailService = userEmailService;
             _bookRepository = bookRepository;
+            _mapper = mapper;
         }
 
         public Result<User> AuthenticationByEmailAndPassword(User user)
@@ -73,21 +77,30 @@ namespace ShareBook.Service
                 return result;
             }
 
+            if (!user.ParentAproved)
+            {
+                result.Messages.Add($"Usuário menor de idade. Aguardando consentimento dos pais. Foi enviado um email para {user.ParentEmail} em {user.CreationDate?.ToString("dd/MM/yyyy")}.");
+                return result;
+            }
+
             result.Value = UserCleanup(user);
             return result;
         }
 
-        public override Result<User> Insert(User user)
+        public Result<User> Insert(RegisterUserDTO userDto)
         {
+            var user = _mapper.Map<User>(userDto);
             var result = Validate(user);
-            
-            if (!result.Success)
-                return result;
+            if (!result.Success) return result;
 
             // Senha forte não é mais obrigatória.
 
             if (_repository.Any(x => x.Email == user.Email))
-                result.Messages.Add("Usuário já possui email cadastrado.");
+                throw new ShareBookException("Usuário já possui email cadastrado.");
+
+            // LGPD - CONSENTIMENTO DOS PAIS.
+            if (userDto.Age < 12)
+                ParentAprovalStartFlow(userDto, user);
 
             user.Email = user.Email.ToLowerInvariant();
             if (result.Success)
@@ -96,6 +109,17 @@ namespace ShareBook.Service
                 result.Value = UserCleanup(_repository.Insert(user));
             }
             return result;
+        }
+
+        private void ParentAprovalStartFlow(RegisterUserDTO userDto, User user)
+        {
+            user.ParentAproved = false;
+            user.ParentHashCodeAproval = Guid.NewGuid().ToString();
+
+            if (string.IsNullOrEmpty(userDto.ParentEmail))
+                throw new ShareBookException("Menor de idade. Obrigatório informar o email do pai ou responsável.");
+
+            _userEmailService.SendEmailRequestParentAproval(userDto, user);
         }
 
         public override Result<User> Update(User user)
@@ -283,6 +307,24 @@ namespace ShareBook.Service
                 TotalAvailable = books.Where(b => b.Status == BookStatus.Available).Count(),
             };
             return stats;
+        }
+
+        public void ParentAproval(string parentHashCodeAproval)
+        {
+            var user = _repository.Get()
+                .Where(u => u.ParentHashCodeAproval == parentHashCodeAproval)
+                .FirstOrDefault();
+
+            if (user == null)
+                throw new ShareBookException(ShareBookException.Error.NotFound, "Nenhum usuário encontrado.");
+
+            if (user.ParentAproved)
+                throw new ShareBookException(ShareBookException.Error.NotFound, "O acesso já foi liberado anteriormente. Tudo certo.");
+
+            user.ParentAproved = true;
+            _userRepository.Update(user);
+
+            _userEmailService.SendEmailParentAprovedNotifyUser(user);
         }
 
 
