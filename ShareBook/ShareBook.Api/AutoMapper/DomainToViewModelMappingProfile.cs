@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using ShareBook.Api.ViewModels;
 using ShareBook.Domain;
-using ShareBook.Helper.Extensions;
 
 namespace ShareBook.Api.AutoMapper
 {
