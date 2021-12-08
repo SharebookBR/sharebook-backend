@@ -1,10 +1,10 @@
-﻿using System;
+﻿using ShareBook.Domain;
+using ShareBook.Domain.Enums;
+using ShareBook.Helper;
+using ShareBook.Repository;
+using System;
 using System.Diagnostics;
 using System.Linq;
-using ShareBook.Domain;
-using ShareBook.Domain.Enums;
-using ShareBook.Repository;
-using ShareBook.Helper;
 
 namespace Sharebook.Jobs
 {

@@ -1,17 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <DebugType>Full</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.3.101" />
     <PackageReference Include="AWSSDK.SQS" Version="3.5.1.10" />
     <PackageReference Include="Flurl.Http" Version="3.0.1" />
-    <PackageReference Include="MailKit" Version="2.10.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.2" />
-    <PackageReference Include="OneSignal.RestAPIv3.Client" Version="1.1.3" />
+    <PackageReference Include="MailKit" Version="2.15.0" />
+    <PackageReference Include="OneSignal.RestAPIv3.Client" Version="1.2.0" />
     <PackageReference Include="Rollbar" Version="4.0.3" />
   </ItemGroup>
 
