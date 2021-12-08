@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 using Sharebook.Jobs;
 using ShareBook.Api.Filters;
 using ShareBook.Api.ViewModels;
-using ShareBook.Helper;
+using ShareBook.Helper.Extensions;
 using ShareBook.Service;
 using ShareBook.Service.Authorization;
 using ShareBook.Service.Server;
@@ -52,11 +52,13 @@ namespace ShareBook.Api.Controllers
         [HttpGet("Ping")]
         public IActionResult Ping()
         {
+            var ass = Assembly.GetEntryAssembly();
             var result = new
             {
-                Service = Assembly.GetEntryAssembly().GetName().Name.ToString(),
-                Version = Assembly.GetEntryAssembly().GetName().Version.ToString(),
+                Service = ass.GetName().Name.ToString(),
+                Version = ass.GetName().Version.ToString(),
                 DotNetVersion = System.Environment.Version.ToString(),
+                BuildLinkerTime = ass.GetLinkerTime().ToString("dd/MM/yyyy HH:mm:ss:fff z"),
                 Env = _env.EnvironmentName,
                 TimeZone = TimeZoneInfo.Local.DisplayName,
                 System.Runtime.InteropServices.RuntimeInformation.OSDescription,

@@ -3,7 +3,11 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
-
+  
+  <PropertyGroup>
+	<SourceRevisionId>build$([System.DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ss:fffZ"))</SourceRevisionId>
+  </PropertyGroup>	
+	
   <ItemGroup>
     <PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="5.0.2" />
     <PackageReference Include="AutoMapper" Version="10.1.1" />
