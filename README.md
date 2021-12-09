@@ -33,7 +33,7 @@ https://trello.com/invite/sharebook6/928f21ef82592b5edafde06f171d338b
 
 - **4.2 Crie uma branch baseada na branch original `develop`** 
 
-    (experimente: `git checkout develop && git checkout -b novoDaSuaNovaBranch`)
+    (experimente: `git checkout develop && git checkout -b nomeDaSuaNovaBranch`)
 
 - **4.3 Escreva seu código** ❤️
 
@@ -49,7 +49,7 @@ https://trello.com/invite/sharebook6/928f21ef82592b5edafde06f171d338b
 
 </br>
 
-## **---> ❤️ MISSÃO CUMPRIDA. VC AJUDOU O PROJETO. ❤️ <---** 
+## **---> ❤️ MISSÃO CUMPRIDA. VOCÊ AJUDOU O PROJETO. ❤️ <---** 
 
 </br>
 
