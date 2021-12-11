@@ -67,4 +67,4 @@ Extensions:
 - [GitLens](https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens)
 
 
-teste pr 7
+teste pr 8
