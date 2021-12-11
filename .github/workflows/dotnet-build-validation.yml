@@ -1,10 +1,8 @@
-name: .NET
+name: .NET build validation
 
 on:
-  push:
-    branches: [ master ]
   pull_request:
-    branches: [ master ]
+    branches: [ develop, master ]
 
 jobs:
   build:
@@ -16,10 +14,10 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-         dotnet-version: 5.0.100
+         dotnet-version: 6.0.x
     - name: Restore dependencies
       run: dotnet restore ./ShareBook/ShareBook.sln
     - name: Build
       run: dotnet build ./ShareBook/ShareBook.sln --configuration Release
-    #- name: Test
-     # run: dotnet test ./ShareBook/ShareBook.sln --configuration Release
+    - name: Test
+     run: dotnet test ./ShareBook/ShareBook.sln --configuration Release
