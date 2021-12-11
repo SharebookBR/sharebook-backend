@@ -65,3 +65,6 @@ Extensions:
 - [C# Extensions](https://marketplace.visualstudio.com/items?itemName=jchannon.csharpextensions)
 - [Netcore Extension Pack](https://marketplace.visualstudio.com/items?itemName=doggy8088.netcore-extension-pack)
 - [GitLens](https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens)
+
+
+teste pr 2
