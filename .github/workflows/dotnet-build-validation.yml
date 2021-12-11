@@ -1,4 +1,4 @@
-name: .net build validation
+name: build validation
 
 on:
   pull_request:
