@@ -1,10 +1,8 @@
-name: Docker Image CI
+name: Dockerfile validation
 
 on:
-  push:
-    branches: [ master ]
   pull_request:
-    branches: [ master ]
+    branches: [ develop, master ]
 
 jobs:
 
