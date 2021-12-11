@@ -1,4 +1,4 @@
-name: .NET build + test validation
+name: xxx validation
 
 on:
   pull_request:
