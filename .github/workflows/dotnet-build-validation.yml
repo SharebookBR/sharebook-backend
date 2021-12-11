@@ -1,10 +1,11 @@
-name: .NET build validation
+name: .NET build + test validation
 
 on:
   pull_request:
     branches: [ develop, master ]
 
 jobs:
+
   build:
 
     runs-on: ubuntu-latest
