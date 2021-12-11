@@ -15,7 +15,7 @@ services:
     #    - sharebook
 
   db:
-    image: microsoft/mssql-server-linux:2017-latest
+    image: mcr.microsoft.com/mssql/server:2017-latest
     restart: always
     environment:
       SA_PASSWORD: weWkh]6qA3jk

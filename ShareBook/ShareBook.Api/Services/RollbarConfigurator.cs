@@ -1,5 +1,5 @@
-﻿using System;
-using Rollbar;
+﻿using Rollbar;
+using System;
 
 namespace ShareBook.Api.Services
 {
