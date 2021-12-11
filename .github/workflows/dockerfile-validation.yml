@@ -13,4 +13,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Build the Docker image
-      run: docker build . --file ./ShareBook/ShareBook.Api/Dockerfile --tag my-image-name:$(date +%s)
+      run: | 
+        cd ./ShareBook
+        docker build . --file ./ShareBook.Api/Dockerfile --tag my-image-name:$(date +%s)
