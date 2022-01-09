@@ -56,6 +56,9 @@
     <None Update="Email\Templates\NewBookInsertedTemplate.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Email\Templates\AnonymizeNotifyAdms.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Email\Templates\ParentAprovedNotifyUser.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

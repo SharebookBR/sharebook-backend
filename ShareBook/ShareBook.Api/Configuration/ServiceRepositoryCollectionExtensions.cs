@@ -9,6 +9,7 @@ using ShareBook.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service;
 using ShareBook.Service.AWSSQS;
+using ShareBook.Service.Lgpd;
 using ShareBook.Service.Muambator;
 using ShareBook.Service.Notification;
 using ShareBook.Service.Upload;
@@ -33,6 +34,7 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<IMuambatorService, MuambatorService>();
             services.AddSingleton<IAWSSQSService, AWSSQSService>();
             services.AddScoped<IAccessHistoryService, AccessHistoryService>();
+            services.AddScoped<ILgpdService, LgpdService>();
 
             //repositories
             services.AddScoped<IBookRepository, BookRepository>();

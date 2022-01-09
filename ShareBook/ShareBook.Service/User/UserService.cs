@@ -23,6 +23,7 @@ namespace ShareBook.Service
         private readonly IUserRepository _userRepository;
         private readonly IBookRepository _bookRepository;
         private readonly IUserEmailService _userEmailService;
+        
         private readonly IMapper _mapper;
 
 
@@ -268,7 +269,7 @@ namespace ShareBook.Service
             return result;
         }
 
-        private bool IsValidPassword(User user, string decryptedPass)
+        public bool IsValidPassword(User user, string decryptedPass)
         {
             return user.Password == Hash.Create(decryptedPass, user.PasswordSalt);
         }
@@ -327,7 +328,7 @@ namespace ShareBook.Service
             _userEmailService.SendEmailParentAprovedNotifyUser(user);
         }
 
-
+        
         #endregion Private
     }
 }

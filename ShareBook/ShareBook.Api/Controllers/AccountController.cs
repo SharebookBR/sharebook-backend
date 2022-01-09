@@ -14,6 +14,7 @@ using ShareBook.Infra.CrossCutting.Identity;
 using ShareBook.Infra.CrossCutting.Identity.Interfaces;
 using ShareBook.Repository;
 using ShareBook.Service;
+using ShareBook.Service.Lgpd;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -31,18 +32,21 @@ namespace ShareBook.Api.Controllers
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
         private readonly IAccessHistoryRepository _historyRepository;
+        private readonly ILgpdService _lgpdService;
 
         public AccountController(IUserService userService,
             IApplicationSignInManager signManager,
             IMapper mapper,
             IConfiguration configuration,
-            IAccessHistoryRepository historyRepository) 
+            IAccessHistoryRepository historyRepository,
+            ILgpdService lgpdService) 
         {
             _userService = userService;
             _signManager = signManager;
             _mapper = mapper;
             _configuration = configuration;
             _historyRepository = historyRepository;
+            _lgpdService = lgpdService;
         }
 
         #region GET
@@ -166,6 +170,18 @@ namespace ShareBook.Api.Controllers
             return NotFound(result);
         }
 
+        [HttpPost("Anonymize")]
+        [Authorize("Bearer")]
+        public IActionResult Anonymize([FromBody] UserAnonymizeDTO dto)
+        {
+            var userIdFromSession = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+            if(dto.UserId != userIdFromSession)
+                throw new ShareBookException(ShareBookException.Error.Forbidden, "Você não tem permissão para remover esse conta.");
+
+            _lgpdService.Anonymize(dto);
+            return Ok(new Result("Sua conta foi removida com sucesso."));
+        }
+
         #endregion POST
 
         #region PUT
@@ -249,6 +265,12 @@ namespace ShareBook.Api.Controllers
                 default:
                     return false;
             }
+        }
+
+        private User GetSessionUser()
+        {
+            var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+            return _userService.Find(userId);
         }
     }
 }
