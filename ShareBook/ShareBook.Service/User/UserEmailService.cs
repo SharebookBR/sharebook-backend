@@ -56,5 +56,12 @@ namespace ShareBook.Service
             var title = "Consentimento dos pais";
             _emailService.Send(user.Email, user.Name, html, title).Wait();
         }
+
+        public void SendEmailAnonymizeNotifyAdms(UserAnonymizeDTO dto)
+        {
+            var html = _emailTemplate.GenerateHtmlFromTemplateAsync("AnonymizeNotifyAdms", dto).Result;
+            var title = "Anonimização de conta";
+            _emailService.SendToAdmins(html, title).Wait();
+        }
     }
 }

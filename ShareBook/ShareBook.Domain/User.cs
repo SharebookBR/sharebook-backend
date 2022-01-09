@@ -99,5 +99,26 @@ namespace ShareBook.Domain
             if (BooksDonated == null) return false;
             return BooksDonated.Any(b => b.Status == BookStatus.AwaitingDonorDecision && (DateTime.Now - b.ChooseDate).Value.Days > maxLateDonationDays);
         }
+
+        public void Anonymize()
+        {
+            Name = "USUÁRIO ANONIMIZADO";
+            Email = "anonimizado_" + DateTime.Now.ToFileTime() + "@sharebook.com.br";
+            Active = false;
+            AllowSendingEmail = false;
+            Linkedin = null;
+            Phone = null;
+            ParentEmail = null;
+
+            Address.City = null;
+            Address.Complement = null;
+            Address.Country = null;
+            Address.Neighborhood = null;
+            Address.Number = null;
+            Address.PostalCode = null;
+            Address.State = null;
+            Address.Street = null;
+
+        }
     }
 }
