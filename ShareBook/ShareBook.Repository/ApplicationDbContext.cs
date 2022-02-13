@@ -30,6 +30,7 @@ namespace ShareBook.Repository
             new CategoryMap(modelBuilder.Entity<Category>());
             new AddressMap(modelBuilder.Entity<Address>());
             new JobHistoryMap(modelBuilder.Entity<JobHistory>());
+            new LogEntryMap(modelBuilder.Entity<LogEntry>());
 
             //O Contexto procura pelas classes que implementam IEntityTypeConfiguration adicionando o mapeamento de forma automática.
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);

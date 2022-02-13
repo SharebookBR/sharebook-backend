@@ -60,6 +60,10 @@ namespace ShareBook.Repository.Mapping
 
             entityBuilder.Property(t => t.LastLogin)
                 .HasDefaultValueSql("getdate()");
+
+            entityBuilder.Property(t => t.ParentAproved);
+            entityBuilder.Property(t => t.ParentEmail);
+            entityBuilder.Property(t => t.ParentHashCodeAproval);
         }
     }
 }
