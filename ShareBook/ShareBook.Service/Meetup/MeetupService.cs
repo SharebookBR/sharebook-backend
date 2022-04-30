@@ -30,6 +30,8 @@ namespace ShareBook.Service
         }
         public async Task<string> FetchMeetups()
         {
+            if (!_settings.IsActive) throw new Exception("O Serviço de busca de meetups está desativado no appSettings.");
+            
             var newMeetups = await GetMeetupsFromSympla();
             var newYoutubeVideos = await GetYoutubeVideos();
 
@@ -43,7 +45,7 @@ namespace ShareBook.Service
             if (meetups.TotalItems == 0) return 0;
 
             int videosFound = 0;
-            YoutubeDTO youtubeDto;
+            YoutubeDto youtubeDto;
             try
             {
                 youtubeDto = await "https://youtube.googleapis.com/youtube/v3/search"
@@ -54,11 +56,11 @@ namespace ShareBook.Service
                         type = "video",
                         channelId = "UCPEWmRDlhOJHac6Fk-MwGBQ",
                         order = "date",
-                    }).GetJsonAsync<YoutubeDTO>();
+                    }).GetJsonAsync<YoutubeDto>();
             }
             catch (FlurlHttpException e)
             {
-                var error = await e.GetResponseJsonAsync<YoutubeDTO>();
+                var error = await e.GetResponseJsonAsync<YoutubeDto>();
 
                 throw new ShareBookException(error == null ? e.Message : error.Message);
             }
@@ -94,7 +96,7 @@ namespace ShareBook.Service
         private async Task<int> GetMeetupsFromSympla()
         {
             int eventsAdded = 0;
-            SymplaDTO symplaDto;
+            SymplaDto symplaDto;
             try
             {
                 symplaDto = await "https://api.sympla.com.br/public/v3/events"
@@ -104,7 +106,7 @@ namespace ShareBook.Service
                                 //page_size = 10,
                                 field_sort = "start_date"
                             })
-                            .GetJsonAsync<SymplaDTO>();
+                            .GetJsonAsync<SymplaDto>();
                 foreach (var symplaEvent in symplaDto.Data)
                 {
                     if (!_repository.Any(s => s.SymplaEventId == symplaEvent.Id))
@@ -124,7 +126,7 @@ namespace ShareBook.Service
             }
             catch (FlurlHttpException e)
             {
-                var error = await e.GetResponseJsonAsync<SymplaDTO>();
+                var error = await e.GetResponseJsonAsync<SymplaDto>();
 
                 throw new ShareBookException(error == null ? e.Message : error.Message);
             }

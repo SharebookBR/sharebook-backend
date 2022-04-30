@@ -7,5 +7,6 @@ namespace ShareBook.Service
     {
         public string YoutubeToken { get; set; }
         public string SymplaToken { get; set; }
+        public bool IsActive { get; set; }
     }
 }

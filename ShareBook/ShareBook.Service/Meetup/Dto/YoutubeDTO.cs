@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service.Dto
 {
-    public class YoutubeDTO
+    public class YoutubeDto
     {
         public string Message { get; set; }
         public List<Item> Items { get; set; }

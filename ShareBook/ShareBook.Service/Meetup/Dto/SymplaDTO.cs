@@ -9,7 +9,7 @@ using Newtonsoft;
 
 namespace ShareBook.Service.Dto
 {
-    public class SymplaDTO
+    public class SymplaDto
     {
         public string Status { get; set; }
         public string Code { get; set; }
