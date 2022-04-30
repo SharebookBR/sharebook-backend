@@ -35,6 +35,7 @@ namespace ShareBook.Api.Configuration
             services.AddSingleton<IAWSSQSService, AWSSQSService>();
             services.AddScoped<IAccessHistoryService, AccessHistoryService>();
             services.AddScoped<ILgpdService, LgpdService>();
+            services.AddScoped<IMeetupService, MeetupService>();
 
             //repositories
             services.AddScoped<IBookRepository, BookRepository>();
@@ -43,6 +44,7 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IJobHistoryRepository, JobHistoryRepository>();
             services.AddScoped<IAccessHistoryRepository, AccessHistoryRepository>();
+            services.AddScoped<IMeetupRepository, MeetupRepository>();
 
             //validators
             services.AddScoped<IValidator<User>, UserValidator>();
@@ -52,6 +54,7 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<IValidator<BookUser>, BookUserValidator>();
             services.AddScoped<IValidator<Address>, AddressValidator>();
             services.AddScoped<IValidator<AccessHistory>, AccessHistoryValidator>();
+            services.AddScoped<IValidator<Meetup>, MeetupValidator>();
 
             //Auth
             services.AddScoped<IApplicationSignInManager, ApplicationSignInManager>();
@@ -73,6 +76,7 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<ChooseDateReminder>();
             services.AddScoped<LateDonationNotification>();
             services.AddScoped<NewBookNotify>();
+            services.AddScoped<MeetupSearch>();
 
             //notification
             services.AddScoped<INotificationService, NotificationService>();
