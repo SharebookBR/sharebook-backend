@@ -6,7 +6,6 @@
   
   <PropertyGroup>
 	<SourceRevisionId>build$([System.DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ss:fffZ"))</SourceRevisionId>
-	<UserSecretsId>149e9dca-5796-4f37-9050-7731df9fb4e8</UserSecretsId>
   </PropertyGroup>	
 	
   <ItemGroup>
