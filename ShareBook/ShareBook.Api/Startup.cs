@@ -74,6 +74,8 @@ namespace ShareBook.Api
 
             services.Configure<AWSSQSSettings>(options => Configuration.GetSection("AWSSQSSettings").Bind(options));
 
+            services.Configure<MeetupSettings>(options => Configuration.GetSection("MeetupSettings").Bind(options));
+
             services.AddHttpContextAccessor();
 
             JWTConfig.RegisterJWT(services, Configuration);
