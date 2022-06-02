@@ -31,7 +31,7 @@ namespace ShareBook.Service
         public async Task<string> FetchMeetups()
         {
             if (!_settings.IsActive) throw new Exception("O Serviço de busca de meetups está desativado no appSettings.");
-            
+
             var newMeetups = await GetMeetupsFromSympla();
             var newYoutubeVideos = await GetYoutubeVideos();
 
@@ -81,13 +81,16 @@ namespace ShareBook.Service
                     }
                 }
 
-                var bestMatch = similarityDictionary.FirstOrDefault(x => x.Value == similarityDictionary.Values.Max());
+                if (similarityDictionary.Any())
+                {
+                    var bestMatch = similarityDictionary.FirstOrDefault(x => x.Value == similarityDictionary.Values.Max());
 
-                meetup.YoutubeUrl = $"https://youtube.com/watch?v={bestMatch.Key.Id.VideoId}";
+                    meetup.YoutubeUrl = $"https://youtube.com/watch?v={bestMatch.Key.Id.VideoId}";
 
-                _repository.Update(meetup);
+                    _repository.Update(meetup);
 
-                videosFound++;
+                    videosFound++;
+                }
             }
 
             return videosFound;
