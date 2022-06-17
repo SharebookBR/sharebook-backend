@@ -234,7 +234,11 @@ namespace ShareBook.Api.Controllers
         public IActionResult Create([FromBody] CreateBookVM createBookVM)
         {
             var book = _mapper.Map<Book>(createBookVM);
-            _service.Insert(book);
+            var result = _service.Insert(book);
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
             return Ok(new Result { SuccessMessage = "Livro cadastrado com sucesso! Aguarde aprovação." });
         }
 
@@ -245,7 +249,11 @@ namespace ShareBook.Api.Controllers
         {
             updateBookVM.Id = Id;
             var book = _mapper.Map<Book>(updateBookVM);
-            _service.Update(book);
+            var result = _service.Update(book);
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
             return Ok(new Result { SuccessMessage = "Livro alterado com sucesso!" });
         }
 

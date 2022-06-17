@@ -19,6 +19,7 @@ namespace ShareBook.Repository
         public DbSet<Address> Addresses { get; set; }
         public DbSet<JobHistory> JobHistories { get; set; }
         public DbSet<AccessHistory> AccessHistories { get; set; }
+        public DbSet<Meetup> Meetups { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

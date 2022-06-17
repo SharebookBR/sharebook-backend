@@ -300,6 +300,41 @@ namespace ShareBook.Repository.Migrations
                     b.ToTable("LogEntries");
                 });
 
+            modelBuilder.Entity("ShareBook.Domain.Meetup", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Cover")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("SymplaEventId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SymplaEventUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("YoutubeUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Meetups");
+                });
+
             modelBuilder.Entity("ShareBook.Domain.User", b =>
                 {
                     b.Property<Guid>("Id")

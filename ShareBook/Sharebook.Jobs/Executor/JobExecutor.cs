@@ -22,7 +22,8 @@ namespace Sharebook.Jobs
                            ChooseDateReminder job1,
                            LateDonationNotification job2,
                            RemoveBookFromShowcase job3,
-                           NewBookNotify job4)
+                           NewBookNotify job4,
+                           MeetupSearch job5)
         {
             _jobHistoryRepo = jobHistoryRepo;
 
@@ -32,7 +33,8 @@ namespace Sharebook.Jobs
                 job1,
                 job2,
                 job3,
-                job4
+                job4,
+                job5,
             };
 
         }
@@ -76,7 +78,7 @@ namespace Sharebook.Jobs
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 success = false;
                 messages.Add(string.Format("Executor: ocorreu um erro fatal. {0}", ex.Message));
