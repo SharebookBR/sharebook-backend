@@ -12,7 +12,6 @@
 
   <ItemGroup>
 	  <PackageReference Include="FluentValidation" Version="9.4.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
   <ItemGroup>

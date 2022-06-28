@@ -22,8 +22,8 @@ namespace Sharebook.Jobs
                            ChooseDateReminder job1,
                            LateDonationNotification job2,
                            RemoveBookFromShowcase job3,
-                           NewBookNotify job4,
-                           MeetupSearch job5)
+                           MeetupSearch job4,
+                           NewBookNotify job5) // NewBookNotify precisa ser o último.
         {
             _jobHistoryRepo = jobHistoryRepo;
 

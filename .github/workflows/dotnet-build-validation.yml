@@ -1,24 +1,25 @@
-name: build validation
+name: .NET build validation
 
 on:
+  push:
+    branches: [ develop ]
   pull_request:
-    branches: [ develop, master ]
+    branches: [ develop ]
 
 jobs:
-
   build:
 
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
-    - name: Setup .NET Core
+    - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
-         dotnet-version: 6.0.x
+        dotnet-version: 6.0.x
     - name: Restore dependencies
-      run: dotnet restore ./ShareBook/ShareBook.sln
+      run: dotnet restore  ./ShareBook/ShareBook.sln
     - name: Build
-      run: dotnet build ./ShareBook/ShareBook.sln --configuration Release
+      run: dotnet build  ./ShareBook/ShareBook.sln --no-restore
     - name: Test
-     run: dotnet test ./ShareBook/ShareBook.sln --configuration Release
+      run: dotnet test  ./ShareBook/ShareBook.sln --no-build --verbosity normal
