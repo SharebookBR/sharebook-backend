@@ -144,7 +144,7 @@ namespace ShareBook.Service
             return eventsAdded;
         }
 
-        private async Task<byte[]> GetCoverImageBytesAsync(string url)
+        private static async Task<byte[]> GetCoverImageBytesAsync(string url)
         {
             try
             {
