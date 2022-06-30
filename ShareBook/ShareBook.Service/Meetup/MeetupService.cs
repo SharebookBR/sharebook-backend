@@ -18,15 +18,20 @@ using Microsoft.Extensions.Options;
 using ShareBook.Service.Dto;
 using ShareBook.Helper.String;
 using System.Net.Http;
+using ShareBook.Helper.Image;
+using ShareBook.Service.Upload;
+using ShareBook.Helper.Extensions;
 
 namespace ShareBook.Service
 {
     public class MeetupService : BaseService<Meetup>, IMeetupService
     {
         private readonly MeetupSettings _settings;
-        public MeetupService(IOptions<MeetupSettings> settings, IMeetupRepository meetupRepository, IUnitOfWork unitOfWork, IValidator<Meetup> validator) : base(meetupRepository, unitOfWork, validator)
+        private readonly IUploadService _uploadService;
+        public MeetupService(IOptions<MeetupSettings> settings, IMeetupRepository meetupRepository, IUnitOfWork unitOfWork, IValidator<Meetup> validator, IUploadService uploadService) : base(meetupRepository, unitOfWork, validator)
         {
             _settings = settings.Value;
+            _uploadService = uploadService;
         }
         public async Task<string> FetchMeetups()
         {
@@ -114,12 +119,14 @@ namespace ShareBook.Service
                 {
                     if (!_repository.Any(s => s.SymplaEventId == symplaEvent.Id))
                     {
+                        var coverUrl = await UploadCover(symplaEvent.Image, symplaEvent.Name);
+
                         _repository.Insert(new Meetup
                         {
                             SymplaEventId = symplaEvent.Id,
                             SymplaEventUrl = symplaEvent.Url,
                             Title = symplaEvent.Name,
-                            Cover = symplaEvent.Image,
+                            Cover = coverUrl,
                             Description = symplaEvent.Detail,
                             StartDate = DateTime.Parse(symplaEvent.StartDate),
                         });
@@ -135,6 +142,32 @@ namespace ShareBook.Service
             }
 
             return eventsAdded;
+        }
+
+        private static async Task<byte[]> GetCoverImageBytesAsync(string url)
+        {
+            try
+            {
+                return await url.GetBytesAsync();
+            }
+            catch (FlurlHttpException e)
+            {
+                throw new ShareBookException($"{e.StatusCode}: Falha ao obter imagem do Meetup");
+            }
+        }
+        private async Task<string> UploadCover(string coverUrl, string eventName)
+        {
+            var imageBytes = await GetCoverImageBytesAsync(coverUrl);
+
+            var resizedImageBytes = ImageHelper.ResizeImage(imageBytes, 50);
+
+            var fileName = new Uri(coverUrl).Segments.Last();
+
+            var imageSlug = eventName.GenerateSlug();
+
+            var imageName = ImageHelper.FormatImageName(fileName, imageSlug);
+
+            return _uploadService.UploadImage(resizedImageBytes, imageName, "Meetup");
         }
     }
 }
