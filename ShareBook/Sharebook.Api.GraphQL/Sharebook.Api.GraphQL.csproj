@@ -27,10 +27,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Controllers\" />
-	</ItemGroup>
-
-	<ItemGroup>
 	  <ProjectReference Include="..\ShareBook.Domain\ShareBook.Domain.csproj" />
 	  <ProjectReference Include="..\ShareBook.Helper\ShareBook.Helper.csproj" />
 	  <ProjectReference Include="..\ShareBook.Repository\ShareBook.Infra.Data.csproj" />

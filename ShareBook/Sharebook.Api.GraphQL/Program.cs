@@ -4,7 +4,7 @@ using GraphQL.Server;
 using GraphQL.SystemTextJson;
 using GraphQL.Types;
 using Microsoft.EntityFrameworkCore;
-using Sharebook.Api.GraphQL;
+using Sharebook.Api.GraphQL.SharebookSchema;
 using ShareBook.Repository;
 
 var builder = WebApplication.CreateBuilder(args);

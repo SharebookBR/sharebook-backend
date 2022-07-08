@@ -1,7 +1,7 @@
 ﻿using GraphQL.Types;
 using ShareBook.Domain;
 
-namespace Sharebook.Api.GraphQL;
+namespace Sharebook.Api.GraphQL.SharebookSchema.SharebookTypes;
 
 public class BookType : ObjectGraphType<Book>
 {

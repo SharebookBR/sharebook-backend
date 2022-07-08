@@ -1,10 +1,12 @@
 ﻿using GraphQL;
 using GraphQL.Types;
+
 using ShareBook.Domain;
-using ShareBook.Domain.Enums;
 using ShareBook.Repository;
 
-namespace Sharebook.Api.GraphQL;
+using Sharebook.Api.GraphQL.SharebookSchema.SharebookTypes;
+
+namespace Sharebook.Api.GraphQL.SharebookSchema;
 
 public class SharebookMutations : ObjectGraphType
 {
@@ -26,10 +28,10 @@ public class SharebookMutations : ObjectGraphType
                 {
                     Author = "Julio Verne",
                     Title = title,
-                    FreightOption = FreightOption.World,
+                    FreightOption = ShareBook.Domain.Enums.FreightOption.World,
                     ImageSlug = "volta-ao-mundo-em-80-dias.jpg",
                     Slug = "volta-ao-mundo-em-80-dias",
-                    Status = BookStatus.Available,
+                    Status = ShareBook.Domain.Enums.BookStatus.Available,
                     CreationDate = DateTime.Now.AddDays(-1),
                     ChooseDate = DateTime.Now.AddDays(5),
                     Category = category

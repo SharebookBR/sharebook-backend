@@ -1,6 +1,8 @@
-﻿using GraphQL.Types;
+﻿using GraphQL;
+using GraphQL.Types;
+using Sharebook.Api.GraphQL.SharebookSchema.SharebookTypes;
 
-namespace Sharebook.Api.GraphQL;
+namespace Sharebook.Api.GraphQL.SharebookSchema;
 
 public class SharebookSchema : Schema
 {
