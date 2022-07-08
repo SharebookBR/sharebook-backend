@@ -4,11 +4,11 @@ using ShareBook.Domain;
 using ShareBook.Domain.Enums;
 using ShareBook.Repository;
 
-namespace Sharebook.Api.GraphQL.Notes;
+namespace Sharebook.Api.GraphQL;
 
-public class NotesMutation : ObjectGraphType
+public class SharebookMutations : ObjectGraphType
 {
-    public NotesMutation()
+    public SharebookMutations()
     {
         Field<BookType>(
             "createBook",
