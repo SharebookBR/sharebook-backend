@@ -18,9 +18,9 @@ public class SharebookMutations : ObjectGraphType
             resolve: context =>
             {
                 var title = context.GetArgument<string>("title");
-                var notesContext = context.RequestServices.GetRequiredService<ApplicationDbContext>();
+                var dbContext = context.RequestServices.GetRequiredService<ApplicationDbContext>();
 
-                var category = notesContext.Categories.FirstOrDefault();
+                var category = dbContext.Categories.FirstOrDefault();
 
                 var book = new Book()
                 {
@@ -35,11 +35,37 @@ public class SharebookMutations : ObjectGraphType
                     Category = category
                 };
 
-                notesContext.Books.Add(book);
-                notesContext.SaveChanges();
+                dbContext.Books.Add(book);
+                dbContext.SaveChanges();
                 return book;
             }
         );
+
+        Field<BookType>(
+            "deleteBook",
+            arguments: new QueryArguments(
+                new QueryArgument<NonNullGraphType<StringGraphType>> { Name = "id" }
+            ),
+            resolve: context =>
+            {
+                var id = context.GetArgument<string>("id");
+                var dbContext = context.RequestServices.GetRequiredService<ApplicationDbContext>();
+
+                // encontrar o livro
+                var book = dbContext.Books.FirstOrDefault(b => b.Id == new Guid(id));
+
+                if (book == null)
+                    throw new ExecutionError("Livro não encontrado.");
+
+                // deletar
+                dbContext.Books.Remove(book);
+                dbContext.SaveChanges();
+
+                return book;
+            }
+        );
+
+
     }
 }
 
