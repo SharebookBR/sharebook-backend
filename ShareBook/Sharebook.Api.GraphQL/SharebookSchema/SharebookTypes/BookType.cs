@@ -12,7 +12,8 @@ public class BookType : ObjectGraphType<Book>
         Field(d => d.Id, nullable: false).Description("Book Id");
         Field(d => d.Title, nullable: true).Description("Book Title");
         Field(d => d.ImageUrl, nullable: true).Description("Book Image URL");
-        
+        Field(d => d.Author, nullable: true).Description("Author");
+
         // TODO: descobrir como colocar um outro tipo.
         //Field(d => d.User, nullable: true).Description("Doador");
     }

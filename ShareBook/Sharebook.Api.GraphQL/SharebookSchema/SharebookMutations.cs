@@ -15,18 +15,21 @@ public class SharebookMutations : ObjectGraphType
         Field<BookType>(
             "createBook",
             arguments: new QueryArguments(
-                new QueryArgument<NonNullGraphType<StringGraphType>> { Name = "title" }
+                new QueryArgument<NonNullGraphType<StringGraphType>> { Name = "title" },
+                new QueryArgument<NonNullGraphType<StringGraphType>> { Name = "author" }
             ),
             resolve: context =>
             {
                 var title = context.GetArgument<string>("title");
+                var author = context.GetArgument<string>("author");
+
                 var dbContext = context.RequestServices.GetRequiredService<ApplicationDbContext>();
 
                 var category = dbContext.Categories.FirstOrDefault();
 
                 var book = new Book()
                 {
-                    Author = "Julio Verne",
+                    Author = author,
                     Title = title,
                     FreightOption = ShareBook.Domain.Enums.FreightOption.World,
                     ImageSlug = "volta-ao-mundo-em-80-dias.jpg",
