@@ -3,14 +3,22 @@ using GraphQL.MicrosoftDI;
 using GraphQL.Server;
 using GraphQL.SystemTextJson;
 using GraphQL.Types;
-
+using Microsoft.EntityFrameworkCore;
 using Sharebook.Api.GraphQL.Notes;
+using ShareBook.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+});
+
 // add notes schema
 builder.Services.AddSingleton<ISchema, NotesSchema>(services => new NotesSchema(new SelfActivatingServiceProvider(services)));
+builder.Services.AddSingleton<BooksSchema>(services => new BooksSchema(new SelfActivatingServiceProvider(services)));
+
 // register graphQL
 builder.Services.AddGraphQL(options =>
 {
@@ -44,5 +52,6 @@ app.MapControllers();
 
 // make sure all our schemas registered to route
 app.UseGraphQL<ISchema>();
+// TODO: add book schema. como ???
 
 app.Run();
