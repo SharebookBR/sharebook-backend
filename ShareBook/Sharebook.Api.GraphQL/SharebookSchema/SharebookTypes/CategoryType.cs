@@ -11,10 +11,8 @@ public class CategoryType : ObjectGraphType<Category>
         Description = "Category Type";
         Field(d => d.Id, nullable: false).Description("Id");
         Field(d => d.Name, nullable: true).Description("Name");
+        // Field(d => d.Books, nullable: true).Description("Books");
 
-        
-        // TODO: descobrir como colocar um outro tipo.
-        //Field(d => d.User, nullable: true).Description("Doador");
     }
 }
 
