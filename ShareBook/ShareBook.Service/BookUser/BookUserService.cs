@@ -7,6 +7,7 @@ using ShareBook.Domain.DTOs;
 using ShareBook.Domain.Enums;
 using ShareBook.Domain.Exceptions;
 using ShareBook.Repository;
+using ShareBook.Repository.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service.Generic;
 using ShareBook.Service.Muambator;
@@ -28,7 +29,7 @@ namespace ShareBook.Service
         private readonly IConfiguration _configuration;
 
         public BookUserService(
-            IBookUserRepository bookUserRepository, 
+            IBookUserRepository bookUserRepository,
             IBookService bookService,
             IBookUsersEmailService bookUsersEmailService,
             IMuambatorService muambatorService,
@@ -157,7 +158,7 @@ namespace ShareBook.Service
             dto.Book.ChooseDate = null;
             dto.Book.Status = BookStatus.Canceled;
 
-            CancelBookUsersAndSendNotification(dto.Book);            
+            CancelBookUsersAndSendNotification(dto.Book);
 
             _bookService.Update(dto.Book);
             _bookUsersEmailService.SendEmailBookCanceledToAdminsAndDonor(dto).Wait();
@@ -177,7 +178,8 @@ namespace ShareBook.Service
             }
         }
 
-        private void CancelBookUsersAndSendNotification(Book book){
+        private void CancelBookUsersAndSendNotification(Book book)
+        {
             DeniedBookUsers(book.Id);
             NotifyUsersBookCanceled(book);
         }
@@ -214,24 +216,25 @@ namespace ShareBook.Service
             var winnerBookUser = bookUsers.Where(bu => bu.Status == DonationStatus.Donated).FirstOrDefault();
 
             //Book
-            var book =  winnerBookUser.Book;
+            var book = winnerBookUser.Book;
 
             //usuarios que perderam a doação :(
             var losersBookUser = bookUsers.Where(bu => bu.Status == DonationStatus.Denied).ToList();
 
             //enviar e-mails
-           await this._bookUsersEmailService.SendEmailDonationDeclined(book, winnerBookUser, losersBookUser);
+            await this._bookUsersEmailService.SendEmailDonationDeclined(book, winnerBookUser, losersBookUser);
 
         }
 
-        public void NotifyUsersBookCanceled(Book book){
+        public void NotifyUsersBookCanceled(Book book)
+        {
 
-            
+
             List<BookUser> bookUsers = _bookUserRepository.Get()
                                             .Include(u => u.User)
                                             .Where(x => x.BookId == book.Id).ToList();
 
-            
+
             this._bookUsersEmailService.SendEmailDonationCanceled(book, bookUsers).Wait();
 
         }
@@ -251,16 +254,41 @@ namespace ShareBook.Service
             if (winnerBookUser == null)
                 throw new ShareBookException("Vencedor ainda não foi escolhido");
 
-            if(MuambatorConfigurator.IsActive)
+            if (MuambatorConfigurator.IsActive)
                 _muambatorService.AddPackageToTrackerAsync(book, winnerBookUser.User, trackingNumber);
 
             book.Status = BookStatus.Sent;
-            book.TrackingNumber = trackingNumber; 
+            book.TrackingNumber = trackingNumber;
             _bookService.Update(book);
 
             if (winnerBookUser.User.AllowSendingEmail)
                 //Envia e-mail para avisar o ganhador do tracking number                          
                 _bookUsersEmailService.SendEmailTrackingNumberInformed(winnerBookUser, book).Wait();
         }
+        /// <summary>
+        /// Cancel a request for a book if it's still awaiting for donor decision and not already canceled.
+        /// </summary>
+        /// <param name="request">The request to be canceled</param>
+        /// <returns>Returns true if the operation gets executed successfully</returns>
+        public bool CancelRequest(BookUser request)
+        {
+            if (request.Book.Status != BookStatus.AwaitingDonorDecision && request.Book.Status != BookStatus.Available || request.Status == DonationStatus.Canceled)
+            {
+                return false;
+            }
+
+            request.UpdateBookUser(DonationStatus.Canceled, String.Empty);
+            request.Reason = "Pedido cancelado! Favor ignorar.";
+
+            _bookUserRepository.Update(request);
+            
+            return true;
+        }
+        public BookUser GetRequest(Guid requestId)
+        {
+            return _bookUserRepository.Find(new IncludeList<BookUser>(x => x.Book), x => x.Id == requestId);
+        }
+
+
     }
 }

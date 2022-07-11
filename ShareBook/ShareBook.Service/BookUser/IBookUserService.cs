@@ -30,5 +30,7 @@ namespace ShareBook.Service
         Result<Book> Cancel(BookCancelationDTO dto);
 
         void InformTrackingNumber(Guid bookId, string trackingNumber);
+        BookUser GetRequest(Guid requestId);
+        bool CancelRequest(BookUser request);
     }
 }
