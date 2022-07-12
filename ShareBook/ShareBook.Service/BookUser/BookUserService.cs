@@ -272,17 +272,16 @@ namespace ShareBook.Service
         /// <returns>Returns true if the operation gets executed successfully</returns>
         public bool CancelRequest(BookUser request)
         {
-            if (request.Book.Status != BookStatus.AwaitingDonorDecision && request.Book.Status != BookStatus.Available || request.Status == DonationStatus.Canceled)
+            if (request.Book.Status == BookStatus.AwaitingDonorDecision || request.Book.Status == BookStatus.Available && request.Status != DonationStatus.Canceled)
             {
-                return false;
+                request.UpdateBookUser(DonationStatus.Canceled, String.Empty);
+                request.Reason = "Pedido cancelado! Favor ignorar.";
+                _bookUserRepository.Update(request);
+
+                return true;
             }
 
-            request.UpdateBookUser(DonationStatus.Canceled, String.Empty);
-            request.Reason = "Pedido cancelado! Favor ignorar.";
-
-            _bookUserRepository.Update(request);
-            
-            return true;
+            return false;
         }
         public BookUser GetRequest(Guid requestId)
         {
