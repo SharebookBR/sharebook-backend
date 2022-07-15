@@ -238,22 +238,19 @@ namespace ShareBook.Api.Controllers
         {
             var request = _bookUserService.GetRequest(requestId);
 
-            if (request != null)
-            {
-                var user = GetUser();
+            if (request == null)
+                return NotFound();
 
-                if (request.UserId != user.Id)
-                    return Forbid();
+            var user = GetUser();
 
-                bool success = _bookUserService.CancelRequest(request);
-                if (success)
-                {
-                    return Ok(new Result("Solicitação cancelada."));
-                }
+            if (request.UserId != user.Id)
+                return Forbid();
 
+            bool success = _bookUserService.CancelRequest(request);
+            if (!success)
                 return BadRequest();
-            }
-            return NotFound();
+
+            return Ok(new Result("Solicitação cancelada."));
         }
 
         [HttpPost]
