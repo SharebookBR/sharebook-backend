@@ -21,6 +21,7 @@ using System.Net.Http;
 using ShareBook.Helper.Image;
 using ShareBook.Service.Upload;
 using ShareBook.Helper.Extensions;
+using ShareBook.Domain.Common;
 
 namespace ShareBook.Service
 {
@@ -28,11 +29,13 @@ namespace ShareBook.Service
     {
         private readonly MeetupSettings _settings;
         private readonly IUploadService _uploadService;
+
         public MeetupService(IOptions<MeetupSettings> settings, IMeetupRepository meetupRepository, IUnitOfWork unitOfWork, IValidator<Meetup> validator, IUploadService uploadService) : base(meetupRepository, unitOfWork, validator)
         {
             _settings = settings.Value;
             _uploadService = uploadService;
         }
+
         public async Task<string> FetchMeetups()
         {
             if (!_settings.IsActive) throw new Exception("O Serviço de busca de meetups está desativado no appSettings.");
@@ -155,6 +158,7 @@ namespace ShareBook.Service
                 throw new ShareBookException($"{e.StatusCode}: Falha ao obter imagem do Meetup");
             }
         }
+
         private async Task<string> UploadCover(string coverUrl, string eventName)
         {
             var imageBytes = await GetCoverImageBytesAsync(coverUrl);
@@ -168,6 +172,14 @@ namespace ShareBook.Service
             var imageName = ImageHelper.FormatImageName(fileName, imageSlug);
 
             return _uploadService.UploadImage(resizedImageBytes, imageName, "Meetup");
+        }
+
+        public IList<Meetup> Search(string criteria)
+        {
+            return _repository.Get()
+                .Where(m => m.Title.ToUpper().Contains(criteria.ToUpper()))
+                .OrderByDescending(m => m.CreationDate)
+                .ToList();
         }
     }
 }
