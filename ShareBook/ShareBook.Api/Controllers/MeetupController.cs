@@ -34,5 +34,11 @@ namespace ShareBook.Api.Controllers
             var meetup = _meetupService.Find(x => x.Id == meetupId);
             return meetup != null ? Ok(meetup) : NotFound();
         }
+
+        [HttpGet("Search")]
+        public IList<Meetup> Search([FromQuery]string criteria)
+        {
+            return _meetupService.Search(criteria);
+        }
     }
 }
