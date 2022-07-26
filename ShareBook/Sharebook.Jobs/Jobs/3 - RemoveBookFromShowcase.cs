@@ -4,6 +4,7 @@ using ShareBook.Repository;
 using ShareBook.Service;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Sharebook.Jobs
 {
@@ -49,7 +50,9 @@ namespace Sharebook.Jobs
                     continue;
                 }
 
-                if (book.BookUsers.Count > 0)
+                var totalPedidosValidos = book.BookUsers.Where(b => b.Status == DonationStatus.WaitingAction).Count();
+
+                if (totalPedidosValidos > 0)
                 {
                     book.Status = BookStatus.AwaitingDonorDecision;
                     messages.Add(string.Format("Livro '{0}' removido da vitrine.", book.Title));

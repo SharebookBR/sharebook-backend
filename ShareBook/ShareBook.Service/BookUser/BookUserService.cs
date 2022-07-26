@@ -127,6 +127,9 @@ namespace ShareBook.Service
             if (bookUserAccepted == null)
                 throw new ShareBookException("Não existe a relação de usuário e livro para a doação.");
 
+            if (bookUserAccepted.Status == DonationStatus.Canceled)
+                throw new ShareBookException("O solicitante desistiu do seu pedido. Por favor escolha outro ganhador.");
+
             bookUserAccepted.UpdateBookUser(DonationStatus.Donated, note);
 
             _bookUserRepository.Update(bookUserAccepted);
