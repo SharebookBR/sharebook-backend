@@ -1,4 +1,5 @@
 ﻿using ShareBook.Domain;
+using ShareBook.Domain.Common;
 using ShareBook.Service.Generic;
 using System;
 using System.Collections.Generic;
@@ -9,5 +10,6 @@ namespace ShareBook.Service
     public interface IMeetupService : IBaseService<Meetup>
     {
         public Task<string> FetchMeetups();
+        IList<Meetup> Search(string criteria);
     }
 }

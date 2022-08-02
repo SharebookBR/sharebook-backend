@@ -36,7 +36,7 @@ namespace ShareBook.Api.Controllers
         public BookController(IBookService bookService,
                               IBookUserService bookUserService,
                               IUserService userService,
-                              IMapper mapper, 
+                              IMapper mapper,
                               IAccessHistoryService accessHistoryService)
         {
             _service = bookService;
@@ -107,7 +107,7 @@ namespace ShareBook.Api.Controllers
                 Reason = reason
             };
 
-            var returnBook =  _bookUserService.Cancel(cancelationDTO).Value;
+            var returnBook = _bookUserService.Cancel(cancelationDTO).Value;
             var returnBookVm = _mapper.Map<CancelBookDonationVM>(returnBook);
             var result = new Result<CancelBookDonationVM>(returnBookVm);
             return Ok(result);
@@ -160,13 +160,15 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpGet("AvailableBooks")]
-        public IList<BookVM> AvailableBooks() {
+        public IList<BookVM> AvailableBooks()
+        {
             var books = _service.AvailableBooks();
             return _mapper.Map<List<BookVM>>(books);
         }
 
         [HttpGet("Random15Books")]
-        public IList<BookVM> Random15Books() {
+        public IList<BookVM> Random15Books()
+        {
             var books = _service.Random15Books();
             return _mapper.Map<List<BookVM>>(books);
         }
@@ -179,7 +181,8 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpGet("FullSearch/{criteria}/{page}/{items}")]
-        public PagedList<BookVM> FullSearch(string criteria, int page, int items) {
+        public PagedList<BookVM> FullSearch(string criteria, int page, int items)
+        {
             var books = _service.FullSearch(criteria, page, items);
             var booksVM = _mapper.Map<List<BookVM>>(books.Items);
             return new PagedList<BookVM>()
@@ -227,6 +230,27 @@ namespace ShareBook.Api.Controllers
 
             _bookUserService.Insert(requestBookVM.BookId, requestBookVM.Reason);
             return Ok(new Result { SuccessMessage = "Pedido realizado com sucesso!" });
+        }
+
+        [HttpPost("CancelRequest/{requestId}")]
+        [Authorize("Bearer")]
+        public IActionResult CancelRequest(Guid requestId)
+        {
+            var request = _bookUserService.GetRequest(requestId);
+
+            if (request == null)
+                return NotFound();
+
+            var user = GetUser();
+
+            if (request.UserId != user.Id)
+                return Forbid();
+
+            bool success = _bookUserService.CancelRequest(request);
+            if (!success)
+                return BadRequest();
+
+            return Ok(new Result("Solicitação cancelada."));
         }
 
         [HttpPost]
@@ -348,9 +372,10 @@ namespace ShareBook.Api.Controllers
             var facilitator = _mapper.Map<UserVM>(book.UserFacilitator);
             var winner = _mapper.Map<UserVM>(book.WinnerUser());
 
-            var result = new MainUsersVM {
-                Donor = donor, 
-                Facilitator = facilitator, 
+            var result = new MainUsersVM
+            {
+                Donor = donor,
+                Facilitator = facilitator,
                 Winner = winner
             };
 
@@ -362,21 +387,25 @@ namespace ShareBook.Api.Controllers
 
             return Ok(result);
 
-            VisitorProfile GetVisitorProfile(MainUsersVM mainUsers) {                                                       
+            VisitorProfile GetVisitorProfile(MainUsersVM mainUsers)
+            {
                 if (mainUsers is null) return VisitorProfile.Undefined;
 
                 var facilitatorId = Guid.Empty;
-                if (mainUsers.Facilitator is not null) {
+                if (mainUsers.Facilitator is not null)
+                {
                     facilitatorId = mainUsers.Facilitator.Id;
                 }
 
                 var winnerId = Guid.Empty;
-                if (mainUsers.Winner is not null) {
+                if (mainUsers.Winner is not null)
+                {
                     winnerId = mainUsers.Winner.Id;
                 }
 
                 var donorId = Guid.Empty;
-                if (mainUsers.Donor is not null) {
+                if (mainUsers.Donor is not null)
+                {
                     donorId = mainUsers.Donor.Id;
                 }
 
@@ -418,7 +447,7 @@ namespace ShareBook.Api.Controllers
             if (user == null || user.Id == Guid.Empty) return false;
             Book book = _service.GetBookWithAllUsers(bookId);
             if (book == null || book.Id == Guid.Empty) return false;
-            
+
             return book.UserId == user.Id;
         }
 
