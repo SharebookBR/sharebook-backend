@@ -13,6 +13,8 @@ namespace ShareBook.Api.ViewModels
         public string Email { get; set; }
 
         public string Linkedin { get; set; }
+        
+        public string Instagram { get; set; }
 
         public Address Address { get; set; }
 

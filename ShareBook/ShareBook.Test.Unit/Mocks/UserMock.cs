@@ -37,6 +37,7 @@ namespace ShareBook.Test.Unit.Mocks
                 PasswordSalt = PASSWORD_SALT,
                 Email = "rodrigo@sharebook.com",
                 Linkedin = "linkedin.com/rodrigo",
+                Instagram = "instagram.com/test/",
                 Profile = Profile.User,
                 LastLogin = DateTime.Now.AddMinutes(-60)
             };
@@ -53,6 +54,7 @@ namespace ShareBook.Test.Unit.Mocks
                 PasswordSalt = PASSWORD_SALT,
                 Email = "walter@sharebook.com",
                 Linkedin = "linkedin.com/walter",
+                Instagram = "instagram.com/test/",
                 Profile = Profile.User,
                 LastLogin = DateTime.Now.AddMinutes(-60),
                 Address = new Address()
