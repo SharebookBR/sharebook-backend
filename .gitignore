@@ -260,3 +260,6 @@ Sharebook/out/*
 
 # opencover - test coverage file
 coverage.xml
+
+# sonar files
+.sonarqube/
