@@ -63,5 +63,15 @@ namespace ShareBook.Helper.String
 
             return distance[sourceWordCount, targetWordCount];
         }
+
+        public static string teste()
+        {
+            // Código novo sem cobertura
+            var a = new Random().Next();
+            return a.ToString();
+
+            // Código inalcançável
+            return "";
+        }
     }
 }

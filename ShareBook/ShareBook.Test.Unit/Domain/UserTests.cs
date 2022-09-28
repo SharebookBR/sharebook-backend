@@ -12,7 +12,6 @@ namespace ShareBook.Test.Unit.Domain
         [Fact]
         public void HashCodePasswordDateExpired()
         {
-            // teste code coverage - 2x
             var expectedDay = DateTime.Now.AddDays(2);
             var hashCodePassword = Salt.Create();
             var user = new User()
