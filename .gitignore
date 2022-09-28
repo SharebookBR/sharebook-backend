@@ -257,3 +257,6 @@ appsettings.Production.json
 
 # docker app build files
 Sharebook/out/*
+
+# opencover - test coverage file
+coverage.xml
