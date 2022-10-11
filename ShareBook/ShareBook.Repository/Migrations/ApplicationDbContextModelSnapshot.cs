@@ -365,6 +365,10 @@ namespace ShareBook.Repository.Migrations
                     b.Property<DateTime>("HashCodePasswordExpiryDate")
                         .HasColumnType("datetime2(7)");
 
+                    b.Property<string>("Instagram")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
                     b.Property<DateTime>("LastLogin")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")

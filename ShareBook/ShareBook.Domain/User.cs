@@ -18,6 +18,7 @@ namespace ShareBook.Domain
         public DateTime HashCodePasswordExpiryDate { get; set; }
         public DateTime LastLogin { get; set; } = DateTime.Now;
         public string Linkedin { get; set; }
+        public string Instagram { get; set; }
         public  string Phone{ get; set; }
         public Profile Profile { get;  set; } = Profile.User;
         public bool Active { get; set; } = true;
@@ -58,11 +59,12 @@ namespace ShareBook.Domain
                 && (this.HashCodePasswordExpiryDate.Date == DateTime.Now.AddDays(1).Date
                    || this.HashCodePasswordExpiryDate.Date == DateTime.Now.Date);
 
-        public void Change(string email, string name, string linkedin, string phone, bool AllowSendingEmail)
+        public void Change(string email, string name, string linkedin, string instagram, string phone, bool AllowSendingEmail)
         {
             this.Email = email;
             this.Name = name;
             this.Linkedin = linkedin;
+            this.Instagram = instagram;
             this.Phone = phone;
             this.AllowSendingEmail = AllowSendingEmail;
         }
@@ -107,6 +109,7 @@ namespace ShareBook.Domain
             Active = false;
             AllowSendingEmail = false;
             Linkedin = null;
+            Instagram = null;
             Phone = null;
             ParentEmail = null;
 

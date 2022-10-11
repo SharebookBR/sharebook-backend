@@ -41,6 +41,10 @@ namespace ShareBook.Domain.Validators
                 .Must(x => OptionalFieldIsValid(x))
                 .WithMessage("Linkedln deve ter no máximo 100 caracteres");
 
+            RuleFor(u => u.Instagram)
+                .Must(x => OptionalFieldIsValid(x))
+                .WithMessage("Instagram deve ter no máximo 100 caracteres");
+
             RuleFor(u => u.Phone)
                 .NotNull()
                 .WithMessage("Telefone é obrigatório")

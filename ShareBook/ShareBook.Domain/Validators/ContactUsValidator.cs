@@ -5,32 +5,42 @@ namespace ShareBook.Domain.Validators
     public class ContactUsValidator : AbstractValidator<ContactUs>
     {
         #region Messages
-        public const string Name = "Nome é obrigatório";
-        public const string Email = "Email é obrigatório";
-        public const string EmailFormat = "O formato do email está inválido";
-        public const string Phone = "Telefone é obrigatório";
-        public const string Message = "Mensagem é obrigatória";
+        public const string NAME_REQUIRED = "Nome é obrigatório";
+        public const string EMAIL_REQUIRED = "Email é obrigatório";
+        public const string EMAIL_FORMAT = "O formato do email está inválido";
+        public const string PHONE_REQUIRED = "Telefone é obrigatório";
+        public const string MESSAGE_REQUIRED = "Mensagem é obrigatória";
+        public const string RECAPTCHA_REQUIRED = "RecaptchaReactive é obrigatório";
+        public const string RECAPTCHA_FORMAT = "RecaptchaReactive está inválido";
         #endregion
 
         public ContactUsValidator()
         {
             RuleFor(c => c.Name)
                 .NotEmpty()
-                .WithMessage(Name);
+                .WithMessage(NAME_REQUIRED);
 
             RuleFor(c => c.Email)
                .EmailAddress()
-               .WithMessage(EmailFormat)
+               .WithMessage(EMAIL_FORMAT)
                .NotEmpty()
-               .WithMessage(Email);
+               .WithMessage(EMAIL_REQUIRED);
 
             RuleFor(c => c.Phone)
                .NotEmpty()
-               .WithMessage(Phone);
+               .WithMessage(PHONE_REQUIRED);
 
             RuleFor(c => c.Message)
                 .NotEmpty()
-                .WithMessage(Message);
+                .WithMessage(MESSAGE_REQUIRED);
+
+            RuleFor(c => c.RecaptchaReactive)
+                .NotNull()
+                .WithMessage(RECAPTCHA_REQUIRED)
+                .NotEmpty()
+                .WithMessage(RECAPTCHA_REQUIRED)
+                .MinimumLength(100)
+                .WithMessage(RECAPTCHA_FORMAT);
         }
     }
 }

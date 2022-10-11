@@ -17,6 +17,7 @@ namespace ShareBook.Service
         {
 
             var result = new Result<ContactUs>(_validator.Validate(entity));
+            // TODO: Fazer a validação real do "RecaptchaReactive" (https://developers.google.com/recaptcha/docs/verify)
 
             if (!result.Success)
                 return result;
