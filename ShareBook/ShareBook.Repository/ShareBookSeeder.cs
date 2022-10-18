@@ -71,6 +71,28 @@ namespace ShareBook.Repository
                     }
                 };
 
+                var @raffa = new User()
+                {
+                    Name = "Raffa dev",
+                    Email = "raffacabofrio@gmail.com",
+                    Linkedin = "linkedin.com/raffacabofrio",
+                    Profile = Profile.Administrator,
+                    Password = PASSWORD_HASH,
+                    PasswordSalt = PASSWORD_SALT,
+                    CreationDate = DateTime.Now,
+                    Address = new Address()
+                    {
+                        Street = "Rua teste",
+                        Number = "2",
+                        Complement = "apto 2",
+                        Neighborhood = "Bairro teste",
+                        PostalCode = "11111-111",
+                        City = "São Paulo",
+                        State = "SP",
+                        Country = "Brasil"
+                    }
+                };
+
                 var donor = new User()
                 {
                     Name = "Rodrigo",
@@ -485,7 +507,7 @@ namespace ShareBook.Repository
                 };
 
                 _context.Categories.AddRange(adm, dir, psico, med, eng, geo_his, cien, art);
-                _context.Users.AddRange(grantee, @operator);
+                _context.Users.AddRange(grantee, @operator, raffa);
                 _context.Books.AddRange(book1, book2, book3, book4, book5, book6, book7,
                     book8, book9, book10, book11, book12, book13, book14, book15, book16,
                     book16, book18, book19, book20 , book21 , book22 , book23);
