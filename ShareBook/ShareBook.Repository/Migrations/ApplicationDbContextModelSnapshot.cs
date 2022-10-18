@@ -366,8 +366,7 @@ namespace ShareBook.Repository.Migrations
                         .HasColumnType("datetime2(7)");
 
                     b.Property<string>("Instagram")
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("LastLogin")
                         .ValueGeneratedOnAdd()
@@ -408,6 +407,9 @@ namespace ShareBook.Repository.Migrations
 
                     b.Property<int>("Profile")
                         .HasColumnType("int");
+
+                    b.Property<string>("TikTok")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 

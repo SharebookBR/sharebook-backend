@@ -37,10 +37,6 @@ namespace ShareBook.Repository.Mapping
                 .HasColumnType("varchar(100)")
                 .HasMaxLength(100);
 
-            entityBuilder.Property(t => t.Instagram)
-                .HasColumnType("varchar(100)")
-                .HasMaxLength(100);
-
             entityBuilder.Property(t => t.Phone)
                 .HasColumnType("varchar(30)")
                 .HasMaxLength(30);
