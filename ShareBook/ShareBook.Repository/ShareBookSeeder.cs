@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace ShareBook.Repository
 {
-    public  class ShareBookSeeder
+    public class ShareBookSeeder
     {
 
         private readonly ApplicationDbContext _context;
@@ -24,9 +24,12 @@ namespace ShareBook.Repository
         {
             _context.Database.EnsureCreated();
 
-            if ( !(_context.Users.Any() 
+
+
+            if (!(_context.Users.Any()
                 && _context.Books.Any()
-                && _context.Categories.Any()))
+                && _context.Categories.Any()
+                && _context.Meetups.Any()))
             {
                 var grantee = new User()
                 {
@@ -54,6 +57,28 @@ namespace ShareBook.Repository
                     Name = "Vagner",
                     Email = "vagner@sharebook.com",
                     Linkedin = "linkedin.com/vagner",
+                    Profile = Profile.Administrator,
+                    Password = PASSWORD_HASH,
+                    PasswordSalt = PASSWORD_SALT,
+                    CreationDate = DateTime.Now,
+                    Address = new Address()
+                    {
+                        Street = "Rua teste",
+                        Number = "2",
+                        Complement = "apto 2",
+                        Neighborhood = "Bairro teste",
+                        PostalCode = "11111-111",
+                        City = "São Paulo",
+                        State = "SP",
+                        Country = "Brasil"
+                    }
+                };
+
+                var @raffa = new User()
+                {
+                    Name = "Raffa dev",
+                    Email = "raffacabofrio@gmail.com",
+                    Linkedin = "linkedin.com/raffacabofrio",
                     Profile = Profile.Administrator,
                     Password = PASSWORD_HASH,
                     PasswordSalt = PASSWORD_SALT,
@@ -484,18 +509,107 @@ namespace ShareBook.Repository
                     NickName = "Interessado 1"
                 };
 
+                var meetup1 = new Meetup()
+                {
+                    SymplaEventId = 1741126,
+                    Title = "Mensageria na Azure - do conceito à prática.",
+                    Description = "<div>Nesta live convidei Vinícius Climaco que estará explicando a importância e o motivo pelo qual temos tanta utilização da Mensageria e não paramos no conceito! Teremos muito hand´s on através de demos com Azure Service Bus e DotNet 6.</div><div>Vem com a gente em mais uma stack, contamos com sua participação!</div><div><br></div><div><b>Nosso evento será transmitido ao vivo via YouTube:&nbsp;</b><br><a href=\"https://www.youtube.com/c/sharebookBR\" target=\"_blank\"   rel=\"nofollow noopener noreferrer\">https://www.youtube.com/c/sharebookBR</a><br></div>",
+                    StartDate = DateTime.Parse("2022-10-19T19:00:00"),
+                    Cover = "https://www.sharebook.com.br/Images/Meetup/mensageria-na-azure---do-conceito-a-pratica.png",
+                    YoutubeUrl = null,
+                    SymplaEventUrl = "https://www.sympla.com.br/mensageria-na-azure---do-conceito-a-pratica__1743065",
+                };
+
+                var meetup2 = new Meetup()
+                {
+                    SymplaEventId = 1741126,
+                    Title = "Qualidade de vida",
+                    Description = "<div>Todo profissional que inicia a construção de sua carreira sabe que um dia poderá se assumir uma função de liderança. Para quem está na liderança é importante entender o processo da equipe e os indicadores de qualidade de vida.</div><div><br></div><div>Como está a sua qualidade de vida e do seu time? Vale muito a pensar a respeito, olhar para os próprios hábitos e ajustar o que for preciso.&nbsp;</div><div><br></div><div>Mas o que está por trás de uma vida com mais qualidade? Conquistar o emprego perfeito. Realizar os seus sonhos. Ter saúde. Amar e ser amado pelos familiares e amigos. Ser feliz, enfim. As possibilidades são muitas e esse é o tema do nosso meetup! =)</div><div><br></div><div><b>Nosso evento será transmitido ao vivo via YouTube:&nbsp;</b><br><a href=\"https://www.youtube.com/c/sharebookBR\" target=\"_blank\" rel=\"nofollow noopener noreferrer\">https://www.youtube.com/c/sharebookBR</a><br></div>",
+                    StartDate = DateTime.Parse("2022-10-06T19:00:00"),
+                    Cover = "https://www.sharebook.com.br/Images/Meetup/qualidade-de-vida.png",
+                    YoutubeUrl = "https://youtube.com/watch?v=6LUqY0yl7YQ",
+                    SymplaEventUrl = "https://www.sympla.com.br/qualidade-de-vida__1741126"
+                };
+
+                var meetup3 = new Meetup()
+                {
+                    SymplaEventId = 1738605,
+                    Title = "Azure Data Factory - parte 2 de 2",
+                    Description = "<div>ETL. Extrair, transformar e carregar. Coletar dados de várias fontes e reuni-los para dar suporte à descoberta, à geração de relatórios, à análise e à tomada de decisões.</div><div><br></div><div>Azure Data Factory é um ETL Serverless totalmente gerenciado. Integre visualmente as fontes de dados usando mais de 90 conectores internos livres de manutenção sem custo adicional. Construa processos ETL e ELT sem código com facilidade em um ambiente visual intuitivo ou escreva seu próprio código.</div><div><br></div><div><b>Nosso evento será transmitido ao vivo via YouTube:&nbsp;</b><br><a href=\"https://www.youtube.com/c/sharebookBR\" target=\"_blank\" rel=\"nofollow noopener noreferrer\">https://www.youtube.com/c/sharebookBR</a><br></div>",
+                    StartDate = DateTime.Parse("2022-10-01T13:00:00"),
+                    Cover = "https://www.sharebook.com.br/Images/Meetup/azure-data-factory---parte-2-de-2.png",
+                    YoutubeUrl = "https://youtube.com/watch?v=_AmxQNuaxsY",
+                    SymplaEventUrl = "https://www.sympla.com.br/azure-data-factory---parte-2-de-2__1738605"
+                };
+
+                var meetup4 = new Meetup()
+                {
+                    SymplaEventId = 1724107,
+                    Title = "Team Building",
+                    Description = "<div>Qualquer um forma um grupo. Alguns formam times. Mas <b>apenas os melhores formam times de alta performance</b>. Nesse meetup vamos discutir sobre o team building.&nbsp;</div><div><br></div><div>- renovar a motivação.</div><div>- aproximar os colaboradores.</div><div>- identificação de forças e fraquezas.</div><div>- potencializar o talento.</div><div><b><br></b></div><div><b>Nosso evento será transmitido ao vivo via YouTube:&nbsp;</b><br><a href=\"https://www.youtube.com/c/sharebookBR\" target=\"_blank\" rel=\"nofollow noopener noreferrer\">https://www.youtube.com/c/sharebookBR</a><br></div>",
+                    StartDate = DateTime.Parse("2022-09-21T19:00:00"),
+                    Cover = "https://www.sharebook.com.br/Images/Meetup/team-building.png",
+                    YoutubeUrl = "https://youtube.com/watch?v=UKonq6Yff5c",
+                    SymplaEventUrl = "https://www.sympla.com.br/team-building__1724107"
+                };
+
+                var meetup5 = new Meetup()
+                {
+                    SymplaEventId = 1717056,
+                    Title = "Fracassos e aprendizados na carreira",
+                    Description = "<div>Fracassar, uma palavra temida por qualquer pessoa. Se admitir um erro é difícil, aceitar um fracasso é ainda pior.&nbsp;<span style=\"letter-spacing: 0px;\">O receio de não atingir o objetivo desejado também está no fato de que ninguém inicia algo com a intenção de dar errado. Mesmo que o indivíduo se dedique ao máximo em cada passo, sempre há obstáculos e tropeços na trajetória que podem levar ao fracasso. Perder faz parte da vitória, do crescimento e do processo evolutivo de cada ser humano. Sem isso, não haveria motivos pelos quais perseverar, lutar e continuar acreditando em nossa força.</span></div><div><span style=\"letter-spacing: 0px;\"><br></span></div><div><b>Nosso evento será transmitido ao vivo via YouTube:&nbsp;</b><br><a href=\"https://www.youtube.com/c/sharebookBR\" target=\"_blank\" rel=\"nofollow noopener noreferrer\">https://www.youtube.com/c/sharebookBR</a><br></div>",
+                    StartDate = DateTime.Parse("2022-09-14T19:00:00"),
+                    Cover = "https://www.sharebook.com.br/Images/Meetup/fracassos-e-aprendizados-na-carreira.png",
+                    YoutubeUrl = "https://youtube.com/watch?v=5bWHRYnTEws",
+                    SymplaEventUrl = "https://www.sympla.com.br/fracassos-e-aprendizados-na-carreira__1717056"
+                };
+
+                var meetup6 = new Meetup()
+                {
+                    SymplaEventId = 1711308,
+                    Title = "GitHub Actions",
+                    Description = "<div>GitHub Actions é uma plataforma de integração contínua e entrega contínua (CI/CD) que permite automatizar a sua compilação, teste e pipeline de implantação.&nbsp;Você pode criar fluxos de trabalho que constroem e testam cada pull request para seu repositório ou implementam pull requests mesclados para produção.</div><div><br></div><div><b>Nosso evento será transmitido ao vivo via YouTube:&nbsp;</b><br><a href=\"https://www.youtube.com/c/sharebookBR\" target=\"_blank\" rel=\"nofollow noopener noreferrer\">https://www.youtube.com/c/sharebookBR</a><br></div>",
+                    StartDate = DateTime.Parse("2022-09-09T19:00:00"),
+                    Cover = "https://www.sharebook.com.br/Images/Meetup/github-actions.png",
+                    YoutubeUrl = "https://youtube.com/watch?v=ygjyH6tL7Nk",
+                    SymplaEventUrl = "https://www.sympla.com.br/github-actions__1711308"
+                };
+
+                var meetup7 = new Meetup()
+                {
+                    SymplaEventId = 1709335,
+                    Title = "Desenvolvimento de software sustentável",
+                    Description = "<div><div>Sustentabilidade é a capacidade de sustentação ou conservação de um processo ou sistema.&nbsp;<span style=\"letter-spacing: 0px;\">A palavra sustentável deriva do latim sustentare e significa sustentar, apoiar, conservar e cuidar.</span></div></div><div><br></div><div>Construir software sustentável, e fazer isso de maneira escalável, exige a criação de um ecossistema confiável de pessoas, padrões, ferramentas e boas práticas.</div><div><br></div><div><b>Nosso evento será transmitido ao vivo via YouTube:&nbsp;</b><br><a href=\"https://www.youtube.com/c/sharebookBR\" target=\"_blank\"  rel=\"nofollow noopener noreferrer\">https://www.youtube.com/c/sharebookBR</a><br></div>",
+                    StartDate = DateTime.Parse("2022-09-07T19:00:00"),
+                    Cover = "https://www.sharebook.com.br/Images/Meetup/desenvolvimento-de-software-sustentavel.png",
+                    YoutubeUrl = null,
+                    SymplaEventUrl = "https://www.sympla.com.br/desenvolvimento-de-software-sustentavel__1709335"
+                };
+
+                var meetup8 = new Meetup()
+                {
+                    SymplaEventId = 1706178,
+                    Title = "Java Spring Boot - Criando uma API CRUD do zero - 2 de 2",
+                    Description = "<p>Essa é parte final do nosso vídeo com muita mão na massa. Bora criar nossa API CRUD com Spring Boot!</p><p><b>Nosso evento será transmitido ao vivo via YouTube: </b></p><p><a href=\"https://www.youtube.com/c/sharebookBR\" target=\"_blank\" rel=\"nofollow noopener noreferrer\">https://www.youtube.com/c/sharebookBR</a><br></p>",
+                    StartDate = DateTime.Parse("2022-09-03T13:00:00"),
+                    Cover = "https://sharebookbr.github.io/sharebook-cursos/covers/java-springboot-parte2.png",
+                    YoutubeUrl = null,
+                    SymplaEventUrl = "https://www.sympla.com.br/java-spring-boot---criando-uma-api-crud-do-zero---2-de-2__1706178"
+                };
+
                 _context.Categories.AddRange(adm, dir, psico, med, eng, geo_his, cien, art);
-                _context.Users.AddRange(grantee, @operator);
+                _context.Users.AddRange(grantee, @operator, raffa);
                 _context.Books.AddRange(book1, book2, book3, book4, book5, book6, book7,
                     book8, book9, book10, book11, book12, book13, book14, book15, book16,
-                    book16, book18, book19, book20 , book21 , book22 , book23);
+                    book16, book18, book19, book20, book21, book22, book23);
 
                 _context.BookUser.Add(request);
+                _context.Meetups.AddRange(meetup1, meetup2, meetup3, meetup4, meetup5, meetup6, meetup7, meetup8);
 
                 _context.SaveChanges();
             }
 
         }
-        
+
     }
 }
