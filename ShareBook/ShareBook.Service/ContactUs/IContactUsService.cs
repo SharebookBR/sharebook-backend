@@ -5,6 +5,6 @@ namespace ShareBook.Service
 {
     public interface IContactUsService
     {
-        Result<ContactUs> SendContactUs(ContactUs contactUs);
+        Result<ContactUs> SendContactUs(ContactUs contactUs, string recaptchaReactive);
     }
 }
