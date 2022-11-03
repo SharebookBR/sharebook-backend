@@ -36,5 +36,6 @@ namespace ShareBook.Domain.DTOs
         public int Age { get; set; }
 
         public string ParentEmail { get; set; }
+        public string RecaptchaReactive { get; set; }
     }
 }

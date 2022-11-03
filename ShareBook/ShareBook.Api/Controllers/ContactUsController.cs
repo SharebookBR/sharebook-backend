@@ -27,7 +27,7 @@ namespace ShareBook.Api.Controllers
         {
             var contactUS = _mapper.Map<ContactUs>(contactUsVM);
 
-            return _contactUsService.SendContactUs(contactUS);
+            return _contactUsService.SendContactUs(contactUS, contactUsVM?.RecaptchaReactive);
         }
     }
 }

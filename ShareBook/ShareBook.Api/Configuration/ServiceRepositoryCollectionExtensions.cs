@@ -12,6 +12,7 @@ using ShareBook.Service.AWSSQS;
 using ShareBook.Service.Lgpd;
 using ShareBook.Service.Muambator;
 using ShareBook.Service.Notification;
+using ShareBook.Service.Recaptcha;
 using ShareBook.Service.Upload;
 
 namespace ShareBook.Api.Configuration
@@ -36,6 +37,7 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<IAccessHistoryService, AccessHistoryService>();
             services.AddScoped<ILgpdService, LgpdService>();
             services.AddScoped<IMeetupService, MeetupService>();
+            services.AddScoped<IRecaptchaService, RecaptchaService>();
 
             //repositories
             services.AddScoped<IBookRepository, BookRepository>();

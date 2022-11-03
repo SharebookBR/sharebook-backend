@@ -24,7 +24,7 @@ namespace ShareBook.Domain.Common
         }
 
         public T Value { get; set; }
-        public IList<string> Messages { get; }
+        public List<string> Messages { get; }
         public string SuccessMessage { get; set; }
 
         public bool Success { get { return Messages.Count == 0; } }
