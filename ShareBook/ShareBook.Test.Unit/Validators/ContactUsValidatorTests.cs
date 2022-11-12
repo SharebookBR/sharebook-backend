@@ -23,7 +23,6 @@ namespace ShareBook.Test.Unit.Validators
                 Message = "Essa mensagem é obrigatória",
                 Name = "Joao",
                 Phone = "4499988-7766",
-                RecaptchaReactive = "asdaasdjasodaj7i364yubki23y728374234b2jk34h2347i26348724yh2bjhk34g2j34t273842384iuh2h4j234g2j34t27834bjh",
             };
             ValidationResult result = contactUsValidator.Validate(contactUs);
             Assert.True(result.IsValid);
@@ -38,23 +37,6 @@ namespace ShareBook.Test.Unit.Validators
                 Message = "Essa mensagem é obrigatória",
                 Name = "Joao",
                 Phone = "4499988-7766",
-                RecaptchaReactive = "asdaasdjasodaj7i364yubki23y728374234b2jk34h2347i26348724yh2bjhk34g2j34t273842384iuh2h4j234g2j34t27834bjh",
-            };
-
-            ValidationResult result = contactUsValidator.Validate(contactUs);
-            Assert.False(result.IsValid);
-        }
-
-        [Fact]
-        public void InvalidRecaptcha()
-        {
-            ContactUs contactUs = new ContactUs
-            {
-                Email = "joao@sharebook.com.br",
-                Message = "Essa mensagem é obrigatória",
-                Name = "Joao",
-                Phone = "4499988-7766",
-                RecaptchaReactive = "",
             };
 
             ValidationResult result = contactUsValidator.Validate(contactUs);

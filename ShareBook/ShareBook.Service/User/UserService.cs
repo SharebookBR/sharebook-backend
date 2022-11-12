@@ -15,6 +15,7 @@ using ShareBook.Repository;
 using ShareBook.Repository.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service.Generic;
+using ShareBook.Service.Recaptcha;
 
 namespace ShareBook.Service
 {
@@ -23,6 +24,7 @@ namespace ShareBook.Service
         private readonly IUserRepository _userRepository;
         private readonly IBookRepository _bookRepository;
         private readonly IUserEmailService _userEmailService;
+        private readonly IRecaptchaService _recaptchaService;
         
         private readonly IMapper _mapper;
 
@@ -33,12 +35,14 @@ namespace ShareBook.Service
             IUnitOfWork unitOfWork,
             IValidator<User> validator,
             IMapper mapper,
-            IUserEmailService userEmailService) : base(userRepository, unitOfWork, validator)
+            IUserEmailService userEmailService,
+            IRecaptchaService recaptchaService) : base(userRepository, unitOfWork, validator)
         {
             _userRepository = userRepository;
             _userEmailService = userEmailService;
             _bookRepository = bookRepository;
             _mapper = mapper;
+            _recaptchaService = recaptchaService;
         }
 
         public Result<User> AuthenticationByEmailAndPassword(User user)
@@ -90,9 +94,15 @@ namespace ShareBook.Service
 
         public Result<User> Insert(RegisterUserDTO userDto)
         {
-            var user = _mapper.Map<User>(userDto);
+            User user = _mapper.Map<User>(userDto);
+            Result resultRecaptcha = _recaptchaService.SimpleValidationRecaptcha(userDto?.RecaptchaReactive);
+
             var result = Validate(user);
-            if (!result.Success) return result;
+            if (!resultRecaptcha.Success && resultRecaptcha.Messages != null) 
+                result.Messages.AddRange(resultRecaptcha.Messages);
+
+            if (!result.Success)
+                return result;
 
             // Senha forte não é mais obrigatória.
 
