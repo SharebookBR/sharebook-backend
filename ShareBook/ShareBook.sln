@@ -33,6 +33,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sharebook.Jobs", "Sharebook
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShareBook.Infra.Data", "ShareBook.Repository\ShareBook.Infra.Data.csproj", "{4A07DFF3-3909-4081-8495-714179019A08}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "7 - EasyCrud", "7 - EasyCrud", "{2A55B51F-BC34-49C9-AC4F-D53C3B8FEDEA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrudMvc", "CrudMvc\CrudMvc.csproj", "{B0DFF0E2-A9B8-4C87-8F9C-23389B5019F3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +75,10 @@ Global
 		{4A07DFF3-3909-4081-8495-714179019A08}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4A07DFF3-3909-4081-8495-714179019A08}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4A07DFF3-3909-4081-8495-714179019A08}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0DFF0E2-A9B8-4C87-8F9C-23389B5019F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0DFF0E2-A9B8-4C87-8F9C-23389B5019F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0DFF0E2-A9B8-4C87-8F9C-23389B5019F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0DFF0E2-A9B8-4C87-8F9C-23389B5019F3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -84,6 +92,7 @@ Global
 		{F51F1D75-DC21-4B49-AE98-8E1292311D2B} = {F4693E98-387E-4804-A818-FEC59FEDD41C}
 		{E59DF563-5B90-479E-9E08-FA99442EEE13} = {CC695E9A-927F-4BCA-B43F-1DD488258B6D}
 		{4A07DFF3-3909-4081-8495-714179019A08} = {F4693E98-387E-4804-A818-FEC59FEDD41C}
+		{B0DFF0E2-A9B8-4C87-8F9C-23389B5019F3} = {2A55B51F-BC34-49C9-AC4F-D53C3B8FEDEA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FF5BA500-51EA-4DD9-8523-8EE368731B63}
