@@ -84,23 +84,23 @@ namespace ShareBook.Service.AWSSQS
 
         public async Task NotifyBookApproved(Book book)
         {
-            if (_AWSSQSSettings.IsActive)
+            if (!_AWSSQSSettings.IsActive)
+                return;
+ 
+            var message = new GetInterestedUsersRequest{
+                BookId = book.Id,
+                BookTitle = book.Title,
+                CategoryId = book.CategoryId
+            };
+            
+            var request = new SendMessageRequest
             {
-                var message = new GetInterestedUsersRequest{
-                    BookId = book.Id,
-                    BookTitle = book.Title,
-                    CategoryId = book.CategoryId
-                };
-                
-                var request = new SendMessageRequest
-                {
-                    DelaySeconds = (int)TimeSpan.FromSeconds(5).TotalSeconds,
-                    MessageBody = System.Text.Json.JsonSerializer.Serialize(message),
-                    QueueUrl = $"{_AWSSQSSettings.QueueBaseUrl}/{_AWSSQSSettings.NewBookQueue}"
-                };
+                DelaySeconds = (int)TimeSpan.FromSeconds(5).TotalSeconds,
+                MessageBody = System.Text.Json.JsonSerializer.Serialize(message),
+                QueueUrl = $"{_AWSSQSSettings.QueueBaseUrl}/{_AWSSQSSettings.NewBookQueue}"
+            };
 
-                await _amazonSQSClient.SendMessageAsync(request);
-            }
+            await _amazonSQSClient.SendMessageAsync(request);
         }
     }
 }
