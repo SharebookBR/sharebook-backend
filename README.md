@@ -59,7 +59,13 @@ https://github.com/SharebookBR/sharebook-backend/wiki/Como-rodar-o-projeto%3F
 
 ## **7 - Dicas Visual Studio Code**
 
-Executar comando: dotnet restore ./ShareBook/ShareBook.sln
+```bash
+# restaurar dependências
+dotnet restore ./ShareBook/ShareBook.sln
+
+# rodar o app com hot reload
+dotnet watch --project ./ShareBook/ShareBook.Api/ShareBook.Api.csproj
+```
 
 Extensions:
 - [C# Extensions](https://marketplace.visualstudio.com/items?itemName=jchannon.csharpextensions)
