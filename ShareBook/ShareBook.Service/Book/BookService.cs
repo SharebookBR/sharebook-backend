@@ -11,6 +11,7 @@ using ShareBook.Helper.Extensions;
 using ShareBook.Helper.Image;
 using ShareBook.Repository;
 using ShareBook.Repository.UoW;
+using ShareBook.Service.AWSSQS;
 using ShareBook.Service.Generic;
 using ShareBook.Service.Upload;
 using System;
@@ -27,14 +28,17 @@ namespace ShareBook.Service
         private readonly IBooksEmailService _booksEmailService;
         private readonly IConfiguration _configuration;
 
+        private readonly IAWSSQSService _sqs;
+
         public BookService(IBookRepository bookRepository,
                     IUnitOfWork unitOfWork, IValidator<Book> validator,
-                    IUploadService uploadService, IBooksEmailService booksEmailService, IConfiguration configuration)
+                    IUploadService uploadService, IBooksEmailService booksEmailService, IConfiguration configuration, IAWSSQSService sqs)
                     : base(bookRepository, unitOfWork, validator)
         {
             _uploadService = uploadService;
             _booksEmailService = booksEmailService;
             _configuration = configuration;
+            _sqs = sqs;
         }
 
         public void Approve(Guid bookId, DateTime? chooseDate = null)
@@ -52,10 +56,9 @@ namespace ShareBook.Service
             // notifica o doador
             _booksEmailService.SendEmailBookApproved(book).Wait();
 
-            // notifica possíveis interessados
-            // todo: desacoplar o próprio enfileiramento numa outra fila.
-            // aprove >> fila 1 >> fila 2 >> notifica interessados.
-            // _booksEmailService.SendEmailBookToInterestedUsers(book).Wait();
+            // notifica possíveis interessados.
+            _sqs.NotifyBookApproved(book).Wait();
+            
         }
 
         public void Received(Guid bookId, Guid winnerUserId)

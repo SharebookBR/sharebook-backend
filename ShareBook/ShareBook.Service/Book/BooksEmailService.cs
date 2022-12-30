@@ -98,7 +98,7 @@ namespace ShareBook.Service
 
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(NewBookNotifyTemplate, vm);
 
-            var message = new AWSSQSMessageNewBookNotifyRequest
+            var message = new SendEmailRequest
             {
                 Subject = $"Chegou um livro de {book.Category.Name}",
                 BodyHTML = html
@@ -112,7 +112,7 @@ namespace ShareBook.Service
 
             for(int i = 1; i <= maxMessages; i++)
             {
-                var destinations = interestedUsers.Skip((i - 1) * MAX_DESTINATIONS).Take(MAX_DESTINATIONS).Select(u => new DestinationRequest { Name = u.Name, Email = u.Email });
+                var destinations = interestedUsers.Skip((i - 1) * MAX_DESTINATIONS).Take(MAX_DESTINATIONS).Select(u => new Destination { Name = u.Name, Email = u.Email });
                 message.Destinations = destinations.ToList();
 
                 await _AWSSQSService.SendNewBookNotifyToAWSSQSAsync(message);

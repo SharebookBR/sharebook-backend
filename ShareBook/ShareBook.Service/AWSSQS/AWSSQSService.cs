@@ -2,6 +2,7 @@
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using Microsoft.Extensions.Options;
+using ShareBook.Domain;
 using ShareBook.Service.AWSSQS.Dto;
 using System;
 using System.Threading.Tasks;
@@ -36,7 +37,7 @@ namespace ShareBook.Service.AWSSQS
 
             var deleteMessageRequest = new DeleteMessageRequest();
 
-            deleteMessageRequest.QueueUrl = _AWSSQSSettings.QueueUrl;
+            deleteMessageRequest.QueueUrl = _AWSSQSSettings.QueueBaseUrl;
             deleteMessageRequest.ReceiptHandle = receiptHandle + "aaa";
 
             await _amazonSQSClient.DeleteMessageAsync(deleteMessageRequest);
@@ -49,7 +50,7 @@ namespace ShareBook.Service.AWSSQS
                 throw new Exception("Serviço aws está desabilitado no appsettings.");
             }
 
-            var receiveMessageRequest = new ReceiveMessageRequest(_AWSSQSSettings.QueueUrl);
+            var receiveMessageRequest = new ReceiveMessageRequest(_AWSSQSSettings.QueueBaseUrl);
 
             var result = await _amazonSQSClient.ReceiveMessageAsync(receiveMessageRequest);
 
@@ -66,7 +67,7 @@ namespace ShareBook.Service.AWSSQS
             }
         }
 
-        public async Task SendNewBookNotifyToAWSSQSAsync(AWSSQSMessageNewBookNotifyRequest message)
+        public async Task SendNewBookNotifyToAWSSQSAsync(SendEmailRequest message)
         {
             if (_AWSSQSSettings.IsActive)
             {
@@ -74,7 +75,28 @@ namespace ShareBook.Service.AWSSQS
                 {
                     DelaySeconds = (int)TimeSpan.FromSeconds(5).TotalSeconds,
                     MessageBody = System.Text.Json.JsonSerializer.Serialize(message),
-                    QueueUrl = _AWSSQSSettings.QueueUrl
+                    QueueUrl = _AWSSQSSettings.QueueBaseUrl
+                };
+
+                await _amazonSQSClient.SendMessageAsync(request);
+            }
+        }
+
+        public async Task NotifyBookApproved(Book book)
+        {
+            if (_AWSSQSSettings.IsActive)
+            {
+                var message = new GetInterestedUsersRequest{
+                    BookId = book.Id,
+                    BookTitle = book.Title,
+                    CategoryId = book.CategoryId
+                };
+                
+                var request = new SendMessageRequest
+                {
+                    DelaySeconds = (int)TimeSpan.FromSeconds(5).TotalSeconds,
+                    MessageBody = System.Text.Json.JsonSerializer.Serialize(message),
+                    QueueUrl = $"{_AWSSQSSettings.QueueBaseUrl}/{_AWSSQSSettings.NewBookQueue}"
                 };
 
                 await _amazonSQSClient.SendMessageAsync(request);
