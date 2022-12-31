@@ -7,6 +7,7 @@ using ShareBook.Domain.Validators;
 using ShareBook.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service;
+using ShareBook.Service.AWSSQS;
 using ShareBook.Service.Muambator;
 using ShareBook.Service.Upload;
 using ShareBook.Test.Unit.Mocks;
@@ -27,6 +28,8 @@ namespace ShareBook.Test.Unit.Services
         readonly Mock<IBookUserService> bookUserServiceMock;
         readonly Mock<IConfiguration> configurationMock;
 
+        readonly Mock<IAWSSQSService> sqsMock;
+
         public BookServiceTests()
         {
             // Definindo quais serão as classes mockadas
@@ -37,6 +40,7 @@ namespace ShareBook.Test.Unit.Services
             bookEmailService = new Mock<IBooksEmailService>();
             bookUserServiceMock = new Mock<IBookUserService>();
             configurationMock = new Mock<IConfiguration>();
+            sqsMock = new Mock<IAWSSQSService>();
 
             bookRepositoryMock.Setup(repo => repo.Insert(It.IsAny<Book>())).Returns(() =>
             {
@@ -53,7 +57,7 @@ namespace ShareBook.Test.Unit.Services
             Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
             var service = new BookService(bookRepositoryMock.Object, 
                 unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object);
+                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object);
             Result<Book> result = service.Insert(new Book()
             {
                 Title = "Lord of the Rings",
@@ -74,7 +78,7 @@ namespace ShareBook.Test.Unit.Services
             Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
             var service = new BookService(bookRepositoryMock.Object,
                 unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object);
+                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object);
             Result<Book> result = service.Insert(new Book()
             {
                 Title = "Lord of the Rings",
@@ -96,7 +100,7 @@ namespace ShareBook.Test.Unit.Services
             Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
             var service = new BookService(bookRepositoryMock.Object,
                 unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object);
+                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object);
             Result<Book> result = service.Insert(new Book()
             {
                 Title = "Lord of the Rings",
