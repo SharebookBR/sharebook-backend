@@ -247,8 +247,6 @@ ModelManifest.xml
 
 .DS_Store
 
-.vscode
-
 # do not push dev scripts
 sandbox
 

@@ -59,15 +59,22 @@ https://github.com/SharebookBR/sharebook-backend/wiki/Como-rodar-o-projeto%3F
 
 ## **7 - Dicas Visual Studio Code**
 
+Nosso projeto já está configurado para você debugar e testar pelo vs code. Só precisa instalar alguns plugins abaixo:
+
+- [C# Extensions](https://marketplace.visualstudio.com/items?itemName=jchannon.csharpextensions)
+- [Netcore Extension Pack](https://marketplace.visualstudio.com/items?itemName=doggy8088.netcore-extension-pack)
+- [GitLens](https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens)
+- [.NET Core Test Explorer](https://marketplace.visualstudio.com/items?itemName=formulahendry.dotnet-test-explorer)
+
+Caso prefira linha de comando, segue uma colinha...
+
 ```bash
 # restaurar dependências
 dotnet restore ./ShareBook/ShareBook.sln
 
 # rodar o app com hot reload
 dotnet watch --project ./ShareBook/ShareBook.Api/ShareBook.Api.csproj
-```
 
-Extensions:
-- [C# Extensions](https://marketplace.visualstudio.com/items?itemName=jchannon.csharpextensions)
-- [Netcore Extension Pack](https://marketplace.visualstudio.com/items?itemName=doggy8088.netcore-extension-pack)
-- [GitLens](https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens)
+# rodar os testes
+dotnet test ./ShareBook/ShareBook.Test.Unit/ShareBook.Test.Unit.csproj
+```
