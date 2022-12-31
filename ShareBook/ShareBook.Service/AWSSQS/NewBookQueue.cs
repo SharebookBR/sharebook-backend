@@ -54,7 +54,8 @@ public class NewBookQueue : IAwsSqsQueue<NewBookMessage>
             throw new Exception("Serviço aws está desabilitado no appsettings.");
         }
 
-        var receiveMessageRequest = new ReceiveMessageRequest(_AwsSqsSettings.QueueBaseUrl);
+        var url = $"{_AwsSqsSettings.QueueBaseUrl}/{_AwsSqsSettings.NewBookQueue}";
+        var receiveMessageRequest = new ReceiveMessageRequest(url);
 
         var result = await _amazonSQSClient.ReceiveMessageAsync(receiveMessageRequest);
 

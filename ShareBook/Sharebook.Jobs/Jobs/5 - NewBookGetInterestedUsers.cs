@@ -7,62 +7,69 @@ using System;
 using System.Linq;
 using System.Threading;
 
-namespace Sharebook.Jobs
+namespace Sharebook.Jobs;
+
+public class NewBookGetInterestedUsers : GenericJob, IJob
 {
-    public class NewBookGetInterestedUsers : GenericJob, IJob
+    private readonly NewBookQueue _newBookQueue;
+    private readonly IUserService _userService;
+
+    public NewBookGetInterestedUsers(
+        IJobHistoryRepository jobHistoryRepo,
+        IEmailService emailService,
+        NewBookQueue newBookQueue,
+        IUserService userService) : base(jobHistoryRepo)
     {
-        private readonly IEmailService _emailService;
-        private readonly NewBookQueue _sqs;
 
-        public NewBookGetInterestedUsers(
-            IJobHistoryRepository jobHistoryRepo,
-            IEmailService emailService,
-            NewBookQueue sqs) : base(jobHistoryRepo)
-        {
+        JobName = "NewBookGetInterestedUsers";
+        Description = @"Temos um fluxo em que notificamos novos livros para possíveis interessados. Dentro desse 
+                        fluxo, essa peça tem a responsailidade de ler uma fila de LIVROS DOADOS, buscar possíveis 
+                        interessados e alimentar a fila do MAIL SENDER (baixa prioridade).";
+        Interval = Interval.Hourly;
+        Active = true;
+        BestTimeToExecute = null;
 
-            JobName = "NewBookGetInterestedUsers";
-            Description = @"Temos um fluxo em que notificamos novos livros para possíveis interessados. Dentro desse 
-                            fluxo, essa peça tem a responsailidade de ler uma fila de LIVROS DOADOS, buscar possíveis 
-                            interessados e alimentar a fila do MAIL SENDER (baixa prioridade).";
-            Interval = Interval.Hourly;
-            Active = true;
-            BestTimeToExecute = null;
-
-            _emailService = emailService;
-            _sqs = sqs;
-        }
-
-        public override JobHistory Work()
-        {
-            int qtDestinations = 0;
-
-            var message = _sqs.GetMessage().Result;
-
-            if (message != null)
-            {
-                // TODO: implementar
-
-                // foreach (var destination in message.Destinations)
-                // {
-                //     _emailService.Send(destination.Email, destination.Name, message.BodyHTML.Replace("{name}", destination.Name), message.Subject).Wait();
-
-                //     // freio lógico
-                //     Thread.Sleep(100);
-                // }
-
-                // var receiptHandle = message.ReceiptHandle;
-                // _sqs.DeleteNewBookNotifyFromAWSSQSAsync(receiptHandle).Wait();
-
-                // qtDestinations = message.Destinations.Count();
-            }
-
-            return new JobHistory()
-            {
-                JobName = JobName,
-                IsSuccess = true,
-                Details = String.Join("\n", $"{qtDestinations} e-mails enviados.")
-            };
-        }
+        _newBookQueue = newBookQueue;
+        _userService = userService;
     }
 
+    public override JobHistory Work()
+    {
+        int qtDestinations = 0;
+
+        var newBookMessage = _newBookQueue.GetMessage().Result;
+
+        if (newBookMessage != null)
+        {
+            // TODO: 
+            // 1 - criar a fila de baixa prioridade
+            // 2 - obter usuários interessados
+            // 3 - alimentar a fila de baixa prioridade
+
+
+            // 2 - obter usuários interessados
+            var interestedUsers = _userService.GetBySolicitedBookCategory(newBookMessage.CategoryId);
+
+
+            // 3 - alimentar a fila de baixa prioridade
+            // int maxMessages = interestedUsers.Count() % MAX_DESTINATIONS == 0 ? interestedUsers.Count() / MAX_DESTINATIONS : interestedUsers.Count() / MAX_DESTINATIONS + 1;
+
+            // for(int i = 1; i <= maxMessages; i++)
+            // {
+            //     var destinations = interestedUsers.Skip((i - 1) * MAX_DESTINATIONS).Take(MAX_DESTINATIONS).Select(u => new Destination { Name = u.Name, Email = u.Email });
+            //     message.Destinations = destinations.ToList();
+
+            //     await _AWSSQSService.SendNewBookNotifyToAWSSQSAsync(message);
+            // }
+
+        }
+
+        return new JobHistory()
+        {
+            JobName = JobName,
+            IsSuccess = true,
+            Details = String.Join("\n", $"{qtDestinations} e-mails enviados.")
+        };
+    }
 }
+
