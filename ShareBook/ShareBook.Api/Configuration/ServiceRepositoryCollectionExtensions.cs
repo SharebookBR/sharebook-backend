@@ -8,7 +8,7 @@ using ShareBook.Infra.CrossCutting.Identity.Interfaces;
 using ShareBook.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service;
-using ShareBook.Service.AWSSQS;
+using ShareBook.Service.AwsSqs;
 using ShareBook.Service.Lgpd;
 using ShareBook.Service.Muambator;
 using ShareBook.Service.Notification;
@@ -33,7 +33,6 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<IContactUsService, ContactUsService>();
             services.AddScoped<IContactUsEmailService, ContactUsEmailService>();
             services.AddScoped<IMuambatorService, MuambatorService>();
-            services.AddSingleton<IAWSSQSService, AWSSQSService>();
             services.AddScoped<IAccessHistoryService, AccessHistoryService>();
             services.AddScoped<ILgpdService, LgpdService>();
             services.AddScoped<IMeetupService, MeetupService>();
@@ -71,14 +70,21 @@ namespace ShareBook.Api.Configuration
             //UnitOfWork
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+            //Queues
+            services.AddScoped<NewBookQueue>();
+            services.AddScoped<MailSenderQueue>();
+            // TODO: colocar as outras duas queues
+
             //Jobs
             services.AddScoped<IJobExecutor, JobExecutor>();
             services.AddScoped<CancelAbandonedDonations>();
             services.AddScoped<RemoveBookFromShowcase>();
             services.AddScoped<ChooseDateReminder>();
             services.AddScoped<LateDonationNotification>();
-            services.AddScoped<NewBookNotify>();
             services.AddScoped<MeetupSearch>();
+            services.AddScoped<NewBookGetInterestedUsers>();
+            services.AddScoped<MailSupressListUpdate>();
+            services.AddScoped<MailSender>();
 
             //notification
             services.AddScoped<INotificationService, NotificationService>();

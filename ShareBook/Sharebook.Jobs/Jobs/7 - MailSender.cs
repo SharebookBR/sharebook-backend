@@ -2,40 +2,40 @@
 using ShareBook.Domain.Enums;
 using ShareBook.Repository;
 using ShareBook.Service;
-using ShareBook.Service.AWSSQS;
+using ShareBook.Service.AwsSqs;
 using System;
 using System.Linq;
 using System.Threading;
 
 namespace Sharebook.Jobs
 {
-    public class NewBookNotify : GenericJob, IJob
+    public class MailSender : GenericJob, IJob
     {
         private readonly IEmailService _emailService;
-        private readonly IAWSSQSService _AWSSQSService;
+        private readonly MailSenderQueue _sqs;
 
-        public NewBookNotify(
+        public MailSender(
             IJobHistoryRepository jobHistoryRepo,
             IEmailService emailService,
-            IAWSSQSService AWSSQSService) : base(jobHistoryRepo)
+            MailSenderQueue sqs) : base(jobHistoryRepo)
         {
 
-            JobName = "NewBookNotify";
+            JobName = "MailSender";
             Description = "Assim que um novo livro é aprovado, notifica, por e-mail, os usuários que já solicitaram algum livro da mesma categoria do novo. " +
                           "Para isso é utilizada a leitura de uma fila da Amazon SQS.";
             Interval = Interval.Each5Minutes;
-            Active = true;
+            Active = false;
             BestTimeToExecute = null;
 
             _emailService = emailService;
-            _AWSSQSService = AWSSQSService;
+            _sqs = sqs;
         }
 
         public override JobHistory Work()
         {
             int qtDestinations = 0;
 
-            var message = _AWSSQSService.GetNewBookNotifyFromAWSSQSAsync().Result;
+            var message = _sqs.GetMessage().Result;
 
             if (message != null)
             {
@@ -48,7 +48,7 @@ namespace Sharebook.Jobs
                 }
 
                 var receiptHandle = message.ReceiptHandle;
-                _AWSSQSService.DeleteNewBookNotifyFromAWSSQSAsync(receiptHandle).Wait();
+                _sqs.DeleteMessage(receiptHandle).Wait();
 
                 qtDestinations = message.Destinations.Count();
             }

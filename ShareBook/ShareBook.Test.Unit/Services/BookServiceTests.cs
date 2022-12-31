@@ -7,7 +7,8 @@ using ShareBook.Domain.Validators;
 using ShareBook.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service;
-using ShareBook.Service.AWSSQS;
+using ShareBook.Service.AwsSqs;
+using ShareBook.Service.AwsSqs.Dto;
 using ShareBook.Service.Muambator;
 using ShareBook.Service.Upload;
 using ShareBook.Test.Unit.Mocks;
@@ -28,7 +29,7 @@ namespace ShareBook.Test.Unit.Services
         readonly Mock<IBookUserService> bookUserServiceMock;
         readonly Mock<IConfiguration> configurationMock;
 
-        readonly Mock<IAWSSQSService> sqsMock;
+        readonly Mock<NewBookQueue> sqsMock;
 
         public BookServiceTests()
         {
@@ -40,7 +41,7 @@ namespace ShareBook.Test.Unit.Services
             bookEmailService = new Mock<IBooksEmailService>();
             bookUserServiceMock = new Mock<IBookUserService>();
             configurationMock = new Mock<IConfiguration>();
-            sqsMock = new Mock<IAWSSQSService>();
+            sqsMock = new Mock<NewBookQueue>();
 
             bookRepositoryMock.Setup(repo => repo.Insert(It.IsAny<Book>())).Returns(() =>
             {

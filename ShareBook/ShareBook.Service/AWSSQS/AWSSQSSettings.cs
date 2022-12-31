@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ShareBook.Service.AWSSQS
+namespace ShareBook.Service.AwsSqs
 {
-    public class AWSSQSSettings
+    public class AwsSqsSettings
     {
         public bool IsActive { get; set; }
         public string AccessKey { get; set; }

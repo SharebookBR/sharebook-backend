@@ -4,8 +4,8 @@ using Microsoft.Extensions.Options;
 using Org.BouncyCastle.Math.EC.Rfc7748;
 using ShareBook.Domain;
 using ShareBook.Domain.DTOs;
-using ShareBook.Service.AWSSQS;
-using ShareBook.Service.AWSSQS.Dto;
+using ShareBook.Service.AwsSqs;
+using ShareBook.Service.AwsSqs.Dto;
 using ShareBook.Service.Server;
 using System;
 using System.Linq;
@@ -28,7 +28,6 @@ namespace ShareBook.Service
         private readonly IEmailService _emailService;
         private readonly IUserService _userService;
         private readonly IEmailTemplate _emailTemplate;
-        private readonly IAWSSQSService _AWSSQSService;
         private readonly ServerSettings _serverSettings;
         private readonly IConfiguration _configuration;
 
@@ -36,14 +35,12 @@ namespace ShareBook.Service
             IEmailService emailService,
             IUserService userService,
             IEmailTemplate emailTemplate,
-            IAWSSQSService AWSSQSService,
             IOptions<ServerSettings> serverSettings,
             IConfiguration configuration)
         {
             _emailService = emailService;
             _userService = userService;
             _emailTemplate = emailTemplate;
-            _AWSSQSService = AWSSQSService;
             _serverSettings = serverSettings.Value;
             _configuration = configuration;
         }
@@ -82,40 +79,6 @@ namespace ShareBook.Service
 
                 var htmt = _emailTemplate.GenerateHtmlFromTemplateAsync(BookReceivedTemplate, vm).Result;
                 _emailService.Send(book.User.Email, book.User.Name, htmt, BookReceivedTemplate, true);
-            }
-        }
-
-        public async Task SendEmailBookToInterestedUsers(Book book)
-        {
-            int MAX_DESTINATIONS = int.Parse(_configuration["AWSSQSSettings:MaxDestinationsPerMessage"]);
-
-            var vm = new
-                {
-                    Book = book,
-                    ServerSettings = _serverSettings,
-                    name = "{name}"// recebe {name} pois e o padrao que o servico Consumer reconhece para substituicao para o nome do usuario para o qual ira enviar o email
-                };
-
-            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(NewBookNotifyTemplate, vm);
-
-            var message = new SendEmailRequest
-            {
-                Subject = $"Chegou um livro de {book.Category.Name}",
-                BodyHTML = html
-            };
-
-
-            var interestedUsers = _userService.GetBySolicitedBookCategory(book.CategoryId);
-
-
-            int maxMessages = interestedUsers.Count() % MAX_DESTINATIONS == 0 ? interestedUsers.Count() / MAX_DESTINATIONS : interestedUsers.Count() / MAX_DESTINATIONS + 1;
-
-            for(int i = 1; i <= maxMessages; i++)
-            {
-                var destinations = interestedUsers.Skip((i - 1) * MAX_DESTINATIONS).Take(MAX_DESTINATIONS).Select(u => new Destination { Name = u.Name, Email = u.Email });
-                message.Destinations = destinations.ToList();
-
-                await _AWSSQSService.SendNewBookNotifyToAWSSQSAsync(message);
             }
         }
 

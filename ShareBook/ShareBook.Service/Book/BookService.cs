@@ -11,7 +11,8 @@ using ShareBook.Helper.Extensions;
 using ShareBook.Helper.Image;
 using ShareBook.Repository;
 using ShareBook.Repository.UoW;
-using ShareBook.Service.AWSSQS;
+using ShareBook.Service.AwsSqs;
+using ShareBook.Service.AwsSqs.Dto;
 using ShareBook.Service.Generic;
 using ShareBook.Service.Upload;
 using System;
@@ -28,17 +29,18 @@ namespace ShareBook.Service
         private readonly IBooksEmailService _booksEmailService;
         private readonly IConfiguration _configuration;
 
-        private readonly IAWSSQSService _sqs;
+        private readonly NewBookQueue _newBookQueue;
 
         public BookService(IBookRepository bookRepository,
                     IUnitOfWork unitOfWork, IValidator<Book> validator,
-                    IUploadService uploadService, IBooksEmailService booksEmailService, IConfiguration configuration, IAWSSQSService sqs)
+                    IUploadService uploadService, IBooksEmailService booksEmailService, IConfiguration configuration, 
+                    NewBookQueue newBookQueue)
                     : base(bookRepository, unitOfWork, validator)
         {
             _uploadService = uploadService;
             _booksEmailService = booksEmailService;
             _configuration = configuration;
-            _sqs = sqs;
+            _newBookQueue = newBookQueue;
         }
 
         public void Approve(Guid bookId, DateTime? chooseDate = null)
@@ -57,7 +59,12 @@ namespace ShareBook.Service
             _booksEmailService.SendEmailBookApproved(book).Wait();
 
             // notifica possíveis interessados.
-            _sqs.NotifyBookApproved(book).Wait();
+            var message = new NewBookMessage{
+                BookId = book.Id,
+                BookTitle = book.Title,
+                CategoryId = book.CategoryId
+            };
+            _newBookQueue.SendMessage(message).Wait();
             
         }
 

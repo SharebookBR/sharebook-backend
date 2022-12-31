@@ -19,11 +19,13 @@ namespace Sharebook.Jobs
 
         public JobExecutor(IJobHistoryRepository jobHistoryRepo,
                             CancelAbandonedDonations job0,
-                           ChooseDateReminder job1,
-                           LateDonationNotification job2,
-                           RemoveBookFromShowcase job3,
-                           MeetupSearch job4,
-                           NewBookNotify job5) // NewBookNotify precisa ser o último.
+                            ChooseDateReminder job1,
+                            LateDonationNotification job2,
+                            RemoveBookFromShowcase job3,
+                            MeetupSearch job4,
+                            NewBookGetInterestedUsers job5,
+                            MailSupressListUpdate job6,
+                            MailSender job7) // MailSender precisa ser o último!
         {
             _jobHistoryRepo = jobHistoryRepo;
 
@@ -35,6 +37,8 @@ namespace Sharebook.Jobs
                 job3,
                 job4,
                 job5,
+                job6,
+                job7
             };
 
         }
