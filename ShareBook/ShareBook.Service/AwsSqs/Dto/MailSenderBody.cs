@@ -5,7 +5,7 @@ using System.Text;
 
 namespace ShareBook.Service.AwsSqs.Dto
 {
-    public class MailSenderMessage
+    public class MailSenderbody
     {
         public string Subject { get; set; }
         public string BodyHTML { get; set; }

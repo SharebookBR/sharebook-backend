@@ -9,7 +9,7 @@ namespace ShareBook.Service.AwsSqs
     {
         Task SendMessage(T message);
 
-        Task<T> GetMessage();
+        Task<SharebookMessage<T>> GetMessage();
 
         Task DeleteMessage(string receiptHandle);
     }

@@ -5,12 +5,8 @@ using System.Text;
 
 namespace ShareBook.Service.AwsSqs.Dto
 {
-    public class NewBookMessage{
-
-        public Guid BookId { get; set; }
-        public string BookTitle { get; set; }
-        public Guid CategoryId { get; set; }
-
+    public class SharebookMessage<T>{
         public string ReceiptHandle { get; set; }
+        public T Body { get; set; }
     }
 }

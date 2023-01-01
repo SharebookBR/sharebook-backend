@@ -59,7 +59,7 @@ namespace ShareBook.Service
             _booksEmailService.SendEmailBookApproved(book).Wait();
 
             // notifica possíveis interessados.
-            var message = new NewBookMessage{
+            var message = new NewBookBody{
                 BookId = book.Id,
                 BookTitle = book.Title,
                 CategoryId = book.CategoryId

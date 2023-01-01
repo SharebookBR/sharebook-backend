@@ -456,15 +456,15 @@
 
                                                                         <td valign="top" class="mcnTextContent" style="padding-top: 0;padding-right: 18px;padding-bottom: 9px;padding-left: 18px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;word-break: break-word;color: #757575;font-family: Helvetica;font-size: 16px;line-height: 150%;text-align: left;">
 
-                                                                            <h2 style="display: block;margin: 0;padding: 0;color: #222222;font-family: Helvetica;font-size: 28px;font-style: normal;font-weight: bold;line-height: 150%;letter-spacing: normal;text-align: left;">{Book.Title} - Livro grátis.</h2>
+                                                                            <h2 style="display: block;margin: 0;padding: 0;color: #222222;font-family: Helvetica;font-size: 28px;font-style: normal;font-weight: bold;line-height: 150%;letter-spacing: normal;text-align: left;">{BookTitle} - Livro grátis.</h2>
 
                                                                             <p style="font-size: 18px !important;margin: 10px 0;padding: 0;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;color: #757575;font-family: Helvetica;line-height: 150%;text-align: left;">
-                                                                                Olá, {name}!<br>
+                                                                                Olá, {Name}!<br>
                                                                                 <br>
                                                                                 Aqui é o Sharebot do sharebook. Tudo bem?<br>
                                                                                 Chegou um livro novo e eu lembrei de você. Espero que goste. :-)<br>
                                                                                 <br>
-                                                                                <img data-file-id="651867" height="800" src="{ServerSettings.DefaultUrl}/Images/Books/{Book.ImageSlug}" style="border: 0px;width: 600px;height: 800px;margin: 0px;outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;" width="600">
+                                                                                <img data-file-id="651867" height="800" src="{SharebookBaseUrl}/Images/Books/{BookImageSlug}" style="border: 0px;width: 600px;height: 800px;margin: 0px;outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;" width="600">
                                                                             </p>
 
                                                                         </td>
@@ -498,7 +498,7 @@
                                                                 <tbody>
                                                                     <tr>
                                                                         <td align="center" valign="middle" class="mcnButtonContent" style="font-family: Helvetica;font-size: 18px;padding: 18px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
-                                                                            <a class="mcnButton " title="Eu quero esse livro!" href="{ServerSettings.DefaultUrl}/livros/{Book.Slug}" target="_blank" style="font-weight: bold;letter-spacing: -0.5px;line-height: 100%;text-align: center;text-decoration: none;color: #FFFFFF;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;display: block;">Eu quero esse livro!</a>
+                                                                            <a class="mcnButton " title="Eu quero esse livro!" href="{SharebookBaseUrl}/livros/{BookSlug}" target="_blank" style="font-weight: bold;letter-spacing: -0.5px;line-height: 100%;text-align: center;text-decoration: none;color: #FFFFFF;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;display: block;">Eu quero esse livro!</a>
                                                                         </td>
                                                                     </tr>
                                                                 </tbody>
@@ -777,7 +777,7 @@
                                                                         <td valign="top" class="mcnTextContent" style="padding-top: 0;padding-right: 18px;padding-bottom: 9px;padding-left: 18px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;word-break: break-word;color: #FFFFFF;font-family: Helvetica;font-size: 12px;line-height: 150%;text-align: center;">
 
                                                                             <em>
-                                                                                Copyleft © 2020 Sharebook, All rights open source.
+                                                                                Copyleft © 2023 Sharebook, All rights open source.
                                                                             </em>
                                                                             <br>
 

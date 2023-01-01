@@ -1,8 +1,10 @@
-﻿using ShareBook.Domain;
+﻿using Microsoft.Extensions.Configuration;
+using ShareBook.Domain;
 using ShareBook.Domain.Enums;
 using ShareBook.Repository;
 using ShareBook.Service;
 using ShareBook.Service.AwsSqs;
+using ShareBook.Service.AwsSqs.Dto;
 using System;
 using System.Linq;
 using System.Threading;
@@ -12,13 +14,20 @@ namespace Sharebook.Jobs;
 public class NewBookGetInterestedUsers : GenericJob, IJob
 {
     private readonly NewBookQueue _newBookQueue;
+    private readonly MailSenderLowPriorityQueue _mailSenderLowPriorityQueue;
+    private readonly IBookService _bookService;
     private readonly IUserService _userService;
+    private readonly IConfiguration _configuration;
+    private readonly IEmailTemplate _emailTemplate;
 
     public NewBookGetInterestedUsers(
         IJobHistoryRepository jobHistoryRepo,
-        IEmailService emailService,
         NewBookQueue newBookQueue,
-        IUserService userService) : base(jobHistoryRepo)
+        MailSenderLowPriorityQueue mailSenderLowPriorityQueue,
+        IUserService userService,
+        IConfiguration configuration,
+        IEmailTemplate emailTemplate,
+        IBookService bookService) : base(jobHistoryRepo)
     {
 
         JobName = "NewBookGetInterestedUsers";
@@ -30,46 +39,70 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
         BestTimeToExecute = null;
 
         _newBookQueue = newBookQueue;
+        _mailSenderLowPriorityQueue = mailSenderLowPriorityQueue;
         _userService = userService;
+        _configuration = configuration;
+        _emailTemplate = emailTemplate;
+        _bookService = bookService;
     }
 
     public override JobHistory Work()
     {
-        int qtDestinations = 0;
-
+        
+        int totalDestinations = 0;
+        int sendEmailMaxDestinationsPerMessage = int.Parse(_configuration["AwsSqsSettings:SendEmailMaxDestinationsPerMessage"]);
+        
         var newBookMessage = _newBookQueue.GetMessage().Result;
+        var newBook = newBookMessage.Body;
 
-        if (newBookMessage != null)
+        if (newBook != null)
         {
-            // TODO: 
-            // 1 - criar a fila de baixa prioridade
-            // 2 - obter usuários interessados
-            // 3 - alimentar a fila de baixa prioridade
+            // Obtem usuários interessados
+            var interestedUsers = _userService.GetBySolicitedBookCategory(newBook.CategoryId);
+            totalDestinations = interestedUsers.Count;
 
+            // Alimenta a fila de destino - baixa prioridade do Mail Sender
+            int maxMessages = interestedUsers.Count() % sendEmailMaxDestinationsPerMessage == 0 ? interestedUsers.Count() / sendEmailMaxDestinationsPerMessage : interestedUsers.Count() / sendEmailMaxDestinationsPerMessage + 1;
 
-            // 2 - obter usuários interessados
-            var interestedUsers = _userService.GetBySolicitedBookCategory(newBookMessage.CategoryId);
+            for(int i = 1; i <= maxMessages; i++)
+            {
+                var destinations = interestedUsers.Skip((i - 1) * sendEmailMaxDestinationsPerMessage).Take(sendEmailMaxDestinationsPerMessage).Select(u => new Destination { Name = u.Name, Email = u.Email });
+                
+                var mailSenderbody = new MailSenderbody{
+                    Subject = $"Chegou o livro '${newBook.BookTitle}'",
+                    BodyHTML = GetEmailTemplate(newBook.BookId),
+                    Destinations = destinations.ToList()
+                };
+                
+               _mailSenderLowPriorityQueue.SendMessage(mailSenderbody).Wait();
+            }
 
-
-            // 3 - alimentar a fila de baixa prioridade
-            // int maxMessages = interestedUsers.Count() % MAX_DESTINATIONS == 0 ? interestedUsers.Count() / MAX_DESTINATIONS : interestedUsers.Count() / MAX_DESTINATIONS + 1;
-
-            // for(int i = 1; i <= maxMessages; i++)
-            // {
-            //     var destinations = interestedUsers.Skip((i - 1) * MAX_DESTINATIONS).Take(MAX_DESTINATIONS).Select(u => new Destination { Name = u.Name, Email = u.Email });
-            //     message.Destinations = destinations.ToList();
-
-            //     await _AWSSQSService.SendNewBookNotifyToAWSSQSAsync(message);
-            // }
+            // remove a mensagem da fila de origem
+            _newBookQueue.DeleteMessage(newBookMessage.ReceiptHandle).Wait();
 
         }
 
-        return new JobHistory()
+        return new JobHistory() 
         {
             JobName = JobName,
             IsSuccess = true,
-            Details = String.Join("\n", $"{qtDestinations} e-mails enviados.")
+            Details = String.Join("\n", $"{totalDestinations} usuários encontrados quem podem ter interesse no livro '${newBook.BookTitle}'.")
         };
+    }
+
+    private string GetEmailTemplate(Guid bookId){
+        var book = _bookService.Find(bookId);
+        
+        var vm = new
+        {
+            BookTitle = book.Title,
+            BookSlug = book.Slug,
+            BookImageSlug = book.ImageSlug,
+            SharebookBaseUrl = _configuration["ServerSettings:DefaultUrl"],
+            Name = "{Name}"// o MailSender vai trocar pelo nome do usuário.
+        };
+
+        return _emailTemplate.GenerateHtmlFromTemplateAsync("NewBookNotifyTemplate", vm).Result;
     }
 }
 

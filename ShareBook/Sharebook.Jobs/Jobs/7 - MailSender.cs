@@ -12,12 +12,12 @@ namespace Sharebook.Jobs
     public class MailSender : GenericJob, IJob
     {
         private readonly IEmailService _emailService;
-        private readonly MailSenderQueue _sqs;
+        private readonly MailSenderLowPriorityQueue _sqs;
 
         public MailSender(
             IJobHistoryRepository jobHistoryRepo,
             IEmailService emailService,
-            MailSenderQueue sqs) : base(jobHistoryRepo)
+            MailSenderLowPriorityQueue sqs) : base(jobHistoryRepo)
         {
 
             JobName = "MailSender";
@@ -35,7 +35,8 @@ namespace Sharebook.Jobs
         {
             int qtDestinations = 0;
 
-            var message = _sqs.GetMessage().Result;
+            var envelope = _sqs.GetMessage().Result;
+            var message = envelope.Body;
 
             if (message != null)
             {

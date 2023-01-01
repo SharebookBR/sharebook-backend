@@ -12,12 +12,12 @@ namespace Sharebook.Jobs;
 public class MailSupressListUpdate : GenericJob, IJob
 {
     private readonly IEmailService _emailService;
-    private readonly MailSenderQueue _sqs; // TODO: criar uma fila pra esse cara
+    private readonly MailSenderLowPriorityQueue _sqs; // TODO: criar uma fila pra esse cara
 
     public MailSupressListUpdate(
         IJobHistoryRepository jobHistoryRepo,
         IEmailService emailService,
-        MailSenderQueue sqs) : base(jobHistoryRepo)
+        MailSenderLowPriorityQueue sqs) : base(jobHistoryRepo)
     {
 
         JobName = "MailSupressListUpdate";
