@@ -72,9 +72,15 @@ Caso prefira linha de comando, segue uma colinha...
 # restaurar dependências
 dotnet restore ./ShareBook/ShareBook.sln
 
+# build
+dotnet build ./ShareBook/ShareBook.Api/ShareBook.Api.csproj --verbosity minimal
+
 # rodar o app com hot reload
 dotnet watch --project ./ShareBook/ShareBook.Api/ShareBook.Api.csproj
 
 # rodar os testes
 dotnet test ./ShareBook/ShareBook.Test.Unit/ShareBook.Test.Unit.csproj
+
+# clean
+dotnet clean ./ShareBook/ShareBook.Api/ShareBook.Api.csproj --verbosity quiet
 ```
