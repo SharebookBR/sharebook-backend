@@ -261,3 +261,6 @@ coverage.xml
 
 # sonar files
 .sonarqube
+
+# git internal
+.git
