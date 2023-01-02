@@ -10,8 +10,7 @@ namespace ShareBook.Service.AwsSqs.Dto
         public string Subject { get; set; }
         public string BodyHTML { get; set; }
         public IList<Destination> Destinations { get; set; }
-
-        public string ReceiptHandle { get; set; }
+        public bool CopyAdmins { get; set; } = false;
     }
 
     public class Destination

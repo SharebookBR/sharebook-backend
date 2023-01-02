@@ -10,7 +10,5 @@ namespace ShareBook.Service.AwsSqs.Dto
         public Guid BookId { get; set; }
         public string BookTitle { get; set; }
         public Guid CategoryId { get; set; }
-
-        public string ReceiptHandle { get; set; }
     }
 }

@@ -48,7 +48,7 @@ namespace Sharebook.Jobs
                     Thread.Sleep(1000);
                 }
 
-                var receiptHandle = message.ReceiptHandle;
+                var receiptHandle = ""; // TODO: usar da message
                 _sqs.DeleteMessage(receiptHandle).Wait();
 
                 qtDestinations = message.Destinations.Count();

@@ -2,6 +2,7 @@
 using ShareBook.Domain;
 using ShareBook.Domain.DTOs;
 using ShareBook.Repository.Repository;
+using ShareBook.Service.AwsSqs;
 using ShareBook.Service.Notification;
 using System;
 using System.Collections.Generic;
@@ -33,8 +34,9 @@ namespace ShareBook.Service
         private readonly IEmailTemplate _emailTemplate;
         private readonly INotificationService _notificationService;
         private IMemoryCache _cache;
+        private readonly MailSenderHighPriorityQueue _mailSenderHighPriorityQueue;
 
-        public BookUserEmailService(IUserService userService, IBookService bookService, IEmailService emailService, IEmailTemplate emailTemplate, INotificationService notificationService, IMemoryCache memoryCache)
+        public BookUserEmailService(IUserService userService, IBookService bookService, IEmailService emailService, IEmailTemplate emailTemplate, INotificationService notificationService, IMemoryCache memoryCache, MailSenderHighPriorityQueue mailSenderHighPriorityQueue)
         {
             _userService = userService;
             _bookService = bookService;
@@ -42,6 +44,7 @@ namespace ShareBook.Service
             _emailTemplate = emailTemplate;
             _notificationService = notificationService;
             _cache = memoryCache;
+            _mailSenderHighPriorityQueue = mailSenderHighPriorityQueue;
         }
 
         public async Task SendEmailBookDonated(BookUser bookUser)
@@ -271,11 +274,13 @@ namespace ShareBook.Service
             }
         }
 
-        public async Task SendEmailMaxRequests(Book bookRequested)
+        public Task SendEmailMaxRequests(Book bookRequested)
         {
             var subject = "Limite de pedidos";
             var body = $"Prezados adms, o livro <b>{bookRequested.Title}</b> atingiu o limite de pedidos e foi removido automaticamente da vitrine. A data de decisão foi configurada pra amanhã. Obrigado.";
-            await _emailService.SendToAdmins(body, subject);
+            _mailSenderHighPriorityQueue.SendToAdmins(body, subject);
+
+            return Task.CompletedTask;
         }
     }
 }

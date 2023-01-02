@@ -106,7 +106,7 @@ namespace ShareBook.Service
             bookRequested.ChooseDate = DateTime.Today.AddDays(1);
             _bookRepository.Update(bookRequested);
 
-            _bookUsersEmailService.SendEmailMaxRequests(bookRequested).Wait();
+            _bookUsersEmailService.SendEmailMaxRequests(bookRequested);
         }
 
         public void DonateBook(Guid bookId, Guid userId, string note)

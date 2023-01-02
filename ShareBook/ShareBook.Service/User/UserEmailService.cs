@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using ShareBook.Domain;
 using ShareBook.Domain.DTOs;
+using ShareBook.Service.AwsSqs;
 using ShareBook.Service.Server;
 
 namespace ShareBook.Service
@@ -11,12 +12,14 @@ namespace ShareBook.Service
         private readonly IEmailService _emailService;
         private readonly IEmailTemplate _emailTemplate;
         private readonly ServerSettings _serverSettings;
+        private readonly MailSenderHighPriorityQueue _mailSenderHighPriorityQueue;
 
-        public UserEmailService(IEmailService emailService, IEmailTemplate emailTemplate, IOptions<ServerSettings> serverSettings)
+        public UserEmailService(IEmailService emailService, IEmailTemplate emailTemplate, IOptions<ServerSettings> serverSettings, MailSenderHighPriorityQueue mailSenderHighPriorityQueue)
         {
             _emailService = emailService;
             _emailTemplate = emailTemplate;
             _serverSettings = serverSettings.Value;
+            _mailSenderHighPriorityQueue = mailSenderHighPriorityQueue;
         }
 
         public async Task SendEmailForgotMyPasswordToUserAsync(User user)
@@ -61,7 +64,7 @@ namespace ShareBook.Service
         {
             var html = _emailTemplate.GenerateHtmlFromTemplateAsync("AnonymizeNotifyAdms", dto).Result;
             var title = "Anonimização de conta";
-            _emailService.SendToAdmins(html, title).Wait();
+            _mailSenderHighPriorityQueue.SendToAdmins(html, title);
         }
     }
 }

@@ -60,6 +60,7 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
             // Obtem usuários interessados
             var interestedUsers = _userService.GetBySolicitedBookCategory(newBook.CategoryId);
             totalDestinations = interestedUsers.Count;
+            var template = GetEmailTemplate(newBook.BookId);
 
             // Alimenta a fila de destino - baixa prioridade do Mail Sender
             int maxMessages = interestedUsers.Count() % sendEmailMaxDestinationsPerMessage == 0 ? interestedUsers.Count() / sendEmailMaxDestinationsPerMessage : interestedUsers.Count() / sendEmailMaxDestinationsPerMessage + 1;
@@ -67,10 +68,10 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
             for(int i = 1; i <= maxMessages; i++)
             {
                 var destinations = interestedUsers.Skip((i - 1) * sendEmailMaxDestinationsPerMessage).Take(sendEmailMaxDestinationsPerMessage).Select(u => new Destination { Name = u.Name, Email = u.Email });
-                
-                var mailSenderbody = new MailSenderbody{
+
+                var mailSenderbody = new MailSenderbody {
                     Subject = $"Chegou o livro '${newBook.BookTitle}'",
-                    BodyHTML = GetEmailTemplate(newBook.BookId),
+                    BodyHTML = template,
                     Destinations = destinations.ToList()
                 };
                 

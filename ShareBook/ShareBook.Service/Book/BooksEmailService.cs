@@ -30,19 +30,22 @@ namespace ShareBook.Service
         private readonly IEmailTemplate _emailTemplate;
         private readonly ServerSettings _serverSettings;
         private readonly IConfiguration _configuration;
+        private readonly MailSenderHighPriorityQueue _mailSenderHighPriorityQueue;
 
         public BooksEmailService(
             IEmailService emailService,
             IUserService userService,
             IEmailTemplate emailTemplate,
             IOptions<ServerSettings> serverSettings,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            MailSenderHighPriorityQueue mailSenderHighPriorityQueue)
         {
             _emailService = emailService;
             _userService = userService;
             _emailTemplate = emailTemplate;
             _serverSettings = serverSettings.Value;
             _configuration = configuration;
+            _mailSenderHighPriorityQueue = mailSenderHighPriorityQueue;
         }
 
         public async Task SendEmailBookApproved(Book book)
@@ -104,7 +107,7 @@ namespace ShareBook.Service
             };
 
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(NewBookInsertedTemplate, model);
-            await _emailService.SendToAdmins(html, NewBookInsertedTitle);
+            _mailSenderHighPriorityQueue.SendToAdmins(html, NewBookInsertedTitle);
         }
 
         private async Task SendEmailWaitingApprovalToUser(Book book)

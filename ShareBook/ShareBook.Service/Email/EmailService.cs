@@ -52,6 +52,8 @@ namespace ShareBook.Service
             }
         }
 
+
+
         private MimeMessage FormatEmail(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins)
         {
             var message = new MimeMessage();
