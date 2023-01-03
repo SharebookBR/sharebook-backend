@@ -73,6 +73,7 @@ namespace ShareBook.Api.Configuration
             //Queues
             services.AddScoped<NewBookQueue>();
             services.AddScoped<MailSenderLowPriorityQueue>();
+            services.AddScoped<MailSenderHighPriorityQueue>();
             // TODO: colocar as outras duas queues
 
             //Jobs

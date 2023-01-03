@@ -6,7 +6,10 @@ namespace ShareBook.Service
     {
         Task SendToAdmins(string messageText, string subject);
         Task Send(string emailRecipient, string nameRecipient, string messageText, string subject);
-        Task Send(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins = false);
+        Task Send(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins, bool highPriority);
+
+        Task SendSmtp(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins);
+        
         Task Test(string email, string name);
     }
 }

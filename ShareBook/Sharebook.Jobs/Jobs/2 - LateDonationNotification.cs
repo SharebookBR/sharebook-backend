@@ -20,13 +20,11 @@ public class LateDonationNotification : GenericJob, IJob
     private readonly int maxLateDonationDays;
     private readonly IConfiguration _configuration;
 
-    private readonly MailSenderHighPriorityQueue _mailSenderHighPriorityQueue;
 
     public LateDonationNotification(IJobHistoryRepository jobHistoryRepo,
         IBookService bookService,
         IEmailService emailService,
-        IEmailTemplate emailTemplate, IConfiguration configuration,
-        MailSenderHighPriorityQueue mailSenderHighPriorityQueue) : base(jobHistoryRepo)
+        IEmailTemplate emailTemplate, IConfiguration configuration) : base(jobHistoryRepo)
     {
         JobName     = "LateDonationNotification";
         Description = "Notifica o facilitador e doador com lista de doações em atraso " +
@@ -42,7 +40,6 @@ public class LateDonationNotification : GenericJob, IJob
         _configuration = configuration;
         maxLateDonationDays = int.Parse(_configuration["SharebookSettings:MaxLateDonationDays"]);
 
-        _mailSenderHighPriorityQueue = mailSenderHighPriorityQueue;
     }
 
     public override JobHistory Work()
@@ -106,7 +103,7 @@ public class LateDonationNotification : GenericJob, IJob
         };
         var emailBodyHTML = _emailTemplate.GenerateHtmlFromTemplateAsync("LateDonationNotification", vm).Result;
 
-        _mailSenderHighPriorityQueue.SendToAdmins(emailBodyHTML, emailSubject);
+        _emailService.SendToAdmins(emailBodyHTML, emailSubject);
     }
 
     private string GetWhatsappLink(string phone)
@@ -151,7 +148,7 @@ public class LateDonationNotification : GenericJob, IJob
 
         var emailSubject = "Doação abandonada no Sharebook. Urgente!";
 
-        _emailService.Send(donator.Email, donator.Name, html, emailSubject, copyAdmins: true).Wait();
+        _emailService.Send(donator.Email, donator.Name, html, emailSubject, copyAdmins: true, highPriority: true).Wait();
     }
 
     private void SendEmailDonatorSoft(User donator)
@@ -164,7 +161,7 @@ public class LateDonationNotification : GenericJob, IJob
 
         var emailSubject = "Lembrete do Sharebook";
 
-        _emailService.Send(donator.Email, donator.Name, html, emailSubject, copyAdmins: false).Wait();
+        _emailService.Send(donator.Email, donator.Name, html, emailSubject, copyAdmins: false, highPriority: true).Wait();
     }
 
     #endregion

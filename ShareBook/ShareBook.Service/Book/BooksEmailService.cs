@@ -1,15 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
-using Org.BouncyCastle.Math.EC.Rfc7748;
 using ShareBook.Domain;
 using ShareBook.Domain.DTOs;
 using ShareBook.Service.AwsSqs;
-using ShareBook.Service.AwsSqs.Dto;
 using ShareBook.Service.Server;
-using System;
-using System.Linq;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace ShareBook.Service
@@ -28,9 +22,6 @@ namespace ShareBook.Service
         private readonly IEmailService _emailService;
         private readonly IUserService _userService;
         private readonly IEmailTemplate _emailTemplate;
-        private readonly ServerSettings _serverSettings;
-        private readonly IConfiguration _configuration;
-        private readonly MailSenderHighPriorityQueue _mailSenderHighPriorityQueue;
 
         public BooksEmailService(
             IEmailService emailService,
@@ -43,9 +34,6 @@ namespace ShareBook.Service
             _emailService = emailService;
             _userService = userService;
             _emailTemplate = emailTemplate;
-            _serverSettings = serverSettings.Value;
-            _configuration = configuration;
-            _mailSenderHighPriorityQueue = mailSenderHighPriorityQueue;
         }
 
         public async Task SendEmailBookApproved(Book book)
@@ -62,7 +50,7 @@ namespace ShareBook.Service
                     ChooseDate = book.ChooseDate?.ToString("dd/MM/yyyy")
                 };
                 var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookApprovedTemplate, vm);
-                await _emailService.Send(book.User.Email, book.User.Name, html, BookApprovedTitle, copyAdmins: true);
+                await _emailService.Send(book.User.Email, book.User.Name, html, BookApprovedTitle, copyAdmins: true, highPriority: true);
             }
         }
 
@@ -81,7 +69,7 @@ namespace ShareBook.Service
                 };
 
                 var htmt = _emailTemplate.GenerateHtmlFromTemplateAsync(BookReceivedTemplate, vm).Result;
-                _emailService.Send(book.User.Email, book.User.Name, htmt, BookReceivedTemplate, true);
+                _emailService.Send(book.User.Email, book.User.Name, htmt, BookReceivedTemplate, copyAdmins: true, highPriority: true);
             }
         }
 
@@ -107,7 +95,7 @@ namespace ShareBook.Service
             };
 
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(NewBookInsertedTemplate, model);
-            _mailSenderHighPriorityQueue.SendToAdmins(html, NewBookInsertedTitle);
+            await _emailService.SendToAdmins(html, NewBookInsertedTitle);
         }
 
         private async Task SendEmailWaitingApprovalToUser(Book book)
@@ -116,7 +104,7 @@ namespace ShareBook.Service
             {
                 var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(WaitingApprovalTemplate, book);
 
-                await _emailService.Send(book.User.Email, book.User.Name, html, WaitingApprovalTitle, copyAdmins: false);
+                await _emailService.Send(book.User.Email, book.User.Name, html, WaitingApprovalTitle, copyAdmins: false, highPriority: true);
             }
         }
     }

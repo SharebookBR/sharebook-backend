@@ -1,9 +1,13 @@
 ﻿using MailKit.Net.Smtp;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using Rollbar;
 using ShareBook.Domain;
 using ShareBook.Repository;
+using ShareBook.Service.AwsSqs;
+using ShareBook.Service.AwsSqs.Dto;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -13,22 +17,61 @@ namespace ShareBook.Service
     {
         private readonly EmailSettings _settings;
         private readonly IUserRepository _userRepository;
+        private readonly IConfiguration _configuration;
+        private readonly MailSenderLowPriorityQueue _mailSenderLowPriorityQueue;
+        private readonly MailSenderHighPriorityQueue _mailSenderHighPriorityQueue;
 
-        public EmailService(IOptions<EmailSettings> emailSettings, IUserRepository userRepository)
+        public EmailService(IOptions<EmailSettings> emailSettings, IUserRepository userRepository, 
+        IConfiguration configuration, MailSenderLowPriorityQueue mailSenderLowPriorityQueue, 
+        MailSenderHighPriorityQueue mailSenderHighPriorityQueue)
         {
             _settings = emailSettings.Value;
             _userRepository = userRepository;
+            _configuration = configuration;
+            _mailSenderLowPriorityQueue = mailSenderLowPriorityQueue;
+            _mailSenderHighPriorityQueue = mailSenderHighPriorityQueue;
         }
 
         public async Task SendToAdmins(string messageText, string subject)
         {
-            await Send(_settings.Username, "Administradores Sharebook", messageText, subject, true);
+            await Send(_settings.Username, "Administradores Sharebook", messageText, subject, copyAdmins: true, highPriority: true);
         }
 
         public async Task Send(string emailRecipient, string nameRecipient, string messageText, string subject)
-            => await Send(emailRecipient, nameRecipient, messageText, subject, false);
+            => await Send(emailRecipient, nameRecipient, messageText, subject, copyAdmins: false, highPriority: true);
 
-        public async Task Send(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins = false)
+        public async Task Send(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins = false, bool highPriority = true)
+        {
+            var sqsEnabled = bool.Parse(_configuration["AwsSqsSettings:IsActive"]);
+
+            if (!sqsEnabled)
+            {
+                await SendSmtp(emailRecipient, nameRecipient, messageText, subject, copyAdmins);
+                return;
+            }
+
+            var queueMessage = new MailSenderbody{
+                CopyAdmins = copyAdmins,
+                Subject = subject,
+                BodyHTML = messageText,
+                Destinations = new List<Destination>{
+                    {
+                        new Destination {
+                            Name = nameRecipient,
+                            Email = emailRecipient
+                        }
+                    }
+                }
+            };
+
+            if (highPriority)
+                await _mailSenderHighPriorityQueue.SendMessage(queueMessage);
+            else
+                await _mailSenderLowPriorityQueue.SendMessage(queueMessage);
+
+        }
+
+        public async Task SendSmtp(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins = false)
         {
             var message = FormatEmail(emailRecipient, nameRecipient, messageText, subject, copyAdmins);
             try
@@ -39,11 +82,11 @@ namespace ShareBook.Service
                     {
                         client.ServerCertificateValidationCallback = (s, c, h, e) => true;
                     }
-                    
+
                     client.Connect(_settings.HostName, _settings.Port, _settings.UseSSL);
                     client.Authenticate(_settings.Username, _settings.Password);
                     await client.SendAsync(message);
-                    client.Disconnect(true);
+                    client.Disconnect(true); 
                 }
             }
             catch (System.Exception e)
@@ -51,8 +94,6 @@ namespace ShareBook.Service
                 RollbarLocator.RollbarInstance.Error(e);
             }
         }
-
-
 
         private MimeMessage FormatEmail(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins)
         {

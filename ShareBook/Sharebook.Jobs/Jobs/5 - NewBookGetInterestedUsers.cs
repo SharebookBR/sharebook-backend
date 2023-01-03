@@ -7,7 +7,6 @@ using ShareBook.Service.AwsSqs;
 using ShareBook.Service.AwsSqs.Dto;
 using System;
 using System.Linq;
-using System.Threading;
 
 namespace Sharebook.Jobs;
 

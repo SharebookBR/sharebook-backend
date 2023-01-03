@@ -25,13 +25,13 @@ public class MailSenderHighPriorityQueue : GenericQueue<MailSenderbody>, IAwsSqs
             BodyHTML = emailBodyHTML,
             Subject = emailSubject,
             Destinations = new List<Destination>
-             {
-                 new Destination
-                 {
-                     Email = _configuration["EmailSettings:Username"],
-                     Name = "Administradores Sharebook"
-                 }
-             }
+                {
+                    new Destination
+                    {
+                        Email = _configuration["EmailSettings:Username"],
+                        Name = "Administradores Sharebook"
+                    }
+                }
         };
 
         SendMessage(queueMessage).Wait();

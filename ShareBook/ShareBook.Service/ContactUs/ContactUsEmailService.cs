@@ -12,17 +12,14 @@ namespace ShareBook.Service
         private const string ContactUsNotificationTitle = "Fale Conosco - Sharebook";
 
         private readonly IEmailService _emailService;
-        private readonly IUserService _userService;
-        private readonly IEmailTemplate _emailTemplate;
-        private readonly MailSenderHighPriorityQueue _mailSenderHighPriorityQueue;
 
-        public ContactUsEmailService(IEmailService emailService, IUserService userService, IEmailTemplate emailTemplate, MailSenderHighPriorityQueue mailSenderHighPriorityQueue)
+        private readonly IEmailTemplate _emailTemplate;
+
+
+        public ContactUsEmailService(IEmailService emailService, IEmailTemplate emailTemplate)
         {
             _emailService = emailService;
-            _userService = userService;
             _emailTemplate = emailTemplate;
-            _mailSenderHighPriorityQueue = mailSenderHighPriorityQueue;
-
         }
         public async Task SendEmailContactUs(ContactUs contactUs)
         {
@@ -33,12 +30,12 @@ namespace ShareBook.Service
         private async Task SendEmailContactUsToAdministrator(ContactUs contactUs)
         {
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(ContactUsTemplate, contactUs);
-            _mailSenderHighPriorityQueue.SendToAdmins(html, ContactUsTitle);
+            await _emailService.SendToAdmins(html, ContactUsTitle);
         }
         private async Task SendEmailNotificationToUser(ContactUs contactUs)
         {
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(ContactUsNotificationTemplate, contactUs);
-            await _emailService.Send(contactUs.Email, contactUs.Name, html, ContactUsNotificationTitle, copyAdmins: false);
+            await _emailService.Send(contactUs.Email, contactUs.Name, html, ContactUsNotificationTitle, copyAdmins: false, highPriority: true);
         }
     }
 }
