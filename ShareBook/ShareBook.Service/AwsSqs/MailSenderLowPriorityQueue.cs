@@ -3,7 +3,7 @@ using ShareBook.Service.AwsSqs.Dto;
 
 namespace ShareBook.Service.AwsSqs;
 
-public class MailSenderLowPriorityQueue : GenericQueue<MailSenderbody>, IAwsSqsQueue<MailSenderbody>
+public class MailSenderLowPriorityQueue : GenericQueue<MailSenderbody>
 {
     public MailSenderLowPriorityQueue(IOptions<AwsSqsSettings> awsSqsSettings) : base(awsSqsSettings)
     {

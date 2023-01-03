@@ -29,6 +29,7 @@ namespace Sharebook.Jobs
         {
             _jobHistoryRepo = jobHistoryRepo;
 
+            // TODO: obter a lista automaticamnete via reflection
             _jobs = new List<IJob>
             {
                 job0,

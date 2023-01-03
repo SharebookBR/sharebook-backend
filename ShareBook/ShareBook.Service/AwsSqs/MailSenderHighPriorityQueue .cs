@@ -5,7 +5,7 @@ using ShareBook.Service.AwsSqs.Dto;
 
 namespace ShareBook.Service.AwsSqs;
 
-public class MailSenderHighPriorityQueue : GenericQueue<MailSenderbody>, IAwsSqsQueue<MailSenderbody>
+public class MailSenderHighPriorityQueue : GenericQueue<MailSenderbody>
 {
     private readonly IConfiguration _configuration;
 

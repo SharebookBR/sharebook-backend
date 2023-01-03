@@ -3,7 +3,7 @@ using ShareBook.Service.AwsSqs.Dto;
 
 namespace ShareBook.Service.AwsSqs;
 
-public class NewBookQueue : GenericQueue<NewBookBody>, IAwsSqsQueue<NewBookBody>
+public class NewBookQueue : GenericQueue<NewBookBody>
 {
 
     public NewBookQueue(IOptions<AwsSqsSettings> awsSqsSettings) : base(awsSqsSettings)

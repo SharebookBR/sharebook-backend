@@ -62,7 +62,7 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
             var template = GetEmailTemplate(newBook.BookId);
 
             // Alimenta a fila de destino - baixa prioridade do Mail Sender
-            int maxMessages = interestedUsers.Count() % sendEmailMaxDestinationsPerMessage == 0 ? interestedUsers.Count() / sendEmailMaxDestinationsPerMessage : interestedUsers.Count() / sendEmailMaxDestinationsPerMessage + 1;
+            int maxMessages = interestedUsers.Count % sendEmailMaxDestinationsPerMessage == 0 ? interestedUsers.Count / sendEmailMaxDestinationsPerMessage : interestedUsers.Count / sendEmailMaxDestinationsPerMessage + 1;
 
             for(int i = 1; i <= maxMessages; i++)
             {
@@ -86,7 +86,7 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
         {
             JobName = JobName,
             IsSuccess = true,
-            Details = String.Join("\n", $"{totalDestinations} usuários encontrados quem podem ter interesse no livro '${newBook.BookTitle}'.")
+            Details = String.Join("\n", $"{totalDestinations} usuários encontrados quem podem ter interesse no livro '${newBook?.BookTitle}'.")
         };
     }
 
