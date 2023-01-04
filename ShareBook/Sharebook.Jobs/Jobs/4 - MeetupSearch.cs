@@ -11,7 +11,7 @@ namespace Sharebook.Jobs
     public class MeetupSearch : GenericJob, IJob
     {
         private readonly IMeetupService _meetupService;
-        private IConfiguration _configuration;
+        private readonly IConfiguration _configuration;
         public MeetupSearch(IJobHistoryRepository jobHistoryRepo, IMeetupService meetupService, IConfiguration configuration) : base(jobHistoryRepo)
         {
             _meetupService = meetupService;
