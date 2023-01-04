@@ -1,12 +1,14 @@
 ﻿using Microsoft.Extensions.Configuration;
 using ShareBook.Domain;
 using ShareBook.Domain.Enums;
+using ShareBook.Domain.Exceptions;
 using ShareBook.Repository;
 using ShareBook.Service;
 using ShareBook.Service.AwsSqs;
 using ShareBook.Service.AwsSqs.Dto;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Sharebook.Jobs;
 
@@ -47,41 +49,53 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
 
     public override JobHistory Work()
     {
+        var awsSqsEnabled = bool.Parse(_configuration["AwsSqsSettings:IsActive"]);
+        if(!awsSqsEnabled) throw new AwsSqsDisbledException("Serviço aws sqs está desabilitado no appsettings.");
         
         int totalDestinations = 0;
         int sendEmailMaxDestinationsPerMessage = int.Parse(_configuration["AwsSqsSettings:SendEmailMaxDestinationsPerMessage"]);
         
-        var newBookMessage = _newBookQueue.GetMessage().Result;
-        var newBook = newBookMessage.Body;
 
-        if (newBook != null)
+        // 1 - lê a fila de origem
+        var newBookMessage = _newBookQueue.GetMessage()?.Result;
+
+        // fila vazia, não faz nada
+        if (newBookMessage == null)
         {
-            // Obtem usuários interessados
-            var interestedUsers = _userService.GetBySolicitedBookCategory(newBook.CategoryId);
-            totalDestinations = interestedUsers.Count;
-            var template = GetEmailTemplate(newBook.BookId);
-
-            // Alimenta a fila de destino - baixa prioridade do Mail Sender
-            int maxMessages = interestedUsers.Count % sendEmailMaxDestinationsPerMessage == 0 ? interestedUsers.Count / sendEmailMaxDestinationsPerMessage : interestedUsers.Count / sendEmailMaxDestinationsPerMessage + 1;
-
-            for(int i = 1; i <= maxMessages; i++)
+            return new JobHistory() 
             {
-                var destinations = interestedUsers.Skip((i - 1) * sendEmailMaxDestinationsPerMessage).Take(sendEmailMaxDestinationsPerMessage).Select(u => new Destination { Name = u.Name, Email = u.Email });
-
-                var mailSenderbody = new MailSenderbody {
-                    Subject = $"Chegou o livro '${newBook.BookTitle}'",
-                    BodyHTML = template,
-                    Destinations = destinations.ToList()
-                };
-                
-               _mailSenderLowPriorityQueue.SendMessage(mailSenderbody).Wait();
-            }
-
-            // remove a mensagem da fila de origem
-            _newBookQueue.DeleteMessage(newBookMessage.ReceiptHandle).Wait();
-
+                JobName = JobName,
+                IsSuccess = true,
+                Details = "A fila de origem estava vazia. Não fiz nada."
+            };
         }
 
+        // Obtem usuários interessados
+        var newBook = newBookMessage.Body;
+        var interestedUsers = _userService.GetBySolicitedBookCategory(newBook.CategoryId);
+        totalDestinations = interestedUsers.Count;
+        var template = GetEmailTemplate(newBook.BookId);
+
+        // Alimenta a fila de destino - baixa prioridade do Mail Sender
+        int maxMessages = interestedUsers.Count % sendEmailMaxDestinationsPerMessage == 0 ? interestedUsers.Count / sendEmailMaxDestinationsPerMessage : interestedUsers.Count / sendEmailMaxDestinationsPerMessage + 1;
+
+        for(int i = 1; i <= maxMessages; i++)
+        {
+            var destinations = interestedUsers.Skip((i - 1) * sendEmailMaxDestinationsPerMessage).Take(sendEmailMaxDestinationsPerMessage).Select(u => new Destination { Name = u.Name, Email = u.Email });
+
+            var mailSenderbody = new MailSenderbody {
+                Subject = $"Chegou o livro '${newBook.BookTitle}'",
+                BodyHTML = template,
+                Destinations = destinations.ToList()
+            };
+            
+            _mailSenderLowPriorityQueue.SendMessage(mailSenderbody).Wait();
+        }
+
+        // remove a mensagem da fila de origem
+        _newBookQueue.DeleteMessage(newBookMessage.ReceiptHandle).Wait();
+
+        // finaliza com sucesso
         return new JobHistory() 
         {
             JobName = JobName,

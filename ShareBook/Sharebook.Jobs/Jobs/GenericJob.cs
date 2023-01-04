@@ -1,5 +1,6 @@
 ﻿using ShareBook.Domain;
 using ShareBook.Domain.Enums;
+using ShareBook.Domain.Exceptions;
 using ShareBook.Helper;
 using ShareBook.Repository;
 using System;
@@ -84,13 +85,29 @@ namespace Sharebook.Jobs
             return result;
         }
 
-        public bool Execute()
+        public JobResult Execute()
         {
-            BeforeWork();
-            var history = Work();
-            AfterWork(history);
+            try {
+                BeforeWork();
+                var history = Work();
+                AfterWork(history);
 
-            return history.IsSuccess;
+                return JobResult.Success;
+            }
+            catch (AwsSqsDisbledException)
+            {
+                return JobResult.AwsSqsDisabled;
+            }
+            catch (MeetupDisbledException)
+            {
+                return JobResult.MeetupDisabled;
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return JobResult.Error;
+            }
+            
         }
 
         // Sempre sobrescrito pelo Job real.

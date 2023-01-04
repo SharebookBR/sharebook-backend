@@ -1,7 +1,9 @@
 ﻿using Amazon.Runtime;
 using Amazon.SQS;
 using Amazon.SQS.Model;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using ShareBook.Domain.Exceptions;
 using ShareBook.Service.AwsSqs.Dto;
 using System;
 using System.Threading.Tasks;
@@ -15,10 +17,12 @@ public class GenericQueue<T> : IAwsSqsQueue<T>
 
     protected string _queueUrl;
 
+    // protected readonly ILogger _logger;
+
     public GenericQueue(IOptions<AwsSqsSettings> awsSqsSettings)
     {
         _awsSqsSettings = awsSqsSettings?.Value;
-        bool isActive = _awsSqsSettings?.IsActive ?? false; 
+        bool isActive = _awsSqsSettings?.IsActive ?? false;
 
         if (isActive)
         {
@@ -33,8 +37,11 @@ public class GenericQueue<T> : IAwsSqsQueue<T>
     public async Task SendMessage(T message)
     {
         if (!_awsSqsSettings.IsActive)
+        {
+            // _logger.LogInformation("Serviço aws sqs está desabilitado no appsettings.");
             return;
-
+        }
+            
         var request = new SendMessageRequest
         {
             DelaySeconds = (int)TimeSpan.FromSeconds(5).TotalSeconds,
@@ -49,7 +56,7 @@ public class GenericQueue<T> : IAwsSqsQueue<T>
     {
         if (!_awsSqsSettings.IsActive)
         {
-            throw new Exception("Serviço aws está desabilitado no appsettings.");
+            throw new AwsSqsDisbledException("Serviço aws sqs está desabilitado no appsettings.");
         }
 
         var receiveMessageRequest = new ReceiveMessageRequest(_queueUrl);
@@ -78,7 +85,7 @@ public class GenericQueue<T> : IAwsSqsQueue<T>
     {
         if (!_awsSqsSettings.IsActive)
         {
-            throw new Exception("Serviço aws está desabilitado no appsettings.");
+            throw new AwsSqsDisbledException("Serviço aws sqs está desabilitado no appsettings.");
         }
 
         var deleteMessageRequest = new DeleteMessageRequest();
