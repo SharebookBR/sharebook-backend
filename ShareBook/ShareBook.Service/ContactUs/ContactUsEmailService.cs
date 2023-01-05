@@ -1,4 +1,5 @@
 ﻿using ShareBook.Domain;
+using ShareBook.Service.AwsSqs;
 using System.Threading.Tasks;
 
 namespace ShareBook.Service
@@ -11,15 +12,14 @@ namespace ShareBook.Service
         private const string ContactUsNotificationTitle = "Fale Conosco - Sharebook";
 
         private readonly IEmailService _emailService;
-        private readonly IUserService _userService;
+
         private readonly IEmailTemplate _emailTemplate;
 
-        public ContactUsEmailService(IEmailService emailService, IUserService userService, IEmailTemplate emailTemplate)
+
+        public ContactUsEmailService(IEmailService emailService, IEmailTemplate emailTemplate)
         {
             _emailService = emailService;
-            _userService = userService;
             _emailTemplate = emailTemplate;
-
         }
         public async Task SendEmailContactUs(ContactUs contactUs)
         {
@@ -35,7 +35,7 @@ namespace ShareBook.Service
         private async Task SendEmailNotificationToUser(ContactUs contactUs)
         {
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(ContactUsNotificationTemplate, contactUs);
-            await _emailService.Send(contactUs.Email, contactUs.Name, html, ContactUsNotificationTitle, copyAdmins: false);
+            await _emailService.Send(contactUs.Email, contactUs.Name, html, ContactUsNotificationTitle, copyAdmins: false, highPriority: true);
         }
     }
 }

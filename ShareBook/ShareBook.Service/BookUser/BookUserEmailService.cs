@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using ShareBook.Domain;
 using ShareBook.Domain.DTOs;
-using ShareBook.Repository.Repository;
 using ShareBook.Service.Notification;
 using System;
 using System.Collections.Generic;
@@ -28,16 +27,15 @@ namespace ShareBook.Service
         private const string BookNoticeInterestedTitle = "Sharebook - Você solicitou um livro";
 
         private readonly IUserService _userService;
-        private readonly IBookService _bookService;
         private readonly IEmailService _emailService;
         private readonly IEmailTemplate _emailTemplate;
         private readonly INotificationService _notificationService;
         private IMemoryCache _cache;
 
-        public BookUserEmailService(IUserService userService, IBookService bookService, IEmailService emailService, IEmailTemplate emailTemplate, INotificationService notificationService, IMemoryCache memoryCache)
+
+        public BookUserEmailService(IUserService userService, IEmailService emailService, IEmailTemplate emailTemplate, INotificationService notificationService, IMemoryCache memoryCache)
         {
             _userService = userService;
-            _bookService = bookService;
             _emailService = emailService;
             _emailTemplate = emailTemplate;
             _notificationService = notificationService;
@@ -58,7 +56,7 @@ namespace ShareBook.Service
                     bookUser.User
                 };
                 var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookDonatedTemplate, vm);
-                await _emailService.Send(bookUser.User.Email, bookUser.User.Name, html, BookDonatedTitle, copyAdmins: false);
+                await _emailService.Send(bookUser.User.Email, bookUser.User.Name, html, BookDonatedTitle, copyAdmins: false, highPriority: true);
             }
         }
 
@@ -76,7 +74,7 @@ namespace ShareBook.Service
                 var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookDonatedTemplateNotifyDonor, vm);
 
                 // TODO: não enviar cópia para admins quando esse processo estiver bem amadurecido.
-                await _emailService.Send(book.User.Email, book.User.Name, html, BookDonatedTitleNotifyDonor, copyAdmins: true);
+                await _emailService.Send(book.User.Email, book.User.Name, html, BookDonatedTitleNotifyDonor, copyAdmins: true, highPriority: true);
             }
         }
 
@@ -114,7 +112,7 @@ namespace ShareBook.Service
                 var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookNoticeDonorTemplate, vm);
 
                 // TODO: remover cópia adm quando esse processo estiver amadurecido.
-                await _emailService.Send(bookRequested.User.Email, bookRequested.User.Name, html, BookNoticeDonorTitle, copyAdmins: true);
+                await _emailService.Send(bookRequested.User.Email, bookRequested.User.Name, html, BookNoticeDonorTitle, copyAdmins: true, highPriority: true);
 
                 EmailsDonorAddCache(bookRequested);
             }
@@ -251,7 +249,7 @@ namespace ShareBook.Service
             };
 
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookCanceledTemplate, templateData);
-            _emailService.Send(donor.Email, donor.Name, html, BookCanceledTitle, copyAdmins: true).Wait();
+            _emailService.Send(donor.Email, donor.Name, html, BookCanceledTitle, copyAdmins: true, highPriority: true).Wait();
         }
     
         public async Task SendEmailTrackingNumberInformed(BookUser bookUserWinner, Book book)
@@ -267,7 +265,7 @@ namespace ShareBook.Service
                     EmailFacilitator = book.UserFacilitator.Email,
                 };
                 var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookTrackingNumberNoticeWinnerTemplate, vm);
-                await _emailService.Send(bookUserWinner.User.Email, bookUserWinner.User.Name, html, BookTrackingNumberNoticeWinnerTitle, copyAdmins: false);
+                await _emailService.Send(bookUserWinner.User.Email, bookUserWinner.User.Name, html, BookTrackingNumberNoticeWinnerTitle, copyAdmins: false, highPriority: true);
             }
         }
 

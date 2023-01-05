@@ -94,7 +94,7 @@ namespace Sharebook.Jobs
             };
             var emailBodyHTML = _emailTemplate.GenerateHtmlFromTemplateAsync("ChooseDateRenewTemplate", vm).Result;
 
-            _emailService.Send(book.User.Email, book.User.Name, emailBodyHTML, emailSubject, copyAdmins: false);
+            _emailService.Send(book.User.Email, book.User.Name, emailBodyHTML, emailSubject, copyAdmins: false, highPriority: true);
         }
 
         #endregion

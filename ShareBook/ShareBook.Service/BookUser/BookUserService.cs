@@ -86,14 +86,9 @@ namespace ShareBook.Service
             // Remove da vitrine caso o número de pedidos estiver grande demais.
             MaxRequestsValidation(bookRequested);
 
-            var sendEmailBookRequested = bool.Parse(_configuration["EmailSettings:SendEmailBookRequested"]);
-
-            // TODO: não vamos precisar dessa configuração quando o email estiver enfileirado.
-            if (sendEmailBookRequested)
-            {
-                _bookUsersEmailService.SendEmailBookDonor(bookUser, bookRequested).Wait();
-                _bookUsersEmailService.SendEmailBookInterested(bookUser, bookRequested).Wait();
-            }
+            _bookUsersEmailService.SendEmailBookDonor(bookUser, bookRequested).Wait();
+            _bookUsersEmailService.SendEmailBookInterested(bookUser, bookRequested).Wait();
+            
         }
 
         private void MaxRequestsValidation(Book bookRequested)
@@ -106,7 +101,7 @@ namespace ShareBook.Service
             bookRequested.ChooseDate = DateTime.Today.AddDays(1);
             _bookRepository.Update(bookRequested);
 
-            _bookUsersEmailService.SendEmailMaxRequests(bookRequested).Wait();
+            _bookUsersEmailService.SendEmailMaxRequests(bookRequested);
         }
 
         public void DonateBook(Guid bookId, Guid userId, string note)

@@ -40,7 +40,6 @@ namespace ShareBook.Test.Unit.Services
             configurationMock = new Mock<IConfiguration>();
 
             configurationMock.Setup(c => c["SharebookSettings:MaxRequestsPerBook"]).Returns("50");
-            configurationMock.Setup(c => c["EmailSettings:SendEmailBookRequested"]).Returns("false");
 
             bookServiceMock.SetReturnsDefault(true);
 

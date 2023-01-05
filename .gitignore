@@ -247,8 +247,6 @@ ModelManifest.xml
 
 .DS_Store
 
-.vscode
-
 # do not push dev scripts
 sandbox
 
@@ -263,3 +261,6 @@ coverage.xml
 
 # sonar files
 .sonarqube
+
+# git internal
+.git
