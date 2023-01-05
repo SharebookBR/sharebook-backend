@@ -50,7 +50,7 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
     public override JobHistory Work()
     {
         var awsSqsEnabled = bool.Parse(_configuration["AwsSqsSettings:IsActive"]);
-        if(!awsSqsEnabled) throw new AwsSqsDisbledException("Serviço aws sqs está desabilitado no appsettings.");
+        if(!awsSqsEnabled) throw new AwsSqsDisabledException("Serviço aws sqs está desabilitado no appsettings.");
         
         int totalDestinations = 0;
         int sendEmailMaxDestinationsPerMessage = int.Parse(_configuration["AwsSqsSettings:SendEmailMaxDestinationsPerMessage"]);

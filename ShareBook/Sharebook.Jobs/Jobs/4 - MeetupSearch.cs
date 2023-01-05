@@ -27,7 +27,7 @@ namespace Sharebook.Jobs
         public override JobHistory Work()
         {
             var meetupEnabled = bool.Parse(_configuration["MeetupSettings:IsActive"]);
-            if(!meetupEnabled) throw new MeetupDisbledException("Serviço aws sqs está desabilitado no appsettings.");
+            if(!meetupEnabled) throw new MeetupDisabledException("Serviço aws sqs está desabilitado no appsettings.");
             
             var jobResult = _meetupService.FetchMeetups().Result;
 

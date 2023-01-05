@@ -94,11 +94,11 @@ namespace Sharebook.Jobs
 
                 return JobResult.Success;
             }
-            catch (AwsSqsDisbledException)
+            catch (AwsSqsDisabledException)
             {
                 return JobResult.AwsSqsDisabled;
             }
-            catch (MeetupDisbledException)
+            catch (MeetupDisabledException)
             {
                 return JobResult.MeetupDisabled;
             }

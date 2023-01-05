@@ -56,7 +56,7 @@ public class GenericQueue<T> : IAwsSqsQueue<T>
     {
         if (!_awsSqsSettings.IsActive)
         {
-            throw new AwsSqsDisbledException("Serviço aws sqs está desabilitado no appsettings.");
+            throw new AwsSqsDisabledException("Serviço aws sqs está desabilitado no appsettings.");
         }
 
         var receiveMessageRequest = new ReceiveMessageRequest(_queueUrl);
@@ -85,7 +85,7 @@ public class GenericQueue<T> : IAwsSqsQueue<T>
     {
         if (!_awsSqsSettings.IsActive)
         {
-            throw new AwsSqsDisbledException("Serviço aws sqs está desabilitado no appsettings.");
+            throw new AwsSqsDisabledException("Serviço aws sqs está desabilitado no appsettings.");
         }
 
         var deleteMessageRequest = new DeleteMessageRequest();

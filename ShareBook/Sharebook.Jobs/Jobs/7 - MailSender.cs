@@ -16,11 +16,9 @@ namespace Sharebook.Jobs;
 public class MailSender : GenericJob, IJob
 {
     private readonly IEmailService _emailService;
-    private readonly IUserService _userService;
     private readonly MailSenderHighPriorityQueue _sqsHighPriority;
     private readonly MailSenderLowPriorityQueue _sqsLowPriority;
     private readonly  IConfiguration _configuration;
-    private readonly IList<User> _admins;
     private string _lastQueue;
     private IList<string> _log;
 
@@ -29,8 +27,7 @@ public class MailSender : GenericJob, IJob
         IEmailService emailService,
         MailSenderLowPriorityQueue sqsLowPriority,
         MailSenderHighPriorityQueue sqsHighPriority,
-        IConfiguration configuration,
-        IUserService userService) : base(jobHistoryRepo)
+        IConfiguration configuration) : base(jobHistoryRepo)
     {
 
         JobName = "MailSender";
@@ -44,9 +41,6 @@ public class MailSender : GenericJob, IJob
         _sqsLowPriority = sqsLowPriority;
         _sqsHighPriority = sqsHighPriority;
         _configuration = configuration;
-        _userService = userService;
-
-        _admins = _userService.GetAdmins();
         _log = new List<string>();       
     }
 
@@ -144,6 +138,6 @@ public class MailSender : GenericJob, IJob
     private void AwsSqsEnabledValidation()
     {
         var awsSqsEnabled = bool.Parse(_configuration["AwsSqsSettings:IsActive"]);
-        if(!awsSqsEnabled) throw new AwsSqsDisbledException("Serviço aws sqs está desabilitado no appsettings.");
+        if(!awsSqsEnabled) throw new AwsSqsDisabledException("Serviço aws sqs está desabilitado no appsettings.");
     }
 }
