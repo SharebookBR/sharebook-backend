@@ -1,66 +1,149 @@
-﻿using ShareBook.Domain;
+﻿using Microsoft.Extensions.Configuration;
+using ShareBook.Domain;
 using ShareBook.Domain.Enums;
+using ShareBook.Domain.Exceptions;
 using ShareBook.Repository;
 using ShareBook.Service;
 using ShareBook.Service.AwsSqs;
+using ShareBook.Service.AwsSqs.Dto;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-namespace Sharebook.Jobs
+namespace Sharebook.Jobs;
+
+public class MailSender : GenericJob, IJob
 {
-    public class MailSender : GenericJob, IJob
+    private readonly IEmailService _emailService;
+    private readonly IUserService _userService;
+    private readonly MailSenderHighPriorityQueue _sqsHighPriority;
+    private readonly MailSenderLowPriorityQueue _sqsLowPriority;
+    private readonly  IConfiguration _configuration;
+    private readonly IList<User> _admins;
+    private string _lastQueue;
+    private IList<string> _log;
+
+    public MailSender(
+        IJobHistoryRepository jobHistoryRepo,
+        IEmailService emailService,
+        MailSenderLowPriorityQueue sqsLowPriority,
+        MailSenderHighPriorityQueue sqsHighPriority,
+        IConfiguration configuration,
+        IUserService userService) : base(jobHistoryRepo)
     {
-        private readonly IEmailService _emailService;
-        private readonly MailSenderLowPriorityQueue _sqs;
 
-        public MailSender(
-            IJobHistoryRepository jobHistoryRepo,
-            IEmailService emailService,
-            MailSenderLowPriorityQueue sqs) : base(jobHistoryRepo)
-        {
+        JobName = "MailSender";
+        Description = @"Esse worker é o responsável por enviar emails. Por ter alta coesão e baixo acoplamento, 
+                        a gente consegue implementar rate limit global da nossa aplicação.";
+        Interval = Interval.Each5Minutes;
+        Active = true;
+        BestTimeToExecute = null;
 
-            JobName = "MailSender";
-            Description = "Assim que um novo livro é aprovado, notifica, por e-mail, os usuários que já solicitaram algum livro da mesma categoria do novo. " +
-                          "Para isso é utilizada a leitura de uma fila da Amazon SQS.";
-            Interval = Interval.Each5Minutes;
-            Active = false;
-            BestTimeToExecute = null;
+        _emailService = emailService;
+        _sqsLowPriority = sqsLowPriority;
+        _sqsHighPriority = sqsHighPriority;
+        _configuration = configuration;
+        _userService = userService;
 
-            _emailService = emailService;
-            _sqs = sqs;
-        }
-
-        public override JobHistory Work()
-        {
-            int qtDestinations = 0;
-
-            var envelope = _sqs.GetMessage().Result;
-            var message = envelope.Body;
-
-            if (message != null)
-            {
-                foreach (var destination in message.Destinations)
-                {
-                    _emailService.Send(destination.Email, destination.Name, message.BodyHTML.Replace("{name}", destination.Name), message.Subject).Wait();
-
-                    // freio lógico
-                    Thread.Sleep(1000);
-                }
-
-                var receiptHandle = ""; // TODO: usar da message
-                _sqs.DeleteMessage(receiptHandle).Wait();
-
-                qtDestinations = message.Destinations.Count();
-            }
-
-            return new JobHistory()
-            {
-                JobName = JobName,
-                IsSuccess = true,
-                Details = String.Join("\n", $"{qtDestinations} e-mails enviados.")
-            };
-        }
+        _admins = _userService.GetAdmins();
+        _log = new List<string>();       
     }
 
+    public override JobHistory Work()
+    {
+        AwsSqsEnabledValidation();
+        
+        var maxEmailsToSend = GetMaxEmailsToSend();
+        var totalEmailsSent = 0;
+        
+        _log = new List<string>();
+        _log.Add($"Iniciando o MailSender. maxEmailsToSend = {maxEmailsToSend}");
+
+        while(totalEmailsSent < maxEmailsToSend) {
+            var sqsMessage = GetSqsMessage();
+
+            // não tem mais emails pra enviar
+            if(sqsMessage == null) break;
+
+            totalEmailsSent += SendEmail(sqsMessage);
+            
+            DeleteSqsMessage(sqsMessage);
+        }
+
+        _log.Add($"Finalizando o MailSender. totalEmailsSent = {totalEmailsSent}");
+        
+        return new JobHistory()
+        {
+            JobName = JobName,
+            IsSuccess = true,
+            Details = String.Join("\n", _log)
+        };
+    }
+
+    private int SendEmail(SharebookMessage<MailSenderbody> sqsMessage)
+    {
+        var destinations = sqsMessage.Body.Destinations;
+        var subject = sqsMessage.Body.Subject;
+        var bodyHtml = sqsMessage.Body.BodyHTML;
+        var copyAdmins = sqsMessage.Body.CopyAdmins;
+
+        foreach (var destination in destinations)
+        {
+            try {
+                bodyHtml = bodyHtml.Replace("{name}", destination.Name);
+                _emailService.SendSmtp(destination.Email, destination.Name, bodyHtml, subject, copyAdmins).Wait();
+
+                _log.Add($"Enviei um email com SUCESSO para {destination.Email}.");
+            }
+            catch(Exception ex) {
+                _log.Add($"Ocorreu um ERRO ao enviar email para {destination.Email}. Erro: {ex.Message}");
+            }
+
+            // freio lógico
+            Thread.Sleep(100);
+        }
+        
+        return destinations.Count;
+    }
+
+    private SharebookMessage<MailSenderbody> GetSqsMessage()
+    {
+        var sqsMessage = _sqsHighPriority.GetMessage()?.Result;
+        _lastQueue = "HighPriority";
+    
+        if(sqsMessage == null) {
+            sqsMessage = _sqsLowPriority.GetMessage()?.Result;
+            _lastQueue = "LowPriority";
+        }
+
+        if(sqsMessage != null)
+            _log.Add($"Encontrei uma mensagem na fila. _lastQueue = {_lastQueue}");
+        else
+            _log.Add($"Não encontrei nenhuma mensagem nas filas de origem.");
+
+        return sqsMessage;
+    }
+
+    private void DeleteSqsMessage(SharebookMessage<MailSenderbody> sqsMessage)
+    {
+        _log.Add($"Removendo a mensagem da fila. _lastQueue = {_lastQueue}");
+        
+        if(_lastQueue == "HighPriority")
+            _sqsHighPriority.DeleteMessage(sqsMessage.ReceiptHandle).Wait();
+        else
+            _sqsLowPriority.DeleteMessage(sqsMessage.ReceiptHandle).Wait();
+    }
+
+    private int GetMaxEmailsToSend()
+    {
+        var maxEmailsPerHour = int.Parse(_configuration["EmailSettings:MaxEmailsPerHour"]);
+        return maxEmailsPerHour / 12;
+    }
+
+    private void AwsSqsEnabledValidation()
+    {
+        var awsSqsEnabled = bool.Parse(_configuration["AwsSqsSettings:IsActive"]);
+        if(!awsSqsEnabled) throw new AwsSqsDisbledException("Serviço aws sqs está desabilitado no appsettings.");
+    }
 }

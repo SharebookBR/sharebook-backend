@@ -71,7 +71,7 @@ namespace ShareBook.Service
 
         }
 
-        public async Task SendSmtp(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins = false)
+        public async Task SendSmtp(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins)
         {
             var message = FormatEmail(emailRecipient, nameRecipient, messageText, subject, copyAdmins);
             try

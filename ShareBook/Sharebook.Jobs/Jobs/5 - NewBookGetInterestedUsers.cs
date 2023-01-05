@@ -84,7 +84,7 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
             var destinations = interestedUsers.Skip((i - 1) * sendEmailMaxDestinationsPerMessage).Take(sendEmailMaxDestinationsPerMessage).Select(u => new Destination { Name = u.Name, Email = u.Email });
 
             var mailSenderbody = new MailSenderbody {
-                Subject = $"Chegou o livro '${newBook.BookTitle}'",
+                Subject = $"Chegou o livro '{newBook.BookTitle}'",
                 BodyHTML = template,
                 Destinations = destinations.ToList()
             };
@@ -100,7 +100,7 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
         {
             JobName = JobName,
             IsSuccess = true,
-            Details = String.Join("\n", $"{totalDestinations} usuários encontrados quem podem ter interesse no livro '${newBook?.BookTitle}'.")
+            Details = $"{totalDestinations} usuários encontrados quem podem ter interesse no livro '{newBook?.BookTitle}'."
         };
     }
 
