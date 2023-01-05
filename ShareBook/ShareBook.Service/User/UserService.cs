@@ -255,6 +255,12 @@ namespace ShareBook.Service
                     }).ToList();
         }
 
+        public IList<User> GetAdmins() {
+            return _userRepository.Get()
+                .Where(u => u.Profile == Domain.Enums.Profile.Administrator)
+                .ToList();
+        }
+
         #endregion Public
 
         #region Private

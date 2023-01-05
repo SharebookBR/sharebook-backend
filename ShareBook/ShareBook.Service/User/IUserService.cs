@@ -17,6 +17,7 @@ namespace ShareBook.Service
         Result GenerateHashCodePasswordAndSendEmailToUser(string email);
         Result ConfirmHashCodePassword(string hashCodePassword);
         IList<User> GetFacilitators(Guid userIdDonator);
+        IList<User> GetAdmins();
         IList<User> GetBySolicitedBookCategory(Guid BookCategoryId);
         UserStatsDTO GetStats(Guid? userId);
         Result<User> Insert(RegisterUserDTO userDto);

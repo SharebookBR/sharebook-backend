@@ -12,6 +12,6 @@ namespace Sharebook.Jobs
         TimeSpan? BestTimeToExecute { get; set; }
 
         bool HasWork();
-        bool Execute();
+        JobResult Execute();
     }
 }
