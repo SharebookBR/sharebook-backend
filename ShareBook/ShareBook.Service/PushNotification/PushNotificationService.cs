@@ -10,14 +10,14 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service.Notification
 {
-    public class NotificationService : INotificationService
+    public class PushNotificationService : IPushNotificationService
     {
-        private readonly NotificationSettings _settings;
+        private readonly PushNotificationSettings _settings;
         private readonly OneSignalClient _oneSignalClient;
         private NotificationCreateOptions _notificationCreateOptions;
-        public NotificationService(IOptions<NotificationSettings> notificationSettings)
+        public PushNotificationService(IOptions<PushNotificationSettings> pushNotificationSettings)
         {
-            _settings = notificationSettings.Value;
+            _settings = pushNotificationSettings.Value;
             _oneSignalClient = new OneSignalClient(_settings.ApiKey);
             _notificationCreateOptions = new NotificationCreateOptions
             {
