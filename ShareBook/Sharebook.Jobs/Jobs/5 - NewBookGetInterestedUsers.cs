@@ -53,9 +53,8 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
         if(!awsSqsEnabled) throw new AwsSqsDisabledException("Serviço aws sqs está desabilitado no appsettings.");
         
         int totalDestinations = 0;
-        int sendEmailMaxDestinationsPerMessage = int.Parse(_configuration["AwsSqsSettings:SendEmailMaxDestinationsPerMessage"]);
+        int sendEmailMaxDestinationsPerQueueMessage = GetEmailMaxDestinationsPerQueueMessage();
         
-
         // 1 - lê a fila de origem
         var newBookMessage = _newBookQueue.GetMessage()?.Result;
 
@@ -77,11 +76,11 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
         var template = GetEmailTemplate(newBook.BookId);
 
         // Alimenta a fila de destino - baixa prioridade do Mail Sender
-        int maxMessages = interestedUsers.Count % sendEmailMaxDestinationsPerMessage == 0 ? interestedUsers.Count / sendEmailMaxDestinationsPerMessage : interestedUsers.Count / sendEmailMaxDestinationsPerMessage + 1;
+        int maxMessages = interestedUsers.Count % sendEmailMaxDestinationsPerQueueMessage == 0 ? interestedUsers.Count / sendEmailMaxDestinationsPerQueueMessage : interestedUsers.Count / sendEmailMaxDestinationsPerQueueMessage + 1;
 
         for(int i = 1; i <= maxMessages; i++)
         {
-            var destinations = interestedUsers.Skip((i - 1) * sendEmailMaxDestinationsPerMessage).Take(sendEmailMaxDestinationsPerMessage).Select(u => new Destination { Name = u.Name, Email = u.Email });
+            var destinations = interestedUsers.Skip((i - 1) * sendEmailMaxDestinationsPerQueueMessage).Take(sendEmailMaxDestinationsPerQueueMessage).Select(u => new Destination { Name = u.Name, Email = u.Email });
 
             var mailSenderbody = new MailSenderbody {
                 Subject = $"Chegou o livro '{newBook.BookTitle}'",
@@ -102,6 +101,12 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
             IsSuccess = true,
             Details = $"{totalDestinations} usuários encontrados quem podem ter interesse no livro '{newBook?.BookTitle}'."
         };
+    }
+
+    private int GetEmailMaxDestinationsPerQueueMessage()
+    {
+        var maxEmailsPerHour = int.Parse(_configuration["EmailSettings:MaxEmailsPerHour"]);
+        return maxEmailsPerHour / 12;
     }
 
     private string GetEmailTemplate(Guid bookId){

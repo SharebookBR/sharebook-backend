@@ -11,8 +11,7 @@ namespace ShareBook.Service.AwsSqs
         public string SecretKey { get; set; }
         public string Region { get; set; }
         public string QueueBaseUrl { get; set; }
-        public string SendEmailMaxDestinationsPerMessage { get; set; }
-
+        
         // Queues
         public string NewBookQueue { get; set; }
 

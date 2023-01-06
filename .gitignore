@@ -250,8 +250,9 @@ ModelManifest.xml
 # do not push dev scripts
 sandbox
 
-# production settings
+# dev and prod credentials
 appsettings.Production.json
+appsettings.Development.json
 
 # docker app build files
 Sharebook/out/*
