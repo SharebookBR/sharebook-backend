@@ -88,7 +88,7 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<MailSender>();
 
             //notification
-            services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<IPushNotificationService, PushNotificationService>();
 
             return services;
         }

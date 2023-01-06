@@ -38,9 +38,7 @@ namespace ShareBook.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
-            var isDocker = Environment.GetEnvironmentVariable("IS_DOCKER");
-            var connectionStringKey = isDocker == "1" ? "DefaultConnectionDocker" : "DefaultConnection";
-
+            var connectionStringKey = "DefaultConnection";
             RegisterHealthChecks(services, Configuration.GetConnectionString(connectionStringKey));
 
             services.RegisterRepositoryServices();
@@ -70,7 +68,7 @@ namespace ShareBook.Api
 
             services.Configure<ServerSettings>(options => Configuration.GetSection("ServerSettings").Bind(options));
 
-            services.Configure<NotificationSettings>(options => Configuration.GetSection("NotificationSettings").Bind(options));
+            services.Configure<PushNotificationSettings>(options => Configuration.GetSection("PushNotificationSettings").Bind(options));
 
             services.Configure<AwsSqsSettings>(options => Configuration.GetSection("AWSSQSSettings").Bind(options));
 

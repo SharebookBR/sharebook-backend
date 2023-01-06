@@ -29,11 +29,11 @@ namespace ShareBook.Service
         private readonly IUserService _userService;
         private readonly IEmailService _emailService;
         private readonly IEmailTemplate _emailTemplate;
-        private readonly INotificationService _notificationService;
+        private readonly IPushNotificationService _notificationService;
         private IMemoryCache _cache;
 
 
-        public BookUserEmailService(IUserService userService, IEmailService emailService, IEmailTemplate emailTemplate, INotificationService notificationService, IMemoryCache memoryCache)
+        public BookUserEmailService(IUserService userService, IEmailService emailService, IEmailTemplate emailTemplate, IPushNotificationService notificationService, IMemoryCache memoryCache)
         {
             _userService = userService;
             _emailService = emailService;
