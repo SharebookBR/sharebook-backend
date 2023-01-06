@@ -14,7 +14,7 @@ namespace ShareBook.Service.Notification
     {
         private readonly PushNotificationSettings _settings;
         private readonly OneSignalClient _oneSignalClient;
-        private NotificationCreateOptions _notificationCreateOptions;
+        private readonly NotificationCreateOptions _notificationCreateOptions;
         public PushNotificationService(IOptions<PushNotificationSettings> pushNotificationSettings)
         {
             _settings = pushNotificationSettings.Value;
@@ -27,48 +27,38 @@ namespace ShareBook.Service.Notification
 
         public string SendNotificationSegments(NotificationOnesignal onesignal)
         {
-            try
-            {
-                _notificationCreateOptions.IncludedSegments = new List<string>()
-                {
-                    GetSegments(onesignal.TypeSegments)
-                };
+            // TODO: verificar se esse serviço está ativo no appsettings.
 
-                _notificationCreateOptions.Headings.Add(LanguageCodes.Portuguese, onesignal.Title);
-                _notificationCreateOptions.Contents.Add(LanguageCodes.Portuguese, onesignal.Content);
-
-                _oneSignalClient.Notifications.Create(_notificationCreateOptions);
-            }
-            catch (Exception ex)
+            _notificationCreateOptions.IncludedSegments = new List<string>()
             {
-                new Exception($"Error executing SendNotificationSegments. Exception: {ex.Message}. StackTrace: {ex.StackTrace}");
-            }
+                GetSegments(onesignal.TypeSegments)
+            };
+
+            _notificationCreateOptions.Headings.Add(LanguageCodes.Portuguese, onesignal.Title);
+            _notificationCreateOptions.Contents.Add(LanguageCodes.Portuguese, onesignal.Content);
+
+            _oneSignalClient.Notifications.Create(_notificationCreateOptions);
 
             return "Enviado com sucesso";
         }
 
         public string SendNotificationByKey(NotificationOnesignal onesignal)
         {
-            try
+            // TODO: verificar se esse serviço está ativo no appsettings.
+
+            _notificationCreateOptions.Filters = new List<INotificationFilter>
             {
-                _notificationCreateOptions.Filters = new List<INotificationFilter>
-                {
-                    new NotificationFilterField { Field = NotificationFilterFieldTypeEnum.Tag, Key = onesignal.Key, Value = onesignal.Value}
-                };
+                new NotificationFilterField { Field = NotificationFilterFieldTypeEnum.Tag, Key = onesignal.Key, Value = onesignal.Value}
+            };
 
-                _notificationCreateOptions.Headings.Add(LanguageCodes.English, onesignal.Title);
-                _notificationCreateOptions.Contents.Add(LanguageCodes.English, onesignal.Content);
+            _notificationCreateOptions.Headings.Add(LanguageCodes.English, onesignal.Title);
+            _notificationCreateOptions.Contents.Add(LanguageCodes.English, onesignal.Content);
 
-                _notificationCreateOptions.Headings.Add(LanguageCodes.Portuguese, onesignal.Title);
-                _notificationCreateOptions.Contents.Add(LanguageCodes.Portuguese, onesignal.Content);
+            _notificationCreateOptions.Headings.Add(LanguageCodes.Portuguese, onesignal.Title);
+            _notificationCreateOptions.Contents.Add(LanguageCodes.Portuguese, onesignal.Content);
 
-                _oneSignalClient.Notifications.Create(_notificationCreateOptions);
+            _oneSignalClient.Notifications.Create(_notificationCreateOptions);
 
-            }
-            catch (Exception ex)
-            {
-                new Exception($"Error executing SendNotificationByUserId. Exception: {ex.Message}. StackTrace: {ex.StackTrace}");
-            }
 
             return $"Notification enviado para o {onesignal.Value} com sucesso";
         }
@@ -76,25 +66,21 @@ namespace ShareBook.Service.Notification
 
         public string SendNotificationByEmail(string email, string title, string content)
         {
-            try
+            // TODO: verificar se esse serviço está ativo no appsettings.
+            
+            _notificationCreateOptions.Filters = new List<INotificationFilter>
             {
-                _notificationCreateOptions.Filters = new List<INotificationFilter>
-                {
-                        new NotificationFilterField { Field = NotificationFilterFieldTypeEnum.Tag, Key = "email", Value = email}
-                };
+                    new NotificationFilterField { Field = NotificationFilterFieldTypeEnum.Tag, Key = "email", Value = email}
+            };
 
-                _notificationCreateOptions.Headings.Add(LanguageCodes.English, title);
-                _notificationCreateOptions.Contents.Add(LanguageCodes.English, content);
+            _notificationCreateOptions.Headings.Add(LanguageCodes.English, title);
+            _notificationCreateOptions.Contents.Add(LanguageCodes.English, content);
 
-                _notificationCreateOptions.Headings.Add(LanguageCodes.Portuguese, title);
-                _notificationCreateOptions.Contents.Add(LanguageCodes.Portuguese, content);
+            _notificationCreateOptions.Headings.Add(LanguageCodes.Portuguese, title);
+            _notificationCreateOptions.Contents.Add(LanguageCodes.Portuguese, content);
 
-                _oneSignalClient.Notifications.Create(_notificationCreateOptions);
-            }
-            catch (Exception ex)
-            {
-                new Exception($"Error executing SendNotificationByUserId. Exception: {ex.Message}. StackTrace: {ex.StackTrace}");
-            }
+            _oneSignalClient.Notifications.Create(_notificationCreateOptions);
+
 
             return $"Notification enviado para o {email} com sucesso";
         }
