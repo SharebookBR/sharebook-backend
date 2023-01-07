@@ -81,6 +81,7 @@ namespace ShareBook.Service
             if (_settings.UseSSL)
                 client.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
+            client.CheckCertificateRevocation = false;
             client.Connect(_settings.HostName, _settings.Port, _settings.UseSSL);
             client.Authenticate(_settings.Username, _settings.Password);
             await client.SendAsync(message);
