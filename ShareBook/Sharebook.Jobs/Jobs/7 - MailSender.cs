@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Rollbar;
 using ShareBook.Domain;
 using ShareBook.Domain.Enums;
 using ShareBook.Domain.Exceptions;
@@ -8,7 +9,6 @@ using ShareBook.Service.AwsSqs;
 using ShareBook.Service.AwsSqs.Dto;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 
 namespace Sharebook.Jobs;
@@ -85,12 +85,14 @@ public class MailSender : GenericJob, IJob
         foreach (var destination in destinations)
         {
             try {
-                bodyHtml = bodyHtml.Replace("{name}", destination.Name);
+                string firstName = GetFirstName(destination.Name);
+                bodyHtml = bodyHtml.Replace("{name}", firstName, StringComparison.OrdinalIgnoreCase);
                 _emailService.SendSmtp(destination.Email, destination.Name, bodyHtml, subject, copyAdmins).Wait();
 
                 _log.Add($"Enviei um email com SUCESSO para {destination.Email}.");
             }
             catch(Exception ex) {
+                RollbarLocator.RollbarInstance.Error(ex);
                 _log.Add($"Ocorreu um ERRO ao enviar email para {destination.Email}. Erro: {ex.Message}");
             }
 
@@ -99,6 +101,15 @@ public class MailSender : GenericJob, IJob
         }
         
         return destinations.Count;
+    }
+
+    private static string GetFirstName(string fullName)
+    {
+        if (string.IsNullOrEmpty(fullName))
+            return string.Empty;
+
+        string[] nameParts = fullName.Split(' ');
+        return nameParts[0];
     }
 
     private SharebookMessage<MailSenderbody> GetSqsMessage()
