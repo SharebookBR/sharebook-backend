@@ -335,6 +335,34 @@ namespace ShareBook.Repository.Migrations
                     b.ToTable("Meetups");
                 });
 
+            modelBuilder.Entity("ShareBook.Domain.MeetupParticipant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FirstName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("MeetupId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MeetupId");
+
+                    b.ToTable("MeetupParticipants");
+                });
+
             modelBuilder.Entity("ShareBook.Domain.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -473,9 +501,25 @@ namespace ShareBook.Repository.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ShareBook.Domain.MeetupParticipant", b =>
+                {
+                    b.HasOne("ShareBook.Domain.Meetup", "Meetup")
+                        .WithMany("MeetupParticipants")
+                        .HasForeignKey("MeetupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Meetup");
+                });
+
             modelBuilder.Entity("ShareBook.Domain.Book", b =>
                 {
                     b.Navigation("BookUsers");
+                });
+
+            modelBuilder.Entity("ShareBook.Domain.Meetup", b =>
+                {
+                    b.Navigation("MeetupParticipants");
                 });
 
             modelBuilder.Entity("ShareBook.Domain.User", b =>
