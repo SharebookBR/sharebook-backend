@@ -9,7 +9,6 @@ namespace ShareBook.Domain
 {
     public class MeetupParticipant : BaseEntity
     {
-        public Guid MeetupId { get; set; }
         public virtual Meetup Meetup { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
