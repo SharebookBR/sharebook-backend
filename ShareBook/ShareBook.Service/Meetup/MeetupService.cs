@@ -165,7 +165,7 @@ namespace ShareBook.Service
                                 {
                                     page = page,
                                 })
-                                .GetJsonAsync<MeetupParticipantDTO>();
+                                .GetJsonAsync<MeetupParticipantDto>();
 
                 foreach (var participant in participantDto.Data)
                 {
