@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service.Dto
 {
-    public class MeetupParticipantDTO
+    public class MeetupParticipantDto
     {
         public List<Data> Data { get; set; }
         public Pagination Pagination { get; set; }
