@@ -315,6 +315,9 @@ namespace ShareBook.Repository.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsParticipantListSynced")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
@@ -353,7 +356,7 @@ namespace ShareBook.Repository.Migrations
                     b.Property<string>("LastName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("MeetupId")
+                    b.Property<Guid?>("MeetupId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -505,9 +508,7 @@ namespace ShareBook.Repository.Migrations
                 {
                     b.HasOne("ShareBook.Domain.Meetup", "Meetup")
                         .WithMany("MeetupParticipants")
-                        .HasForeignKey("MeetupId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("MeetupId");
 
                     b.Navigation("Meetup");
                 });
