@@ -53,19 +53,18 @@ namespace ShareBook.Service
 
         private async Task SyncMeetupParticipantsList()
         {
-            var meetups = _repository.Get().Include(x => x.MeetupParticipants).Where(x => x.StartDate.AddDays(1) >= DateTime.Now).ToList();
+            var meetups = _repository.Get().Where(x => x.StartDate < DateTime.Now && x.IsParticipantListSynced == false).ToList();
 
             foreach (var meetup in meetups)
             {
                 var meetupParticipants = await GetMeetupParticipants(meetup.SymplaEventId);
                 foreach (var participant in meetupParticipants)
                 {
-                    if (!meetup.MeetupParticipants.Any(p => p.Email == participant.Email))
-                    {
-                        participant.Meetup = meetup;
-                        _participantRepository.Insert(participant);
-                    }
+                    participant.Meetup = meetup;
+                    _participantRepository.Insert(participant);
                 }
+                meetup.IsParticipantListSynced = true;
+                _repository.Update(meetup);
             }
         }
 
@@ -136,7 +135,6 @@ namespace ShareBook.Service
                             Cover = coverUrl,
                             Description = symplaEvent.Detail,
                             StartDate = DateTime.Parse(symplaEvent.StartDate),
-                            MeetupParticipants = await GetMeetupParticipants(symplaEvent.Id),
                         });
                         eventsAdded++;
                     }
