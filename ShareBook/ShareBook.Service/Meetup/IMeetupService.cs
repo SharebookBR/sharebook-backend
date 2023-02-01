@@ -9,7 +9,7 @@ namespace ShareBook.Service
 {
     public interface IMeetupService : IBaseService<Meetup>
     {
-        public Task<string> FetchMeetups();
+        public Task<IList<string>> FetchMeetups();
         IList<Meetup> Search(string criteria);
     }
 }

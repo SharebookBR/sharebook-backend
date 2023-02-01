@@ -23,6 +23,7 @@ using ShareBook.Service.Upload;
 using ShareBook.Helper.Extensions;
 using ShareBook.Domain.Common;
 using Microsoft.EntityFrameworkCore;
+using Amazon.Auth.AccessControlPolicy.ActionIdentifiers;
 
 namespace ShareBook.Service
 {
@@ -39,21 +40,28 @@ namespace ShareBook.Service
             _participantRepository = meetupParticipantRepository;
         }
 
-        public async Task<string> FetchMeetups()
+        public async Task<IList<string>> FetchMeetups()
         {
+            var logs = new List<string>();
+
             if (!_settings.IsActive) throw new Exception("O Serviço de busca de meetups está desativado no appSettings.");
 
             var newMeetups = await GetMeetupsFromSympla();
             var newYoutubeVideos = await GetYoutubeVideos();
 
-            await SyncMeetupParticipantsList();
+            await SyncMeetupParticipantsList(logs);
 
-            return $"Foram encontradas {newMeetups} novas meetups e {newYoutubeVideos} novos vídeos relacionados";
+            logs.Add($"Foram encontradas {newMeetups} novas meetups e {newYoutubeVideos} novos vídeos relacionados");
+
+            return logs;
         }
 
-        private async Task SyncMeetupParticipantsList()
+        private async Task SyncMeetupParticipantsList(IList<string> logs)
         {
-            var meetups = _repository.Get().Where(x => x.StartDate < DateTime.Now && x.IsParticipantListSynced == false).ToList();
+            // Carrega os inscritos no evento um dia após o evento ser feito. Carrega apenas 5 para poupar recursos.
+            var meetups = _repository.Get().Where(x => x.StartDate < DateTime.Now.AddDays(1) && x.IsParticipantListSynced == false).Take(5).ToList();
+
+            logs.Add($"Sincronizando inscritos nos meetups. Encontrei {meetups.Count} meetups pra sincronizar.");
 
             foreach (var meetup in meetups)
             {
@@ -65,6 +73,8 @@ namespace ShareBook.Service
                 }
                 meetup.IsParticipantListSynced = true;
                 _repository.Update(meetup);
+
+                logs.Add($"Adicionei {meetupParticipants.Count} inscritos no meetup '{meetup.Title}'.");
             }
         }
 
