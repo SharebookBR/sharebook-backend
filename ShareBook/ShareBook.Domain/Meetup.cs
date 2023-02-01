@@ -17,5 +17,7 @@ namespace ShareBook.Domain
         public string Cover { get; set; }
         public string YoutubeUrl { get; set; }
         public string SymplaEventUrl { get; set; }
+        public ICollection<MeetupParticipant> MeetupParticipants { get; set; }
+        public bool IsParticipantListSynced { get; set; } = false;
     }
 }
