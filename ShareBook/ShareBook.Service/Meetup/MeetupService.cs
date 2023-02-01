@@ -1,29 +1,20 @@
 ﻿using FluentValidation;
-using Microsoft.Extensions.Configuration;
+using Flurl;
+using Flurl.Http;
+using Microsoft.Extensions.Options;
 using ShareBook.Domain;
 using ShareBook.Domain.Exceptions;
+using ShareBook.Helper.Extensions;
+using ShareBook.Helper.Image;
 using ShareBook.Repository;
 using ShareBook.Repository.UoW;
+using ShareBook.Service.Dto;
 using ShareBook.Service.Generic;
+using ShareBook.Service.Upload;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Flurl;
-using Flurl.Http;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Microsoft.Extensions.Options;
-using ShareBook.Service.Dto;
-using ShareBook.Helper.String;
-using System.Net.Http;
-using ShareBook.Helper.Image;
-using ShareBook.Service.Upload;
-using ShareBook.Helper.Extensions;
-using ShareBook.Domain.Common;
-using Microsoft.EntityFrameworkCore;
-using Amazon.Auth.AccessControlPolicy.ActionIdentifiers;
 
 namespace ShareBook.Service
 {
