@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using Flurl;
 using Flurl.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ShareBook.Domain;
 using ShareBook.Domain.Exceptions;
@@ -56,6 +57,9 @@ namespace ShareBook.Service
 
             foreach (var meetup in meetups)
             {
+                // evento não teve inscrição no sympla. Raro mas aconteceu.
+                if (meetup.SymplaEventId == -1) continue;
+
                 var meetupParticipants = await GetMeetupParticipants(meetup.SymplaEventId);
                 foreach (var participant in meetupParticipants)
                 {
