@@ -1,28 +1,20 @@
 ﻿using FluentValidation;
-using Microsoft.Extensions.Configuration;
+using Flurl;
+using Flurl.Http;
+using Microsoft.Extensions.Options;
 using ShareBook.Domain;
 using ShareBook.Domain.Exceptions;
+using ShareBook.Helper.Extensions;
+using ShareBook.Helper.Image;
 using ShareBook.Repository;
 using ShareBook.Repository.UoW;
+using ShareBook.Service.Dto;
 using ShareBook.Service.Generic;
+using ShareBook.Service.Upload;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Flurl;
-using Flurl.Http;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Microsoft.Extensions.Options;
-using ShareBook.Service.Dto;
-using ShareBook.Helper.String;
-using System.Net.Http;
-using ShareBook.Helper.Image;
-using ShareBook.Service.Upload;
-using ShareBook.Helper.Extensions;
-using ShareBook.Domain.Common;
-using Microsoft.EntityFrameworkCore;
 
 namespace ShareBook.Service
 {
@@ -39,21 +31,28 @@ namespace ShareBook.Service
             _participantRepository = meetupParticipantRepository;
         }
 
-        public async Task<string> FetchMeetups()
+        public async Task<IList<string>> FetchMeetups()
         {
+            var logs = new List<string>();
+
             if (!_settings.IsActive) throw new Exception("O Serviço de busca de meetups está desativado no appSettings.");
 
             var newMeetups = await GetMeetupsFromSympla();
             var newYoutubeVideos = await GetYoutubeVideos();
 
-            await SyncMeetupParticipantsList();
+            await SyncMeetupParticipantsList(logs);
 
-            return $"Foram encontradas {newMeetups} novas meetups e {newYoutubeVideos} novos vídeos relacionados";
+            logs.Add($"Foram encontradas {newMeetups} novas meetups e {newYoutubeVideos} novos vídeos relacionados");
+
+            return logs;
         }
 
-        private async Task SyncMeetupParticipantsList()
+        private async Task SyncMeetupParticipantsList(IList<string> logs)
         {
-            var meetups = _repository.Get().Where(x => x.StartDate < DateTime.Now && x.IsParticipantListSynced == false).ToList();
+            // Carrega os inscritos no evento um dia após o evento ser feito. Carrega apenas 5 para poupar recursos.
+            var meetups = _repository.Get().Where(x => x.StartDate < DateTime.Now.AddDays(1) && !x.IsParticipantListSynced).Take(5).ToList();
+
+            logs.Add($"Sincronizando inscritos nos meetups. Encontrei {meetups.Count} meetups pra sincronizar.");
 
             foreach (var meetup in meetups)
             {
@@ -65,6 +64,8 @@ namespace ShareBook.Service
                 }
                 meetup.IsParticipantListSynced = true;
                 _repository.Update(meetup);
+
+                logs.Add($"Adicionei {meetupParticipants.Count} inscritos no meetup '{meetup.Title}'.");
             }
         }
 
