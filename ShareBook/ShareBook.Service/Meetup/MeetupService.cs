@@ -22,6 +22,7 @@ using ShareBook.Helper.Image;
 using ShareBook.Service.Upload;
 using ShareBook.Helper.Extensions;
 using ShareBook.Domain.Common;
+using Microsoft.EntityFrameworkCore;
 
 namespace ShareBook.Service
 {
@@ -29,11 +30,13 @@ namespace ShareBook.Service
     {
         private readonly MeetupSettings _settings;
         private readonly IUploadService _uploadService;
+        private readonly IMeetupParticipantRepository _participantRepository;
 
-        public MeetupService(IOptions<MeetupSettings> settings, IMeetupRepository meetupRepository, IUnitOfWork unitOfWork, IValidator<Meetup> validator, IUploadService uploadService) : base(meetupRepository, unitOfWork, validator)
+        public MeetupService(IOptions<MeetupSettings> settings, IMeetupRepository meetupRepository, IMeetupParticipantRepository meetupParticipantRepository, IUnitOfWork unitOfWork, IValidator<Meetup> validator, IUploadService uploadService) : base(meetupRepository, unitOfWork, validator)
         {
             _settings = settings.Value;
             _uploadService = uploadService;
+            _participantRepository = meetupParticipantRepository;
         }
 
         public async Task<string> FetchMeetups()
@@ -43,7 +46,26 @@ namespace ShareBook.Service
             var newMeetups = await GetMeetupsFromSympla();
             var newYoutubeVideos = await GetYoutubeVideos();
 
+            await SyncMeetupParticipantsList();
+
             return $"Foram encontradas {newMeetups} novas meetups e {newYoutubeVideos} novos vídeos relacionados";
+        }
+
+        private async Task SyncMeetupParticipantsList()
+        {
+            var meetups = _repository.Get().Where(x => x.StartDate < DateTime.Now && x.IsParticipantListSynced == false).ToList();
+
+            foreach (var meetup in meetups)
+            {
+                var meetupParticipants = await GetMeetupParticipants(meetup.SymplaEventId);
+                foreach (var participant in meetupParticipants)
+                {
+                    participant.Meetup = meetup;
+                    _participantRepository.Insert(participant);
+                }
+                meetup.IsParticipantListSynced = true;
+                _repository.Update(meetup);
+            }
         }
 
         private async Task<int> GetYoutubeVideos()
@@ -52,7 +74,6 @@ namespace ShareBook.Service
 
             if (meetups.TotalItems == 0) return 0;
 
-            int videosFound = 0;
             YoutubeDto youtubeDto;
             try
             {
@@ -73,35 +94,17 @@ namespace ShareBook.Service
                 throw new ShareBookException(error == null ? e.Message : error.Message);
             }
 
-            // Ignorar tudo com menos de 0.85% de similaridade.
-            double similarityThreshold = 0.85;
+            var updatedMeetups = meetups.Items.Join(youtubeDto.Items,
+                                    m => m.Title,
+                                    y => y.Snippet.Title,
+                                    (m, y) => { m.YoutubeUrl = $"https://youtube.com/watch?v={y.Id.VideoId}"; return m; }).ToList();
 
-            foreach (var meetup in meetups.Items)
+            if (updatedMeetups.Any())
             {
-                var similarityDictionary = new Dictionary<Item, double>();
-
-                foreach (var videoItem in youtubeDto.Items)
-                {
-                    double similarity = StringHelper.CalculateSimilarity(meetup.Title, videoItem.Snippet.Title);
-                    if (similarity >= similarityThreshold)
-                    {
-                        similarityDictionary.Add(videoItem, similarity);
-                    }
-                }
-
-                if (similarityDictionary.Any())
-                {
-                    var bestMatch = similarityDictionary.FirstOrDefault(x => x.Value == similarityDictionary.Values.Max());
-
-                    meetup.YoutubeUrl = $"https://youtube.com/watch?v={bestMatch.Key.Id.VideoId}";
-
-                    _repository.Update(meetup);
-
-                    videosFound++;
-                }
+                updatedMeetups.ForEach(m => _repository.Update(m));
             }
 
-            return videosFound;
+            return updatedMeetups.Count;
         }
 
         private async Task<int> GetMeetupsFromSympla()
@@ -145,6 +148,37 @@ namespace ShareBook.Service
             }
 
             return eventsAdded;
+        }
+        private async Task<IList<MeetupParticipant>> GetMeetupParticipants(int eventId)
+        {
+            IList<MeetupParticipant> participants = new List<MeetupParticipant>();
+            int page = 1;
+            bool hasNext = true;
+
+            while (hasNext)
+            {
+                var participantDto = await $"https://api.sympla.com.br/public/v3/events/{eventId}/participants"
+                                .WithHeader("s_token", _settings.SymplaToken)
+                                .SetQueryParams(new
+                                {
+                                    page = page,
+                                })
+                                .GetJsonAsync<MeetupParticipantDto>();
+
+                foreach (var participant in participantDto.Data)
+                {
+                    participants.Add(new MeetupParticipant
+                    {
+                        FirstName = participant.FirstName,
+                        LastName = participant.LastName,
+                        Email = participant.Email,
+                    });
+                }
+                
+                hasNext = participantDto.Pagination.HasNext;
+                if (hasNext) page++;                
+            }
+            return participants;
         }
 
         private static async Task<byte[]> GetCoverImageBytesAsync(string url)
