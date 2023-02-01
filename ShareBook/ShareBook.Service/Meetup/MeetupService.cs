@@ -50,7 +50,7 @@ namespace ShareBook.Service
         private async Task SyncMeetupParticipantsList(IList<string> logs)
         {
             // Carrega os inscritos no evento um dia após o evento ser feito. Carrega apenas 5 para poupar recursos.
-            var meetups = _repository.Get().Where(x => x.StartDate < DateTime.Now.AddDays(1) && x.IsParticipantListSynced == false).Take(5).ToList();
+            var meetups = _repository.Get().Where(x => x.StartDate < DateTime.Now.AddDays(1) && !x.IsParticipantListSynced).Take(5).ToList();
 
             logs.Add($"Sincronizando inscritos nos meetups. Encontrei {meetups.Count} meetups pra sincronizar.");
 
