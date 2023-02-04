@@ -19,9 +19,9 @@ namespace ShareBook.Api.Controllers
             _meetupService = meetupService;
         }
         [HttpGet]
-        public PagedList<Meetup> Get()
+        public PagedList<Meetup> Get(int? page, int? pageSize)
         {
-            return _meetupService.Get(x => x.StartDate, 1, 50);
+            return _meetupService.Get(x => x.StartDate, page ?? 1, pageSize ?? 10);
         }
 
         [HttpGet("{id}")]
