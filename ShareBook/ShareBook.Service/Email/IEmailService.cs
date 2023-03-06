@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using MailKit;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ShareBook.Service
 {
@@ -11,5 +13,6 @@ namespace ShareBook.Service
         Task SendSmtp(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins);
         
         Task Test(string email, string name);
+        Task<IList<string>> ProcessBounceMessages();
     }
 }

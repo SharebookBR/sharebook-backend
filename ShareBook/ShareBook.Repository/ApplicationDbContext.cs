@@ -22,6 +22,8 @@ namespace ShareBook.Repository
         public DbSet<Meetup> Meetups { get; set; }
         public DbSet<MeetupParticipant> MeetupParticipants { get; set; }
 
+        public DbSet<MailBounce> MailBounces { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
