@@ -313,7 +313,7 @@ namespace ShareBook.Repository.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ErrorCode")
                         .HasColumnType("nvarchar(max)");
@@ -328,6 +328,8 @@ namespace ShareBook.Repository.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Email");
 
                     b.ToTable("MailBounces");
                 });

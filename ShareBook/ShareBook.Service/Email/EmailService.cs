@@ -1,6 +1,7 @@
 ﻿using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Net.Smtp;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using MimeKit;
@@ -201,5 +202,24 @@ public class EmailService : IEmailService
                 return folder;
 
         return null;
+    }
+
+    public async Task<IList<MailBounce>> GetBounces(IList<string> emails)
+    {
+        return await _ctx.MailBounces.Where(m => emails.Contains(m.Email)).ToListAsync();
+    }
+
+    public bool IsBounce(string email, IList<MailBounce> bounces)
+    {
+        var hardBounces = bounces.Where(b => !b.IsSoft).ToList();
+        var softBounces = bounces.Where(b => b.IsSoft && b.CreationDate > DateTime.Now.AddDays(-1)).ToList();
+
+        if (hardBounces.Any(b => b.Email == email))
+            return true;
+
+        if (softBounces.Any(b => b.Email == email))
+            return true;
+
+        return false;
     }
 }
