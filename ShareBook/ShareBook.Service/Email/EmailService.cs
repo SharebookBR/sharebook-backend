@@ -163,7 +163,7 @@ public class EmailService : IEmailService
         var bounceFolder = GetBounceFolder();
         await bounceFolder.OpenAsync(FolderAccess.ReadWrite);
 
-        var MAX_EMAILS_TO_PROCESS = 20;
+        var MAX_EMAILS_TO_PROCESS = 50;
         var items = bounceFolder.Fetch(0, MAX_EMAILS_TO_PROCESS, MessageSummaryItems.UniqueId | MessageSummaryItems.Size | MessageSummaryItems.Flags);
 
         foreach (var item in items)
