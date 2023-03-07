@@ -1,39 +1,43 @@
-﻿using ShareBook.Domain;
+﻿using MailKit;
+using ShareBook.Domain;
 using ShareBook.Domain.Enums;
 using ShareBook.Repository;
 using ShareBook.Service;
 using ShareBook.Service.AwsSqs;
 using System;
-using System.Linq;
-using System.Threading;
+using System.Collections.Generic;
 
 namespace Sharebook.Jobs;
 
 public class MailSupressListUpdate : GenericJob, IJob
 {
     private readonly IEmailService _emailService;
-    private readonly MailSenderLowPriorityQueue _sqs; // TODO: criar uma fila pra esse cara
 
     public MailSupressListUpdate(
         IJobHistoryRepository jobHistoryRepo,
-        IEmailService emailService,
-        MailSenderLowPriorityQueue sqs) : base(jobHistoryRepo)
+        IEmailService emailService) : base(jobHistoryRepo)
     {
 
         JobName = "MailSupressListUpdate";
         Description = @"Atualiza a lista de emails suprimidos. Essa lista serve para manter boa reputação do nosso 
                         mailling. Além de ser um requisito da AWS.";
-        Interval = Interval.Dayly;
-        Active = false;
-        BestTimeToExecute = new TimeSpan(1, 0, 0);
+        Interval = Interval.Hourly;
+        Active = true;
+        BestTimeToExecute = null;
 
         _emailService = emailService;
-        _sqs = sqs;
     }
 
     public override JobHistory Work()
     {
-        throw new NotImplementedException();
+        var log  = _emailService.ProcessBounceMessages().Result;
+
+        return new JobHistory()
+        {
+            JobName = JobName,
+            IsSuccess = true,
+            Details = String.Join("\n", log)
+        };
     }
 }
 

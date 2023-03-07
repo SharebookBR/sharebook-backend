@@ -85,6 +85,8 @@ public class MailSender : GenericJob, IJob
         foreach (var destination in destinations)
         {
             try {
+                // TODO: verificar o bounce hard e soft.
+
                 string firstName = GetFirstName(destination.Name);
                 bodyHtml = bodyHtml.Replace("{name}", firstName, StringComparison.OrdinalIgnoreCase);
                 _emailService.SendSmtp(destination.Email, destination.Name, bodyHtml, subject, copyAdmins).Wait();
