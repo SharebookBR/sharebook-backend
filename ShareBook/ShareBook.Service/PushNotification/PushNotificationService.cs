@@ -2,6 +2,7 @@
 using OneSignal.RestAPIv3.Client;
 using OneSignal.RestAPIv3.Client.Resources;
 using OneSignal.RestAPIv3.Client.Resources.Notifications;
+using Rollbar;
 using ShareBook.Domain;
 using ShareBook.Domain.Enums;
 using System;
@@ -66,23 +67,28 @@ namespace ShareBook.Service.Notification
 
         public string SendNotificationByEmail(string email, string title, string content)
         {
-            // TODO: verificar se esse serviço está ativo no appsettings.
-            
-            _notificationCreateOptions.Filters = new List<INotificationFilter>
-            {
-                    new NotificationFilterField { Field = NotificationFilterFieldTypeEnum.Tag, Key = "email", Value = email}
-            };
+            if (!_settings.IsActive) return "";
 
-            _notificationCreateOptions.Headings.Add(LanguageCodes.English, title);
-            _notificationCreateOptions.Contents.Add(LanguageCodes.English, content);
+            try {
+                _notificationCreateOptions.Filters = new List<INotificationFilter>
+                {
+                        new NotificationFilterField { Field = NotificationFilterFieldTypeEnum.Tag, Key = "email", Value = email}
+                };
 
-            _notificationCreateOptions.Headings.Add(LanguageCodes.Portuguese, title);
-            _notificationCreateOptions.Contents.Add(LanguageCodes.Portuguese, content);
+                _notificationCreateOptions.Headings.Add(LanguageCodes.English, title);
+                _notificationCreateOptions.Contents.Add(LanguageCodes.English, content);
 
-            _oneSignalClient.Notifications.Create(_notificationCreateOptions);
+                _notificationCreateOptions.Headings.Add(LanguageCodes.Portuguese, title);
+                _notificationCreateOptions.Contents.Add(LanguageCodes.Portuguese, content);
 
+                _oneSignalClient.Notifications.Create(_notificationCreateOptions);
 
-            return $"Notification enviado para o {email} com sucesso";
+                return $"Notification enviado para o {email} com sucesso";
+            }
+            catch(Exception ex) {
+                RollbarLocator.RollbarInstance.Error(ex);
+                return "";
+            }            
         }
 
         private string GetSegments(TypeSegments typeSegments)
