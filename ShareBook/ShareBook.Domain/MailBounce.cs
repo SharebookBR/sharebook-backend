@@ -22,6 +22,8 @@ public class MailBounce: BaseEntity
 
     private void ExtractFromBody()
     {
+        if (string.IsNullOrEmpty(Body)) return;
+        
         // tenta extrair o email de destino original do corpo do email
         string pattern = @"\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*";
         Match match = Regex.Match(Body, pattern);
