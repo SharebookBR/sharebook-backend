@@ -20,7 +20,7 @@ namespace Sharebook.Jobs
             Description = "Mantém uma lista atualizada de eventos do sharebook no sympla juntamente com os links para a live no youtube";
             Interval = Interval.Dayly;
             Active = true;
-            BestTimeToExecute = new TimeSpan(0, 0, 0);
+            BestTimeToExecute = new TimeSpan(1, 0, 0);
             _configuration = configuration;
         }
 

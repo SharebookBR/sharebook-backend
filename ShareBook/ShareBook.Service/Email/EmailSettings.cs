@@ -7,5 +7,7 @@
         public string Password { get; set; }
         public int Port { get; set; }
         public bool UseSSL { get; set; }
+        public int ImapPort { get; set; }
+        public string BounceFolder { get; set; }
     }
 }

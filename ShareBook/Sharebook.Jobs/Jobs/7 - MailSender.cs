@@ -9,6 +9,7 @@ using ShareBook.Service.AwsSqs;
 using ShareBook.Service.AwsSqs.Dto;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 namespace Sharebook.Jobs;
@@ -82,12 +83,23 @@ public class MailSender : GenericJob, IJob
         var bodyHtml = sqsMessage.Body.BodyHTML;
         var copyAdmins = sqsMessage.Body.CopyAdmins;
 
+        var emails = destinations.Select(x => x.Email).ToList();
+        var bounces = _emailService.GetBounces(emails).Result;
+        var totalBounces = 0;
+
         foreach (var destination in destinations)
         {
             try {
+                if (_emailService.IsBounce(destination.Email, bounces))
+                {
+                    _log.Add($"Não enviei email para {destination.Email} porque está em estado de BOUNCE.");
+                    totalBounces++;
+                    continue;
+                }
+
                 string firstName = GetFirstName(destination.Name);
-                bodyHtml = bodyHtml.Replace("{name}", firstName, StringComparison.OrdinalIgnoreCase);
-                _emailService.SendSmtp(destination.Email, destination.Name, bodyHtml, subject, copyAdmins).Wait();
+                var bodyHtml2 = bodyHtml.Replace("{name}", firstName, StringComparison.OrdinalIgnoreCase);
+                _emailService.SendSmtp(destination.Email, destination.Name, bodyHtml2, subject, copyAdmins).Wait();
 
                 _log.Add($"Enviei um email com SUCESSO para {destination.Email}.");
             }
@@ -100,7 +112,7 @@ public class MailSender : GenericJob, IJob
             Thread.Sleep(100);
         }
         
-        return destinations.Count;
+        return destinations.Count - totalBounces;
     }
 
     private static string GetFirstName(string fullName)

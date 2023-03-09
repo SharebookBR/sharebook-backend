@@ -1,4 +1,5 @@
-﻿using ShareBook.Domain;
+﻿using Rollbar;
+using ShareBook.Domain;
 using ShareBook.Domain.Enums;
 using ShareBook.Domain.Exceptions;
 using ShareBook.Helper;
@@ -104,7 +105,7 @@ namespace Sharebook.Jobs
             }
             catch(Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                RollbarLocator.RollbarInstance.Error(ex);
                 return JobResult.Error;
             }
             

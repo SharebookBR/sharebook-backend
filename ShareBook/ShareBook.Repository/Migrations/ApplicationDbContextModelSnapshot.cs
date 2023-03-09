@@ -300,6 +300,40 @@ namespace ShareBook.Repository.Migrations
                     b.ToTable("LogEntries");
                 });
 
+            modelBuilder.Entity("ShareBook.Domain.MailBounce", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Body")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ErrorCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsBounce")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsSoft")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Subject")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email");
+
+                    b.ToTable("MailBounces");
+                });
+
             modelBuilder.Entity("ShareBook.Domain.Meetup", b =>
                 {
                     b.Property<Guid>("Id")
@@ -438,9 +472,6 @@ namespace ShareBook.Repository.Migrations
 
                     b.Property<int>("Profile")
                         .HasColumnType("int");
-
-                    b.Property<string>("TikTok")
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 

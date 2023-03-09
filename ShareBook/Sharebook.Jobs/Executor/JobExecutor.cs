@@ -30,7 +30,7 @@ public class JobExecutor : IJobExecutor
     {
         _jobHistoryRepo = jobHistoryRepo;
 
-        // TODO: obter a lista automaticamnete via reflection
+        // TODO: obter a lista automaticamente via reflection
         _jobs = new List<IJob>
         {
             job0,

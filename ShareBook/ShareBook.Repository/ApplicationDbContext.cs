@@ -22,6 +22,8 @@ namespace ShareBook.Repository
         public DbSet<Meetup> Meetups { get; set; }
         public DbSet<MeetupParticipant> MeetupParticipants { get; set; }
 
+        public DbSet<MailBounce> MailBounces { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -33,6 +35,7 @@ namespace ShareBook.Repository
             new AddressMap(modelBuilder.Entity<Address>());
             new JobHistoryMap(modelBuilder.Entity<JobHistory>());
             new LogEntryMap(modelBuilder.Entity<LogEntry>());
+            new MailBounceMap(modelBuilder.Entity<MailBounce>());
 
             //O Contexto procura pelas classes que implementam IEntityTypeConfiguration adicionando o mapeamento de forma automática.
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);

@@ -11,7 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2 - Service", "2 - Service"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShareBook.Service", "ShareBook.Service\ShareBook.Service.csproj", "{808B5265-CBA4-4A6F-84B4-78833C9C6418}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "4 - Infrastructure", "4 - Infrastructure", "{F4693E98-387E-4804-A818-FEC59FEDD41C}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "4 - Infra", "4 - Infra", "{F4693E98-387E-4804-A818-FEC59FEDD41C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3 - Helper", "3 - Helper", "{2CB49962-4574-4BFD-93FC-9C8B1D409D37}"
 EndProject
