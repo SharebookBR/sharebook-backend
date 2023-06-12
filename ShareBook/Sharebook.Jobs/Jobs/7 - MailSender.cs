@@ -85,7 +85,6 @@ public class MailSender : GenericJob, IJob
 
         var emails = destinations.Select(x => x.Email).ToList();
         var bounces = _emailService.GetBounces(emails).Result;
-        var totalBounces = 0;
 
         foreach (var destination in destinations)
         {
@@ -93,7 +92,6 @@ public class MailSender : GenericJob, IJob
                 if (_emailService.IsBounce(destination.Email, bounces))
                 {
                     _log.Add($"Não enviei email para {destination.Email} porque está em estado de BOUNCE.");
-                    totalBounces++;
                     continue;
                 }
 
@@ -112,7 +110,7 @@ public class MailSender : GenericJob, IJob
             Thread.Sleep(100);
         }
         
-        return destinations.Count - totalBounces;
+        return destinations.Count;
     }
 
     private static string GetFirstName(string fullName)
