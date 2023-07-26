@@ -105,8 +105,16 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
 
     private int GetEmailMaxDestinationsPerQueueMessage()
     {
+        // O MailSender é invocado 10x a cada hora.
+        var mailSenderInvocationsPerHour = 10;
+
+        // Queremos que o MailSender processe 3 mensagens sqs pra fazer seu trabalho
+        var totalSqsMessagensPerWork = 3;
+        
         var maxEmailsPerHour = int.Parse(_configuration["EmailSettings:MaxEmailsPerHour"]);
-        return maxEmailsPerHour / 12;
+        return (maxEmailsPerHour / mailSenderInvocationsPerHour) / totalSqsMessagensPerWork;
+
+        // 
     }
 
     private string GetEmailTemplate(Guid bookId){
