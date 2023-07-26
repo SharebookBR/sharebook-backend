@@ -22,7 +22,7 @@ namespace ShareBook.Api.Controllers
 
         public PagedList<Meetup> Get(int? page, int? pageSize, bool upcoming = false)
         {
-            return _meetupService.Get(upcoming ? x => x.StartDate > DateTime.Now : x => x.StartDate <= DateTime.Now, x => x.StartDate, page ?? 1, pageSize ?? 10);
+            return _meetupService.Get(upcoming ? x => x.Active && x.StartDate > DateTime.Now : x => x.Active && x.StartDate <= DateTime.Now, x => x.StartDate, page ?? 1, pageSize ?? 10);
         }
 
         [HttpGet("{id}")]

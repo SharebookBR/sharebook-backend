@@ -19,5 +19,6 @@ namespace ShareBook.Domain
         public string SymplaEventUrl { get; set; }
         public ICollection<MeetupParticipant> MeetupParticipants { get; set; }
         public bool IsParticipantListSynced { get; set; } = false;
+        public bool Active { get; set; } = true;
     }
 }

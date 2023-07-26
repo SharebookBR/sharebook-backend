@@ -216,7 +216,7 @@ namespace ShareBook.Service
         public IList<Meetup> Search(string criteria)
         {
             return _repository.Get()
-                .Where(m => m.Title.ToUpper().Contains(criteria.ToUpper()) || m.Description.ToUpper().Contains(criteria.ToUpper()))
+                .Where(m => m.Active && ( m.Title.ToUpper().Contains(criteria.ToUpper()) || m.Description.ToUpper().Contains(criteria.ToUpper())))
                 .OrderByDescending(m => m.CreationDate)
                 .ToList();
         }
