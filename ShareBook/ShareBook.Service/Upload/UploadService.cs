@@ -33,12 +33,6 @@ namespace ShareBook.Service.Upload
 
             var testPath = Path.Combine(directoryBase, imageName);
 
-            if (File.Exists(testPath))
-            {
-                var extension = Path.GetExtension(imageName);
-                imageName = Path.GetFileNameWithoutExtension(testPath) + DateTimeOffset.Now.ToUnixTimeSeconds() + extension;
-            }
-
             UploadFile(imageBytes, imageName, dinamicDirectory);
 
             return GetImageUrl(imageName, lastDirectory);
