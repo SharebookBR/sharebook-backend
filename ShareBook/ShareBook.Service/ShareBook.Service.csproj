@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.SQS" Version="3.5.1.10" />
-    <PackageReference Include="Flurl.Http" Version="3.0.1" />
+    <PackageReference Include="AWSSDK.SQS" Version="3.7.300.74" />
+    <PackageReference Include="Flurl.Http" Version="4.0.2" />
     <PackageReference Include="MailKit" Version="2.15.0" />
     <PackageReference Include="OneSignal.RestAPIv3.Client" Version="1.2.0" />
     <PackageReference Include="Rollbar" Version="4.0.3" />
