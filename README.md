@@ -54,8 +54,9 @@ https://trello.com/invite/sharebook6/928f21ef82592b5edafde06f171d338b
 </br>
 
 ## **6 - Rodar o app pela primeira vez?**
-- Instalar o .NET SDK 6 (stable)
-https://github.com/SharebookBR/sharebook-backend/wiki/Como-rodar-o-projeto%3F
+
+- Instalar o .NET SDK 8 (stable)
+  https://github.com/SharebookBR/sharebook-backend/wiki/Como-rodar-o-projeto%3F
 
 ## **7 - Dicas Visual Studio Code**
 
