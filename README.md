@@ -67,7 +67,7 @@ Nosso projeto já está configurado para você debugar e testar pelo vs code. S�
 - [GitLens](https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens)
 - [.NET Core Test Explorer](https://marketplace.visualstudio.com/items?itemName=formulahendry.dotnet-test-explorer)
 
-Caso prefira linha de comando, segue uma colinha...
+Caso prefira linha de comando, segue uma colinha... 
 
 ```bash
 # restaurar dependências
