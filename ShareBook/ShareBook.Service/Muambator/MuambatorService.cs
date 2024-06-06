@@ -53,7 +53,7 @@ namespace ShareBook.Service.Muambator
 
       try
       {
-        result = await url.DeleteAsync().ReceiveJson();
+        result = await url.DeleteAsync().ReceiveJson<MuambatorDTO>();
       }
       catch (FlurlHttpTimeoutException)
       {

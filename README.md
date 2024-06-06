@@ -27,35 +27,36 @@ https://trello.com/invite/sharebook6/928f21ef82592b5edafde06f171d338b
 
 </br>
 
-## **4 - GITHUB** 
+## **4 - GITHUB**
 
--  **4.1 FAÇA UM FORK DO REPOSITÓRIO:** https://github.com/SharebookBR/sharebook-backend
+- **4.1 FAÇA UM FORK DO REPOSITÓRIO:** https://github.com/SharebookBR/sharebook-backend
 
-- **4.2 Crie uma branch baseada na branch original `develop`** 
+- **4.2 Crie uma branch baseada na branch original `develop`**
 
-    (experimente: `git checkout develop && git checkout -b nomeDaSuaNovaBranch`)
+  (experimente: `git checkout develop && git checkout -b nomeDaSuaNovaBranch`)
 
 - **4.3 Escreva seu código** ❤️
 
-    **Nota:** Não esqueça de garantir que todos os testes unitários continuem sendo executados corretamente.
+  **Nota:** Não esqueça de garantir que todos os testes unitários continuem sendo executados corretamente.
 
 - **4.4 Crie sua PR apontando para a branch base `develop`** (conforme imagem abaixo)
 
 ![image](https://user-images.githubusercontent.com/51380783/145312556-54b67a73-e62d-48c0-9a6f-1932901f8409.png)
 
- - **4.5 Aguarde/acompanhe o status do seu PR**
+- **4.5 Aguarde/acompanhe o status do seu PR**
 
- - **4.6 Compartilhe/convide um amigo para contribuir com o ShareBook**
+- **4.6 Compartilhe/convide um amigo para contribuir com o ShareBook**
 
 </br>
 
-## **---> ❤️ MISSÃO CUMPRIDA. VOCÊ AJUDOU O PROJETO. ❤️ <---** 
+## **---> ❤️ MISSÃO CUMPRIDA. VOCÊ AJUDOU O PROJETO. ❤️ <---**
 
 </br>
 
 ## **6 - Rodar o app pela primeira vez?**
-- Instalar o .NET SDK 6 (stable)
-https://github.com/SharebookBR/sharebook-backend/wiki/Como-rodar-o-projeto%3F
+
+- Instalar o .NET SDK 8 (stable)
+  https://github.com/SharebookBR/sharebook-backend/wiki/Como-rodar-o-projeto%3F
 
 ## **7 - Dicas Visual Studio Code**
 
