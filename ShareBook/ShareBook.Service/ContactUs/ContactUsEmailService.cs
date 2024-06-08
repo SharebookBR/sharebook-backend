@@ -1,5 +1,4 @@
 ﻿using ShareBook.Domain;
-using ShareBook.Service.AwsSqs;
 using System.Threading.Tasks;
 
 namespace ShareBook.Service
@@ -21,18 +20,18 @@ namespace ShareBook.Service
             _emailService = emailService;
             _emailTemplate = emailTemplate;
         }
-        public async Task SendEmailContactUs(ContactUs contactUs)
+        public async Task SendEmailContactUsAsync(ContactUs contactUs)
         {
-            await SendEmailContactUsToAdministrator(contactUs);
+            await SendEmailContactUsToAdministratorAsync(contactUs);
 
-            await SendEmailNotificationToUser(contactUs);
+            await SendEmailNotificationToUserAsync(contactUs);
         }
-        private async Task SendEmailContactUsToAdministrator(ContactUs contactUs)
+        private async Task SendEmailContactUsToAdministratorAsync(ContactUs contactUs)
         {
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(ContactUsTemplate, contactUs);
             await _emailService.SendToAdmins(html, ContactUsTitle);
         }
-        private async Task SendEmailNotificationToUser(ContactUs contactUs)
+        private async Task SendEmailNotificationToUserAsync(ContactUs contactUs)
         {
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(ContactUsNotificationTemplate, contactUs);
             await _emailService.Send(contactUs.Email, contactUs.Name, html, ContactUsNotificationTitle, copyAdmins: false, highPriority: true);

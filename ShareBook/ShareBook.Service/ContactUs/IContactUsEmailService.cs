@@ -5,6 +5,6 @@ namespace ShareBook.Service
 {
     public interface IContactUsEmailService
     {
-        Task SendEmailContactUs(ContactUs contactUs);
+        Task SendEmailContactUsAsync(ContactUs contactUs);
     }
 }

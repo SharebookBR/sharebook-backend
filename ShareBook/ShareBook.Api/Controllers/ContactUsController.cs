@@ -5,6 +5,7 @@ using ShareBook.Api.ViewModels;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Service;
+using System.Threading.Tasks;
 
 namespace ShareBook.Api.Controllers
 {
@@ -23,11 +24,11 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpPost("SendMessage")]
-        public Result<ContactUs> SendMessage([FromBody]ContactUsVM contactUsVM)
+        public async Task<Result<ContactUs>> SendMessageAsync([FromBody]ContactUsVM contactUsVM)
         {
             var contactUS = _mapper.Map<ContactUs>(contactUsVM);
 
-            return _contactUsService.SendContactUs(contactUS, contactUsVM?.RecaptchaReactive);
+            return await _contactUsService.SendContactUsAsync(contactUS, contactUsVM?.RecaptchaReactive);
         }
     }
 }
