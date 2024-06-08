@@ -185,6 +185,7 @@ namespace ShareBook.Service
 
         public override Result<Book> Insert(Book entity)
         {
+            // TODO: Migrate to Async and remove ".GetAwaiter().GetResult()" and ".Wait()"
             entity.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
 
             EBookValidate(entity);
@@ -197,11 +198,11 @@ namespace ShareBook.Service
                 entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, entity.Slug);
 
                 if (entity.IsEbookPdfValid())
-                    entity.EBookPdfFile = _uploadService.UploadPdf(entity.EBookPdfBytes, entity.EBookPdfFile, "EBooks");
+                    entity.EBookPdfFile = _uploadService.UploadPdfAsync(entity.EBookPdfBytes, entity.EBookPdfFile, "EBooks").GetAwaiter().GetResult();
 
                 result.Value = _repository.Insert(entity);
 
-                result.Value.ImageUrl = _uploadService.UploadImage(entity.ImageBytes, entity.ImageSlug, "Books");
+                result.Value.ImageUrl = _uploadService.UploadImageAsync(entity.ImageBytes, entity.ImageSlug, "Books").GetAwaiter().GetResult();
 
                 result.Value.ImageBytes = null;
 
@@ -212,6 +213,7 @@ namespace ShareBook.Service
 
         public override Result<Book> Update(Book entity)
         {
+            // TODO: Migrate to Async and remove ".GetAwaiter().GetResult()" and ".Wait()"
             Result<Book> result = Validate(entity, x =>
                 x.Title,
                 x => x.Author,
@@ -234,7 +236,7 @@ namespace ShareBook.Service
             if (!string.IsNullOrEmpty(entity.ImageName) && entity.ImageBytes.Length > 0)
             {
                 entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, savedBook.Slug);
-                _uploadService.UploadImage(entity.ImageBytes, savedBook.ImageSlug, "Books");
+                _uploadService.UploadImageAsync(entity.ImageBytes, savedBook.ImageSlug, "Books").GetAwaiter().GetResult();
             }
 
             //preparar o book para atualização

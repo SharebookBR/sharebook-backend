@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using Flurl;
 using Flurl.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using ShareBook.Domain;
 using ShareBook.Domain.Exceptions;
@@ -210,15 +211,15 @@ namespace ShareBook.Service
 
             var imageName = ImageHelper.FormatImageName(fileName, imageSlug);
 
-            return _uploadService.UploadImage(resizedImageBytes, imageName, "Meetup");
+            return await _uploadService.UploadImageAsync(resizedImageBytes, imageName, "Meetup");
         }
 
-        public IList<Meetup> Search(string criteria)
+        public async Task<IList<Meetup>> SearchAsync(string criteria)
         {
-            return _repository.Get()
-                .Where(m => m.Active && ( m.Title.ToUpper().Contains(criteria.ToUpper()) || m.Description.ToUpper().Contains(criteria.ToUpper())))
+            return await _repository.Get()
+                .Where(m => m.Active && ( m.Title.Contains(criteria, StringComparison.InvariantCultureIgnoreCase) || m.Description.Contains(criteria, StringComparison.InvariantCultureIgnoreCase)))
                 .OrderByDescending(m => m.CreationDate)
-                .ToList();
+                .ToListAsync();
         }
     }
 }
