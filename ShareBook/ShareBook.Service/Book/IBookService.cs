@@ -5,6 +5,7 @@ using ShareBook.Domain.Enums;
 using ShareBook.Service.Generic;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ShareBook.Service
 {
@@ -35,9 +36,9 @@ namespace ShareBook.Service
 
         IList<Book> GetUserDonations(Guid userId);
 
-        IList<Book> GetBooksChooseDateIsToday();
+        Task<IList<Book>> GetBooksChooseDateIsTodayAsync();
 
-        IList<Book> GetBooksChooseDateIsLate();
+        Task<IList<Book>> GetBooksChooseDateIsLateAsync();
 
         IList<Book> GetBooksChooseDateIsTodayOrLate();
 

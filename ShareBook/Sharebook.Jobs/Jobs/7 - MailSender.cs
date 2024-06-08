@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Sharebook.Jobs;
 
@@ -45,25 +46,24 @@ public class MailSender : GenericJob, IJob
         _log = new List<string>();       
     }
 
-    public override JobHistory Work()
+    public override async Task<JobHistory> WorkAsync()
     {
         AwsSqsEnabledValidation();
         
         var maxEmailsToSend = GetMaxEmailsToSend();
         var totalEmailsSent = 0;
         
-        _log = new List<string>();
-        _log.Add($"Iniciando o MailSender. maxEmailsToSend = {maxEmailsToSend}");
+        _log = new List<string>() { $"Iniciando o MailSender. maxEmailsToSend = {maxEmailsToSend}" };
 
         while(totalEmailsSent < maxEmailsToSend) {
-            var sqsMessage = GetSqsMessage();
+            var sqsMessage = await GetSqsMessageAsync();
 
             // não tem mais emails pra enviar
             if(sqsMessage == null) break;
 
-            totalEmailsSent += SendEmail(sqsMessage);
+            totalEmailsSent += await SendEmailAsync(sqsMessage);
             
-            DeleteSqsMessage(sqsMessage);
+            await DeleteSqsMessageAsync(sqsMessage);
         }
 
         _log.Add($"Finalizando o MailSender. totalEmailsSent = {totalEmailsSent}");
@@ -76,7 +76,7 @@ public class MailSender : GenericJob, IJob
         };
     }
 
-    private int SendEmail(SharebookMessage<MailSenderbody> sqsMessage)
+    private async Task<int> SendEmailAsync(SharebookMessage<MailSenderbody> sqsMessage)
     {
         var destinations = sqsMessage.Body.Destinations;
         var subject = sqsMessage.Body.Subject;
@@ -84,7 +84,7 @@ public class MailSender : GenericJob, IJob
         var copyAdmins = sqsMessage.Body.CopyAdmins;
 
         var emails = destinations.Select(x => x.Email).ToList();
-        var bounces = _emailService.GetBounces(emails).Result;
+        var bounces = await _emailService.GetBounces(emails);
 
         foreach (var destination in destinations)
         {
@@ -97,7 +97,7 @@ public class MailSender : GenericJob, IJob
 
                 string firstName = GetFirstName(destination.Name);
                 var bodyHtml2 = bodyHtml.Replace("{name}", firstName, StringComparison.OrdinalIgnoreCase);
-                _emailService.SendSmtp(destination.Email, destination.Name, bodyHtml2, subject, copyAdmins).Wait();
+                await _emailService.SendSmtp(destination.Email, destination.Name, bodyHtml2, subject, copyAdmins);
 
                 _log.Add($"Enviei um email com SUCESSO para {destination.Email}.");
             }
@@ -122,13 +122,13 @@ public class MailSender : GenericJob, IJob
         return nameParts[0];
     }
 
-    private SharebookMessage<MailSenderbody> GetSqsMessage()
+    private async Task<SharebookMessage<MailSenderbody>> GetSqsMessageAsync()
     {
-        var sqsMessage = _sqsHighPriority.GetMessage()?.Result;
+        var sqsMessage = await _sqsHighPriority.GetMessage();
         _lastQueue = "HighPriority";
     
         if(sqsMessage == null) {
-            sqsMessage = _sqsLowPriority.GetMessage()?.Result;
+            sqsMessage = await _sqsLowPriority.GetMessage();
             _lastQueue = "LowPriority";
         }
 
@@ -140,14 +140,14 @@ public class MailSender : GenericJob, IJob
         return sqsMessage;
     }
 
-    private void DeleteSqsMessage(SharebookMessage<MailSenderbody> sqsMessage)
+    private async Task DeleteSqsMessageAsync(SharebookMessage<MailSenderbody> sqsMessage)
     {
         _log.Add($"Removendo a mensagem da fila. _lastQueue = {_lastQueue}");
         
         if(_lastQueue == "HighPriority")
-            _sqsHighPriority.DeleteMessage(sqsMessage.ReceiptHandle).Wait();
+            await _sqsHighPriority.DeleteMessage(sqsMessage.ReceiptHandle);
         else
-            _sqsLowPriority.DeleteMessage(sqsMessage.ReceiptHandle).Wait();
+            await _sqsLowPriority.DeleteMessage(sqsMessage.ReceiptHandle);
     }
 
     private int GetMaxEmailsToSend()

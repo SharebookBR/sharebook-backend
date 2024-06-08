@@ -1,7 +1,6 @@
 ﻿using FluentValidation;
 using Flurl;
 using Flurl.Http;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ShareBook.Domain;
 using ShareBook.Domain.Exceptions;
@@ -32,23 +31,23 @@ namespace ShareBook.Service
             _participantRepository = meetupParticipantRepository;
         }
 
-        public async Task<IList<string>> FetchMeetups()
+        public async Task<IList<string>> FetchMeetupsAsync()
         {
             var logs = new List<string>();
 
             if (!_settings.IsActive) throw new Exception("O Serviço de busca de meetups está desativado no appSettings.");
 
-            var newMeetups = await GetMeetupsFromSympla();
-            var newYoutubeVideos = await GetYoutubeVideos();
+            var newMeetups = await GetMeetupsFromSymplaAsync();
+            var newYoutubeVideos = await GetYoutubeVideosAsync();
 
-            await SyncMeetupParticipantsList(logs);
+            await SyncMeetupParticipantsListAsync(logs);
 
             logs.Add($"Foram encontradas {newMeetups} novas meetups e {newYoutubeVideos} novos vídeos relacionados");
 
             return logs;
         }
 
-        private async Task SyncMeetupParticipantsList(IList<string> logs)
+        private async Task SyncMeetupParticipantsListAsync(IList<string> logs)
         {
             // Carrega os inscritos no evento um dia após o evento ser feito. Carrega apenas 5 para poupar recursos.
             var meetups = _repository.Get().Where(x => x.StartDate < DateTime.Now.AddDays(1) && !x.IsParticipantListSynced).Take(5).ToList();
@@ -60,20 +59,20 @@ namespace ShareBook.Service
                 // evento não teve inscrição no sympla. Raro mas aconteceu.
                 if (meetup.SymplaEventId == -1) continue;
 
-                var meetupParticipants = await GetMeetupParticipants(meetup.SymplaEventId);
+                var meetupParticipants = await GetMeetupParticipantsAsync(meetup.SymplaEventId);
                 foreach (var participant in meetupParticipants)
                 {
                     participant.Meetup = meetup;
-                    _participantRepository.Insert(participant);
+                    await _participantRepository.InsertAsync(participant);
                 }
                 meetup.IsParticipantListSynced = true;
-                _repository.Update(meetup);
+                await _repository.UpdateAsync(meetup);
 
                 logs.Add($"Adicionei {meetupParticipants.Count} inscritos no meetup '{meetup.Title}'.");
             }
         }
 
-        private async Task<int> GetYoutubeVideos()
+        private async Task<int> GetYoutubeVideosAsync()
         {
             var meetups = _repository.Get(x => x.YoutubeUrl == null, x => x.StartDate);
 
@@ -106,13 +105,14 @@ namespace ShareBook.Service
 
             if (updatedMeetups.Any())
             {
+                // TODO: Migrate to async
                 updatedMeetups.ForEach(m => _repository.Update(m));
             }
 
             return updatedMeetups.Count;
         }
 
-        private async Task<int> GetMeetupsFromSympla()
+        private async Task<int> GetMeetupsFromSymplaAsync()
         {
             int eventsAdded = 0;
             SymplaDto symplaDto;
@@ -128,11 +128,11 @@ namespace ShareBook.Service
                             .GetJsonAsync<SymplaDto>();
                 foreach (var symplaEvent in symplaDto.Data)
                 {
-                    if (!_repository.Any(s => s.SymplaEventId == symplaEvent.Id))
+                    if (!await _repository.AnyAsync(s => s.SymplaEventId == symplaEvent.Id))
                     {
-                        var coverUrl = await UploadCover(symplaEvent.Image, symplaEvent.Name);
+                        var coverUrl = await UploadCoverAsync(symplaEvent.Image, symplaEvent.Name);
 
-                        _repository.Insert(new Meetup
+                        await _repository.InsertAsync(new Meetup
                         {
                             SymplaEventId = symplaEvent.Id,
                             SymplaEventUrl = symplaEvent.Url,
@@ -154,7 +154,7 @@ namespace ShareBook.Service
 
             return eventsAdded;
         }
-        private async Task<IList<MeetupParticipant>> GetMeetupParticipants(int eventId)
+        private async Task<IList<MeetupParticipant>> GetMeetupParticipantsAsync(int eventId)
         {
             IList<MeetupParticipant> participants = new List<MeetupParticipant>();
             int page = 1;
@@ -198,7 +198,7 @@ namespace ShareBook.Service
             }
         }
 
-        private async Task<string> UploadCover(string coverUrl, string eventName)
+        private async Task<string> UploadCoverAsync(string coverUrl, string eventName)
         {
             var imageBytes = await GetCoverImageBytesAsync(coverUrl);
 

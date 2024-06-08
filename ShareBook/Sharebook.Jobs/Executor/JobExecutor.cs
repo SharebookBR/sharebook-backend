@@ -6,6 +6,7 @@ using ShareBook.Repository;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Sharebook.Jobs;
 
@@ -45,7 +46,7 @@ public class JobExecutor : IJobExecutor
 
     }
 
-    public JobExecutorResult Execute()
+    public async Task<JobExecutorResult> ExecuteAsync()
     {
         _stopwatch = Stopwatch.StartNew();
 
@@ -65,7 +66,7 @@ public class JobExecutor : IJobExecutor
                 if (job.HasWork())
                 {
 
-                    var result = job.Execute();
+                    var result = await job.ExecuteAsync();
 
                     switch(result)
                     {
