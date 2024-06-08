@@ -1,6 +1,7 @@
 ﻿using ShareBook.Domain;
 using ShareBook.Service;
 using ShareBook.Test.Unit.Mocks;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace ShareBook.Test.Unit.Services
@@ -40,11 +41,11 @@ namespace ShareBook.Test.Unit.Services
         }
 
         [Fact]
-        public void VerifyEmailNewBookInsertedParse()
+        public async Task VerifyEmailNewBookInsertedParse()
         {
             var vm = new { Book = book };
 
-            var result = emailTemplate.GenerateHtmlFromTemplateAsync("NewBookInsertedTemplate", vm).Result;
+            var result = await emailTemplate.GenerateHtmlFromTemplateAsync("NewBookInsertedTemplate", vm);
             //<!DOCTYPE html>\r\n<html lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\">\r\n<head>\r\n    <meta charset=\"utf-8\" />\r\n    <title>Novo livro cadastrado - Sharebook</title>\r\n</head>\r\n<body>\r\n    <p>\r\n        Olá Cussa Mitre,\r\n    </p>\r\n    <p>\r\n        Um novo livro foi cadastrado. Veja mais informações abaixo:\r\n    </p>\r\n\r\n    <ul>\r\n        <li><strong>Livro: </strong>Lord of the Rings</li>\r\n        <li><strong>Autor: </strong>J. R. R. Tolkien</li>\r\n        <li><strong>Usuário: </strong>Rodrigo</li>\r\n    </ul>\r\n\r\n    <p>Sharebook</p>\r\n</body>\r\n</html>
 
             Assert.Contains("Olá Administrador(a),", result);
@@ -57,7 +58,7 @@ namespace ShareBook.Test.Unit.Services
         }        
 
         [Fact]
-        public void VerifyEmailBookApprovedParse()
+        public async Task VerifyEmailBookApprovedParse()
         {
             var vm = new
             {
@@ -66,7 +67,7 @@ namespace ShareBook.Test.Unit.Services
                 ChooseDate = book.ChooseDate?.ToString("dd/MM/yyyy")
             };
 
-            var result = emailTemplate.GenerateHtmlFromTemplateAsync("BookApprovedTemplate", vm).Result;
+            var result = await emailTemplate.GenerateHtmlFromTemplateAsync("BookApprovedTemplate", vm);
 
             Assert.Contains("<title>Livro aprovado - Sharebook</title>", result);
             Assert.Contains("Olá Rodrigo", result);
@@ -76,7 +77,7 @@ namespace ShareBook.Test.Unit.Services
         }
 
         [Fact]
-        public void VerifyEmailContactUsNotificationParse()
+        public async Task VerifyEmailContactUsNotificationParse()
         {
 
             var contactUs = new ContactUs()
@@ -86,15 +87,15 @@ namespace ShareBook.Test.Unit.Services
             };
           
 
-            var result = emailTemplate.GenerateHtmlFromTemplateAsync("ContactUsNotificationTemplate", contactUs).Result;
+            var result = await emailTemplate.GenerateHtmlFromTemplateAsync("ContactUsNotificationTemplate", contactUs);
             Assert.Contains("Olá, Rafael Rocha", result);
 
         }
 
         [Fact]
-        public void VerifyEmailContactUsTemplateParse()
+        public async Task VerifyEmailContactUsTemplateParse()
         {
-            var result = emailTemplate.GenerateHtmlFromTemplateAsync("ContactUsTemplate", contactUs).Result;
+            var result = await emailTemplate.GenerateHtmlFromTemplateAsync("ContactUsTemplate", contactUs);
 
             Assert.Contains("<b>Nome:</b> Rafael Rocha", result);
             Assert.Contains("<b>Email:</b> rafael@sharebook.com.br", result);

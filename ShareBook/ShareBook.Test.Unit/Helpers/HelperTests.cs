@@ -2,6 +2,7 @@
 using ShareBook.Helper.Image;
 using Xunit;
 using Flurl.Http;
+using System.Threading.Tasks;
 
 namespace ShareBook.Test.Unit.Helpers
 {
@@ -141,11 +142,11 @@ namespace ShareBook.Test.Unit.Helpers
         }
         
         [Fact]
-        public void ImageResize()
+        public async Task ImageResize()
         {
             var imageurl = "https://images.sympla.com.br/62b34c1818c0f.png";
 
-            var imageBytes = imageurl.GetBytesAsync().Result;
+            var imageBytes = await imageurl.GetBytesAsync();
             var result = ImageHelper.ResizeImage(imageBytes, 50);
             Assert.Equal(typeof(byte[]), result.GetType());
         }
