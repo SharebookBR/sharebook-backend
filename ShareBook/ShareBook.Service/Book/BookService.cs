@@ -256,7 +256,8 @@ namespace ShareBook.Service
             if (entity.UserIdFacilitator.HasValue && entity.UserIdFacilitator != Guid.Empty)
                 savedBook.UserIdFacilitator = entity.UserIdFacilitator;
 
-            result.Value = _repository.UpdateAsync(savedBook).Result;
+            // TODO: Remove "GetAwaiter().GetResult()"
+            result.Value = _repository.UpdateAsync(savedBook).GetAwaiter().GetResult();
             result.Value.ImageBytes = null;
 
             return result;
