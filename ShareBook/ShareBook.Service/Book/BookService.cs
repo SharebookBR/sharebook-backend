@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace ShareBook.Service
 {
@@ -255,7 +256,8 @@ namespace ShareBook.Service
             if (entity.UserIdFacilitator.HasValue && entity.UserIdFacilitator != Guid.Empty)
                 savedBook.UserIdFacilitator = entity.UserIdFacilitator;
 
-            result.Value = _repository.UpdateAsync(savedBook).Result;
+            // TODO: Remove "GetAwaiter().GetResult()"
+            result.Value = _repository.UpdateAsync(savedBook).GetAwaiter().GetResult();
             result.Value.ImageBytes = null;
 
             return result;
@@ -308,32 +310,32 @@ namespace ShareBook.Service
                 .ToList();
         }
 
-        public IList<Book> GetBooksChooseDateIsToday()
+        public async Task<IList<Book>> GetBooksChooseDateIsTodayAsync()
         {
             // limite é o dia de hoje.
             DateTime startDateTime = DateTime.Today; //Today at 00:00:00
             DateTime endDateTime = DateTime.Today.AddDays(1).AddTicks(-1); //Today at 23:59:59
 
             // livros em que o choosedate é hoje.
-            var books = _repository
-            .Get().Include(x => x.User).Include(x => x.BookUsers).Include(x => x.UserFacilitator)
-            .Where(x =>
-                x.ChooseDate >= startDateTime &&
-                x.ChooseDate <= endDateTime
-            ).ToList();
+            var books = await _repository
+                .Get().Include(x => x.User).Include(x => x.BookUsers).Include(x => x.UserFacilitator)
+                .Where(x =>
+                    x.ChooseDate >= startDateTime &&
+                    x.ChooseDate <= endDateTime
+                ).ToListAsync();
 
             return books;
         }
 
-        public IList<Book> GetBooksChooseDateIsLate()
+        public async Task<IList<Book>> GetBooksChooseDateIsLateAsync()
         {
             DateTime today = DateTime.Today;
 
-            var booksLate = _repository
-            .Get().Include(x => x.User).Include(x => x.BookUsers).Include(x => x.UserFacilitator)
-            .Where(x => x.ChooseDate < today && x.Status == BookStatus.AwaitingDonorDecision)
-            .OrderBy(x => x.ChooseDate)
-            .ToList();
+            var booksLate = await _repository
+                .Get().Include(x => x.User).Include(x => x.BookUsers).Include(x => x.UserFacilitator)
+                .Where(x => x.ChooseDate < today && x.Status == BookStatus.AwaitingDonorDecision)
+                .OrderBy(x => x.ChooseDate)
+                .ToListAsync();
 
             return booksLate;
         }

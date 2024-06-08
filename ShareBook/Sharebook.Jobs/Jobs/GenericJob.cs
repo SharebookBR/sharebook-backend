@@ -7,10 +7,11 @@ using ShareBook.Repository;
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Sharebook.Jobs
 {
-    public class GenericJob
+    public abstract class GenericJob
     {
         public string JobName { get; set; }
         public string Description { get; set; }
@@ -22,7 +23,7 @@ namespace Sharebook.Jobs
 
         protected Stopwatch _stopwatch;
 
-        public GenericJob(IJobHistoryRepository jobHistoryRepo)
+        protected GenericJob(IJobHistoryRepository jobHistoryRepo)
         {
             _jobHistoryRepo = jobHistoryRepo;
         }
@@ -39,10 +40,11 @@ namespace Sharebook.Jobs
 
             var hasHistory =
             _jobHistoryRepo.Get()
-            .Where(x => x.CreationDate > DateLimit &&
-                   x.JobName == JobName &&
-                   x.IsSuccess == true)
-            .ToList().Any();
+                .Where(
+                    x => x.CreationDate > DateLimit &&
+                    x.JobName == JobName &&
+                    x.IsSuccess)
+                .Any();
 
             return !hasHistory;
         }
@@ -86,11 +88,11 @@ namespace Sharebook.Jobs
             return result;
         }
 
-        public JobResult Execute()
+        public async Task<JobResult> ExecuteAsync()
         {
             try {
                 BeforeWork();
-                var history = Work();
+                var history = await WorkAsync();
                 AfterWork(history);
 
                 return JobResult.Success;
@@ -111,8 +113,7 @@ namespace Sharebook.Jobs
             
         }
 
-        // Sempre sobrescrito pelo Job real.
-        public virtual JobHistory Work() => new JobHistory();
+        public abstract Task<JobHistory> WorkAsync();
 
         protected void BeforeWork()
         {
@@ -123,7 +124,7 @@ namespace Sharebook.Jobs
         {
             _stopwatch.Stop();
 
-            history.TimeSpentSeconds = ((double)_stopwatch.ElapsedMilliseconds / (double)1000); ;
+            history.TimeSpentSeconds = ((double)_stopwatch.ElapsedMilliseconds / (double)1000);
             _jobHistoryRepo.Insert(history);
         }
 

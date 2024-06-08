@@ -4,10 +4,10 @@ using ShareBook.Domain.DTOs;
 using ShareBook.Domain.Enums;
 using ShareBook.Repository;
 using ShareBook.Service;
-using ShareBook.Service.AwsSqs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Sharebook.Jobs;
 
@@ -42,16 +42,16 @@ public class LateDonationNotification : GenericJob, IJob
 
     }
 
-    public override JobHistory Work()
+    public override async Task<JobHistory> WorkAsync()
     {
         var status = _bookService.GetStats();
-        var booksLate = _bookService.GetBooksChooseDateIsLate();
+        var booksLate = await _bookService.GetBooksChooseDateIsLateAsync();
         var donators = GetDistinctDonators(booksLate);
 
         var details = $"Encontradas {booksLate.Count} doações em atraso de {donators.Count} doadores distintos.";
         if (booksLate.Count > 0){
-            SendEmailAdmin(booksLate, status);
-            SendEmailDonators(donators, ref details);
+            await SendEmailAdminAsync(booksLate, status);
+            details += await SendEmailDonatorsAsync(donators);
         }
 
         return new JobHistory()
@@ -71,7 +71,7 @@ public class LateDonationNotification : GenericJob, IJob
         return booksLate.Select(b => b.User).Distinct().ToList();
     }
 
-    private void SendEmailAdmin(IList<Book> booksLate, BookStatsDTO status)
+    private async Task SendEmailAdminAsync(IList<Book> booksLate, BookStatsDTO status)
     {
         var htmlTable = "<TABLE border=1 cellpadding=3 cellspacing=0><TR bgcolor='#ffff00'><TD><b>LIVRO</b></TD><TD><b>DIAS DE <BR>ATRASO</b></TD><TD><b>TOTAL <br>INTERESSADOS</b></TD><TD><b>DOADOR</b></TD><TD><b>FACILITADOR</b></TD><TD><b>ANOTAÇÕES</b></TD></TR>";
 
@@ -101,9 +101,9 @@ public class LateDonationNotification : GenericJob, IJob
             totalLate = booksLate.Count,
             totalOk = status.TotalOk
         };
-        var emailBodyHTML = _emailTemplate.GenerateHtmlFromTemplateAsync("LateDonationNotification", vm).Result;
+        var emailBodyHTML = await _emailTemplate.GenerateHtmlFromTemplateAsync("LateDonationNotification", vm);
 
-        _emailService.SendToAdmins(emailBodyHTML, emailSubject);
+        await _emailService.SendToAdmins(emailBodyHTML, emailSubject);
     }
 
     private string GetWhatsappLink(string phone)
@@ -116,8 +116,9 @@ public class LateDonationNotification : GenericJob, IJob
         return link;
     }
 
-    private void SendEmailDonators(IList<User> donators, ref string details)
+    private async Task<string> SendEmailDonatorsAsync(IList<User> donators)
     {
+        string details = string.Empty;
         foreach (var donator in donators)
         {
             if (!donator.Active)
@@ -127,15 +128,16 @@ public class LateDonationNotification : GenericJob, IJob
             }
 
             if (donator.HasAbandonedDonation(maxLateDonationDays))
-                SendEmailDonatorHard(donator);
+                await SendEmailDonatorHardAsync(donator);
             else
-                SendEmailDonatorSoft(donator);
+                await SendEmailDonatorSoftAsync(donator);
                 
             details += "E-mail enviado para o usuário: " + donator.Name;
         }
+        return details;
     }
 
-    private void SendEmailDonatorHard(User donator)
+    private async Task SendEmailDonatorHardAsync(User donator)
     {
         var html = $"<p>Bom dia. Consta em nosso sistema que você tem uma doação abandonada no sharebook com mais de {maxLateDonationDays} dias de atraso.</p>";
         html += "<p>Essa é uma situação grave porque temos muitos usuários aguardando sua decisão. Pessoas humildes que desejam e precisam do livro que vc se propôs a doar em nosso app.</p>";
@@ -148,10 +150,10 @@ public class LateDonationNotification : GenericJob, IJob
 
         var emailSubject = "Doação abandonada no Sharebook. Urgente!";
 
-        _emailService.Send(donator.Email, donator.Name, html, emailSubject, copyAdmins: true, highPriority: true).Wait();
+        await _emailService.Send(donator.Email, donator.Name, html, emailSubject, copyAdmins: true, highPriority: true);
     }
 
-    private void SendEmailDonatorSoft(User donator)
+    private async Task SendEmailDonatorSoftAsync(User donator)
     {
         var html = "<p>Bom dia! Aqui é o Sharebook. Vim aqui pra te ajudar a concluir a doação do seu livro.</p>";
         html += "<p>Por favor entre no Sharebook e escolha o ganhador.</p>";
@@ -161,7 +163,7 @@ public class LateDonationNotification : GenericJob, IJob
 
         var emailSubject = "Lembrete do Sharebook";
 
-        _emailService.Send(donator.Email, donator.Name, html, emailSubject, copyAdmins: false, highPriority: true).Wait();
+        await _emailService.Send(donator.Email, donator.Name, html, emailSubject, copyAdmins: false, highPriority: true);
     }
 
     #endregion

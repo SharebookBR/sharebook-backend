@@ -68,7 +68,8 @@ namespace ShareBook.Service
                     WinnerName = book.WinnerName(),
                 };
 
-                var htmt = _emailTemplate.GenerateHtmlFromTemplateAsync(BookReceivedTemplate, vm).Result;
+                // TODO: Remove "GetAwaiter().GetResult()"
+                var htmt = _emailTemplate.GenerateHtmlFromTemplateAsync(BookReceivedTemplate, vm).GetAwaiter().GetResult();
                 _emailService.Send(book.User.Email, book.User.Name, htmt, BookReceivedTemplate, copyAdmins: true, highPriority: true);
             }
         }

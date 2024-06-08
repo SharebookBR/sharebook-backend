@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Sharebook.Jobs;
 using ShareBook.Api.Filters;
@@ -14,6 +13,7 @@ using ShareBook.Service.Authorization;
 using ShareBook.Service.Server;
 using System;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace ShareBook.Api.Controllers
 {
@@ -24,18 +24,16 @@ namespace ShareBook.Api.Controllers
 
         protected IJobExecutor _executor;
         protected string _validToken;
-        IEmailService _emailService;
+        readonly IEmailService _emailService;
         private readonly IWebHostEnvironment _env;
-        private readonly IConfiguration _configuration;
-        private IMemoryCache _cache;
+        private readonly IMemoryCache _cache;
 
-        public OperationsController(IJobExecutor executor, IOptions<ServerSettings> settings, IEmailService emailService, IWebHostEnvironment env, IConfiguration configuration, IMemoryCache memoryCache)
+        public OperationsController(IJobExecutor executor, IOptions<ServerSettings> settings, IEmailService emailService, IWebHostEnvironment env, IMemoryCache memoryCache)
         {
             _executor = executor;
             _validToken = settings.Value.JobExecutorToken;
             _emailService = emailService;
             _env = env;
-            _configuration = configuration;
             _cache = memoryCache;
         }
 
@@ -45,7 +43,7 @@ namespace ShareBook.Api.Controllers
         [Route("ForceException")]
         public IActionResult ForceException()
         {
-            var teste = 1 / Convert.ToInt32("Teste");
+            _ = 1 / Convert.ToInt32("Teste");
             return BadRequest();
         }
 
@@ -69,12 +67,12 @@ namespace ShareBook.Api.Controllers
 
         [HttpGet("JobExecutor")]
         [Throttle(Name = "JobExecutor", Seconds = 5, VaryByIp = false)]
-        public IActionResult Executor()
+        public async Task<IActionResult> ExecutorAsync()
         {
             if (!_IsValidJobToken())
                 return Unauthorized();
             else
-                return Ok(_executor.Execute());
+                return Ok(await _executor.ExecuteAsync());
         }
 
         [HttpPost("EmailTest")]

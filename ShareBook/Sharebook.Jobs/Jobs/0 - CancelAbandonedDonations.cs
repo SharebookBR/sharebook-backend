@@ -6,6 +6,7 @@ using ShareBook.Repository;
 using ShareBook.Service;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Sharebook.Jobs
 {
@@ -31,9 +32,9 @@ namespace Sharebook.Jobs
             _maxLateDonationDaysAutoCancel = int.Parse(_configuration["SharebookSettings:MaxLateDonationDaysAutoCancel"]);
         }
 
-        public override JobHistory Work()
+        public override async Task<JobHistory> WorkAsync()
         {
-            var booksLate = _bookService.GetBooksChooseDateIsLate();
+            var booksLate = await _bookService.GetBooksChooseDateIsLateAsync();
 
             var refDate = DateTime.Today.AddDays(_maxLateDonationDaysAutoCancel * -1);
             var booksAbandoned = booksLate.Where(b => b.ChooseDate < refDate).ToList();
@@ -49,6 +50,7 @@ namespace Sharebook.Jobs
                     Reason = $"Cancelamento automático de doação abandonada. Com mais de {_maxLateDonationDaysAutoCancel} dias de atraso.",
                 };
 
+                // TODO: Migrate to async
                 _bookUserService.Cancel(dto);
                 details += $"Doação do livro {book.Title} foi cancelada.\n";
             }
