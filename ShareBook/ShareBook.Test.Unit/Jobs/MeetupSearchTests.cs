@@ -25,6 +25,8 @@ namespace ShareBook.Test.Unit.Jobs
 
             JobResult result = await job.ExecuteAsync();
             Assert.Equal(JobResult.MeetupDisabled, result);
+            _mockMeetupService.VerifyNoOtherCalls();
+            _mockJobHistoryRepository.VerifyNoOtherCalls();
         }
 
         [Fact]
@@ -39,6 +41,9 @@ namespace ShareBook.Test.Unit.Jobs
             Assert.Equal("MeetupSearch", result.JobName);
             Assert.True(result.IsSuccess);
             Assert.Equal(string.Join("\n", mockedMeetups), result.Details);
+            _mockMeetupService.Verify(c => c.FetchMeetupsAsync(), Times.Once);
+            _mockMeetupService.VerifyNoOtherCalls();
+            _mockJobHistoryRepository.VerifyNoOtherCalls();
         }
     }
 }
