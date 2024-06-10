@@ -6,6 +6,8 @@ using Xunit;
 using ShareBook.Repository;
 using Microsoft.Extensions.Configuration;
 using ShareBook.Domain.Enums;
+using System.Collections.Generic;
+using ShareBook.Domain;
 
 namespace ShareBook.Test.Unit.Jobs
 {
@@ -23,6 +25,20 @@ namespace ShareBook.Test.Unit.Jobs
 
             JobResult result = await job.ExecuteAsync();
             Assert.Equal(JobResult.MeetupDisabled, result);
+        }
+
+        [Fact]
+        public async Task MeetupSettingsEnabled_ShouldReturn_MeetupsCorrectly()
+        {
+            List<string> mockedMeetups = new List<string> { "Meetup Mock 1", "Meetup Mock 2" };
+            _mockConfiguration.SetupGet(s => s[It.IsAny<string>()]).Returns("true");
+            _mockMeetupService.Setup(s => s.FetchMeetupsAsync()).ReturnsAsync(() => mockedMeetups);
+            MeetupSearch job = new MeetupSearch(_mockJobHistoryRepository.Object, _mockMeetupService.Object, _mockConfiguration.Object);
+
+            JobHistory result = await job.WorkAsync();
+            Assert.Equal("MeetupSearch", result.JobName);
+            Assert.True(result.IsSuccess);
+            Assert.Equal(string.Join("\n", mockedMeetups), result.Details);
         }
     }
 }
