@@ -124,7 +124,8 @@ namespace ShareBook.Service
                             .SetQueryParams(new
                             {
                                 //page_size = 10,
-                                field_sort = "start_date"
+                                field_sort = "start_date",
+                                sort = "desc"
                             })
                             .GetJsonAsync<SymplaDto>();
                 foreach (var symplaEvent in symplaDto.Data)
