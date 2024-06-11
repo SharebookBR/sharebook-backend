@@ -1,5 +1,6 @@
 ﻿using ShareBook.Domain.Enums;
 using System;
+using System.Threading.Tasks;
 
 namespace Sharebook.Jobs
 {
@@ -12,6 +13,6 @@ namespace Sharebook.Jobs
         TimeSpan? BestTimeToExecute { get; set; }
 
         bool HasWork();
-        JobResult Execute();
+        Task<JobResult> ExecuteAsync();
     }
 }

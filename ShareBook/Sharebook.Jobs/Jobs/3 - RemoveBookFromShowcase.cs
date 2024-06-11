@@ -5,6 +5,7 @@ using ShareBook.Service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Sharebook.Jobs
 {
@@ -33,10 +34,11 @@ namespace Sharebook.Jobs
             _emailTemplate = emailTemplate;
         }
 
-        public override JobHistory Work()
+        public override async Task<JobHistory> WorkAsync()
         {
             var messages = new List<string>();
 
+            // TODO: Migrate to async
             var books = _bookService.GetBooksChooseDateIsTodayOrLate();
 
             if (books.Count == 0) messages.Add("Nenhum livro encontrado.");
@@ -50,7 +52,7 @@ namespace Sharebook.Jobs
                     continue;
                 }
 
-                var totalPedidosValidos = book.BookUsers.Where(b => b.Status == DonationStatus.WaitingAction).Count();
+                var totalPedidosValidos = book.BookUsers.Count(b => b.Status == DonationStatus.WaitingAction);
 
                 if (totalPedidosValidos > 0)
                 {
@@ -61,9 +63,10 @@ namespace Sharebook.Jobs
                 {
                     book.ChooseDate = DateTime.Today.AddDays(10);
                     messages.Add(string.Format("Livro '{0}' vai ficar +10 dias na vitrine porque ainda não tem interessados. :/", book.Title));
-                    SendEmail(book);
+                    await SendEmailAsync(book);
                 }
 
+                // TODO: Migrate to async
                 _bookService.Update(book);
             }
 
@@ -78,7 +81,7 @@ namespace Sharebook.Jobs
 
         #region métodos privados de apoio
 
-        private void SendEmail(Book book)
+        private async Task SendEmailAsync(Book book)
         {
             var emailSubject = "SHAREBOOK - RENOVAMOS SUA DOAÇÃO.";
 
@@ -92,9 +95,9 @@ namespace Sharebook.Jobs
                 FacilitatorWhatsapp = book.UserFacilitator.Phone,
                 FacilitatorLinkedin = book.UserFacilitator.Linkedin
             };
-            var emailBodyHTML = _emailTemplate.GenerateHtmlFromTemplateAsync("ChooseDateRenewTemplate", vm).Result;
+            var emailBodyHTML = await _emailTemplate.GenerateHtmlFromTemplateAsync("ChooseDateRenewTemplate", vm);
 
-            _emailService.Send(book.User.Email, book.User.Name, emailBodyHTML, emailSubject, copyAdmins: false, highPriority: true);
+            await _emailService.Send(book.User.Email, book.User.Name, emailBodyHTML, emailSubject, copyAdmins: false, highPriority: true);
         }
 
         #endregion

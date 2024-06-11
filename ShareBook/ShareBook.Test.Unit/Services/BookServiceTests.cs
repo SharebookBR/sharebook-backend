@@ -47,7 +47,7 @@ namespace ShareBook.Test.Unit.Services
             {
                 return BookMock.GetLordTheRings();
             });
-            uploadServiceMock.Setup(service => service.UploadImage(null, null, null));
+            uploadServiceMock.Setup(service => service.UploadImageAsync(null, null, null));
             bookServiceMock.Setup(service => service.Insert(It.IsAny<Book>())).Verifiable();
         }
 

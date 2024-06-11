@@ -41,9 +41,11 @@ namespace ShareBook.Service
                 UserName = user.Name,
                 AprovalLink = $"{_serverSettings.DefaultUrl}/consentimento-dos-pais/{user.ParentHashCodeAproval}",
             };
-            var html = _emailTemplate.GenerateHtmlFromTemplateAsync("RequestParentAproval", vm).Result;
+            // TODO: Remove "GetAwaiter().GetResult()"
+            var html = _emailTemplate.GenerateHtmlFromTemplateAsync("RequestParentAproval", vm).GetAwaiter().GetResult();
 
             var title = "Consentimento dos pais";
+            // TODO: Remove ".Wait()"
             _emailService.Send(userDto.ParentEmail, "Pais", html, title).Wait();
         }
 
@@ -53,7 +55,8 @@ namespace ShareBook.Service
             {
                 SharebookLink = _serverSettings.DefaultUrl
             };
-            var html = _emailTemplate.GenerateHtmlFromTemplateAsync("ParentAprovedNotifyUser", vm).Result;
+            // TODO: Remove "GetAwaiter().GetResult()"
+            var html = _emailTemplate.GenerateHtmlFromTemplateAsync("ParentAprovedNotifyUser", vm).GetAwaiter().GetResult();
 
             var title = "Consentimento dos pais";
             _emailService.Send(user.Email, user.Name, html, title).Wait();
@@ -61,7 +64,8 @@ namespace ShareBook.Service
 
         public void SendEmailAnonymizeNotifyAdms(UserAnonymizeDTO dto)
         {
-            var html = _emailTemplate.GenerateHtmlFromTemplateAsync("AnonymizeNotifyAdms", dto).Result;
+            // TODO: Remove "GetAwaiter().GetResult()"
+            var html = _emailTemplate.GenerateHtmlFromTemplateAsync("AnonymizeNotifyAdms", dto).GetAwaiter().GetResult();
             var title = "Anonimização de conta";
             _emailService.SendToAdmins(html, title);
         }

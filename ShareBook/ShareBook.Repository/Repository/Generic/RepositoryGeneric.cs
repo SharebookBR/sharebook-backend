@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Repository
 {
+    // TODO: Remove all uses of "GetAwaiter().GetResult()" to be trully async
     public class RepositoryGeneric<TEntity> : IRepositoryGeneric<TEntity> where TEntity : class
     {
         protected readonly ApplicationDbContext _context;
@@ -103,7 +104,7 @@ namespace ShareBook.Repository
         {
             try
             {
-                _context.Add(entity);
+                await _context.AddAsync(entity);
                 await _context.SaveChangesAsync();
 
                 return entity;
@@ -162,11 +163,11 @@ namespace ShareBook.Repository
 
         public TEntity Find(object keyValue) => _dbSet.Find(keyValue);
 
-        public TEntity Find(IncludeList<TEntity> includes, object keyValue) => FindAsync(includes, keyValue).Result;
+        public TEntity Find(IncludeList<TEntity> includes, object keyValue) => FindAsync(includes, keyValue).GetAwaiter().GetResult();
 
-        public TEntity Find(Expression<Func<TEntity, bool>> filter) => FindAsync(null, filter).Result;
+        public TEntity Find(Expression<Func<TEntity, bool>> filter) => FindAsync(null, filter).GetAwaiter().GetResult();
 
-        public TEntity Find(IncludeList<TEntity> includes, Expression<Func<TEntity, bool>> filter) => FindAsync(includes, filter).Result;
+        public TEntity Find(IncludeList<TEntity> includes, Expression<Func<TEntity, bool>> filter) => FindAsync(includes, filter).GetAwaiter().GetResult();
 
         public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, TKey>> order)
             => Get(order, null);
@@ -190,19 +191,19 @@ namespace ShareBook.Repository
             => Get(filter, order, page, itemsPerPage, null);
 
         public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes)
-            => GetAsync(filter, order, page, itemsPerPage, includes).Result;
+            => GetAsync(filter, order, page, itemsPerPage, includes).GetAwaiter().GetResult();
 
-        public int Count(Expression<Func<TEntity, bool>> filter) => CountAsync(filter).Result;
+        public int Count(Expression<Func<TEntity, bool>> filter) => CountAsync(filter).GetAwaiter().GetResult();
 
-        public bool Any(Expression<Func<TEntity, bool>> filter) => AnyAsync(filter).Result;
+        public bool Any(Expression<Func<TEntity, bool>> filter) => AnyAsync(filter).GetAwaiter().GetResult();
 
-        public TEntity Insert(TEntity entity) => InsertAsync(entity).Result;
+        public TEntity Insert(TEntity entity) => InsertAsync(entity).GetAwaiter().GetResult();
 
-        public TEntity Update(TEntity entity) => UpdateAsync(entity).Result;
+        public TEntity Update(TEntity entity) => UpdateAsync(entity).GetAwaiter().GetResult();
 
-        public void Delete(params object[] keyValues) => DeleteAsync(keyValues).Wait();
+        public void Delete(params object[] keyValues) => DeleteAsync(keyValues).GetAwaiter().GetResult();
 
-        public void Delete(TEntity entity) => DeleteAsync(entity).Wait();
+        public void Delete(TEntity entity) => DeleteAsync(entity).GetAwaiter().GetResult();
 
         #endregion Synchronous
     }

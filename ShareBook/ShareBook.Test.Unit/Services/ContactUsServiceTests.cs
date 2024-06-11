@@ -4,6 +4,7 @@ using ShareBook.Domain.Common;
 using ShareBook.Domain.Validators;
 using ShareBook.Service;
 using ShareBook.Service.Recaptcha;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace ShareBook.Test.Unit.Services
@@ -24,10 +25,10 @@ namespace ShareBook.Test.Unit.Services
 
         }
         [Fact]
-        public void Invalid()
+        public async Task Invalid()
         {
             ContactUsService service = new ContactUsService(contactUsEmailServiceMock.Object, new ContactUsValidator(), recaptchaService);
-            Result<ContactUs> result = service.SendContactUs(new ContactUs
+            Result<ContactUs> result = await service.SendContactUsAsync(new ContactUs
             {
                 Email = "joazinho",
                 Message = "Test message test, Test message test, Test message test",
@@ -38,10 +39,10 @@ namespace ShareBook.Test.Unit.Services
         }
 
         [Fact]
-        public void Valid()
+        public async Task Valid()
         {
             ContactUsService service = new ContactUsService(contactUsEmailServiceMock.Object, new ContactUsValidator(), recaptchaService);
-            Result<ContactUs> result = service.SendContactUs(new ContactUs
+            Result<ContactUs> result = await service.SendContactUsAsync(new ContactUs
             {
                 Email = "joazinho.souza@example.com",
                 Message = "Test message test, Test message test, Test message test",
@@ -52,10 +53,10 @@ namespace ShareBook.Test.Unit.Services
         }
 
         [Fact]
-        public void InvalidRecaptcha()
+        public async Task InvalidRecaptcha()
         {
             ContactUsService service = new ContactUsService(contactUsEmailServiceMock.Object, new ContactUsValidator(), recaptchaService);
-            Result<ContactUs> result = service.SendContactUs(new ContactUs
+            Result<ContactUs> result = await service.SendContactUsAsync(new ContactUs
             {
                 Email = "joazinho.souza@example.com",
                 Message = "Test message test, Test message test, Test message test",

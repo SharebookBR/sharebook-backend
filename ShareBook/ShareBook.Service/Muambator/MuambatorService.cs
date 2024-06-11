@@ -27,8 +27,8 @@ namespace ShareBook.Service.Muambator
           emails = new[] { emailWinner, emailDonor, emailFacilitator }
 
         };
-
-        string jsonResponse = url.WithHeader("Content-type", "application/json").PostJsonAsync(jsonRequest).ReceiveString().Result;
+        // TODO: GetAwaiter().GetResult()
+        string jsonResponse = url.WithHeader("Content-type", "application/json").PostJsonAsync(jsonRequest).ReceiveString().GetAwaiter().GetResult();
         result = JsonConvert.DeserializeObject(jsonResponse);
 
       }

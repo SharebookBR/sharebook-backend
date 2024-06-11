@@ -5,6 +5,7 @@ using System;
 using ShareBook.Domain;
 using ShareBook.Domain.Exceptions;
 using Microsoft.Extensions.Configuration;
+using System.Threading.Tasks;
 
 namespace Sharebook.Jobs
 {
@@ -24,12 +25,12 @@ namespace Sharebook.Jobs
             _configuration = configuration;
         }
 
-        public override JobHistory Work()
+        public override async Task<JobHistory> WorkAsync()
         {
             var meetupEnabled = bool.Parse(_configuration["MeetupSettings:IsActive"]);
             if(!meetupEnabled) throw new MeetupDisabledException("Serviço Meetup está desabilitado no appsettings.");
             
-            var jobResult = _meetupService.FetchMeetups().Result;
+            var jobResult = await _meetupService.FetchMeetupsAsync();
 
             return new JobHistory()
             {

@@ -1,10 +1,11 @@
 ﻿using ShareBook.Domain;
 using ShareBook.Domain.Common;
+using System.Threading.Tasks;
 
 namespace ShareBook.Service
 {
     public interface IContactUsService
     {
-        Result<ContactUs> SendContactUs(ContactUs contactUs, string recaptchaReactive);
+        Task<Result<ContactUs>> SendContactUsAsync(ContactUs contactUs, string recaptchaReactive);
     }
 }

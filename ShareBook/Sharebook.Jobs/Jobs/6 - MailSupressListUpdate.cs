@@ -1,11 +1,9 @@
-﻿using MailKit;
-using ShareBook.Domain;
+﻿using ShareBook.Domain;
 using ShareBook.Domain.Enums;
 using ShareBook.Repository;
 using ShareBook.Service;
-using ShareBook.Service.AwsSqs;
 using System;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Sharebook.Jobs;
 
@@ -28,9 +26,9 @@ public class MailSupressListUpdate : GenericJob, IJob
         _emailService = emailService;
     }
 
-    public override JobHistory Work()
+    public override async Task<JobHistory> WorkAsync()
     {
-        var log  = _emailService.ProcessBounceMessages().Result;
+        var log = await _emailService.ProcessBounceMessages();
 
         return new JobHistory()
         {

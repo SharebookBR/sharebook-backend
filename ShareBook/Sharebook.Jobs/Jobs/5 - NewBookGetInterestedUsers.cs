@@ -47,7 +47,7 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
         _bookService = bookService;
     }
 
-    public override JobHistory Work()
+    public override async Task<JobHistory> WorkAsync()
     {
         var awsSqsEnabled = bool.Parse(_configuration["AwsSqsSettings:IsActive"]);
         if(!awsSqsEnabled) throw new AwsSqsDisabledException("Serviço aws sqs está desabilitado no appsettings.");
@@ -56,7 +56,7 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
         int sendEmailMaxDestinationsPerQueueMessage = GetEmailMaxDestinationsPerQueueMessage();
         
         // 1 - lê a fila de origem
-        var newBookMessage = _newBookQueue.GetMessage()?.Result;
+        var newBookMessage = await _newBookQueue.GetMessage();
 
         // fila vazia, não faz nada
         if (newBookMessage == null)
@@ -71,9 +71,10 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
 
         // Obtem usuários interessados
         var newBook = newBookMessage.Body;
+        // TODO: Migrate to async
         var interestedUsers = _userService.GetBySolicitedBookCategory(newBook.CategoryId);
         totalDestinations = interestedUsers.Count;
-        var template = GetEmailTemplate(newBook.BookId);
+        var template = await GetEmailTemplateAsync(newBook.BookId);
 
         // Alimenta a fila de destino - baixa prioridade do Mail Sender
         int maxMessages = interestedUsers.Count % sendEmailMaxDestinationsPerQueueMessage == 0 ? interestedUsers.Count / sendEmailMaxDestinationsPerQueueMessage : interestedUsers.Count / sendEmailMaxDestinationsPerQueueMessage + 1;
@@ -87,12 +88,12 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
                 BodyHTML = template,
                 Destinations = destinations.ToList()
             };
-            
-            _mailSenderLowPriorityQueue.SendMessage(mailSenderbody).Wait();
+
+            await _mailSenderLowPriorityQueue.SendMessage(mailSenderbody);
         }
 
         // remove a mensagem da fila de origem
-        _newBookQueue.DeleteMessage(newBookMessage.ReceiptHandle).Wait();
+        await _newBookQueue.DeleteMessage(newBookMessage.ReceiptHandle);
 
         // finaliza com sucesso
         return new JobHistory() 
@@ -113,11 +114,9 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
         
         var maxEmailsPerHour = int.Parse(_configuration["EmailSettings:MaxEmailsPerHour"]);
         return (maxEmailsPerHour / mailSenderInvocationsPerHour) / totalSqsMessagensPerWork;
-
-        // 
     }
 
-    private string GetEmailTemplate(Guid bookId){
+    private async Task<string> GetEmailTemplateAsync(Guid bookId){
         var book = _bookService.Find(bookId);
         
         var vm = new
@@ -129,7 +128,7 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
             Name = "{Name}"// o MailSender vai trocar pelo nome do usuário.
         };
 
-        return _emailTemplate.GenerateHtmlFromTemplateAsync("NewBookNotifyTemplate", vm).Result;
+        return await _emailTemplate.GenerateHtmlFromTemplateAsync("NewBookNotifyTemplate", vm);
     }
 }
 

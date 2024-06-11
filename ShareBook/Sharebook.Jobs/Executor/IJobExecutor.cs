@@ -1,9 +1,10 @@
 ﻿using ShareBook.Domain.Common;
+using System.Threading.Tasks;
 
 namespace Sharebook.Jobs
 {
     public interface IJobExecutor
     {
-        JobExecutorResult Execute();
+        Task<JobExecutorResult> ExecuteAsync();
     }
 }

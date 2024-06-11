@@ -3,7 +3,7 @@ using ShareBook.Helper.Image;
 using ShareBook.Service.Server;
 using System;
 using System.IO;
-
+using System.Threading.Tasks;
 
 namespace ShareBook.Service.Upload
 {
@@ -25,7 +25,7 @@ namespace ShareBook.Service.Upload
         }
 
 
-        public string UploadImage(byte[] imageBytes, string imageName, string lastDirectory)
+        public async Task<string> UploadImageAsync(byte[] imageBytes, string imageName, string lastDirectory)
         {
             var dinamicDirectory = Path.Combine(_imageSettings.ImagePath, lastDirectory);
 
@@ -33,29 +33,29 @@ namespace ShareBook.Service.Upload
 
             var testPath = Path.Combine(directoryBase, imageName);
 
-            UploadFile(imageBytes, imageName, dinamicDirectory);
+            UploadFileAsync(imageBytes, imageName, dinamicDirectory);
 
             return GetImageUrl(imageName, lastDirectory);
         }
      
-        public string UploadPdf(byte[] imageBytes, string imageName, string lastDirectory)
+        public async Task<string> UploadPdfAsync(byte[] imageBytes, string imageName, string lastDirectory)
         {
             var dinamicDirectory = Path.Combine(_imageSettings.EBookPdfPath, lastDirectory);
 
-            UploadFile(imageBytes, imageName, dinamicDirectory);
+            await UploadFileAsync(imageBytes, imageName, dinamicDirectory);
 
             return Path.Combine(lastDirectory, dinamicDirectory.Replace("wwwroot", ""), imageName);
 
         }
 
-        private static void UploadFile(byte[] imageBytes, string imageName, string dinamicDirectory)
+        private static async Task UploadFileAsync(byte[] imageBytes, string imageName, string dinamicDirectory)
         {
             var directoryBase = AppDomain.CurrentDomain.BaseDirectory + dinamicDirectory;
             if (!Directory.Exists(directoryBase))
                 Directory.CreateDirectory(directoryBase);
 
             var imageCompletePath = Path.Combine(directoryBase, imageName);
-            File.WriteAllBytes(imageCompletePath, imageBytes);
+            await File.WriteAllBytesAsync(imageCompletePath, imageBytes);
         }
     }
 }
