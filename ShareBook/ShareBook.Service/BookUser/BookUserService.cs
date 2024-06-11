@@ -104,20 +104,20 @@ namespace ShareBook.Service
             _bookUsersEmailService.SendEmailMaxRequests(bookRequested);
         }
 
-        public void DonateBook(Guid bookId, Guid userId, string note)
+        public async Task DonateBookAsync(Guid bookId, Guid userId, string note)
         {
             var book = _bookService.Find(bookId);
             if (!book.MayChooseWinner())
                 throw new ShareBookException(ShareBookException.Error.BadRequest, "Aguarde a data de decisão.");
 
-            var bookUserAccepted = _bookUserRepository.Get()
+            var bookUserAccepted = await _bookUserRepository.Get()
                 .Include(u => u.Book).ThenInclude(b => b.UserFacilitator)
                 .Include(u => u.Book).ThenInclude(b => b.User)
                 .Include(u => u.User).ThenInclude(u => u.Address)
                 .Where(x => x.UserId == userId
                     && x.BookId == bookId
                     && x.Status == DonationStatus.WaitingAction)
-                    .FirstOrDefault();
+                    .FirstOrDefaultAsync();
 
             if (bookUserAccepted == null)
                 throw new ShareBookException("Não existe a relação de usuário e livro para a doação.");
@@ -127,23 +127,23 @@ namespace ShareBook.Service
 
             bookUserAccepted.UpdateBookUser(DonationStatus.Donated, note);
 
-            _bookUserRepository.Update(bookUserAccepted);
+            await _bookUserRepository.UpdateAsync(bookUserAccepted);
 
             DeniedBookUsers(bookId);
 
-            _bookService.UpdateBookStatus(bookId, BookStatus.WaitingSend);
+            await _bookService.UpdateBookStatusAsync(bookId, BookStatus.WaitingSend);
 
             // usamos await nas notificações porque eventualmente tem risco da taks
             // não completar o trabalho dela. Talvez tenha a ver com o garbage collector.
 
             // avisa o ganhador
-            _bookUsersEmailService.SendEmailBookDonated(bookUserAccepted).Wait();
+            await _bookUsersEmailService.SendEmailBookDonated(bookUserAccepted);
 
             // avisa os perdedores :/
-            NotifyInterestedAboutBooksWinner(bookId).Wait();
+            await NotifyInterestedAboutBooksWinner(bookId);
 
             // avisa o doador
-            _bookUsersEmailService.SendEmailBookDonatedNotifyDonor(bookUserAccepted.Book, bookUserAccepted.User).Wait();
+            await _bookUsersEmailService.SendEmailBookDonatedNotifyDonor(bookUserAccepted.Book, bookUserAccepted.User);
         }
 
         public Result<Book> Cancel(BookCancelationDTO dto)
@@ -151,6 +151,7 @@ namespace ShareBook.Service
             if (dto.Book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
+            // TODO: Migrate to "ToListAsync"
             var bookUsers = _bookUserRepository.Get().Where(x => x.BookId == dto.Book.Id).ToList();
 
             dto.Book.ChooseDate = null;

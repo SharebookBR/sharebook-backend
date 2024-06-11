@@ -5,11 +5,10 @@ namespace ShareBook.Service
 {
     public interface IBooksEmailService
     {
-        Task SendEmailNewBookInserted(Book book);
+        Task SendEmailNewBookInsertedAsync(Book book);
 
-        Task SendEmailBookApproved(Book book);
+        Task SendEmailBookApprovedAsync(Book book);
 
-        void SendEmailBookReceived(Book book);
-
+        Task SendEmailBookReceivedAsync(Book book);
     }
 }

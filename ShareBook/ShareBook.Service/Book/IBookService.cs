@@ -11,10 +11,10 @@ namespace ShareBook.Service
 {
     public interface IBookService : IBaseService<Book>
     {
-        void Approve(Guid bookId, DateTime? chooseDate);
+        Task ApproveAsync(Guid bookId, DateTime? chooseDate);
 
-        void Received(Guid bookId, Guid winnerUserId);
-        void UpdateBookStatus(Guid bookId, BookStatus bookStatus);
+        Task ReceivedAsync(Guid bookId, Guid winnerUserId);
+        Task UpdateBookStatusAsync(Guid bookId, BookStatus bookStatus);
 
         IList<dynamic> FreightOptions();
 

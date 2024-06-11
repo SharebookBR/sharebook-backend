@@ -1,5 +1,4 @@
 ﻿using ShareBook.Domain;
-using ShareBook.Service.AwsSqs.Dto;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

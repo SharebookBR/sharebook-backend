@@ -78,18 +78,18 @@ namespace ShareBook.Api.Controllers
         [Authorize("Bearer")]
         [HttpPost("Approve/{id}")]
         [AuthorizationFilter(Permissions.Permission.ApproveBook)]
-        public Result Approve(string id, [FromBody] ApproveBookVM model)
+        public async Task<Result> ApproveAsync(string id, [FromBody] ApproveBookVM model)
         {
-            _service.Approve(new Guid(id), model?.ChooseDate);
+            await _service.ApproveAsync(new Guid(id), model?.ChooseDate);
             return new Result("Livro aprovado com sucesso.");
         }
 
         [Authorize("Bearer")]
         [HttpPost("Received/{bookId}")]
-        public Result Received(string bookId)
+        public async Task<Result> ReceivedAsync(string bookId)
         {
             Guid winnerUserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            _service.Received(new Guid(bookId), winnerUserId);
+            await _service.ReceivedAsync(new Guid(bookId), winnerUserId);
             return new Result("Livro Recebido com sucesso.");
         }
 
@@ -284,11 +284,11 @@ namespace ShareBook.Api.Controllers
         [Authorize("Bearer")]
         [HttpPut("Donate/{bookId}")]
         [ProducesResponseType(typeof(Result), 200)]
-        public IActionResult DonateBook(Guid bookId, [FromBody] DonateBookUserVM donateBookUserVM)
+        public async Task<IActionResult> DonateBookAsync(Guid bookId, [FromBody] DonateBookUserVM donateBookUserVM)
         {
             if (!_IsBookOwner(bookId)) return Unauthorized();
 
-            _bookUserService.DonateBook(bookId, donateBookUserVM.UserId, donateBookUserVM.Note);
+            await _bookUserService.DonateBookAsync(bookId, donateBookUserVM.UserId, donateBookUserVM.Note);
 
             var result = new Result
             {

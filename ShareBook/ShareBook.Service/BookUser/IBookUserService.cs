@@ -15,7 +15,7 @@ namespace ShareBook.Service
 
         IList<BookUser> GetRequestersList(Guid bookId);
 
-        void DonateBook(Guid bookId, Guid userId, string note);
+        Task DonateBookAsync(Guid bookId, Guid userId, string note);
 
         void DeniedBookUsers(Guid bookId);
 

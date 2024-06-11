@@ -44,20 +44,20 @@ namespace ShareBook.Service
             _newBookQueue = newBookQueue;
         }
 
-        public void Approve(Guid bookId, DateTime? chooseDate = null)
+        public async Task ApproveAsync(Guid bookId, DateTime? chooseDate = null)
         {
             var daysInShowcase = int.Parse(_configuration["SharebookSettings:DaysInShowcase"]);
 
-            var book = _repository.Get().Include(b => b.Category).FirstOrDefault(b => b.Id == bookId);
+            var book = await _repository.Get().Include(b => b.Category).FirstOrDefaultAsync(b => b.Id == bookId);
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
             book.Status = BookStatus.Available;
             book.ChooseDate = chooseDate?.Date ?? DateTime.Today.AddDays(daysInShowcase);
-            _repository.Update(book);
+            await _repository.UpdateAsync(book);
 
             // notifica o doador
-            _booksEmailService.SendEmailBookApproved(book).Wait();
+            await _booksEmailService.SendEmailBookApprovedAsync(book);
 
             // notifica possíveis interessados.
             var message = new NewBookBody{
@@ -65,15 +65,15 @@ namespace ShareBook.Service
                 BookTitle = book.Title,
                 CategoryId = book.CategoryId
             };
-            _newBookQueue.SendMessage(message).Wait();
+            await _newBookQueue.SendMessage(message);
             
         }
 
-        public void Received(Guid bookId, Guid winnerUserId)
+        public async Task ReceivedAsync(Guid bookId, Guid winnerUserId)
         {
-            var book = _repository.Get().Include(f => f.BookUsers)
+            var book = await _repository.Get().Include(f => f.BookUsers)
                 .ThenInclude(bu => bu.User)
-                .FirstOrDefault(f => f.Id == bookId);
+                .FirstOrDefaultAsync(f => f.Id == bookId);
 
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
@@ -84,19 +84,19 @@ namespace ShareBook.Service
                 throw new ShareBookException(ShareBookException.Error.Forbidden);
 
             book.Status = BookStatus.Received;
-            _repository.Update(book);
+            await _repository.UpdateAsync(book);
 
-            _booksEmailService.SendEmailBookReceived(book);
+            await _booksEmailService.SendEmailBookReceivedAsync(book);
         }
 
-        public void UpdateBookStatus(Guid bookId, BookStatus bookStatus)
+        public async Task UpdateBookStatusAsync(Guid bookId, BookStatus bookStatus)
         {
-            var book = _repository.Find(bookId);
+            var book = await _repository.FindAsync(bookId);
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
             book.Status = bookStatus;
-            _repository.Update(book);
+            await _repository.UpdateAsync(book);
         }
 
         public IList<dynamic> FreightOptions()
@@ -206,7 +206,7 @@ namespace ShareBook.Service
 
                 result.Value.ImageBytes = null;
 
-                _booksEmailService.SendEmailNewBookInserted(entity).Wait();
+                _booksEmailService.SendEmailNewBookInsertedAsync(entity).Wait();
             }
             return result;
         }

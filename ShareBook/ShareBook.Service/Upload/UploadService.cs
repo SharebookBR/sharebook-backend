@@ -29,11 +29,7 @@ namespace ShareBook.Service.Upload
         {
             var dinamicDirectory = Path.Combine(_imageSettings.ImagePath, lastDirectory);
 
-            var directoryBase = AppDomain.CurrentDomain.BaseDirectory + dinamicDirectory;
-
-            var testPath = Path.Combine(directoryBase, imageName);
-
-            UploadFileAsync(imageBytes, imageName, dinamicDirectory);
+            await UploadFileAsync(imageBytes, imageName, dinamicDirectory);
 
             return GetImageUrl(imageName, lastDirectory);
         }

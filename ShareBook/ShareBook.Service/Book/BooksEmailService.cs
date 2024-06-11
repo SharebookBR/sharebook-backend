@@ -36,7 +36,7 @@ namespace ShareBook.Service
             _emailTemplate = emailTemplate;
         }
 
-        public async Task SendEmailBookApproved(Book book)
+        public async Task SendEmailBookApprovedAsync(Book book)
         {
             if (book.User == null)
                 book.User = _userService.Find(book.UserId);
@@ -54,7 +54,7 @@ namespace ShareBook.Service
             }
         }
 
-        public void SendEmailBookReceived(Book book)
+        public async Task SendEmailBookReceivedAsync(Book book)
         {
             if (book.User == null)
                 book.User = _userService.Find(book.UserId);
@@ -68,13 +68,12 @@ namespace ShareBook.Service
                     WinnerName = book.WinnerName(),
                 };
 
-                // TODO: Remove "GetAwaiter().GetResult()"
-                var htmt = _emailTemplate.GenerateHtmlFromTemplateAsync(BookReceivedTemplate, vm).GetAwaiter().GetResult();
-                _emailService.Send(book.User.Email, book.User.Name, htmt, BookReceivedTemplate, copyAdmins: true, highPriority: true);
+                var htmt = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookReceivedTemplate, vm);
+                await _emailService.Send(book.User.Email, book.User.Name, htmt, BookReceivedTemplate, copyAdmins: true, highPriority: true);
             }
         }
 
-        public async Task SendEmailNewBookInserted(Book book)
+        public async Task SendEmailNewBookInsertedAsync(Book book)
         {
             if (book.User == null)
                 book.User = _userService.Find(book.UserId);
