@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Service;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ShareBook.Api.Controllers
 {
@@ -37,9 +37,9 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpGet("Search")]
-        public IList<Meetup> Search([FromQuery]string criteria)
+        public async Task<IList<Meetup>> SearchAsync([FromQuery]string criteria)
         {
-            return _meetupService.Search(criteria);
+            return await _meetupService.SearchAsync(criteria);
         }
     }
 }

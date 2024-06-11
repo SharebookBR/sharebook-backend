@@ -78,12 +78,12 @@ namespace ShareBook.Api.Controllers
         [HttpPost("EmailTest")]
         [Authorize("Bearer")]
         [AuthorizationFilter(Permissions.Permission.ApproveBook)] // adm
-        public IActionResult EmailTest([FromBody] EmailTestVM emailVM)
+        public async Task<IActionResult> EmailTestAsync([FromBody] EmailTestVM emailVM)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            _emailService.Test(emailVM.Email, emailVM.Name).Wait();
+            await _emailService.Test(emailVM.Email, emailVM.Name);
             return Ok();
         }
 
