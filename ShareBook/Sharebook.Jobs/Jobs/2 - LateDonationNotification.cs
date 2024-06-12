@@ -103,7 +103,7 @@ public class LateDonationNotification : GenericJob, IJob
         };
         var emailBodyHTML = await _emailTemplate.GenerateHtmlFromTemplateAsync("LateDonationNotification", vm);
 
-        await _emailService.SendToAdmins(emailBodyHTML, emailSubject);
+        await _emailService.SendToAdminsAsync(emailBodyHTML, emailSubject);
     }
 
     private string GetWhatsappLink(string phone)
@@ -150,7 +150,7 @@ public class LateDonationNotification : GenericJob, IJob
 
         var emailSubject = "Doação abandonada no Sharebook. Urgente!";
 
-        await _emailService.Send(donator.Email, donator.Name, html, emailSubject, copyAdmins: true, highPriority: true);
+        await _emailService.SendAsync(donator.Email, donator.Name, html, emailSubject, copyAdmins: true, highPriority: true);
     }
 
     private async Task SendEmailDonatorSoftAsync(User donator)
@@ -163,7 +163,7 @@ public class LateDonationNotification : GenericJob, IJob
 
         var emailSubject = "Lembrete do Sharebook";
 
-        await _emailService.Send(donator.Email, donator.Name, html, emailSubject, copyAdmins: false, highPriority: true);
+        await _emailService.SendAsync(donator.Email, donator.Name, html, emailSubject, copyAdmins: false, highPriority: true);
     }
 
     #endregion

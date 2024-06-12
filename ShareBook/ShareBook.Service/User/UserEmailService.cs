@@ -31,7 +31,7 @@ namespace ShareBook.Service
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync("ForgotPasswordTemplate", vm);
 
             var title = "Esqueceu sua senha - Sharebook";
-            await _emailService.Send(user.Email, user.Name, html, title);
+            await _emailService.SendAsync(user.Email, user.Name, html, title);
         }
 
         public async Task SendEmailRequestParentAprovalAsync(RegisterUserDTO userDto, User user)
@@ -44,7 +44,7 @@ namespace ShareBook.Service
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync("RequestParentAproval", vm);
 
             var title = "Consentimento dos pais";
-            await _emailService.Send(userDto.ParentEmail, "Pais", html, title);
+            await _emailService.SendAsync(userDto.ParentEmail, "Pais", html, title);
         }
 
         public async Task SendEmailParentAprovedNotifyUserAsync(User user)
@@ -56,14 +56,14 @@ namespace ShareBook.Service
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync("ParentAprovedNotifyUser", vm);
 
             var title = "Consentimento dos pais";
-            await _emailService.Send(user.Email, user.Name, html, title);
+            await _emailService.SendAsync(user.Email, user.Name, html, title);
         }
 
         public async Task SendEmailAnonymizeNotifyAdmsAsync(UserAnonymizeDTO dto)
         {
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync("AnonymizeNotifyAdms", dto);
             var title = "Anonimização de conta";
-            await _emailService.SendToAdmins(html, title);
+            await _emailService.SendToAdminsAsync(html, title);
         }
     }
 }

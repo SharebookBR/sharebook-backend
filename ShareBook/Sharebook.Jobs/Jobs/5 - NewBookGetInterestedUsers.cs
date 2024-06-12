@@ -56,7 +56,7 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
         int sendEmailMaxDestinationsPerQueueMessage = GetEmailMaxDestinationsPerQueueMessage();
         
         // 1 - lê a fila de origem
-        var newBookMessage = await _newBookQueue.GetMessage();
+        var newBookMessage = await _newBookQueue.GetMessageAsync();
 
         // fila vazia, não faz nada
         if (newBookMessage == null)
@@ -88,11 +88,11 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
                 Destinations = destinations.ToList()
             };
 
-            await _mailSenderLowPriorityQueue.SendMessage(mailSenderbody);
+            await _mailSenderLowPriorityQueue.SendMessageAsync(mailSenderbody);
         }
 
         // remove a mensagem da fila de origem
-        await _newBookQueue.DeleteMessage(newBookMessage.ReceiptHandle);
+        await _newBookQueue.DeleteMessageAsync(newBookMessage.ReceiptHandle);
 
         // finaliza com sucesso
         return new JobHistory() 

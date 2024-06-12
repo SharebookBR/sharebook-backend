@@ -25,7 +25,7 @@ namespace ShareBook.Service
         /// Comunicar os interessados não escolhidos sobre a finalização da doação. e quem ganhou o livro
         /// </summary>
         /// <param name="bookId"></param>
-        Task NotifyInterestedAboutBooksWinner(Guid bookId);
+        Task NotifyInterestedAboutBooksWinnerAsync(Guid bookId);
 
         Task<Result<Book>> CancelAsync(BookCancelationDTO dto);
 

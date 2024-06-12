@@ -6,6 +6,6 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Repository {
     public interface IAccessHistoryRepository : IRepositoryGeneric<AccessHistory> {
-        Task<IEnumerable<AccessHistory>> GetWhoAccessedMyProfile(Guid userId);
+        Task<IEnumerable<AccessHistory>> GetWhoAccessedMyProfileAsync(Guid userId);
     }
 }

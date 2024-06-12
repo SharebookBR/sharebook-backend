@@ -192,7 +192,7 @@ namespace ShareBook.Service
             user.ChangePassword(newPassword);
             user = GetUserEncryptedPass(user);
             // TODO: Remove "GetAwaiter().GetResult()"
-            user = _userRepository.UpdatePassword(user).GetAwaiter().GetResult();
+            user = _userRepository.UpdatePasswordAsync(user).GetAwaiter().GetResult();
             result.Value = UserCleanup(user);
 
             return result;

@@ -86,8 +86,8 @@ namespace ShareBook.Service
             // Remove da vitrine caso o número de pedidos estiver grande demais.
             MaxRequestsValidation(bookRequested);
 
-            await _bookUsersEmailService.SendEmailBookDonor(bookUser, bookRequested);
-            await _bookUsersEmailService.SendEmailBookInterested(bookUser, bookRequested);
+            await _bookUsersEmailService.SendEmailBookDonorAsync(bookUser, bookRequested);
+            await _bookUsersEmailService.SendEmailBookInterestedAsync(bookUser, bookRequested);
             
         }
 
@@ -101,7 +101,7 @@ namespace ShareBook.Service
             bookRequested.ChooseDate = DateTime.Today.AddDays(1);
             _bookRepository.Update(bookRequested);
 
-            _bookUsersEmailService.SendEmailMaxRequests(bookRequested);
+            _bookUsersEmailService.SendEmailMaxRequestsAsync(bookRequested);
         }
 
         public async Task DonateBookAsync(Guid bookId, Guid userId, string note)
@@ -137,13 +137,13 @@ namespace ShareBook.Service
             // não completar o trabalho dela. Talvez tenha a ver com o garbage collector.
 
             // avisa o ganhador
-            await _bookUsersEmailService.SendEmailBookDonated(bookUserAccepted);
+            await _bookUsersEmailService.SendEmailBookDonatedAsync(bookUserAccepted);
 
             // avisa os perdedores :/
-            await NotifyInterestedAboutBooksWinner(bookId);
+            await NotifyInterestedAboutBooksWinnerAsync(bookId);
 
             // avisa o doador
-            await _bookUsersEmailService.SendEmailBookDonatedNotifyDonor(bookUserAccepted.Book, bookUserAccepted.User);
+            await _bookUsersEmailService.SendEmailBookDonatedNotifyDonorAsync(bookUserAccepted.Book, bookUserAccepted.User);
         }
 
         public async Task<Result<Book>> CancelAsync(BookCancelationDTO dto)
@@ -160,7 +160,7 @@ namespace ShareBook.Service
             await CancelBookUsersAndSendNotificationAsync(dto.Book);
 
             await _bookService.UpdateAsync(dto.Book);
-            await _bookUsersEmailService.SendEmailBookCanceledToAdminsAndDonor(dto);
+            await _bookUsersEmailService.SendEmailBookCanceledToAdminsAndDonorAsync(dto);
 
             return new Result<Book>(dto.Book);
         }
@@ -203,7 +203,7 @@ namespace ShareBook.Service
             return result;
         }
 
-        public async Task NotifyInterestedAboutBooksWinner(Guid bookId)
+        public async Task NotifyInterestedAboutBooksWinnerAsync(Guid bookId)
         {
             //Obter todos os users do livro
             var bookUsers = await _bookUserRepository.Get()
@@ -221,7 +221,7 @@ namespace ShareBook.Service
             var losersBookUser = bookUsers.Where(bu => bu.Status == DonationStatus.Denied).ToList();
 
             //enviar e-mails
-            await this._bookUsersEmailService.SendEmailDonationDeclined(book, winnerBookUser, losersBookUser);
+            await this._bookUsersEmailService.SendEmailDonationDeclinedAsync(book, winnerBookUser, losersBookUser);
         }
 
         public async Task NotifyUsersBookCanceledAsync(Book book)
@@ -230,7 +230,7 @@ namespace ShareBook.Service
                                             .Include(u => u.User)
                                             .Where(x => x.BookId == book.Id).ToListAsync();
 
-            await this._bookUsersEmailService.SendEmailDonationCanceled(book, bookUsers);
+            await this._bookUsersEmailService.SendEmailDonationCanceledAsync(book, bookUsers);
         }
 
         public async Task InformTrackingNumberAsync(Guid bookId, string trackingNumber)
@@ -257,7 +257,7 @@ namespace ShareBook.Service
 
             if (winnerBookUser.User.AllowSendingEmail)
                 //Envia e-mail para avisar o ganhador do tracking number                          
-                await _bookUsersEmailService.SendEmailTrackingNumberInformed(winnerBookUser, book);
+                await _bookUsersEmailService.SendEmailTrackingNumberInformedAsync(winnerBookUser, book);
         }
 
         /// <summary>

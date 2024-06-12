@@ -383,7 +383,7 @@ namespace ShareBook.Api.Controllers
             var visitor = await _userService.FindAsync(userId);
             var visitorProfile = GetVisitorProfile(result);
 
-            await _accessHistoryService.InsertVisitor(book.User, visitor, visitorProfile);
+            await _accessHistoryService.InsertVisitorAsync(book.User, visitor, visitorProfile);
 
             return Ok(result);
 

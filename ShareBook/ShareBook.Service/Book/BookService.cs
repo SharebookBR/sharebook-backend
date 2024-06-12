@@ -65,7 +65,7 @@ namespace ShareBook.Service
                 BookTitle = book.Title,
                 CategoryId = book.CategoryId
             };
-            await _newBookQueue.SendMessage(message);
+            await _newBookQueue.SendMessageAsync(message);
             
         }
 

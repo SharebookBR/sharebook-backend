@@ -5,6 +5,6 @@ namespace ShareBook.Repository
 {
     public interface IUserRepository : IRepositoryGeneric<User>
     {
-        Task<User> UpdatePassword(User user);
+        Task<User> UpdatePasswordAsync(User user);
     }
 }

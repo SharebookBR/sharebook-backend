@@ -14,9 +14,9 @@ namespace ShareBook.Test.Unit.Services
 
         public ContactUsEmailServiceTests()
         {
-            _mockEmailService.Setup(t => t.SendToAdmins(It.IsAny<string>(), It.IsAny<string>()));
-            _mockEmailService.Setup(t => t.Send(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>()));
-            _mockEmailService.Setup(t => t.Send(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()));
+            _mockEmailService.Setup(t => t.SendToAdminsAsync(It.IsAny<string>(), It.IsAny<string>()));
+            _mockEmailService.Setup(t => t.SendAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>()));
+            _mockEmailService.Setup(t => t.SendAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()));
             _mockEmailTemplate.Setup(t => t.GenerateHtmlFromTemplateAsync(It.IsAny<string>(), It.IsAny<object>())).ReturnsAsync(HtmlMock);
         }
 
@@ -33,8 +33,8 @@ namespace ShareBook.Test.Unit.Services
             ContactUsEmailService service = new ContactUsEmailService(_mockEmailService.Object, _mockEmailTemplate.Object);
             await service.SendEmailContactUsAsync(contactUs);
             
-            _mockEmailService.Verify(s => s.SendToAdmins(HtmlMock, ContactUsEmailService.ContactUsTitle), Times.Once);
-            _mockEmailService.Verify(s => s.Send(contactUs.Email, contactUs.Name, HtmlMock, ContactUsEmailService.ContactUsNotificationTitle, false, true), Times.Once);
+            _mockEmailService.Verify(s => s.SendToAdminsAsync(HtmlMock, ContactUsEmailService.ContactUsTitle), Times.Once);
+            _mockEmailService.Verify(s => s.SendAsync(contactUs.Email, contactUs.Name, HtmlMock, ContactUsEmailService.ContactUsNotificationTitle, false, true), Times.Once);
             _mockEmailService.VerifyNoOtherCalls();
             _mockEmailTemplate.Verify(s => s.GenerateHtmlFromTemplateAsync(It.IsAny<string>(), It.IsAny<object>()), Times.Exactly(2));
             _mockEmailTemplate.VerifyNoOtherCalls();

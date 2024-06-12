@@ -83,7 +83,7 @@ namespace ShareBook.Api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            await _emailService.Test(emailVM.Email, emailVM.Name);
+            await _emailService.TestAsync(emailVM.Email, emailVM.Name);
             return Ok();
         }
 

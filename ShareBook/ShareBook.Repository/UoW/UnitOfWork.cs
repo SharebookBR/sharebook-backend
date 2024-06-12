@@ -2,6 +2,7 @@
 {
     public class UnitOfWork : IUnitOfWork
     {
+        // TODO: Migrate methods to async
         private readonly ApplicationDbContext _context;
 
         public UnitOfWork(ApplicationDbContext context) => _context = context;

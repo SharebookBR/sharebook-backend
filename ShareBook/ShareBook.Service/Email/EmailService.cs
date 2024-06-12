@@ -44,22 +44,22 @@ public class EmailService : IEmailService
         _ctx = ctx;
     }
 
-    public async Task SendToAdmins(string messageText, string subject)
+    public async Task SendToAdminsAsync(string messageText, string subject)
     {
         var firstAdm = _userRepository.Get().Where(u => u.Profile == Domain.Enums.Profile.Administrator).FirstOrDefault();
-        await Send(firstAdm.Email, firstAdm.Name, messageText, subject, copyAdmins: true, highPriority: true);
+        await SendAsync(firstAdm.Email, firstAdm.Name, messageText, subject, copyAdmins: true, highPriority: true);
     }
 
-    public async Task Send(string emailRecipient, string nameRecipient, string messageText, string subject)
-        => await Send(emailRecipient, nameRecipient, messageText, subject, copyAdmins: false, highPriority: true);
+    public async Task SendAsync(string emailRecipient, string nameRecipient, string messageText, string subject)
+        => await SendAsync(emailRecipient, nameRecipient, messageText, subject, copyAdmins: false, highPriority: true);
 
-    public async Task Send(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins = false, bool highPriority = true)
+    public async Task SendAsync(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins = false, bool highPriority = true)
     {
         var sqsEnabled = bool.Parse(_configuration["AwsSqsSettings:IsActive"]);
 
         if (!sqsEnabled)
         {
-            await SendSmtp(emailRecipient, nameRecipient, messageText, subject, copyAdmins);
+            await SendSmtpAsync(emailRecipient, nameRecipient, messageText, subject, copyAdmins);
             return;
         }
 
@@ -78,13 +78,13 @@ public class EmailService : IEmailService
         };
 
         if (highPriority)
-            await _mailSenderHighPriorityQueue.SendMessage(queueMessage);
+            await _mailSenderHighPriorityQueue.SendMessageAsync(queueMessage);
         else
-            await _mailSenderLowPriorityQueue.SendMessage(queueMessage);
+            await _mailSenderLowPriorityQueue.SendMessageAsync(queueMessage);
 
     }
 
-    public async Task SendSmtp(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins)
+    public async Task SendSmtpAsync(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins)
     {
         var message = FormatEmail(emailRecipient, nameRecipient, messageText, subject, copyAdmins);
 
@@ -122,6 +122,7 @@ public class EmailService : IEmailService
 
     private InternetAddressList FormatEmailGetAdminEmails()
     {
+        // TODO: Migrate to async
         var admins = _userRepository.Get()
             .Select(u => new User {
                 Email = u.Email,
@@ -140,15 +141,16 @@ public class EmailService : IEmailService
         return list;
     }
 
-    public async Task Test(string email, string name)
+    public async Task TestAsync(string email, string name)
     {
         var subject = "Sharebook - teste de email";
         var message = $"<p>Olá {name},</p> <p>Esse é um email de teste para verificar se o sharebook consegue fazer contato com você. Por favor avise o facilitador quando esse email chegar. Obrigado.</p>";
-        await this.SendSmtp(email, name, message, subject, copyAdmins: false);
+        await this.SendSmtpAsync(email, name, message, subject, copyAdmins: false);
     }
 
-    public async Task<IList<string>> ProcessBounceMessages()
+    public async Task<IList<string>> ProcessBounceMessagesAsync()
     {
+        // TODO: Improve async/await
         var log = new List<string>();
 
         if(string.IsNullOrEmpty(_settings.BounceFolder))
@@ -204,7 +206,7 @@ public class EmailService : IEmailService
         return null;
     }
 
-    public async Task<IList<MailBounce>> GetBounces(IList<string> emails)
+    public async Task<IList<MailBounce>> GetBouncesAsync(IList<string> emails)
     {
         return await _ctx.MailBounces.Where(m => emails.Contains(m.Email)).ToListAsync();
     }

@@ -93,7 +93,7 @@ namespace ShareBook.Api.Controllers
             if (userId.Equals(null) || userId.Equals(Guid.Empty)) return BadRequest(ModelState);
 
             var whoAccessHistory = _mapper.Map<IEnumerable<AccessHistory>, IEnumerable<AccessHistoryVM>>(
-                await _historyRepository.GetWhoAccessedMyProfile(userId));
+                await _historyRepository.GetWhoAccessedMyProfileAsync(userId));
 
             if (whoAccessHistory is null) return NotFound(userId);
 
