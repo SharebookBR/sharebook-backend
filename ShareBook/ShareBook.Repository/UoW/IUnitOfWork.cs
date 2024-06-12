@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace ShareBook.Repository.UoW
 {
-    public interface IUnitOfWork : IDisposable
+    public interface IUnitOfWork : IAsyncDisposable
     {
-        void BeginTransaction();
-        void Commit();
-        void Rollback();
+        Task BeginTransactionAsync();
+        Task CommitAsync();
+        Task RollbackAsync();
     }
 }
