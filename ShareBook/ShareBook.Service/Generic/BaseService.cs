@@ -53,9 +53,6 @@ namespace ShareBook.Service.Generic
         public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, IncludeList<TEntity> includes)
             => _repository.Get(filter, order, includes);
 
-        public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage)
-            => _repository.Get(order, page, itemsPerPage);
-
         public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes)
             => _repository.Get(order, page, itemsPerPage, includes);
 
