@@ -78,7 +78,7 @@ namespace ShareBook.Service
             if (book.User == null)
                 book.User = await _userService.FindAsync(book.UserId);
 
-            var userStats = _userService.GetStats(book.UserId);
+            var userStats = await _userService.GetStatsAsync(book.UserId);
 
             await SendEmailNewBookInsertedToAdministrators(book, userStats);
 

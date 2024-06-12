@@ -19,9 +19,9 @@ namespace ShareBook.Service
         Result ConfirmHashCodePassword(string hashCodePassword);
         IList<User> GetFacilitators(Guid userIdDonator);
         IList<User> GetAdmins();
-        Task<IList<User>> GetBySolicitedBookCategoryAsync(Guid BookCategoryId);
-        UserStatsDTO GetStats(Guid? userId);
+        Task<IList<User>> GetBySolicitedBookCategoryAsync(Guid bookCategoryId);
+        Task<UserStatsDTO> GetStatsAsync(Guid? userId);
         Result<User> Insert(RegisterUserDTO userDto);
-        void ParentAproval(string parentHashCodeAproval);
+        Task ParentAprovalAsync(string parentHashCodeAproval);
     }
 }

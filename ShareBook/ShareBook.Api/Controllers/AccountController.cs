@@ -237,14 +237,14 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpPut("ParentAproval")]
-        public IActionResult ParentAproval([FromBody] ParentAprovalVM parentAprovalVM)
+        public async Task<IActionResult> ParentAprovalAsync([FromBody] ParentAprovalVM parentAprovalVM)
         {
             var ParentHashCodeAproval = parentAprovalVM.ParentHashCodeAproval;
 
             if (string.IsNullOrEmpty(ParentHashCodeAproval) || !Guid.TryParse(ParentHashCodeAproval, out _))
                 throw new ShareBookException("Código inválido.");
             
-            _userService.ParentAproval(ParentHashCodeAproval);
+            await _userService.ParentAprovalAsync(ParentHashCodeAproval);
             return Ok();
         }
 

@@ -310,30 +310,30 @@ namespace ShareBook.Service
         public async Task<IList<User>> GetBySolicitedBookCategoryAsync(Guid bookCategoryId) =>
             await _userRepository.Get().Where(u => u.AllowSendingEmail && u.BookUsers.Any(bu => bu.Book.CategoryId == bookCategoryId)).ToListAsync();
 
-        public UserStatsDTO GetStats(Guid? userId)
+        public async Task<UserStatsDTO> GetStatsAsync(Guid? userId)
         {
-            var user = _userRepository.Find(userId);
-            var books = _bookRepository.Get().Where(b => b.UserId == userId).ToList();
+            var user = await _userRepository.FindAsync(userId);
+            var books = await _bookRepository.Get().Where(b => b.UserId == userId).ToListAsync();
 
             if (user == null) throw new ShareBookException(ShareBookException.Error.NotFound, "Usuário não encontrado.");
 
             var stats = new UserStatsDTO
             {
                 CreationDate = user.CreationDate,
-                TotalLate = books.Where(b => b.ChooseDate < DateTime.Today && b.Status == BookStatus.AwaitingDonorDecision).Count(),
-                TotalOk = books.Where(b => b.Status == BookStatus.WaitingSend || b.Status == BookStatus.Sent || b.Status == BookStatus.Received).Count(),
-                TotalCanceled = books.Where(b => b.Status == BookStatus.Canceled).Count(),
-                TotalWaitingApproval = books.Where(b => b.Status == BookStatus.WaitingApproval).Count(),
-                TotalAvailable = books.Where(b => b.Status == BookStatus.Available).Count(),
+                TotalLate = books.Count(b => b.ChooseDate < DateTime.Today && b.Status == BookStatus.AwaitingDonorDecision),
+                TotalOk = books.Count(b => b.Status == BookStatus.WaitingSend || b.Status == BookStatus.Sent || b.Status == BookStatus.Received),
+                TotalCanceled = books.Count(b => b.Status == BookStatus.Canceled),
+                TotalWaitingApproval = books.Count(b => b.Status == BookStatus.WaitingApproval),
+                TotalAvailable = books.Count(b => b.Status == BookStatus.Available),
             };
             return stats;
         }
 
-        public void ParentAproval(string parentHashCodeAproval)
+        public async Task ParentAprovalAsync(string parentHashCodeAproval)
         {
-            var user = _repository.Get()
+            var user = await _repository.Get()
                 .Where(u => u.ParentHashCodeAproval == parentHashCodeAproval)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (user == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound, "Nenhum usuário encontrado.");
@@ -342,7 +342,7 @@ namespace ShareBook.Service
                 throw new ShareBookException(ShareBookException.Error.NotFound, "O acesso já foi liberado anteriormente. Tudo certo.");
 
             user.ParentAproved = true;
-            _userRepository.Update(user);
+            await _userRepository.UpdateAsync(user);
 
             _userEmailService.SendEmailParentAprovedNotifyUser(user);
         }
