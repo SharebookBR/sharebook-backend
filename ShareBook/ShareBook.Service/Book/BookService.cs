@@ -343,24 +343,24 @@ namespace ShareBook.Service
         /// Bom para remover o livro da vitrine.
         /// </summary>
         /// <returns></returns>
-        public IList<Book> GetBooksChooseDateIsTodayOrLate()
+        public async Task<IList<Book>> GetBooksChooseDateIsTodayOrLateAsync()
         {
             // limite é o dia de hoje.
             DateTime endDateTime = DateTime.Today.AddDays(1).AddTicks(-1); //Today at 23:59:59
 
             // livros em que o choosedate é hoje.
-            var books = _repository
-            .Get().Include(x => x.User).Include(x => x.BookUsers).Include(x => x.UserFacilitator)
-            .Where(x =>
-                x.ChooseDate <= endDateTime && x.Status == BookStatus.Available
-            ).ToList();
+            var books = await _repository
+                .Get().Include(x => x.User).Include(x => x.BookUsers).Include(x => x.UserFacilitator)
+                .Where(x =>
+                    x.ChooseDate <= endDateTime && x.Status == BookStatus.Available
+                ).ToListAsync();
 
             return books;
         }
 
-        public void AddFacilitatorNotes(Guid bookId, string facilitatorNotes)
+        public async Task AddFacilitatorNotesAsync(Guid bookId, string facilitatorNotes)
         {
-            var book = _repository.Find(bookId);
+            var book = await _repository.FindAsync(bookId);
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
@@ -369,26 +369,25 @@ namespace ShareBook.Service
             var lineBreak = (string.IsNullOrEmpty(book.FacilitatorNotes)) ? "" : "\n";
             book.FacilitatorNotes += string.Format("{0}{1} - {2}", lineBreak, date, facilitatorNotes);
 
-            _repository.Update(book);
+            await _repository.UpdateAsync(book);
         }
 
-        public Book GetBookWithAllUsers(Guid bookId)
+        public async Task<Book> GetBookWithAllUsersAsync(Guid bookId)
         {
-            // TODO: Migrate to async/await
-            var books = _repository
-            .Get().Include(x => x.User).ThenInclude(u => u.Address)
-            .Include(x => x.UserFacilitator).ThenInclude(u => u.Address)
-            .Include(x => x.BookUsers).ThenInclude(bu => bu.User).ThenInclude(u => u.Address)
-            .Where(x => x.Id == bookId)
-            .ToList();
+            // TODO: Verify if we can use FirstOrDefault/FirstOrDefaultAsync directly without using the "ToListAsync"
+            var books = await _repository
+                .Get().Include(x => x.User).ThenInclude(u => u.Address)
+                .Include(x => x.UserFacilitator).ThenInclude(u => u.Address)
+                .Include(x => x.BookUsers).ThenInclude(bu => bu.User).ThenInclude(u => u.Address)
+                .Where(x => x.Id == bookId)
+                .ToListAsync();
 
             return books.FirstOrDefault();
         }
 
-        public void RenewChooseDate(Guid bookId)
+        public async Task RenewChooseDateAsync(Guid bookId)
         {
-            // TODO: Migrate to async/await
-            var book = _repository.Find(bookId);
+            var book = await _repository.FindAsync(bookId);
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
@@ -397,7 +396,7 @@ namespace ShareBook.Service
 
             book.Status = BookStatus.Available;
             book.ChooseDate = DateTime.Now.AddDays(10);
-            _repository.Update(book);
+            await _repository.UpdateAsync(book);
         }
 
         #region Private
@@ -447,6 +446,7 @@ namespace ShareBook.Service
 
         private string SetSlugByTitleOrIncremental(Book entity)
         {
+            // TODO: Migrate to async/await (P.s: breaking unit tests)
             var slug = _repository.Get()
                         .Where(x => x.Title.ToUpper().Trim().Equals(entity.Title.ToUpper().Trim())
                                     && !x.Id.Equals(entity.Id))
@@ -479,8 +479,8 @@ namespace ShareBook.Service
 
             var status = new BookStatsDTO();
 
-            status.TotalWaitingApproval = groupedStatus.Where(g => g.Status == BookStatus.WaitingApproval).Any()
-                ? groupedStatus.Where(g => g.Status == BookStatus.WaitingApproval).FirstOrDefault().Total
+            status.TotalWaitingApproval = groupedStatus.Exists(g => g.Status == BookStatus.WaitingApproval)
+                ? groupedStatus.Find(g => g.Status == BookStatus.WaitingApproval).Total
                 : 0;
 
             status.TotalOk = groupedStatus

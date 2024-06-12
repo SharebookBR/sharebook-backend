@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.DTOs;
@@ -306,8 +307,8 @@ namespace ShareBook.Service
             return user;
         }
 
-        public IList<User> GetBySolicitedBookCategory(Guid bookCategoryId) =>
-            _userRepository.Get().Where(u => u.AllowSendingEmail && u.BookUsers.Any(bu => bu.Book.CategoryId == bookCategoryId)).ToList();
+        public async Task<IList<User>> GetBySolicitedBookCategoryAsync(Guid bookCategoryId) =>
+            await _userRepository.Get().Where(u => u.AllowSendingEmail && u.BookUsers.Any(bu => bu.Book.CategoryId == bookCategoryId)).ToListAsync();
 
         public UserStatsDTO GetStats(Guid? userId)
         {

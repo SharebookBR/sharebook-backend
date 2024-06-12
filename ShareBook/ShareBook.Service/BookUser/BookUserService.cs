@@ -60,10 +60,10 @@ namespace ShareBook.Service
             .OrderBy(x => x.CreationDate)
             .ToList();
 
-        public void Insert(Guid bookId, string reason)
+        public async Task InsertAsync(Guid bookId, string reason)
         {
             //obtem o livro requisitado e o doador
-            var bookRequested = _bookService.GetBookWithAllUsers(bookId);
+            var bookRequested = await _bookService.GetBookWithAllUsersAsync(bookId);
             var bookUser = new BookUser()
             {
                 BookId = bookId,
@@ -75,19 +75,19 @@ namespace ShareBook.Service
             if (!_bookService.Any(x => x.Id == bookUser.BookId))
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
-            if (_bookUserRepository.Any(x => x.UserId == bookUser.UserId && x.BookId == bookUser.BookId))
+            if (await _bookUserRepository.AnyAsync(x => x.UserId == bookUser.UserId && x.BookId == bookUser.BookId))
                 throw new ShareBookException("O usuário já possui uma requisição para o mesmo livro.");
 
             if (bookRequested.Status != BookStatus.Available)
                 throw new ShareBookException("Esse livro não está mais disponível para doação.");
 
-            _bookUserRepository.Insert(bookUser);
+            await _bookUserRepository.InsertAsync(bookUser);
 
             // Remove da vitrine caso o número de pedidos estiver grande demais.
             MaxRequestsValidation(bookRequested);
 
-            _bookUsersEmailService.SendEmailBookDonor(bookUser, bookRequested).Wait();
-            _bookUsersEmailService.SendEmailBookInterested(bookUser, bookRequested).Wait();
+            await _bookUsersEmailService.SendEmailBookDonor(bookUser, bookRequested);
+            await _bookUsersEmailService.SendEmailBookInterested(bookUser, bookRequested);
             
         }
 

@@ -71,8 +71,7 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
 
         // Obtem usuários interessados
         var newBook = newBookMessage.Body;
-        // TODO: Migrate to async
-        var interestedUsers = _userService.GetBySolicitedBookCategory(newBook.CategoryId);
+        var interestedUsers = await _userService.GetBySolicitedBookCategoryAsync(newBook.CategoryId);
         totalDestinations = interestedUsers.Count;
         var template = await GetEmailTemplateAsync(newBook.BookId);
 

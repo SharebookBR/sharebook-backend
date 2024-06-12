@@ -225,10 +225,10 @@ namespace ShareBook.Api.Controllers
         public async Task<IActionResult> RequestBookAsync([FromBody] RequestBookVM requestBookVM)
         {
             User user = await GetUserAsync();
-            if (_IsDonator(requestBookVM.BookId, user) && !_IsAdmin(user)) //Permitido solicitar o próprio livro somente para Admin
+            if (await _IsDonatorAsync(requestBookVM.BookId, user) && !_IsAdmin(user)) //Permitido solicitar o próprio livro somente para Admin
                 throw new ShareBookException("Não é possivel solicitar esse livro pois você é o doador.");
 
-            _bookUserService.Insert(requestBookVM.BookId, requestBookVM.Reason);
+            await _bookUserService.InsertAsync(requestBookVM.BookId, requestBookVM.Reason);
             return Ok(new Result { SuccessMessage = "Pedido realizado com sucesso!" });
         }
 
@@ -353,9 +353,9 @@ namespace ShareBook.Api.Controllers
         [ProducesResponseType(typeof(Result), 200)]
         [HttpPost("AddFacilitatorNotes")]
         [AuthorizationFilter(Permissions.Permission.ApproveBook)]
-        public IActionResult AddFacilitatorNotes([FromBody] AddFacilitatorNotesVM vm)
+        public async Task<IActionResult> AddFacilitatorNotesAsync([FromBody] AddFacilitatorNotesVM vm)
         {
-            _service.AddFacilitatorNotes(vm.BookId, vm.FacilitatorNotes);
+            await _service.AddFacilitatorNotesAsync(vm.BookId, vm.FacilitatorNotes);
             return Ok();
         }
 
@@ -366,7 +366,7 @@ namespace ShareBook.Api.Controllers
         {
             if (!await _IsBookMainUserAsync(bookId)) return Unauthorized();
 
-            var book = _service.GetBookWithAllUsers(bookId);
+            var book = await _service.GetBookWithAllUsersAsync(bookId);
 
             var donor = _mapper.Map<UserVM>(book.User);
             var facilitator = _mapper.Map<UserVM>(book.UserFacilitator);
@@ -424,7 +424,7 @@ namespace ShareBook.Api.Controllers
             if (!await _IsBookOwnerAsync(bookId))
                 return Unauthorized();
 
-            _service.RenewChooseDate(bookId);
+            await _service.RenewChooseDateAsync(bookId);
             return Ok();
         }
 
@@ -439,13 +439,13 @@ namespace ShareBook.Api.Controllers
             if (_IsAdmin(user)) return true;
 
             // Doador
-            return _IsDonator(bookId, user);
+            return await _IsDonatorAsync(bookId, user);
         }
 
-        private bool _IsDonator(Guid bookId, User user)
+        private async Task<bool> _IsDonatorAsync(Guid bookId, User user)
         {
             if (user == null || user.Id == Guid.Empty) return false;
-            Book book = _service.GetBookWithAllUsers(bookId);
+            Book book = await _service.GetBookWithAllUsersAsync(bookId);
             if (book == null || book.Id == Guid.Empty) return false;
 
             return book.UserId == user.Id;
@@ -470,7 +470,7 @@ namespace ShareBook.Api.Controllers
                 return true;
 
             var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            var book = _service.GetBookWithAllUsers(bookId);
+            var book = await _service.GetBookWithAllUsersAsync(bookId);
 
             // Ganhador
             var winner = book.WinnerUser();

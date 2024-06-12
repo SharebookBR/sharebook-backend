@@ -8,6 +8,7 @@ using ShareBook.Service.Muambator;
 using ShareBook.Test.Unit.Mocks;
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace ShareBook.Test.Unit.Services
@@ -43,14 +44,14 @@ namespace ShareBook.Test.Unit.Services
 
             bookServiceMock.SetReturnsDefault(true);
 
-            bookServiceMock.Setup(s => s.GetBookWithAllUsers(It.IsAny<Guid>())).Returns(() =>
+            bookServiceMock.Setup(s => s.GetBookWithAllUsersAsync(It.IsAny<Guid>())).ReturnsAsync(() =>
             {
                 return BookMock.GetLordTheRings();
             });
         }
 
         [Fact]
-        public void RequestBook()
+        public async Task RequestBook()
         {
             Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
             var service = new BookUserService(bookUserRepositoryMock.Object,
@@ -60,8 +61,9 @@ namespace ShareBook.Test.Unit.Services
 
             string reason = "I need this book because I'm learning a new programming language.";
 
-            service.Insert(bookId, reason);
+            await service.InsertAsync(bookId, reason);
 
+            // TODO: Verify test and add at least one assertion
         }
     }
 }

@@ -38,8 +38,7 @@ namespace Sharebook.Jobs
         {
             var messages = new List<string>();
 
-            // TODO: Migrate to async
-            var books = _bookService.GetBooksChooseDateIsTodayOrLate();
+            var books = await _bookService.GetBooksChooseDateIsTodayOrLateAsync();
 
             if (books.Count == 0) messages.Add("Nenhum livro encontrado.");
 

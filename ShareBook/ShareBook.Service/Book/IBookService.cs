@@ -40,13 +40,13 @@ namespace ShareBook.Service
 
         Task<IList<Book>> GetBooksChooseDateIsLateAsync();
 
-        IList<Book> GetBooksChooseDateIsTodayOrLate();
+        Task<IList<Book>> GetBooksChooseDateIsTodayOrLateAsync();
 
-        void AddFacilitatorNotes(Guid bookId, string facilitatorNotes);
+        Task AddFacilitatorNotesAsync(Guid bookId, string facilitatorNotes);
 
-        Book GetBookWithAllUsers(Guid bookId);
+        Task<Book> GetBookWithAllUsersAsync(Guid bookId);
 
-        void RenewChooseDate(Guid bookId);
+        Task RenewChooseDateAsync(Guid bookId);
         Task<BookStatsDTO> GetStatsAsync();
     }
 }
