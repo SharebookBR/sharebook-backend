@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Moq;
+using ShareBook.Domain;
 using ShareBook.Domain.Validators;
 using ShareBook.Repository;
 using ShareBook.Repository.UoW;
@@ -7,6 +8,7 @@ using ShareBook.Service;
 using ShareBook.Service.Muambator;
 using ShareBook.Test.Unit.Mocks;
 using System;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -44,6 +46,7 @@ namespace ShareBook.Test.Unit.Services
 
             bookServiceMock.SetReturnsDefault(true);
 
+            bookServiceMock.Setup(s => s.AnyAsync(It.IsAny<Expression<Func<Book, bool>>>())).ReturnsAsync(true);
             bookServiceMock.Setup(s => s.GetBookWithAllUsersAsync(It.IsAny<Guid>())).ReturnsAsync(() =>
             {
                 return BookMock.GetLordTheRings();

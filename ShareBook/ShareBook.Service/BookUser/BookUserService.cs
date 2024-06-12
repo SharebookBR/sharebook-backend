@@ -72,7 +72,7 @@ namespace ShareBook.Service
                 NickName = $"Interessado {bookRequested?.TotalInterested() + 1}"
             };
 
-            if (!_bookService.Any(x => x.Id == bookUser.BookId))
+            if (!await _bookService.AnyAsync(x => x.Id == bookUser.BookId))
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
             if (await _bookUserRepository.AnyAsync(x => x.UserId == bookUser.UserId && x.BookId == bookUser.BookId))

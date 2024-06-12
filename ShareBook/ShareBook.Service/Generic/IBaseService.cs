@@ -8,7 +8,7 @@ namespace ShareBook.Service.Generic
 {
     public interface IBaseService<TEntity> where TEntity : class
     {
-        bool Any(Expression<Func<TEntity, bool>> filter);
+        Task<bool> AnyAsync(Expression<Func<TEntity, bool>> filter);
         Task<int> CountAsync(Expression<Func<TEntity, bool>> filter);
 
         /// <summary>

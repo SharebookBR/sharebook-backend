@@ -26,7 +26,7 @@ namespace ShareBook.Service.Generic
 
         #region GET
 
-        public bool Any(Expression<Func<TEntity, bool>> filter) => _repository.Any(filter);
+        public async Task<bool> AnyAsync(Expression<Func<TEntity, bool>> filter) => await _repository.AnyAsync(filter);
 
         public async Task<int> CountAsync(Expression<Func<TEntity, bool>> filter) => await _repository.CountAsync(filter);
 
