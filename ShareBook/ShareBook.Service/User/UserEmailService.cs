@@ -49,17 +49,16 @@ namespace ShareBook.Service
             _emailService.Send(userDto.ParentEmail, "Pais", html, title).Wait();
         }
 
-        public void SendEmailParentAprovedNotifyUser(User user)
+        public async Task SendEmailParentAprovedNotifyUserAsync(User user)
         {
             var vm = new
             {
                 SharebookLink = _serverSettings.DefaultUrl
             };
-            // TODO: Remove "GetAwaiter().GetResult()"
-            var html = _emailTemplate.GenerateHtmlFromTemplateAsync("ParentAprovedNotifyUser", vm).GetAwaiter().GetResult();
+            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync("ParentAprovedNotifyUser", vm);
 
             var title = "Consentimento dos pais";
-            _emailService.Send(user.Email, user.Name, html, title).Wait();
+            await _emailService.Send(user.Email, user.Name, html, title);
         }
 
         public void SendEmailAnonymizeNotifyAdms(UserAnonymizeDTO dto)

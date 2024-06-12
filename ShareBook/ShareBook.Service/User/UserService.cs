@@ -344,7 +344,7 @@ namespace ShareBook.Service
             user.ParentAproved = true;
             await _userRepository.UpdateAsync(user);
 
-            _userEmailService.SendEmailParentAprovedNotifyUser(user);
+            await _userEmailService.SendEmailParentAprovedNotifyUserAsync(user);
         }
 
         
