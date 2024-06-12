@@ -59,12 +59,11 @@ namespace ShareBook.Service
             await _emailService.Send(user.Email, user.Name, html, title);
         }
 
-        public void SendEmailAnonymizeNotifyAdms(UserAnonymizeDTO dto)
+        public async Task SendEmailAnonymizeNotifyAdmsAsync(UserAnonymizeDTO dto)
         {
-            // TODO: Remove "GetAwaiter().GetResult()"
-            var html = _emailTemplate.GenerateHtmlFromTemplateAsync("AnonymizeNotifyAdms", dto).GetAwaiter().GetResult();
+            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync("AnonymizeNotifyAdms", dto);
             var title = "Anonimização de conta";
-            _emailService.SendToAdmins(html, title);
+            await _emailService.SendToAdmins(html, title);
         }
     }
 }

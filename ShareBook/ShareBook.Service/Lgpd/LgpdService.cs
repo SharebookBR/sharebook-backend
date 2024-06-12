@@ -62,7 +62,7 @@ namespace ShareBook.Service.Lgpd
             RemoveLogs(user);
 
             // 5 - Notifica os adms.
-            _userEmailService.SendEmailAnonymizeNotifyAdms(dto);
+            await _userEmailService.SendEmailAnonymizeNotifyAdmsAsync(dto);
 
             // 6 - Enfim salva
             await _ctx.SaveChangesAsync();
