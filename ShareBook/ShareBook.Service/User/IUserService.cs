@@ -21,7 +21,7 @@ namespace ShareBook.Service
         IList<User> GetAdmins();
         Task<IList<User>> GetBySolicitedBookCategoryAsync(Guid bookCategoryId);
         Task<UserStatsDTO> GetStatsAsync(Guid? userId);
-        Result<User> Insert(RegisterUserDTO userDto);
+        Task<Result<User>> InsertAsync(RegisterUserDTO userDto);
         Task ParentAprovalAsync(string parentHashCodeAproval);
     }
 }

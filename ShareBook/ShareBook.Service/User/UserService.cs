@@ -94,12 +94,12 @@ namespace ShareBook.Service
             return result;
         }
 
-        public Result<User> Insert(RegisterUserDTO userDto)
+        public async Task<Result<User>> InsertAsync(RegisterUserDTO userDto)
         {
             User user = _mapper.Map<User>(userDto);
             Result resultRecaptcha = _recaptchaService.SimpleValidationRecaptcha(userDto?.RecaptchaReactive);
 
-            var result = Validate(user);
+            var result = await ValidateAsync(user);
             if (!resultRecaptcha.Success && resultRecaptcha.Messages != null) 
                 result.Messages.AddRange(resultRecaptcha.Messages);
 
@@ -108,23 +108,23 @@ namespace ShareBook.Service
 
             // Senha forte não é mais obrigatória.
 
-            if (_repository.Any(x => x.Email == user.Email))
+            if (await _repository.AnyAsync(x => x.Email == user.Email))
                 throw new ShareBookException("Usuário já possui email cadastrado.");
 
             // LGPD - CONSENTIMENTO DOS PAIS.
             if (userDto.Age < 12)
-                ParentAprovalStartFlow(userDto, user);
+                await ParentAprovalStartFlowAsync(userDto, user);
 
             user.Email = user.Email.ToLowerInvariant();
             if (result.Success)
             {
                 user = GetUserEncryptedPass(user);
-                result.Value = UserCleanup(_repository.Insert(user));
+                result.Value = UserCleanup(await _repository.InsertAsync(user));
             }
             return result;
         }
 
-        private void ParentAprovalStartFlow(RegisterUserDTO userDto, User user)
+        private async Task ParentAprovalStartFlowAsync(RegisterUserDTO userDto, User user)
         {
             user.ParentAproved = false;
             user.ParentHashCodeAproval = Guid.NewGuid().ToString();
@@ -132,7 +132,7 @@ namespace ShareBook.Service
             if (string.IsNullOrEmpty(userDto.ParentEmail))
                 throw new ShareBookException("Menor de idade. Obrigatório informar o email do pai ou responsável.");
 
-            _userEmailService.SendEmailRequestParentAproval(userDto, user);
+            await _userEmailService.SendEmailRequestParentAprovalAsync(userDto, user);
         }
 
         public override async Task<Result<User>> UpdateAsync(User user)

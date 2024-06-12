@@ -107,9 +107,9 @@ namespace ShareBook.Api.Controllers
         [HttpPost("Register")]
         [ProducesResponseType(typeof(object), 200)]
         [ProducesResponseType(409)]
-        public IActionResult Post([FromBody] RegisterUserDTO registerUserDto, [FromServices] SigningConfigurations signingConfigurations, [FromServices] TokenConfigurations tokenConfigurations)
+        public async Task<IActionResult> Post([FromBody] RegisterUserDTO registerUserDto, [FromServices] SigningConfigurations signingConfigurations, [FromServices] TokenConfigurations tokenConfigurations)
         {
-            var result = _userService.Insert(registerUserDto);
+            var result = await _userService.InsertAsync(registerUserDto);
 
             if (result.Success)
             {
