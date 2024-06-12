@@ -81,8 +81,6 @@ namespace ShareBook.Repository
 
         TEntity Insert(TEntity entity);
 
-        TEntity Update(TEntity entity);
-
         IQueryable<TEntity> FromSql(string query, object[] parameters);
     }
 }

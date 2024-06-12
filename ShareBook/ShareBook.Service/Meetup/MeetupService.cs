@@ -106,8 +106,8 @@ namespace ShareBook.Service
 
             if (updatedMeetups.Any())
             {
-                // TODO: Migrate to async
-                updatedMeetups.ForEach(m => _repository.Update(m));
+                // TODO: Verify if it's possible to use Task.WhenAll or similar
+                updatedMeetups.ForEach(async(m) => await _repository.UpdateAsync(m));
             }
 
             return updatedMeetups.Count;

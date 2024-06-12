@@ -126,7 +126,7 @@ namespace ShareBook.Api.Controllers
         [HttpPost("Login")]
         [ProducesResponseType(typeof(object), 200)]
         [ProducesResponseType(404)]
-        public IActionResult Login(
+        public async Task<IActionResult> LoginAsync(
             [FromBody] LoginUserVM loginUserVM,
             [FromServices] SigningConfigurations signingConfigurations,
             [FromServices] TokenConfigurations tokenConfigurations,
@@ -142,7 +142,7 @@ namespace ShareBook.Api.Controllers
                 throw new ShareBookException("Não é possível fazer login porque seu app está desatualizado. Por favor atualize seu app na loja do Google Play.");
 
             var user = _mapper.Map<User>(loginUserVM);
-            var result = _userService.AuthenticationByEmailAndPassword(user);
+            var result = await _userService.AuthenticationByEmailAndPasswordAsync(user);
 
             if (result.Success)
             {

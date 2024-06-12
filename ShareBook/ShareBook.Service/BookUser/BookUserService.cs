@@ -84,14 +84,14 @@ namespace ShareBook.Service
             await _bookUserRepository.InsertAsync(bookUser);
 
             // Remove da vitrine caso o número de pedidos estiver grande demais.
-            MaxRequestsValidation(bookRequested);
+            await MaxRequestsValidationAsync(bookRequested);
 
             await _bookUsersEmailService.SendEmailBookDonorAsync(bookUser, bookRequested);
             await _bookUsersEmailService.SendEmailBookInterestedAsync(bookUser, bookRequested);
             
         }
 
-        private void MaxRequestsValidation(Book bookRequested)
+        private async Task MaxRequestsValidationAsync(Book bookRequested)
         {
             var maxRequestsPerBook = int.Parse(_configuration["SharebookSettings:MaxRequestsPerBook"]);
             if (bookRequested.BookUsers.Count < maxRequestsPerBook)
@@ -99,9 +99,9 @@ namespace ShareBook.Service
 
             bookRequested.Status = BookStatus.AwaitingDonorDecision;
             bookRequested.ChooseDate = DateTime.Today.AddDays(1);
-            _bookRepository.Update(bookRequested);
+            await _bookRepository.UpdateAsync(bookRequested);
 
-            _bookUsersEmailService.SendEmailMaxRequestsAsync(bookRequested);
+            await _bookUsersEmailService.SendEmailMaxRequestsAsync(bookRequested);
         }
 
         public async Task DonateBookAsync(Guid bookId, Guid userId, string note)

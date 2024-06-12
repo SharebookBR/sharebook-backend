@@ -10,7 +10,7 @@ namespace ShareBook.Service
 {
     public interface IUserService : IBaseService<User>
     {
-        Result<User> AuthenticationByEmailAndPassword(User user);
+        Task<Result<User>> AuthenticationByEmailAndPasswordAsync(User user);
         bool IsValidPassword(User user, string decryptedPass);
         new Task<Result<User>> UpdateAsync(User user);
         Result<User> ValidOldPasswordAndChangeUserPassword(User user, string newPassword);

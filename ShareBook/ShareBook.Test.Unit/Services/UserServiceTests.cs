@@ -179,10 +179,10 @@ namespace ShareBook.Test.Unit.Services
 
         #region Login User
         [Fact]
-        public void LoginValidUser()
+        public async Task LoginValidUser()
         {
             var service = new UserService(userRepositoryMock.Object, bookRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), mapperMock.Object, userEmailServiceMock.Object, recaptchaServiceMock.Object);
-            Result<User> result = service.AuthenticationByEmailAndPassword(new User()
+            Result<User> result = await service.AuthenticationByEmailAndPasswordAsync(new User()
             {
                 Email = "walter@sharebook.com",
                 Password = "123456"
@@ -195,10 +195,10 @@ namespace ShareBook.Test.Unit.Services
         }
 
         [Fact]
-        public void LoginInvalidPassword()
+        public async Task LoginInvalidPassword()
         {
             var service = new UserService(userRepositoryMock.Object, bookRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), mapperMock.Object, userEmailServiceMock.Object, recaptchaServiceMock.Object);
-            Result<User> result = service.AuthenticationByEmailAndPassword(new User()
+            Result<User> result = await service.AuthenticationByEmailAndPasswordAsync(new User()
             {
                 Email = "walter@sharebook.com",
                 Password = "wrongpassword"
@@ -208,10 +208,10 @@ namespace ShareBook.Test.Unit.Services
         }
 
         [Fact]
-        public void LoginInvalidEmail()
+        public async Task LoginInvalidEmail()
         {
             var service = new UserService(userRepositoryMock.Object, bookRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), mapperMock.Object, userEmailServiceMock.Object, recaptchaServiceMock.Object);
-            Result<User> result = service.AuthenticationByEmailAndPassword(new User()
+            Result<User> result = await service.AuthenticationByEmailAndPasswordAsync(new User()
             {
                 Email = "joao@sharebook.com",
                 Password = "wrongpassword"

@@ -180,8 +180,6 @@ namespace ShareBook.Repository
 
         public TEntity Insert(TEntity entity) => InsertAsync(entity).GetAwaiter().GetResult();
 
-        public TEntity Update(TEntity entity) => UpdateAsync(entity).GetAwaiter().GetResult();
-
         #endregion Synchronous
     }
 }

@@ -46,7 +46,7 @@ namespace ShareBook.Service
             _recaptchaService = recaptchaService;
         }
 
-        public Result<User> AuthenticationByEmailAndPassword(User user)
+        public async Task<Result<User>> AuthenticationByEmailAndPasswordAsync(User user)
         {
             var result = Validate(user, x => x.Email, x => x.Password);
 
@@ -69,8 +69,7 @@ namespace ShareBook.Service
             // persiste última tentativa de login ANTES do SUCESSO ou FALHA pra ter métrica de
             // verificação de brute force.
             user.LastLogin = DateTime.Now;
-            // TODO: Migrate to Async
-            _userRepository.Update(user);
+            await _userRepository.UpdateAsync(user);
 
             if (!IsValidPassword(user, decryptedPass))
             {
