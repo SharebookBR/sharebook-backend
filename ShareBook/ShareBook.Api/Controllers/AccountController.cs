@@ -160,9 +160,9 @@ namespace ShareBook.Api.Controllers
         [HttpPost("ForgotMyPassword")]
         [ProducesResponseType(typeof(Result), 200)]
         [ProducesResponseType(404)]
-        public IActionResult ForgotMyPassword([FromBody] ForgotMyPasswordVM forgotMyPasswordVM)
+        public async Task<IActionResult> ForgotMyPasswordAsync([FromBody] ForgotMyPasswordVM forgotMyPasswordVM)
         {
-            var result = _userService.GenerateHashCodePasswordAndSendEmailToUser(forgotMyPasswordVM.Email);
+            var result = await _userService.GenerateHashCodePasswordAndSendEmailToUserAsync(forgotMyPasswordVM.Email);
 
             if (result.Success)
                 return Ok(result);

@@ -197,9 +197,8 @@ namespace ShareBook.Service
             return result;
         }
 
-        public Result GenerateHashCodePasswordAndSendEmailToUser(string email)
+        public async Task<Result> GenerateHashCodePasswordAndSendEmailToUserAsync(string email)
         {
-            // TODO: Migrate to async/await
             var result = new Result();
             var user = _repository.Find(e => e.Email == email);
 
@@ -210,8 +209,8 @@ namespace ShareBook.Service
             }
 
             user.GenerateHashCodePassword();
-            _repository.Update(user);
-            _userEmailService.SendEmailForgotMyPasswordToUserAsync(user).Wait();
+            await _repository.UpdateAsync(user);
+            await _userEmailService.SendEmailForgotMyPasswordToUserAsync(user);
             result.SuccessMessage = "E-mail enviado com as instruções para recuperação da senha.";
             return result;
         }

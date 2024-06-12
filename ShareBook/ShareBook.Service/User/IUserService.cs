@@ -15,7 +15,7 @@ namespace ShareBook.Service
         Task<Result<User>> UpdateAsync(User user);
         Result<User> ValidOldPasswordAndChangeUserPassword(User user, string newPassword);
         Result<User> ChangeUserPassword(User user, string newPassword);
-        Result GenerateHashCodePasswordAndSendEmailToUser(string email);
+        Task<Result> GenerateHashCodePasswordAndSendEmailToUserAsync(string email);
         Result ConfirmHashCodePassword(string hashCodePassword);
         IList<User> GetFacilitators(Guid userIdDonator);
         IList<User> GetAdmins();
