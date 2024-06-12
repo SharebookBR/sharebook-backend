@@ -131,16 +131,6 @@ namespace ShareBook.Repository
         PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes);
 
         /// <summary>
-        /// Execute the count based on the specified filter.
-        /// <para>
-        /// Don't use it to verify if there is any entity that satisfy the condition. To do it, use
-        /// the <see cref="Any(Expression{Func{TEntity, bool}})"/> method.
-        /// </para>
-        /// </summary>
-        /// <returns>The number of entities that satisfy the filter</returns>
-        int Count(Expression<Func<TEntity, bool>> filter);
-
-        /// <summary>
         /// Verify if there is any entity that satisfy the specified filter.
         /// </summary>
         /// <returns>True in case if there is at least one entity that satisfy the filter.</returns>
@@ -149,10 +139,6 @@ namespace ShareBook.Repository
         TEntity Insert(TEntity entity);
 
         TEntity Update(TEntity entity);
-
-        void Delete(params object[] keyValues);
-
-        void Delete(TEntity entity);
 
         IQueryable<TEntity> FromSql(string query, object[] parameters);
     }

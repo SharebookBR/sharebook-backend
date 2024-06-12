@@ -53,7 +53,7 @@ namespace ShareBook.Repository
             if (count > 1)
                 throw new ShareBookException("More than one entity find for the specified filter");
 
-            return query.FirstOrDefault();
+            return await query.FirstOrDefaultAsync();
         }
 
         public virtual async Task<PagedList<TEntity>> GetAsync<TKey>(
@@ -193,17 +193,11 @@ namespace ShareBook.Repository
         public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes)
             => GetAsync(filter, order, page, itemsPerPage, includes).GetAwaiter().GetResult();
 
-        public int Count(Expression<Func<TEntity, bool>> filter) => CountAsync(filter).GetAwaiter().GetResult();
-
         public bool Any(Expression<Func<TEntity, bool>> filter) => AnyAsync(filter).GetAwaiter().GetResult();
 
         public TEntity Insert(TEntity entity) => InsertAsync(entity).GetAwaiter().GetResult();
 
         public TEntity Update(TEntity entity) => UpdateAsync(entity).GetAwaiter().GetResult();
-
-        public void Delete(params object[] keyValues) => DeleteAsync(keyValues).GetAwaiter().GetResult();
-
-        public void Delete(TEntity entity) => DeleteAsync(entity).GetAwaiter().GetResult();
 
         #endregion Synchronous
     }
