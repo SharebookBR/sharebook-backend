@@ -44,7 +44,7 @@ public class LateDonationNotification : GenericJob, IJob
 
     public override async Task<JobHistory> WorkAsync()
     {
-        var status = _bookService.GetStats();
+        var status = await _bookService.GetStatsAsync();
         var booksLate = await _bookService.GetBooksChooseDateIsLateAsync();
         var donators = GetDistinctDonators(booksLate);
 

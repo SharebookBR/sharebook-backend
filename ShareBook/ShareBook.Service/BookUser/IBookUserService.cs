@@ -17,9 +17,9 @@ namespace ShareBook.Service
 
         Task DonateBookAsync(Guid bookId, Guid userId, string note);
 
-        void DeniedBookUsers(Guid bookId);
+        Task DeniedBookUsersAsync(Guid bookId);
 
-        PagedList<BookUser> GetRequestsByUser(int page, int items);
+        Task<PagedList<BookUser>> GetRequestsByUserAsync(int page, int items);
 
         /// <summary>
         /// Comunicar os interessados não escolhidos sobre a finalização da doação. e quem ganhou o livro
@@ -27,10 +27,10 @@ namespace ShareBook.Service
         /// <param name="bookId"></param>
         Task NotifyInterestedAboutBooksWinner(Guid bookId);
 
-        Result<Book> Cancel(BookCancelationDTO dto);
+        Task<Result<Book>> CancelAsync(BookCancelationDTO dto);
 
-        void InformTrackingNumber(Guid bookId, string trackingNumber);
-        BookUser GetRequest(Guid requestId);
-        bool CancelRequest(BookUser request);
+        Task InformTrackingNumberAsync(Guid bookId, string trackingNumber);
+        Task<BookUser> GetRequestAsync(Guid requestId);
+        Task<bool> CancelRequestAsync(BookUser request);
     }
 }

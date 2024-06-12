@@ -39,7 +39,7 @@ namespace ShareBook.Service
         public async Task SendEmailBookApprovedAsync(Book book)
         {
             if (book.User == null)
-                book.User = _userService.Find(book.UserId);
+                book.User = await _userService.FindAsync(book.UserId);
 
             if (book.User.AllowSendingEmail)
             {
@@ -57,7 +57,7 @@ namespace ShareBook.Service
         public async Task SendEmailBookReceivedAsync(Book book)
         {
             if (book.User == null)
-                book.User = _userService.Find(book.UserId);
+                book.User = await _userService.FindAsync(book.UserId);
 
             if (book.User.AllowSendingEmail)
             {
@@ -76,7 +76,7 @@ namespace ShareBook.Service
         public async Task SendEmailNewBookInsertedAsync(Book book)
         {
             if (book.User == null)
-                book.User = _userService.Find(book.UserId);
+                book.User = await _userService.FindAsync(book.UserId);
 
             var userStats = _userService.GetStats(book.UserId);
 

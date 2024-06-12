@@ -16,6 +16,7 @@ using ShareBook.Repository.UoW;
 using ShareBook.Infra.CrossCutting.Identity.Interfaces;
 using AutoMapper;
 using ShareBook.Service.Recaptcha;
+using System.Threading.Tasks;
 
 namespace ShareBook.Test.Unit.Services
 {
@@ -50,7 +51,7 @@ namespace ShareBook.Test.Unit.Services
                 return UserMock.GetGrantee();
             });
 
-            userRepositoryMock.Setup(repo => repo.Update(It.IsAny<User>())).Returns(() =>
+            userRepositoryMock.Setup(repo => repo.UpdateAsync(It.IsAny<User>())).ReturnsAsync(() =>
             {
                 return UserMock.GetGrantee();
             });
@@ -60,7 +61,7 @@ namespace ShareBook.Test.Unit.Services
                 return UserMock.GetGrantee();
             });
 
-            userRepositoryMock.Setup(repo => repo.Find(It.IsAny<IncludeList<User>>(), It.IsAny<Guid>())).Returns(() =>
+            userRepositoryMock.Setup(repo => repo.FindAsync(It.IsAny<IncludeList<User>>(), It.IsAny<Guid>())).ReturnsAsync(() =>
             {
                 return UserMock.GetGrantee();
             });
@@ -74,16 +75,17 @@ namespace ShareBook.Test.Unit.Services
                 }.AsQueryable();
             });
 
-            userServiceMock.Setup(service => service.Insert(It.IsAny<User>())).Verifiable();
+            userServiceMock.Setup(service => service.InsertAsync(It.IsAny<User>())).Verifiable();
+            userServiceMock.Setup(service => service.UpdateAsync(It.IsAny<User>())).Verifiable();
         }
 
         #region Register User
         [Fact]
-        public void RegisterValidUser()
+        public async Task RegisterValidUser()
         {
             var service = new UserService(userRepositoryMock.Object, bookRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), mapperMock.Object, userEmailServiceMock.Object, recaptchaServiceMock.Object);
 
-            Result<User> result = service.Insert(new User()
+            Result<User> result = await service.InsertAsync(new User()
             {
                 Email = "jose@sharebook.com",
                 Password = "Password.123",
@@ -97,11 +99,11 @@ namespace ShareBook.Test.Unit.Services
         }
 
         [Fact]
-        public void RegisterInvalidUser()
+        public async Task RegisterInvalidUser()
         {
             var service = new UserService(userRepositoryMock.Object, bookRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), mapperMock.Object, userEmailServiceMock.Object, recaptchaServiceMock.Object);
 
-            Result<User> result = service.Insert(new User()
+            Result<User> result = await service.InsertAsync(new User()
             {
                 Email = "",
                 Password = ""
@@ -114,11 +116,11 @@ namespace ShareBook.Test.Unit.Services
         #region Update User
 
         [Fact]
-        public void UpdateValidUser()
+        public async Task UpdateValidUser()
         {
             var service = new UserService(userRepositoryMock.Object, bookRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), mapperMock.Object, userEmailServiceMock.Object, recaptchaServiceMock.Object);
 
-            Result<User> result = service.Update(new User()
+            Result<User> result = await service.UpdateAsync(new User()
             {
                 Id = new Guid("C53B3552-606C-40C6-9D7F-FFC87572977E"),
                 Email = "sergioprates.student@gmail.com",
@@ -142,11 +144,11 @@ namespace ShareBook.Test.Unit.Services
         }
 
         [Fact]
-        public void UpdateInvalidUser()
+        public async Task UpdateInvalidUser()
         {
             var service = new UserService(userRepositoryMock.Object, bookRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), mapperMock.Object, userEmailServiceMock.Object, recaptchaServiceMock.Object);
 
-            Result<User> result = service.Update(new User()
+            Result<User> result = await service.UpdateAsync(new User()
             {
                 Email = "",
                 Linkedin = "",
@@ -159,11 +161,11 @@ namespace ShareBook.Test.Unit.Services
         }
 
         [Fact]
-        public void UpdateUserNotExists()
+        public async Task UpdateUserNotExists()
         {
             var service = new UserService(userRepositoryMock.Object, bookRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), mapperMock.Object, userEmailServiceMock.Object, recaptchaServiceMock.Object);
 
-            Result<User> result = service.Update(new User()
+            Result<User> result = await service.UpdateAsync(new User()
             {
                 Email = "sss@sss.com",
                 Linkedin = ""

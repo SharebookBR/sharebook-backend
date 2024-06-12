@@ -96,19 +96,19 @@ namespace ShareBook.Api.Controllers
         [Authorize("Bearer")]
         [HttpPost("Cancel/{id}")]
         [ProducesResponseType(typeof(Result<CancelBookDonationVM>), 200)]
-        public IActionResult Cancel(string id, [FromQuery] string reason = "")
+        public async Task<IActionResult> CancelAsync(string id, [FromQuery] string reason = "")
         {
-            if (!_IsBookOwner(new Guid(id))) return Unauthorized();
+            if (!await _IsBookOwnerAsync(new Guid(id))) return Unauthorized();
 
             var cancelationDTO = new BookCancelationDTO
             {
-                Book = _service.Find(new Guid(id)),
-                CanceledBy = GetSessionUser().Name,
+                Book = await _service.FindAsync(new Guid(id)),
+                CanceledBy = (await GetSessionUserAsync()).Name,
                 Reason = reason
             };
 
-            var returnBook = _bookUserService.Cancel(cancelationDTO).Value;
-            var returnBookVm = _mapper.Map<CancelBookDonationVM>(returnBook);
+            var returnBook = await _bookUserService.CancelAsync(cancelationDTO);
+            var returnBookVm = _mapper.Map<CancelBookDonationVM>(returnBook.Value);
             var result = new Result<CancelBookDonationVM>(returnBookVm);
             return Ok(result);
         }
@@ -129,9 +129,9 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpGet("RequestersList/{bookId}")]
-        public IActionResult GetRequestersList(Guid bookId)
+        public async Task<IActionResult> GetRequestersListAsync(Guid bookId)
         {
-            if (!_IsBookOwner(bookId)) return Unauthorized();
+            if (!await _IsBookOwnerAsync(bookId)) return Unauthorized();
 
             var requesters = _bookUserService.GetRequestersList(bookId);
             var requestersVM = _mapper.Map<List<RequestersListVM>>(requesters);
@@ -141,9 +141,9 @@ namespace ShareBook.Api.Controllers
 
         [HttpGet("Slug/{slug}")]
         [ProducesResponseType(typeof(BookVM), 200)]
-        public IActionResult Get(string slug)
+        public async Task<IActionResult> GetAsync(string slug)
         {
-            var book = _service.BySlug(slug);
+            var book = await _service.BySlugAsync(slug);
             var bookVM = _mapper.Map<BookVM>(book);
             return book != null ? (IActionResult)Ok(bookVM) : NotFound();
         }
@@ -152,9 +152,9 @@ namespace ShareBook.Api.Controllers
         [AuthorizationFilter(Permissions.Permission.ApproveBook)] // apenas adms
         [ProducesResponseType(typeof(BookVM), 200)]
         [HttpGet("{id}")]
-        public IActionResult GetById(string id)
+        public async Task<IActionResult> GetByIdAsync(string id)
         {
-            var book = _service.Find(new Guid(id));
+            var book = await _service.FindAsync(new Guid(id));
             var bookVM = _mapper.Map<BookVMAdm>(book);
             return bookVM != null ? (IActionResult)Ok(bookVM) : NotFound();
         }
@@ -181,9 +181,9 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpGet("FullSearch/{criteria}/{page}/{items}")]
-        public PagedList<BookVM> FullSearch(string criteria, int page, int items)
+        public async Task<PagedList<BookVM>> FullSearchAsync(string criteria, int page, int items)
         {
-            var books = _service.FullSearch(criteria, page, items);
+            var books = await _service.FullSearchAsync(criteria, page, items);
             var booksVM = _mapper.Map<List<BookVM>>(books.Items);
             return new PagedList<BookVM>()
             {
@@ -197,16 +197,16 @@ namespace ShareBook.Api.Controllers
         [Authorize("Bearer")]
         [HttpGet("FullSearchAdmin/{criteria}")]
         [AuthorizationFilter(Permissions.Permission.DonateBook)]
-        public PagedList<Book> FullSearchAdmin(string criteria, int page, int items)
+        public async Task<PagedList<Book>> FullSearchAdminAsync(string criteria, int page, int items)
         {
             var isAdmin = true;
-            return _service.FullSearch(criteria, page, items, isAdmin);
+            return await _service.FullSearchAsync(criteria, page, items, isAdmin);
         }
 
         [HttpGet("Category/{categoryId}/{page}/{items}")]
-        public PagedList<BookVM> ByCategoryId(Guid categoryId, int page, int items)
+        public async Task<PagedList<BookVM>> ByCategoryIdAsync(Guid categoryId, int page, int items)
         {
-            var booksPaged = _service.ByCategoryId(categoryId, page, items);
+            var booksPaged = await _service.ByCategoryIdAsync(categoryId, page, items);
             var books = booksPaged.Items;
             var booksVM = _mapper.Map<List<BookVM>>(books);
 
@@ -222,9 +222,9 @@ namespace ShareBook.Api.Controllers
         [Authorize("Bearer")]
         [HttpPost("Request")]
         [ProducesResponseType(typeof(Result), 200)]
-        public IActionResult RequestBook([FromBody] RequestBookVM requestBookVM)
+        public async Task<IActionResult> RequestBookAsync([FromBody] RequestBookVM requestBookVM)
         {
-            User user = GetUser();
+            User user = await GetUserAsync();
             if (_IsDonator(requestBookVM.BookId, user) && !_IsAdmin(user)) //Permitido solicitar o próprio livro somente para Admin
                 throw new ShareBookException("Não é possivel solicitar esse livro pois você é o doador.");
 
@@ -234,19 +234,19 @@ namespace ShareBook.Api.Controllers
 
         [HttpPost("CancelRequest/{requestId}")]
         [Authorize("Bearer")]
-        public IActionResult CancelRequest(Guid requestId)
+        public async Task<IActionResult> CancelRequestAsync(Guid requestId)
         {
-            var request = _bookUserService.GetRequest(requestId);
+            var request = await _bookUserService.GetRequestAsync(requestId);
 
             if (request == null)
                 return NotFound();
 
-            var user = GetUser();
+            var user = await GetUserAsync();
 
             if (request.UserId != user.Id)
                 return Forbid();
 
-            bool success = _bookUserService.CancelRequest(request);
+            bool success = await _bookUserService.CancelRequestAsync(request);
             if (!success)
                 return BadRequest();
 
@@ -255,10 +255,10 @@ namespace ShareBook.Api.Controllers
 
         [HttpPost]
         [Authorize("Bearer")]
-        public IActionResult Create([FromBody] CreateBookVM createBookVM)
+        public async Task<IActionResult> CreateAsync([FromBody] CreateBookVM createBookVM)
         {
             var book = _mapper.Map<Book>(createBookVM);
-            var result = _service.Insert(book);
+            var result = await _service.InsertAsync(book);
             if (!result.Success)
             {
                 return BadRequest(result);
@@ -269,11 +269,11 @@ namespace ShareBook.Api.Controllers
         [HttpPut("{id}")]
         [Authorize("Bearer")]
         [AuthorizationFilter(Permissions.Permission.ApproveBook)]
-        public IActionResult Update(Guid Id, [FromBody] UpdateBookVM updateBookVM)
+        public async Task<IActionResult> UpdateAsync(Guid Id, [FromBody] UpdateBookVM updateBookVM)
         {
             updateBookVM.Id = Id;
             var book = _mapper.Map<Book>(updateBookVM);
-            var result = _service.Update(book);
+            var result = await _service.UpdateAsync(book);
             if (!result.Success)
             {
                 return BadRequest(result);
@@ -286,7 +286,7 @@ namespace ShareBook.Api.Controllers
         [ProducesResponseType(typeof(Result), 200)]
         public async Task<IActionResult> DonateBookAsync(Guid bookId, [FromBody] DonateBookUserVM donateBookUserVM)
         {
-            if (!_IsBookOwner(bookId)) return Unauthorized();
+            if (!await _IsBookOwnerAsync(bookId)) return Unauthorized();
 
             await _bookUserService.DonateBookAsync(bookId, donateBookUserVM.UserId, donateBookUserVM.Note);
 
@@ -301,15 +301,15 @@ namespace ShareBook.Api.Controllers
         [Authorize("Bearer")]
         [HttpDelete("{id}")]
         [AuthorizationFilter(Permissions.Permission.DonateBook)]
-        public Result Delete(Guid id) => _service.Delete(id);
+        public async Task<Result> DeleteAsync(Guid id) => await _service.DeleteAsync(id);
 
         [Authorize("Bearer")]
         [HttpGet("Requested/{bookId}")]
-        public Result Requested(Guid bookId)
+        public async Task<Result> RequestedAsync(Guid bookId)
         {
             var result = new Result
             {
-                Value = new { bookRequested = _service.UserRequestedBook(bookId) },
+                Value = new { bookRequested = await _service.UserRequestedBookAsync(bookId) },
             };
 
             return result;
@@ -317,9 +317,9 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpGet("MyRequests/{page}/{items}")]
-        public PagedList<MyBookRequestVM> MyRequests(int page, int items)
+        public async Task<PagedList<MyBookRequestVM>> MyRequestsAsync(int page, int items)
         {
-            var donation = _bookUserService.GetRequestsByUser(page, items);
+            var donation = await _bookUserService.GetRequestsByUserAsync(page, items);
             var myBooksRequestsVM = _mapper.Map<List<MyBookRequestVM>>(donation.Items);
 
             return new PagedList<MyBookRequestVM>()
@@ -333,19 +333,19 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpGet("MyDonations")]
-        public IList<BookVMAdm> MyDonations()
+        public async Task<IList<BookVMAdm>> MyDonationsAsync()
         {
             Guid userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            var donations = _service.GetUserDonations(userId);
+            var donations = await _service.GetUserDonationsAsync(userId);
             return _mapper.Map<List<BookVMAdm>>(donations);
         }
 
         [Authorize("Bearer")]
         [ProducesResponseType(typeof(Result), 200)]
         [HttpPost("InformTrackingNumber/{bookId}")]
-        public IActionResult InformTrackingNumber(Guid bookId, [FromBody] TrackinNumberBookVM trackingNumberBookVM)
+        public async Task<IActionResult> InformTrackingNumberAsync(Guid bookId, [FromBody] TrackinNumberBookVM trackingNumberBookVM)
         {
-            _bookUserService.InformTrackingNumber(bookId, trackingNumberBookVM.TrackingNumber);
+            await _bookUserService.InformTrackingNumberAsync(bookId, trackingNumberBookVM.TrackingNumber);
             return Ok();
         }
 
@@ -364,7 +364,7 @@ namespace ShareBook.Api.Controllers
         [HttpGet("MainUsers/{bookId}")]
         public async Task<IActionResult> MainUsers(Guid bookId)
         {
-            if (!_IsBookMainUser(bookId)) return Unauthorized();
+            if (!await _IsBookMainUserAsync(bookId)) return Unauthorized();
 
             var book = _service.GetBookWithAllUsers(bookId);
 
@@ -380,7 +380,7 @@ namespace ShareBook.Api.Controllers
             };
 
             var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            var visitor = _userService.Find(userId);
+            var visitor = await _userService.FindAsync(userId);
             var visitorProfile = GetVisitorProfile(result);
 
             await _accessHistoryService.InsertVisitor(book.User, visitor, visitorProfile);
@@ -419,9 +419,9 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpPut("RenewChooseDate/{bookId}")]
-        public IActionResult RenewChooseDate(Guid bookId)
+        public async Task<IActionResult> RenewChooseDateAsync(Guid bookId)
         {
-            if (!_IsBookOwner(bookId))
+            if (!await _IsBookOwnerAsync(bookId))
                 return Unauthorized();
 
             _service.RenewChooseDate(bookId);
@@ -429,9 +429,9 @@ namespace ShareBook.Api.Controllers
         }
 
         // apenas doador e adm
-        private bool _IsBookOwner(Guid bookId)
+        private async Task<bool> _IsBookOwnerAsync(Guid bookId)
         {
-            User user = GetUser();
+            User user = await GetUserAsync();
             if (user == null)
                 return false;
 
@@ -451,10 +451,10 @@ namespace ShareBook.Api.Controllers
             return book.UserId == user.Id;
         }
 
-        private User GetUser()
+        private async Task<User> GetUserAsync()
         {
             var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            return _userService.Find(userId);
+            return await _userService.FindAsync(userId);
         }
 
         private bool _IsAdmin(User user)
@@ -464,9 +464,9 @@ namespace ShareBook.Api.Controllers
         }
 
         // doador, adm e ganhador
-        private bool _IsBookMainUser(Guid bookId)
+        private async Task<bool> _IsBookMainUserAsync(Guid bookId)
         {
-            if (_IsBookOwner(bookId))
+            if (await _IsBookOwnerAsync(bookId))
                 return true;
 
             var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
@@ -480,10 +480,10 @@ namespace ShareBook.Api.Controllers
             return false;
         }
 
-        private User GetSessionUser()
+        private async Task<User> GetSessionUserAsync()
         {
             var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            return _userService.Find(userId);
+            return await _userService.FindAsync(userId);
         }
     }
 }

@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using AutoMapper;
 using FluentValidation;
-using Microsoft.EntityFrameworkCore;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.DTOs;
@@ -68,6 +68,7 @@ namespace ShareBook.Service
             // persiste última tentativa de login ANTES do SUCESSO ou FALHA pra ter métrica de
             // verificação de brute force.
             user.LastLogin = DateTime.Now;
+            // TODO: Migrate to Async
             _userRepository.Update(user);
 
             if (!IsValidPassword(user, decryptedPass))
@@ -133,7 +134,7 @@ namespace ShareBook.Service
             _userEmailService.SendEmailRequestParentAproval(userDto, user);
         }
 
-        public override Result<User> Update(User user)
+        public override async Task<Result<User>> UpdateAsync(User user)
         {
             user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             Result<User> result = Validate(user, x =>
@@ -145,11 +146,11 @@ namespace ShareBook.Service
 
             if (!result.Success) return result;
 
-            var userAux = _repository.Find(new IncludeList<User>(x => x.Address), user.Id);
+            var userAux = await _repository.FindAsync(new IncludeList<User>(x => x.Address), user.Id);
 
             if (userAux == null) result.Messages.Add("Usuário não existe.");
 
-            if (_repository.Any(u => u.Email == user.Email && u.Id != user.Id))
+            if (await _repository.AnyAsync(u => u.Email == user.Email && u.Id != user.Id))
                 result.Messages.Add("Email já existe.");
 
             if (result.Success)
@@ -157,16 +158,16 @@ namespace ShareBook.Service
                 userAux.Change(user.Email, user.Name, user.Linkedin, user.Instagram, user.Phone, user.AllowSendingEmail);
                 userAux.ChangeAddress(user.Address);
 
-                result.Value = UserCleanup(_repository.Update(userAux));
+                result.Value = UserCleanup(await _repository.UpdateAsync(userAux));
             }
 
             return result;
         }
 
-        public override User Find(object keyValue)
+        public override async Task<User> FindAsync(object keyValue)
         {
             var includes = new IncludeList<User>(x => x.Address);
-            return _repository.Find(includes, keyValue);
+            return await _repository.FindAsync(includes, keyValue);
         }
 
         public Result<User> ValidOldPasswordAndChangeUserPassword(User user, string newPassword)
@@ -198,6 +199,7 @@ namespace ShareBook.Service
 
         public Result GenerateHashCodePasswordAndSendEmailToUser(string email)
         {
+            // TODO: Migrate to async/await
             var result = new Result();
             var user = _repository.Find(e => e.Email == email);
 

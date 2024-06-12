@@ -46,7 +46,7 @@ namespace ShareBook.Service
         {
             var bookDonated = bookUser.Book;
             if (bookDonated.User == null)
-                bookDonated.User = _userService.Find(bookUser.Book.UserId);
+                bookDonated.User = await _userService.FindAsync(bookUser.Book.UserId);
 
             if (bookDonated.User.AllowSendingEmail)
             {
@@ -85,7 +85,7 @@ namespace ShareBook.Service
                 return;
 
             //obter o endereço do interessado
-            var donatedUser = this._userService.Find(bookUser.UserId);
+            var donatedUser = await this._userService.FindAsync(bookUser.UserId);
             if (bookRequested.User.AllowSendingEmail)
             {
                 var htmlTable = GenerateInterestedListHtml(bookRequested);
@@ -157,7 +157,7 @@ namespace ShareBook.Service
         {
             // lazy load depression
             if (bookUser.User == null)
-                bookUser.User = _userService.Find(bookUser.UserId);
+                bookUser.User = await _userService.FindAsync(bookUser.UserId);
 
             if (bookUser.User.AllowSendingEmail)
             {

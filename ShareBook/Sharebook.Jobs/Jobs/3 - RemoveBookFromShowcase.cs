@@ -66,8 +66,7 @@ namespace Sharebook.Jobs
                     await SendEmailAsync(book);
                 }
 
-                // TODO: Migrate to async
-                _bookService.Update(book);
+                await _bookService.UpdateAsync(book);
             }
 
             return new JobHistory()

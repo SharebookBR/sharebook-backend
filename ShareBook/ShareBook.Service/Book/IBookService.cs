@@ -24,17 +24,17 @@ namespace ShareBook.Service
 
         IList<Book> Random15EBooks();
 
-        PagedList<Book> FullSearch(string criteria, int page, int itemsPerPage, bool isAdmin = false);
+        Task<PagedList<Book>> FullSearchAsync(string criteria, int page, int itemsPerPage, bool isAdmin = false);
 
-        PagedList<Book> ByCategoryId(Guid categoryId, int page, int items);
+        Task<PagedList<Book>> ByCategoryIdAsync(Guid categoryId, int page, int items);
 
         IList<Book> GetAll(int page, int items);
 
-        Book BySlug(string slug);
+        Task<Book> BySlugAsync(string slug);
 
-        bool UserRequestedBook(Guid bookId);
+        Task<bool> UserRequestedBookAsync(Guid bookId);
 
-        IList<Book> GetUserDonations(Guid userId);
+        Task<IList<Book>> GetUserDonationsAsync(Guid userId);
 
         Task<IList<Book>> GetBooksChooseDateIsTodayAsync();
 
@@ -47,6 +47,6 @@ namespace ShareBook.Service
         Book GetBookWithAllUsers(Guid bookId);
 
         void RenewChooseDate(Guid bookId);
-        BookStatsDTO GetStats();
+        Task<BookStatsDTO> GetStatsAsync();
     }
 }

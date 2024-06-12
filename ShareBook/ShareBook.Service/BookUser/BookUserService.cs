@@ -106,7 +106,7 @@ namespace ShareBook.Service
 
         public async Task DonateBookAsync(Guid bookId, Guid userId, string note)
         {
-            var book = _bookService.Find(bookId);
+            var book = await _bookService.FindAsync(bookId);
             if (!book.MayChooseWinner())
                 throw new ShareBookException(ShareBookException.Error.BadRequest, "Aguarde a data de decisão.");
 
@@ -129,7 +129,7 @@ namespace ShareBook.Service
 
             await _bookUserRepository.UpdateAsync(bookUserAccepted);
 
-            DeniedBookUsers(bookId);
+            await DeniedBookUsersAsync(bookId);
 
             await _bookService.UpdateBookStatusAsync(bookId, BookStatus.WaitingSend);
 
@@ -146,44 +146,44 @@ namespace ShareBook.Service
             await _bookUsersEmailService.SendEmailBookDonatedNotifyDonor(bookUserAccepted.Book, bookUserAccepted.User);
         }
 
-        public Result<Book> Cancel(BookCancelationDTO dto)
+        public async Task<Result<Book>> CancelAsync(BookCancelationDTO dto)
         {
             if (dto.Book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
-            // TODO: Migrate to "ToListAsync"
-            var bookUsers = _bookUserRepository.Get().Where(x => x.BookId == dto.Book.Id).ToList();
+            // TODO: Verify if we can remove this call
+            var bookUsers = await _bookUserRepository.Get().Where(x => x.BookId == dto.Book.Id).ToListAsync();
 
             dto.Book.ChooseDate = null;
             dto.Book.Status = BookStatus.Canceled;
 
-            CancelBookUsersAndSendNotification(dto.Book);
+            await CancelBookUsersAndSendNotificationAsync(dto.Book);
 
-            _bookService.Update(dto.Book);
-            _bookUsersEmailService.SendEmailBookCanceledToAdminsAndDonor(dto).Wait();
+            await _bookService.UpdateAsync(dto.Book);
+            await _bookUsersEmailService.SendEmailBookCanceledToAdminsAndDonor(dto);
 
             return new Result<Book>(dto.Book);
         }
 
-        public void DeniedBookUsers(Guid bookId)
+        public async Task DeniedBookUsersAsync(Guid bookId)
         {
-            var bookUsersDenied = _bookUserRepository.Get().Where(x => x.BookId == bookId
-            && x.Status == DonationStatus.WaitingAction).ToList();
+            var bookUsersDenied = await _bookUserRepository.Get().Where(x => x.BookId == bookId
+            && x.Status == DonationStatus.WaitingAction).ToListAsync();
             foreach (var item in bookUsersDenied)
             {
                 string note = string.Empty;
                 item.UpdateBookUser(DonationStatus.Denied, note);
-                _bookUserRepository.Update(item);
+                await _bookUserRepository.UpdateAsync(item);
             }
         }
 
-        private void CancelBookUsersAndSendNotification(Book book)
+        private async Task CancelBookUsersAndSendNotificationAsync(Book book)
         {
-            DeniedBookUsers(book.Id);
-            NotifyUsersBookCanceled(book);
+            await DeniedBookUsersAsync(book.Id);
+            await NotifyUsersBookCanceledAsync(book);
         }
 
-        public PagedList<BookUser> GetRequestsByUser(int page, int itemsPerPage)
+        public async Task<PagedList<BookUser>> GetRequestsByUserAsync(int page, int itemsPerPage)
         {
             var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             var query = _bookUserRepository.Get()
@@ -191,7 +191,7 @@ namespace ShareBook.Service
                 .Where(x => x.UserId == userId)
                 .OrderByDescending(x => x.CreationDate);
 
-            var result = FormatPagedList(query, page, itemsPerPage);
+            var result = await FormatPagedListAsync(query, page, itemsPerPage);
 
             // só mostra o código de rastreio se ele for o ganhador.
             result.Items = result.Items.Select(bu =>
@@ -206,13 +206,13 @@ namespace ShareBook.Service
         public async Task NotifyInterestedAboutBooksWinner(Guid bookId)
         {
             //Obter todos os users do livro
-            var bookUsers = _bookUserRepository.Get()
+            var bookUsers = await _bookUserRepository.Get()
                                                 .Include(u => u.Book)
                                                 .Include(u => u.User)
-                                                .Where(x => x.BookId == bookId).ToList();
+                                                .Where(x => x.BookId == bookId).ToListAsync();
 
             //obter apenas o ganhador
-            var winnerBookUser = bookUsers.Where(bu => bu.Status == DonationStatus.Donated).FirstOrDefault();
+            var winnerBookUser = bookUsers.FirstOrDefault(bu => bu.Status == DonationStatus.Donated);
 
             //Book
             var book = winnerBookUser.Book;
@@ -222,71 +222,65 @@ namespace ShareBook.Service
 
             //enviar e-mails
             await this._bookUsersEmailService.SendEmailDonationDeclined(book, winnerBookUser, losersBookUser);
-
         }
 
-        public void NotifyUsersBookCanceled(Book book)
+        public async Task NotifyUsersBookCanceledAsync(Book book)
         {
-
-
-            List<BookUser> bookUsers = _bookUserRepository.Get()
+            List<BookUser> bookUsers = await _bookUserRepository.Get()
                                             .Include(u => u.User)
-                                            .Where(x => x.BookId == book.Id).ToList();
+                                            .Where(x => x.BookId == book.Id).ToListAsync();
 
-
-            this._bookUsersEmailService.SendEmailDonationCanceled(book, bookUsers).Wait();
-
+            await this._bookUsersEmailService.SendEmailDonationCanceled(book, bookUsers);
         }
 
-        public void InformTrackingNumber(Guid bookId, string trackingNumber)
+        public async Task InformTrackingNumberAsync(Guid bookId, string trackingNumber)
         {
-            var book = _bookRepository.Get()
+            var book = await _bookRepository.Get()
                                       .Include(d => d.User)
                                       .Include(f => f.UserFacilitator)
-                                      .FirstOrDefault(id => id.Id == bookId);
-            var winnerBookUser = _bookUserRepository
+                                      .FirstOrDefaultAsync(id => id.Id == bookId);
+            var winnerBookUser = await _bookUserRepository
                                         .Get()
                                         .Include(u => u.User)
                                         .Where(bu => bu.BookId == bookId && bu.Status == DonationStatus.Donated)
-                                        .FirstOrDefault();
+                                        .FirstOrDefaultAsync();
 
             if (winnerBookUser == null)
                 throw new ShareBookException("Vencedor ainda não foi escolhido");
 
             if (MuambatorConfigurator.IsActive)
-                _muambatorService.AddPackageToTrackerAsync(book, winnerBookUser.User, trackingNumber);
+                await _muambatorService.AddPackageToTrackerAsync(book, winnerBookUser.User, trackingNumber);
 
             book.Status = BookStatus.Sent;
             book.TrackingNumber = trackingNumber;
-            _bookService.Update(book);
+            await _bookService.UpdateAsync(book);
 
             if (winnerBookUser.User.AllowSendingEmail)
                 //Envia e-mail para avisar o ganhador do tracking number                          
-                _bookUsersEmailService.SendEmailTrackingNumberInformed(winnerBookUser, book).Wait();
+                await _bookUsersEmailService.SendEmailTrackingNumberInformed(winnerBookUser, book);
         }
+
         /// <summary>
         /// Cancel a request for a book if it's still awaiting for donor decision and not already canceled.
         /// </summary>
         /// <param name="request">The request to be canceled</param>
         /// <returns>Returns true if the operation gets executed successfully</returns>
-        public bool CancelRequest(BookUser request)
+        public async Task<bool> CancelRequestAsync(BookUser request)
         {
             if (request.Book.Status == BookStatus.AwaitingDonorDecision || request.Book.Status == BookStatus.Available && request.Status != DonationStatus.Canceled)
             {
                 request.UpdateBookUser(DonationStatus.Canceled, String.Empty);
                 request.Reason = "Pedido cancelado! Favor ignorar.";
-                _bookUserRepository.Update(request);
+                await _bookUserRepository.UpdateAsync(request);
 
                 return true;
             }
 
             return false;
         }
-        public BookUser GetRequest(Guid requestId)
+        public async Task<BookUser> GetRequestAsync(Guid requestId)
         {
-            return _bookUserRepository.Find(new IncludeList<BookUser>(x => x.Book), x => x.Id == requestId);
+            return await _bookUserRepository.FindAsync(new IncludeList<BookUser>(x => x.Book), x => x.Id == requestId);
         }
-
-
     }
 }

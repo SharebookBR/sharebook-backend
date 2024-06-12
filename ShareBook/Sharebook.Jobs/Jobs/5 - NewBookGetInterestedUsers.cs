@@ -117,7 +117,7 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
     }
 
     private async Task<string> GetEmailTemplateAsync(Guid bookId){
-        var book = _bookService.Find(bookId);
+        var book = await _bookService.FindAsync(bookId);
         
         var vm = new
         {

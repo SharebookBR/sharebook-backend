@@ -165,15 +165,15 @@ namespace ShareBook.Service
             .Skip((page - 1) * items)
             .Take(items).ToList();
 
-        public override Book Find(object keyValue)
+        public override async Task<Book> FindAsync(object keyValue)
         {
-            var result = _repository.Get()
+            var result = await _repository.Get()
                 .Include(b => b.User)
                 .ThenInclude(u => u.Address)
                 .Include(b => b.Category)
                 .Include(b => b.UserFacilitator)
                 .Where(b => b.Id == (Guid)keyValue)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (result == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
@@ -183,14 +183,13 @@ namespace ShareBook.Service
             return result;
         }
 
-        public override Result<Book> Insert(Book entity)
+        public override async Task<Result<Book>> InsertAsync(Book entity)
         {
-            // TODO: Migrate to Async and remove ".GetAwaiter().GetResult()" and ".Wait()"
             entity.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
 
             EBookValidate(entity);
 
-            var result = Validate(entity);
+            var result = await ValidateAsync(entity);
             if (result.Success)
             {
                 entity.Slug = SetSlugByTitleOrIncremental(entity);
@@ -198,22 +197,21 @@ namespace ShareBook.Service
                 entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, entity.Slug);
 
                 if (entity.IsEbookPdfValid())
-                    entity.EBookPdfFile = _uploadService.UploadPdfAsync(entity.EBookPdfBytes, entity.EBookPdfFile, "EBooks").GetAwaiter().GetResult();
+                    entity.EBookPdfFile = await _uploadService.UploadPdfAsync(entity.EBookPdfBytes, entity.EBookPdfFile, "EBooks");
 
-                result.Value = _repository.Insert(entity);
+                result.Value = await _repository.InsertAsync(entity);
 
-                result.Value.ImageUrl = _uploadService.UploadImageAsync(entity.ImageBytes, entity.ImageSlug, "Books").GetAwaiter().GetResult();
+                result.Value.ImageUrl = await _uploadService.UploadImageAsync(entity.ImageBytes, entity.ImageSlug, "Books");
 
                 result.Value.ImageBytes = null;
 
-                _booksEmailService.SendEmailNewBookInsertedAsync(entity).Wait();
+                await _booksEmailService.SendEmailNewBookInsertedAsync(entity);
             }
             return result;
         }
 
-        public override Result<Book> Update(Book entity)
+        public override async Task<Result<Book>> UpdateAsync(Book entity)
         {
-            // TODO: Migrate to Async and remove ".GetAwaiter().GetResult()" and ".Wait()"
             Result<Book> result = Validate(entity, x =>
                 x.Title,
                 x => x.Author,
@@ -225,7 +223,7 @@ namespace ShareBook.Service
             if (!result.Success) return result;
 
             //buscar o book no banco para obter um objeto para ser re-hidratado
-            var savedBook = this._repository.Find(bookId);
+            var savedBook = await this._repository.FindAsync(bookId);
 
             if (savedBook == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
@@ -236,7 +234,7 @@ namespace ShareBook.Service
             if (!string.IsNullOrEmpty(entity.ImageName) && entity.ImageBytes.Length > 0)
             {
                 entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, savedBook.Slug);
-                _uploadService.UploadImageAsync(entity.ImageBytes, savedBook.ImageSlug, "Books").GetAwaiter().GetResult();
+                await _uploadService.UploadImageAsync(entity.ImageBytes, savedBook.ImageSlug, "Books");
             }
 
             //preparar o book para atualização
@@ -258,14 +256,13 @@ namespace ShareBook.Service
             if (entity.UserIdFacilitator.HasValue && entity.UserIdFacilitator != Guid.Empty)
                 savedBook.UserIdFacilitator = entity.UserIdFacilitator;
 
-            // TODO: Remove "GetAwaiter().GetResult()"
-            result.Value = _repository.UpdateAsync(savedBook).GetAwaiter().GetResult();
+            result.Value = await _repository.UpdateAsync(savedBook);
             result.Value.ImageBytes = null;
 
             return result;
         }
 
-        public PagedList<Book> FullSearch(string criteria, int page, int itemsPerPage, bool isAdmin)
+        public async Task<PagedList<Book>> FullSearchAsync(string criteria, int page, int itemsPerPage, bool isAdmin)
         {
             Expression<Func<Book, bool>> filter = x => (x.Author.Contains(criteria)
                                                         || x.Title.Contains(criteria)
@@ -276,22 +273,22 @@ namespace ShareBook.Service
                                         || x.Title.Contains(criteria)
                                         || x.Category.Name.Contains(criteria);
 
-            return SearchBooks(filter, page, itemsPerPage);
+            return await SearchBooksAsync(filter, page, itemsPerPage);
         }
 
-        public PagedList<Book> ByCategoryId(Guid categoryId, int page, int itemsPerPage)
-            => SearchBooks(x => x.Status == BookStatus.Available && x.CategoryId == categoryId, page, itemsPerPage);
+        public async Task<PagedList<Book>> ByCategoryIdAsync(Guid categoryId, int page, int itemsPerPage)
+            => await SearchBooksAsync(x => x.Status == BookStatus.Available && x.CategoryId == categoryId, page, itemsPerPage);
 
-        public Book BySlug(string slug)
+        public async Task<Book> BySlugAsync(string slug)
         {
-            var pagedBook = SearchBooks(x => (x.Slug.Equals(slug)), 1, 1);
+            var pagedBook = await SearchBooksAsync(x => (x.Slug.Equals(slug)), 1, 1);
             return pagedBook.Items.FirstOrDefault();
         }
 
-        public bool UserRequestedBook(Guid bookId)
+        public async Task<bool> UserRequestedBookAsync(Guid bookId)
         {
             var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            return _repository.Any(x =>
+            return await _repository.AnyAsync(x =>
                     x.Id == bookId &&
                     x.BookUsers
                     .Any(y =>
@@ -303,13 +300,13 @@ namespace ShareBook.Service
         public override PagedList<Book> Get<TKey>(Expression<Func<Book, bool>> filter, Expression<Func<Book, TKey>> order, int page, int itemsPerPage)
             => base.Get(filter, order, page, itemsPerPage);
 
-        public IList<Book> GetUserDonations(Guid userId)
+        public async Task<IList<Book>> GetUserDonationsAsync(Guid userId)
         {
-            return _repository.Get()
+            return await _repository.Get()
                 .Include(b => b.BookUsers)
                 .Where(b => b.UserId == userId)
                 .OrderByDescending(b => b.CreationDate)
-                .ToList();
+                .ToListAsync();
         }
 
         public async Task<IList<Book>> GetBooksChooseDateIsTodayAsync()
@@ -377,6 +374,7 @@ namespace ShareBook.Service
 
         public Book GetBookWithAllUsers(Guid bookId)
         {
+            // TODO: Migrate to async/await
             var books = _repository
             .Get().Include(x => x.User).ThenInclude(u => u.Address)
             .Include(x => x.UserFacilitator).ThenInclude(u => u.Address)
@@ -389,6 +387,7 @@ namespace ShareBook.Service
 
         public void RenewChooseDate(Guid bookId)
         {
+            // TODO: Migrate to async/await
             var book = _repository.Find(bookId);
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
@@ -403,10 +402,10 @@ namespace ShareBook.Service
 
         #region Private
 
-        private PagedList<Book> SearchBooks(Expression<Func<Book, bool>> filter, int page, int itemsPerPage)
-            => SearchBooks(filter, page, itemsPerPage, x => x.CreationDate);
+        private async Task<PagedList<Book>> SearchBooksAsync(Expression<Func<Book, bool>> filter, int page, int itemsPerPage)
+            => await SearchBooksAsync(filter, page, itemsPerPage, x => x.CreationDate);
 
-        private PagedList<Book> SearchBooks<TKey>(Expression<Func<Book, bool>> filter, int page, int itemsPerPage, Expression<Func<Book, TKey>> expression)
+        private async Task<PagedList<Book>> SearchBooksAsync<TKey>(Expression<Func<Book, bool>> filter, int page, int itemsPerPage, Expression<Func<Book, TKey>> expression)
         {
             var query = _repository.Get()
                 .Where(filter)
@@ -443,7 +442,7 @@ namespace ShareBook.Service
                     Category = u.Category
                 });
 
-            return FormatPagedList(query, page, itemsPerPage);
+            return await FormatPagedListAsync(query, page, itemsPerPage);
         }
 
         private string SetSlugByTitleOrIncremental(Book entity)
@@ -451,7 +450,7 @@ namespace ShareBook.Service
             var slug = _repository.Get()
                         .Where(x => x.Title.ToUpper().Trim().Equals(entity.Title.ToUpper().Trim())
                                     && !x.Id.Equals(entity.Id))
-                        .OrderByDescending(x => x.CreationDate)?.FirstOrDefault()?.Slug;
+                        .OrderByDescending(x => x.CreationDate).FirstOrDefault()?.Slug;
 
             return string.IsNullOrWhiteSpace(slug) ? entity.Title.GenerateSlug() : slug.AddIncremental();
         }
@@ -467,16 +466,16 @@ namespace ShareBook.Service
             }
         }
 
-        public BookStatsDTO GetStats()
+        public async Task<BookStatsDTO> GetStatsAsync()
         {
-            var groupedStatus = _repository.Get()
+            var groupedStatus = await _repository.Get()
                 .GroupBy(b => b.Status)
                 .Select(g => new
                 {
                     Status = g.Key,
                     Total = g.Count()
                 })
-                .ToList();
+                .ToListAsync();
 
             var status = new BookStatsDTO();
 

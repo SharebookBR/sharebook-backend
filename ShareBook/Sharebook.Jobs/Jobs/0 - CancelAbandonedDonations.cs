@@ -50,8 +50,7 @@ namespace Sharebook.Jobs
                     Reason = $"Cancelamento automático de doação abandonada. Com mais de {_maxLateDonationDaysAutoCancel} dias de atraso.",
                 };
 
-                // TODO: Migrate to async
-                _bookUserService.Cancel(dto);
+                await _bookUserService.CancelAsync(dto);
                 details += $"Doação do livro {book.Title} foi cancelada.\n";
             }
             

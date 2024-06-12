@@ -53,10 +53,10 @@ namespace ShareBook.Api.Controllers
 
         [HttpGet]
         [Authorize("Bearer")]
-        public UserVM Get() 
+        public async Task<UserVM> GetAsync() 
         {
             var id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            var user = _userService.Find(id);
+            var user = await _userService.FindAsync(id);
 
             var userVM = _mapper.Map<UserVM>(user);
             return userVM;
@@ -64,10 +64,10 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpGet("Profile")]
-        public object Profile() 
+        public async Task<object> ProfileAsync() 
         {
             var id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            return new { profile = _userService.Find(id).Profile.ToString() };
+            return new { profile = (await _userService.FindAsync(id)).Profile.ToString() };
         }
 
         [Authorize("Bearer")]
@@ -172,13 +172,13 @@ namespace ShareBook.Api.Controllers
 
         [HttpPost("Anonymize")]
         [Authorize("Bearer")]
-        public IActionResult Anonymize([FromBody] UserAnonymizeDTO dto)
+        public async Task<IActionResult> AnonymizeAsync([FromBody] UserAnonymizeDTO dto)
         {
             var userIdFromSession = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             if(dto.UserId != userIdFromSession)
                 throw new ShareBookException(ShareBookException.Error.Forbidden, "Você não tem permissão para remover esse conta.");
 
-            _lgpdService.Anonymize(dto);
+            await _lgpdService.AnonymizeAsync(dto);
             return Ok(new Result("Sua conta foi removida com sucesso."));
         }
 
@@ -190,7 +190,7 @@ namespace ShareBook.Api.Controllers
         [Authorize("Bearer")]
         [ProducesResponseType(typeof(Result<User>), 200)]
         [ProducesResponseType(409)]
-        public IActionResult Update([FromBody] UpdateUserVM updateUserVM, [FromServices] SigningConfigurations signingConfigurations, [FromServices] TokenConfigurations tokenConfigurations)
+        public async Task<IActionResult> UpdateAsync([FromBody] UpdateUserVM updateUserVM, [FromServices] SigningConfigurations signingConfigurations, [FromServices] TokenConfigurations tokenConfigurations)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -199,7 +199,7 @@ namespace ShareBook.Api.Controllers
 
             user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
 
-            var result = _userService.Update(user);
+            var result = await _userService.UpdateAsync(user);
 
             if (!result.Success)
                 return Conflict(result);
@@ -219,13 +219,13 @@ namespace ShareBook.Api.Controllers
         [HttpPut("ChangeUserPasswordByHashCode")]
         [ProducesResponseType(typeof(Result<User>), 200)]
         [ProducesResponseType(404)]
-        public IActionResult ChangeUserPasswordByHashCode([FromBody] ChangeUserPasswordByHashCodeVM changeUserPasswordByHashCodeVM)
+        public async Task<IActionResult> ChangeUserPasswordByHashCodeAsync([FromBody] ChangeUserPasswordByHashCodeVM changeUserPasswordByHashCodeVM)
         {
             var result = _userService.ConfirmHashCodePassword(changeUserPasswordByHashCodeVM.HashCodePassword);
             if (!result.Success)
                 return NotFound(result);
             var newPassword = changeUserPasswordByHashCodeVM.NewPassword;
-            var user = _userService.Find((result.Value as User).Id);
+            var user = await _userService.FindAsync((result.Value as User).Id);
             user.Password = newPassword;
 
             var resultChangePasswordUser = _userService.ChangeUserPassword(user, newPassword);
@@ -267,10 +267,10 @@ namespace ShareBook.Api.Controllers
             }
         }
 
-        private User GetSessionUser()
+        private async Task<User> GetSessionUserAsync()
         {
             var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            return _userService.Find(userId);
+            return await _userService.FindAsync(userId);
         }
     }
 }

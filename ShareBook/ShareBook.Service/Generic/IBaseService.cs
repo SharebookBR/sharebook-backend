@@ -2,25 +2,26 @@
 using ShareBook.Repository.Repository;
 using System;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace ShareBook.Service.Generic
 {
     public interface IBaseService<TEntity> where TEntity : class
     {
         bool Any(Expression<Func<TEntity, bool>> filter);
-        int Count(Expression<Func<TEntity, bool>> filter);
+        Task<int> CountAsync(Expression<Func<TEntity, bool>> filter);
 
         /// <summary>
         /// Execute a Find on the DbSet using the <paramref name="keyValues"/>.
         /// <para>Using this method will return onlye the Entity, without the children.</para>
         /// <para>If you want to get the Child Objects too, use the <seealso cref="Find(IncludeList{TEntity}, object[])"/> method.</para>
         /// </summary>
-        TEntity Find(object keyValue);
+        Task<TEntity> FindAsync(object keyValue);
 
         /// <summary>
         /// Execute a Find on the DbSet using the <paramref name="keyValues"/> and the <paramref name="includes"/>
         /// </summary>
-        TEntity Find(IncludeList<TEntity> includes, object keyValue);
+        Task<TEntity> FindAsync(IncludeList<TEntity> includes, object keyValue);
 
         /// <summary>
         /// Find in the DbSet an entity that matches the specified filter.
@@ -35,7 +36,7 @@ namespace ShareBook.Service.Generic
         /// <param name="includes">Includes (child objects) to be returned.</param>
         /// <returns>Entity with the child objects</returns>
         /// <exception cref="ShareBook.Domain.Exceptions.ShareBookException">In case that more than 1 entity could be returned for the filter specified.</exception>
-        TEntity Find(IncludeList<TEntity> includes, Expression<Func<TEntity, bool>> filter);
+        Task<TEntity> FindAsync(IncludeList<TEntity> includes, Expression<Func<TEntity, bool>> filter);
 
         /// <summary>
         /// Get ALL the entities, without filter, on the specified order, without child objects.
@@ -89,8 +90,8 @@ namespace ShareBook.Service.Generic
         /// <param name="page">First Page = 1</param>
         PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes);
 
-        Result<TEntity> Insert(TEntity entity);
-        Result<TEntity> Update(TEntity entity);
-        Result Delete(params object[] keyValues);
+        Task<Result<TEntity>> InsertAsync(TEntity entity);
+        Task<Result<TEntity>> UpdateAsync(TEntity entity);
+        Task<Result> DeleteAsync(params object[] keyValues);
     }
 }

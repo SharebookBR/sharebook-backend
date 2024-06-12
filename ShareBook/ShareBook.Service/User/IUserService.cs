@@ -4,6 +4,7 @@ using ShareBook.Domain.DTOs;
 using ShareBook.Service.Generic;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ShareBook.Service
 {
@@ -11,7 +12,7 @@ namespace ShareBook.Service
     {
         Result<User> AuthenticationByEmailAndPassword(User user);
         bool IsValidPassword(User user, string decryptedPass);
-        new Result<User> Update(User user);
+        Task<Result<User>> UpdateAsync(User user);
         Result<User> ValidOldPasswordAndChangeUserPassword(User user, string newPassword);
         Result<User> ChangeUserPassword(User user, string newPassword);
         Result GenerateHashCodePasswordAndSendEmailToUser(string email);
