@@ -161,28 +161,13 @@ namespace ShareBook.Repository
 
         public IQueryable<TEntity> Get() => _dbSet;
 
-        public TEntity Find(object keyValue) => _dbSet.Find(keyValue);
-
-        public TEntity Find(IncludeList<TEntity> includes, object keyValue) => FindAsync(includes, keyValue).GetAwaiter().GetResult();
-
         public TEntity Find(Expression<Func<TEntity, bool>> filter) => FindAsync(null, filter).GetAwaiter().GetResult();
-
-        public TEntity Find(IncludeList<TEntity> includes, Expression<Func<TEntity, bool>> filter) => FindAsync(includes, filter).GetAwaiter().GetResult();
-
-        public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, TKey>> order)
-            => Get(order, null);
-
-        public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, TKey>> order, IncludeList<TEntity> includes)
-            => Get(x => true, order, includes);
 
         public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order)
             => Get(filter, order, null);
 
         public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, IncludeList<TEntity> includes)
            => Get(filter, order, 1, int.MaxValue, includes);
-
-        public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage)
-            => Get(order, page, itemsPerPage, null);
 
         public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes)
             => Get(x => true, order, page, itemsPerPage, includes);
@@ -192,8 +177,6 @@ namespace ShareBook.Repository
 
         public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes)
             => GetAsync(filter, order, page, itemsPerPage, includes).GetAwaiter().GetResult();
-
-        public bool Any(Expression<Func<TEntity, bool>> filter) => AnyAsync(filter).GetAwaiter().GetResult();
 
         public TEntity Insert(TEntity entity) => InsertAsync(entity).GetAwaiter().GetResult();
 
