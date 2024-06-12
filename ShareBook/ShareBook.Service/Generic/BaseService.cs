@@ -41,26 +41,11 @@ namespace ShareBook.Service.Generic
 
         public async Task<TEntity> FindAsync(IncludeList<TEntity> includes, Expression<Func<TEntity, bool>> filter) => await _repository.FindAsync(includes, filter);
 
-        public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, TKey>> order)
-            => _repository.Get(order);
-
-        public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, TKey>> order, IncludeList<TEntity> includes)
-            => _repository.Get(order, includes);
-
-        public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order)
-            => _repository.Get(filter, order);
-
-        public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, IncludeList<TEntity> includes)
-            => _repository.Get(filter, order, includes);
-
         public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes)
             => _repository.Get(order, page, itemsPerPage, includes);
 
         public virtual PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage)
             => _repository.Get(filter, order, page, itemsPerPage);
-
-        public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes)
-            => _repository.Get(filter, order, page, itemsPerPage, includes);
 
         public async Task<PagedList<TEntity>> FormatPagedListAsync(IQueryable<TEntity> query, int page, int itemsPerPage)
         {

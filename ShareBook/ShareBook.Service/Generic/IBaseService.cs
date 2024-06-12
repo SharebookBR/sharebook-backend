@@ -39,34 +39,6 @@ namespace ShareBook.Service.Generic
         Task<TEntity> FindAsync(IncludeList<TEntity> includes, Expression<Func<TEntity, bool>> filter);
 
         /// <summary>
-        /// Get ALL the entities, without filter, on the specified order, without child objects.
-        /// <para>Use it at your own risk, as the number of data returned could be big.</para>
-        /// <para>BE CAREFUL: could impact on the perfomance.</para>
-        /// </summary>
-        /// <returns>PageList with only 1 page and all the items</returns>
-        PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, TKey>> order);
-
-        /// <summary>
-        /// Get ALL the entities, without filter, on the specified order, with the specified child objects.
-        /// <para>Use it at your own risk, as the number of data returned could be big, and the child is loaded too.</para>
-        /// <para>BE CAREFUL: could impact on the perfomance.</para>
-        /// </summary>
-        /// <returns>PageList with only 1 page and all the items</returns>
-        PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, TKey>> order, IncludeList<TEntity> includes);
-
-        /// <summary>
-        /// Get ALL the entities based on the filter passed, on the specified order, without child objects.
-        /// </summary>
-        /// <returns>PageList with only 1 page and all the items</returns>
-        PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order);
-
-        /// <summary>
-        /// Get ALL the entities based on the filter passed, on the specified order, with the specified child objects.
-        /// </summary>
-        /// <returns>PageList with only 1 page and all the items</returns>
-        PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, IncludeList<TEntity> includes);
-
-        /// <summary>
         /// Get a paged list of the entity, without any filter, on the specified order, with the specified child objects.
         /// </summary>
         /// <param name="page">First Page = 1</param>
@@ -77,12 +49,6 @@ namespace ShareBook.Service.Generic
         /// </summary>
         /// <param name="page">First Page = 1</param>
         PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage);
-
-        /// <summary>
-        /// Get a paged list of the entity, based on the filter passed, on the specified order, with the specified child objects.
-        /// </summary>
-        /// <param name="page">First Page = 1</param>
-        PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes);
 
         Task<Result<TEntity>> InsertAsync(TEntity entity);
         Task<Result<TEntity>> UpdateAsync(TEntity entity);
