@@ -13,8 +13,8 @@ namespace ShareBook.Service
         Task<Result<User>> AuthenticationByEmailAndPasswordAsync(User user);
         bool IsValidPassword(User user, string decryptedPass);
         new Task<Result<User>> UpdateAsync(User user);
-        Result<User> ValidOldPasswordAndChangeUserPassword(User user, string newPassword);
-        Result<User> ChangeUserPassword(User user, string newPassword);
+        Task<Result<User>> ValidOldPasswordAndChangeUserPasswordAsync(User user, string newPassword);
+        Task<Result<User>> ChangeUserPasswordAsync(User user, string newPassword);
         Task<Result> GenerateHashCodePasswordAndSendEmailToUserAsync(string email);
         Task<Result> ConfirmHashCodePasswordAsync(string hashCodePassword);
         IList<User> GetFacilitators(Guid userIdDonator);

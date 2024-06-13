@@ -170,19 +170,19 @@ namespace ShareBook.Service
             return await _repository.FindAsync(includes, keyValue);
         }
 
-        public Result<User> ValidOldPasswordAndChangeUserPassword(User user, string newPassword)
+        public async Task<Result<User>> ValidOldPasswordAndChangeUserPasswordAsync(User user, string newPassword)
         {
             var resultUserAuth = this.AuthenticationByIdAndPassword(user);
 
             if (resultUserAuth.Success)
-                ChangeUserPassword(resultUserAuth.Value, newPassword);
+                await ChangeUserPasswordAsync(resultUserAuth.Value, newPassword);
 
             return resultUserAuth;
         }
 
-        public Result<User> ChangeUserPassword(User user, string newPassword)
+        public async Task<Result<User>> ChangeUserPasswordAsync(User user, string newPassword)
         {
-            var result = Validate(user);
+            var result = await ValidateAsync(user);
 
             // Senha forte não é mais obrigatória. Apenas validação de tamanho.
             if (newPassword.Length < 6 || newPassword.Length > 32)
@@ -190,8 +190,7 @@ namespace ShareBook.Service
 
             user.ChangePassword(newPassword);
             user = GetUserEncryptedPass(user);
-            // TODO: Remove "GetAwaiter().GetResult()"
-            user = _userRepository.UpdatePasswordAsync(user).GetAwaiter().GetResult();
+            user = await _userRepository.UpdatePasswordAsync(user);
             result.Value = UserCleanup(user);
 
             return result;
@@ -269,6 +268,7 @@ namespace ShareBook.Service
 
         private Result<User> AuthenticationByIdAndPassword(User user)
         {
+            // TODO: Migrate to async
             var result = Validate(user, x => x.Id, x => x.Password);
 
             string decryptedPass = user.Password;

@@ -209,11 +209,11 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpPut("ChangePassword")]
-        public Result<User> ChangePassword([FromBody] ChangePasswordUserVM changePasswordUserVM)
+        public async Task<Result<User>> ChangePasswordAsync([FromBody] ChangePasswordUserVM changePasswordUserVM)
         {
             var user = new User() { Password = changePasswordUserVM.OldPassword };
             user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            return _userService.ValidOldPasswordAndChangeUserPassword(user, changePasswordUserVM.NewPassword);
+            return await _userService.ValidOldPasswordAndChangeUserPasswordAsync(user, changePasswordUserVM.NewPassword);
         }
 
         [HttpPut("ChangeUserPasswordByHashCode")]
@@ -228,7 +228,7 @@ namespace ShareBook.Api.Controllers
             var user = await _userService.FindAsync((result.Value as User).Id);
             user.Password = newPassword;
 
-            var resultChangePasswordUser = _userService.ChangeUserPassword(user, newPassword);
+            var resultChangePasswordUser = await _userService.ChangeUserPasswordAsync(user, newPassword);
 
             if (!resultChangePasswordUser.Success)
                 return BadRequest(resultChangePasswordUser);
