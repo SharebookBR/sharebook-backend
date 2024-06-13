@@ -1,11 +1,12 @@
 ﻿using ShareBook.Domain;
+using System.Threading.Tasks;
 
 namespace ShareBook.Service.Notification
 {
     public interface IPushNotificationService
     {
-        string SendNotificationSegments(NotificationOnesignal notficationSettings);
-        string SendNotificationByKey(NotificationOnesignal notficationSettings);
-        string SendNotificationByEmail(string email, string title, string content);
+        Task<string> SendNotificationSegmentsAsync(NotificationOnesignal notficationSettings);
+        Task<string> SendNotificationByKeyAsync(NotificationOnesignal notficationSettings);
+        Task<string> SendNotificationByEmailAsync(string email, string title, string content);
     }
 }

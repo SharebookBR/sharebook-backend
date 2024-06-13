@@ -104,7 +104,7 @@ namespace ShareBook.Service
                 };
 
                 // push notification
-                _notificationService.SendNotificationByEmail(
+                await _notificationService.SendNotificationByEmailAsync(
                     bookRequested.User.Email,
                     $"Seu livro foi solicitado", $" O Interessado é {vm.RequestingUser.NickName}"
                 );
@@ -173,7 +173,7 @@ namespace ShareBook.Service
                 };
 
                 // push notification
-                _notificationService.SendNotificationByEmail(bookUser.User.Email, $"Você solicitou o livro {vm.NameBook}", $"Aguarde até o dia {vm.ChooseDate} que será anunciado o ganhador. Boa sorte!");
+                await _notificationService.SendNotificationByEmailAsync(bookUser.User.Email, $"Você solicitou o livro {vm.NameBook}", $"Aguarde até o dia {vm.ChooseDate} que será anunciado o ganhador. Boa sorte!");
 
                 var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookNoticeInterestedTemplate, vm);
                 await _emailService.SendAsync(bookUser.User.Email, bookUser.User.Name, html, BookNoticeInterestedTitle);
