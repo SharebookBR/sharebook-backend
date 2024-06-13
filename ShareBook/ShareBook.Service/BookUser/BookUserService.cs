@@ -151,9 +151,6 @@ namespace ShareBook.Service
             if (dto.Book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
-            // TODO: Verify if we can remove this call
-            var bookUsers = await _bookUserRepository.Get().Where(x => x.BookId == dto.Book.Id).ToListAsync();
-
             dto.Book.ChooseDate = null;
             dto.Book.Status = BookStatus.Canceled;
 
