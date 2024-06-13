@@ -79,8 +79,6 @@ namespace ShareBook.Repository
         /// <param name="page">First Page = 1</param>
         PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes);
 
-        TEntity Insert(TEntity entity);
-
         IQueryable<TEntity> FromSql(string query, object[] parameters);
     }
 }

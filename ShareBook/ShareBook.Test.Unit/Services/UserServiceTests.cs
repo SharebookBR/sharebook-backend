@@ -46,7 +46,7 @@ namespace ShareBook.Test.Unit.Services
             //Simula login do usuario
             Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
 
-            userRepositoryMock.Setup(repo => repo.Insert(It.IsAny<User>())).Returns(() =>
+            userRepositoryMock.Setup(repo => repo.InsertAsync(It.IsAny<User>())).ReturnsAsync(() =>
             {
                 return UserMock.GetGrantee();
             });

@@ -93,7 +93,7 @@ namespace Sharebook.Jobs
             try {
                 BeforeWork();
                 var history = await WorkAsync();
-                AfterWork(history);
+                await AfterWorkAsync(history);
 
                 return JobResult.Success;
             }
@@ -120,12 +120,12 @@ namespace Sharebook.Jobs
             _stopwatch = Stopwatch.StartNew();
         }
 
-        protected void AfterWork(JobHistory history)
+        protected async Task AfterWorkAsync(JobHistory history)
         {
             _stopwatch.Stop();
 
             history.TimeSpentSeconds = ((double)_stopwatch.ElapsedMilliseconds / (double)1000);
-            _jobHistoryRepo.Insert(history);
+            await _jobHistoryRepo.InsertAsync(history);
         }
 
     }

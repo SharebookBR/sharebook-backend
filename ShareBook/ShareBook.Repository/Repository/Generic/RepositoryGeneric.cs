@@ -178,8 +178,6 @@ namespace ShareBook.Repository
         public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes)
             => GetAsync(filter, order, page, itemsPerPage, includes).GetAwaiter().GetResult();
 
-        public TEntity Insert(TEntity entity) => InsertAsync(entity).GetAwaiter().GetResult();
-
         #endregion Synchronous
     }
 }

@@ -109,7 +109,7 @@ public class JobExecutor : IJobExecutor
         // Executor também loga seu histórico. Precisamos de rastreabilidade.
         _stopwatch.Stop();
         var details = String.Join("\n", messages.ToArray());
-        LogExecutorAddHistory(success, details);
+        await LogExecutorAddHistoryAsync(success, details);
 
         return new JobExecutorResult()
         {
@@ -118,7 +118,7 @@ public class JobExecutor : IJobExecutor
         };
     }
 
-    private void LogExecutorAddHistory(bool success, string details)
+    private async Task LogExecutorAddHistoryAsync(bool success, string details)
     {
         var history = new JobHistory()
         {
@@ -128,7 +128,7 @@ public class JobExecutor : IJobExecutor
             TimeSpentSeconds = ((double)_stopwatch.ElapsedMilliseconds / (double)1000),
         };
 
-        _jobHistoryRepo.Insert(history);
+        await _jobHistoryRepo.InsertAsync(history);
     }
 
     // TODO: criar um service pro rollbar e reaproveitar aqui

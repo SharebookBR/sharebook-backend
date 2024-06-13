@@ -58,7 +58,7 @@ namespace ShareBook.Service
             .Include(x => x.User).ThenInclude(u => u.BooksDonated)
             .Where(x => x.BookId == bookId)
             .OrderBy(x => x.CreationDate)
-            .ToList();
+            .ToList(); // TODO: Migrate to async
 
         public async Task InsertAsync(Guid bookId, string reason)
         {
