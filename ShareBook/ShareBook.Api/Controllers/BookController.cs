@@ -160,23 +160,23 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpGet("AvailableBooks")]
-        public IList<BookVM> AvailableBooks()
+        public async Task<IList<BookVM>> AvailableBooksAsync()
         {
-            var books = _service.AvailableBooks();
+            var books = await _service.AvailableBooksAsync();
             return _mapper.Map<List<BookVM>>(books);
         }
 
         [HttpGet("Random15Books")]
-        public IList<BookVM> Random15Books()
+        public async Task<IList<BookVM>> Random15BooksAsync()
         {
-            var books = _service.Random15Books();
+            var books = await _service.Random15BooksAsync();
             return _mapper.Map<List<BookVM>>(books);
         }
 
         [HttpGet("Random15EBooks")]
-        public IList<BookVM> Random15EBooks()
+        public async Task<IList<BookVM>> Random15EBooksAsync()
         {
-            var books = _service.Random15EBooks();
+            var books = await _service.Random15EBooksAsync();
             return _mapper.Map<List<BookVM>>(books);
         }
 

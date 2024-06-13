@@ -113,44 +113,44 @@ namespace ShareBook.Service
             return enumValues;
         }
 
-        public IList<Book> AvailableBooks()
+        public async Task<IList<Book>> AvailableBooksAsync()
         {
             return SetImageUrl(
-                _repository.Get()
-                .Include(b => b.User)
-                .ThenInclude(u => u.Address)
-                .Include(b => b.Category)
-                .Where(b => b.Status == BookStatus.Available)
-                .OrderByDescending(b => b.CreationDate)
-                .ToList()
+                await _repository.Get()
+                    .Include(b => b.User)
+                    .ThenInclude(u => u.Address)
+                    .Include(b => b.Category)
+                    .Where(b => b.Status == BookStatus.Available)
+                    .OrderByDescending(b => b.CreationDate)
+                    .ToListAsync()
             );
         }
 
-        public IList<Book> Random15Books()
+        public async Task<IList<Book>> Random15BooksAsync()
         {
             return SetImageUrl(
-                _repository.Get()
-                .Include(b => b.User)
-                .ThenInclude(u => u.Address)
-                .Include(b => b.Category)
-                .Where(b => b.Status == BookStatus.Available)
-                .OrderBy(x => Guid.NewGuid()) // ordem aleatória
-                .Take(15) // apenas 15 registros
-                .ToList()
+                await _repository.Get()
+                    .Include(b => b.User)
+                    .ThenInclude(u => u.Address)
+                    .Include(b => b.Category)
+                    .Where(b => b.Status == BookStatus.Available)
+                    .OrderBy(x => Guid.NewGuid()) // ordem aleatória
+                    .Take(15) // apenas 15 registros
+                    .ToListAsync()
              );
         }
 
-        public IList<Book> Random15EBooks()
+        public async Task<IList<Book>> Random15EBooksAsync()
         {
             return SetImageUrl(
-                _repository.Get()
-                .Include(b => b.User)
-                .ThenInclude(u => u.Address)
-                .Include(b => b.Category)
-                .Where(b => b.Status == BookStatus.Available && b.Type == BookType.Eletronic)
-                .OrderBy(x => Guid.NewGuid()) // ordem aleatória
-                .Take(15) // apenas 15 registros
-                .ToList()
+                await _repository.Get()
+                    .Include(b => b.User)
+                    .ThenInclude(u => u.Address)
+                    .Include(b => b.Category)
+                    .Where(b => b.Status == BookStatus.Available && b.Type == BookType.Eletronic)
+                    .OrderBy(x => Guid.NewGuid()) // ordem aleatória
+                    .Take(15) // apenas 15 registros
+                    .ToListAsync()
              );
         }
 
@@ -160,10 +160,10 @@ namespace ShareBook.Service
         }
 
 
-        public IList<Book> GetAll(int page, int items)
-            => _repository.Get().Include(b => b.User).Include(b => b.BookUsers)
-            .Skip((page - 1) * items)
-            .Take(items).ToList();
+        public async Task<IList<Book>> GetAllAsync(int page, int items)
+            => await _repository.Get().Include(b => b.User).Include(b => b.BookUsers)
+                .Skip((page - 1) * items)
+                .Take(items).ToListAsync();
 
         public override async Task<Book> FindAsync(object keyValue)
         {

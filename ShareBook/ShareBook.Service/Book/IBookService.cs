@@ -18,17 +18,17 @@ namespace ShareBook.Service
 
         IList<dynamic> FreightOptions();
 
-        IList<Book> AvailableBooks();
+        Task<IList<Book>> AvailableBooksAsync();
 
-        IList<Book> Random15Books();
+        Task<IList<Book>> Random15BooksAsync();
 
-        IList<Book> Random15EBooks();
+        Task<IList<Book>> Random15EBooksAsync();
 
         Task<PagedList<Book>> FullSearchAsync(string criteria, int page, int itemsPerPage, bool isAdmin = false);
 
         Task<PagedList<Book>> ByCategoryIdAsync(Guid categoryId, int page, int items);
 
-        IList<Book> GetAll(int page, int items);
+        Task<IList<Book>> GetAllAsync(int page, int items);
 
         Task<Book> BySlugAsync(string slug);
 
