@@ -374,15 +374,12 @@ namespace ShareBook.Service
 
         public async Task<Book> GetBookWithAllUsersAsync(Guid bookId)
         {
-            // TODO: Verify if we can use FirstOrDefault/FirstOrDefaultAsync directly without using the "ToListAsync"
-            var books = await _repository
+            return await _repository
                 .Get().Include(x => x.User).ThenInclude(u => u.Address)
                 .Include(x => x.UserFacilitator).ThenInclude(u => u.Address)
                 .Include(x => x.BookUsers).ThenInclude(bu => bu.User).ThenInclude(u => u.Address)
                 .Where(x => x.Id == bookId)
-                .ToListAsync();
-
-            return books.FirstOrDefault();
+                .FirstOrDefaultAsync();
         }
 
         public async Task RenewChooseDateAsync(Guid bookId)
