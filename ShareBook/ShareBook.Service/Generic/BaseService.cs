@@ -36,8 +36,8 @@ namespace ShareBook.Service.Generic
         public virtual async Task<TEntity> FindAsync(IncludeList<TEntity> includes, object keyValue)
             => await _repository.FindAsync(includes, keyValue);
 
-        public TEntity Find(Expression<Func<TEntity, bool>> filter)
-            => _repository.Find(filter);
+        public async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> filter)
+            => await _repository.FindAsync(filter);
 
         public async Task<TEntity> FindAsync(IncludeList<TEntity> includes, Expression<Func<TEntity, bool>> filter) => await _repository.FindAsync(includes, filter);
 

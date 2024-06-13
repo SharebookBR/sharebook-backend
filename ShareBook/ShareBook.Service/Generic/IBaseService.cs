@@ -28,7 +28,7 @@ namespace ShareBook.Service.Generic
         /// </summary>
         /// <returns>Entity with the child objects</returns>
         /// <exception cref="ShareBook.Domain.Exceptions.ShareBookException">In case that more than 1 entity could be returned for the filter specified.</exception>
-        TEntity Find(Expression<Func<TEntity, bool>> filter);
+        Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> filter);
 
         /// <summary>
         /// Find in the DbSet an entity that matches the specified filter.
