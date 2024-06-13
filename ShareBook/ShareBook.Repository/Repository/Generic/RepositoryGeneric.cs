@@ -161,7 +161,7 @@ namespace ShareBook.Repository
 
         public IQueryable<TEntity> Get() => _dbSet;
 
-        public TEntity Find(Expression<Func<TEntity, bool>> filter) => FindAsync(null, filter).GetAwaiter().GetResult();
+        public async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> filter) => await FindAsync(null, filter);
 
         public async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order)
             => await GetAsync(filter, order, null);

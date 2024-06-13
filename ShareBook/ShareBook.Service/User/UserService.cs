@@ -52,7 +52,7 @@ namespace ShareBook.Service
 
             string decryptedPass = user.Password;
 
-            user = _repository.Find(e => e.Email == user.Email);
+            user = await _repository.FindAsync(e => e.Email == user.Email);
 
             if (user == null)
             {
@@ -200,7 +200,7 @@ namespace ShareBook.Service
         public async Task<Result> GenerateHashCodePasswordAndSendEmailToUserAsync(string email)
         {
             var result = new Result();
-            var user = _repository.Find(e => e.Email == email);
+            var user = await _repository.FindAsync(e => e.Email == email);
 
             if (user == null)
             {
@@ -215,11 +215,11 @@ namespace ShareBook.Service
             return result;
         }
 
-        public Result ConfirmHashCodePassword(string hashCodePassword)
+        public async Task<Result> ConfirmHashCodePasswordAsync(string hashCodePassword)
         {
             var result = new Result();
 
-            var userConfirmedHashCodePassword = _repository.Find(e => e.HashCodePassword.Equals(hashCodePassword));
+            var userConfirmedHashCodePassword = await _repository.FindAsync(e => e.HashCodePassword.Equals(hashCodePassword));
 
             if (userConfirmedHashCodePassword == null)
                 result.Messages.Add("Hash code não encontrado.");

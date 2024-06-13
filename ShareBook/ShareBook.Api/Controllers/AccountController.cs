@@ -221,7 +221,7 @@ namespace ShareBook.Api.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> ChangeUserPasswordByHashCodeAsync([FromBody] ChangeUserPasswordByHashCodeVM changeUserPasswordByHashCodeVM)
         {
-            var result = _userService.ConfirmHashCodePassword(changeUserPasswordByHashCodeVM.HashCodePassword);
+            var result = await _userService.ConfirmHashCodePasswordAsync(changeUserPasswordByHashCodeVM.HashCodePassword);
             if (!result.Success)
                 return NotFound(result);
             var newPassword = changeUserPasswordByHashCodeVM.NewPassword;

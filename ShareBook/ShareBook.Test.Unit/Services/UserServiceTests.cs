@@ -56,7 +56,7 @@ namespace ShareBook.Test.Unit.Services
                 return UserMock.GetGrantee();
             });
 
-            userRepositoryMock.Setup(repo => repo.Find(It.IsAny<Expression<Func<User, bool>>>())).Returns(() =>
+            userRepositoryMock.Setup(repo => repo.FindAsync(It.IsAny<Expression<Func<User, bool>>>())).ReturnsAsync(() =>
             {
                 return UserMock.GetGrantee();
             });
