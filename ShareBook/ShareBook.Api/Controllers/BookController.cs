@@ -125,7 +125,7 @@ namespace ShareBook.Api.Controllers
         [Authorize("Bearer")]
         [HttpGet("GranteeUsersByBookId/{bookId}")]
         [AuthorizationFilter(Permissions.Permission.DonateBook)]
-        public IList<User> GetGranteeUsersByBookId(string bookId) => _bookUserService.GetGranteeUsersByBookId(new Guid(bookId));
+        public async Task<IList<User>> GetGranteeUsersByBookIdAsync(string bookId) => await _bookUserService.GetGranteeUsersByBookIdAsync(new Guid(bookId));
 
         [Authorize("Bearer")]
         [HttpGet("RequestersList/{bookId}")]
@@ -133,7 +133,7 @@ namespace ShareBook.Api.Controllers
         {
             if (!await _IsBookOwnerAsync(bookId)) return Unauthorized();
 
-            var requesters = _bookUserService.GetRequestersList(bookId);
+            var requesters = await _bookUserService.GetRequestersListAsync(bookId);
             var requestersVM = _mapper.Map<List<RequestersListVM>>(requesters);
 
             return Ok(requestersVM);

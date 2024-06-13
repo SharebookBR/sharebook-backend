@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Repository
 {
-    // TODO: Remove all uses of "GetAwaiter().GetResult()" to be trully async
     public class RepositoryGeneric<TEntity> : IRepositoryGeneric<TEntity> where TEntity : class
     {
         protected readonly ApplicationDbContext _context;

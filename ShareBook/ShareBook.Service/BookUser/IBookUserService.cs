@@ -11,9 +11,9 @@ namespace ShareBook.Service
     {
         Task InsertAsync(Guid bookId, string reason);
 
-        IList<User> GetGranteeUsersByBookId(Guid bookId);
+        Task<IList<User>> GetGranteeUsersByBookIdAsync(Guid bookId);
 
-        IList<BookUser> GetRequestersList(Guid bookId);
+        Task<IList<BookUser>> GetRequestersListAsync(Guid bookId);
 
         Task DonateBookAsync(Guid bookId, Guid userId, string note);
 

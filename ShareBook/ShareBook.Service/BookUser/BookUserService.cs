@@ -46,19 +46,19 @@ namespace ShareBook.Service
             _configuration = configuration;
         }
 
-        public IList<User> GetGranteeUsersByBookId(Guid bookId) =>
-            _bookUserRepository.Get().Include(x => x.User)
+        public async Task<IList<User>> GetGranteeUsersByBookIdAsync(Guid bookId) =>
+            await _bookUserRepository.Get().Include(x => x.User)
             .Where(x => x.BookId == bookId && x.Status == DonationStatus.WaitingAction)
-            .Select(x => x.User.Cleanup()).ToList();
+            .Select(x => x.User.Cleanup()).ToListAsync();
 
-        public IList<BookUser> GetRequestersList(Guid bookId) =>
-            _bookUserRepository.Get()
-            .Include(x => x.User).ThenInclude(u => u.Address)
-            .Include(x => x.User).ThenInclude(u => u.BookUsers)
-            .Include(x => x.User).ThenInclude(u => u.BooksDonated)
-            .Where(x => x.BookId == bookId)
-            .OrderBy(x => x.CreationDate)
-            .ToList(); // TODO: Migrate to async
+        public async Task<IList<BookUser>> GetRequestersListAsync(Guid bookId) =>
+            await _bookUserRepository.Get()
+                .Include(x => x.User).ThenInclude(u => u.Address)
+                .Include(x => x.User).ThenInclude(u => u.BookUsers)
+                .Include(x => x.User).ThenInclude(u => u.BooksDonated)
+                .Where(x => x.BookId == bookId)
+                .OrderBy(x => x.CreationDate)
+                .ToListAsync();
 
         public async Task InsertAsync(Guid bookId, string reason)
         {
