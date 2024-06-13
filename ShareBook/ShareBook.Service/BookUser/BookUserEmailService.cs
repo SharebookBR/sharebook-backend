@@ -215,10 +215,11 @@ namespace ShareBook.Service
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookNoticeDeclinedUsersTemplate, vm);
             var emailSubject = $"Resultado da doação do livro {book.Title}.";
 
-            bookUsersDeclined.ForEach(bookUser =>
+            bookUsersDeclined.ForEach(async (bookUser) =>
             {
+                // TODO: Find out a better approach instead of awaiting one by one
                 if (bookUser.User.AllowSendingEmail)
-                    _emailService.SendAsync(bookUser.User.Email, bookUser.User.Name, html, emailSubject).Wait();
+                    await _emailService.SendAsync(bookUser.User.Email, bookUser.User.Name, html, emailSubject);
             });
 
         }
@@ -228,10 +229,11 @@ namespace ShareBook.Service
             var vm = new { book };
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookCanceledNoticeUsersTemplate, vm);
 
-            bookUsers.ForEach(bookUser =>
+            bookUsers.ForEach(async (bookUser) =>
             {
+                // TODO: Find out a better approach instead of awaiting one by one
                 if (bookUser.User.AllowSendingEmail)
-                    _emailService.SendAsync(bookUser.User.Email, bookUser.User.Name, html, $"Resultado da doação do livro {book.Title}.").Wait();
+                    await _emailService.SendAsync(bookUser.User.Email, bookUser.User.Name, html, $"Resultado da doação do livro {book.Title}.");
             });
             
         }
@@ -249,7 +251,7 @@ namespace ShareBook.Service
             };
 
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookCanceledTemplate, templateData);
-            _emailService.SendAsync(donor.Email, donor.Name, html, BookCanceledTitle, copyAdmins: true, highPriority: true).Wait();
+            await _emailService.SendAsync(donor.Email, donor.Name, html, BookCanceledTitle, copyAdmins: true, highPriority: true);
         }
     
         public async Task SendEmailTrackingNumberInformedAsync(BookUser bookUserWinner, Book book)
