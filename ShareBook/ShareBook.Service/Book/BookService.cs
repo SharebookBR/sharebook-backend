@@ -297,8 +297,8 @@ namespace ShareBook.Service
               ));
         }
 
-        public override PagedList<Book> Get<TKey>(Expression<Func<Book, bool>> filter, Expression<Func<Book, TKey>> order, int page, int itemsPerPage)
-            => base.Get(filter, order, page, itemsPerPage);
+        public override async Task<PagedList<Book>> GetAsync<TKey>(Expression<Func<Book, bool>> filter, Expression<Func<Book, TKey>> order, int page, int itemsPerPage)
+            => await base.GetAsync(filter, order, page, itemsPerPage);
 
         public async Task<IList<Book>> GetUserDonationsAsync(Guid userId)
         {

@@ -42,13 +42,13 @@ namespace ShareBook.Service.Generic
         /// Get a paged list of the entity, without any filter, on the specified order, with the specified child objects.
         /// </summary>
         /// <param name="page">First Page = 1</param>
-        PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes);
+        Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes);
 
         /// <summary>
         /// Get a paged list of the entity, based on the filter passed, on the specified order, without child objects.
         /// </summary>
         /// <param name="page">First Page = 1</param>
-        PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage);
+        Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage);
 
         Task<Result<TEntity>> InsertAsync(TEntity entity);
         Task<Result<TEntity>> UpdateAsync(TEntity entity);

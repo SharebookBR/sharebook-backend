@@ -75,7 +75,7 @@ namespace ShareBook.Service
 
         private async Task<int> GetYoutubeVideosAsync()
         {
-            var meetups = _repository.Get(x => x.YoutubeUrl == null, x => x.StartDate);
+            var meetups = await _repository.GetAsync(x => x.YoutubeUrl == null, x => x.StartDate);
 
             if (meetups.TotalItems == 0) return 0;
 

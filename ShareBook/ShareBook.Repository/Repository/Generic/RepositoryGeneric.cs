@@ -163,20 +163,14 @@ namespace ShareBook.Repository
 
         public TEntity Find(Expression<Func<TEntity, bool>> filter) => FindAsync(null, filter).GetAwaiter().GetResult();
 
-        public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order)
-            => Get(filter, order, null);
+        public async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order)
+            => await GetAsync(filter, order, null);
 
-        public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, IncludeList<TEntity> includes)
-           => Get(filter, order, 1, int.MaxValue, includes);
+        public async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, IncludeList<TEntity> includes)
+           => await GetAsync(filter, order, 1, int.MaxValue, includes);
 
-        public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes)
-            => Get(x => true, order, page, itemsPerPage, includes);
-
-        public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage)
-            => Get(filter, order, page, itemsPerPage, null);
-
-        public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes)
-            => GetAsync(filter, order, page, itemsPerPage, includes).GetAwaiter().GetResult();
+        public async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes)
+            => await GetAsync(x => true, order, page, itemsPerPage, includes);
 
         #endregion Synchronous
     }
