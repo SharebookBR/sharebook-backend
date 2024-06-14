@@ -7,16 +7,19 @@ namespace ShareBook.Test.Unit.Mocks
 {
     public class BookMock
     {
-        public static Book GetLordTheRings(User user)
+        public static Book GetLordTheRings(User user, User userFacilitator = null)
         {
+            Guid bookId = new Guid("d9f5fde8-ee7c-4cf5-aa90-35eca3c170b9");
             return new Book()
             {
-                Id = new Guid("d9f5fde8-ee7c-4cf5-aa90-35eca3c170b9"),
+                Id = bookId,
                 Title = "Lord of the Rings",
                 Author = "J. R. R. Tolkien",
                 ImageSlug = "lotr.png",
                 ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
                 User = user,
+                BookUsers = new List<BookUser> { new BookUser { BookId = bookId, User = user } },
+                UserFacilitator = userFacilitator,
                 CategoryId = Guid.NewGuid(),
                 Status = ShareBook.Domain.Enums.BookStatus.Available
            };
