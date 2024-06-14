@@ -16,10 +16,10 @@ namespace Sharebook.Jobs
         private readonly IBookUserService _bookUserService;
         private readonly int _maxLateDonationDaysAutoCancel;
         private readonly IConfiguration _configuration;
+        public new const string JobName = "CancelAbandonedDonations";
 
         public CancelAbandonedDonations(IJobHistoryRepository jobHistoryRepo, IBookService bookService, IBookUserService bookUserService, IConfiguration configuration) : base(jobHistoryRepo)
         {
-            JobName     = "CancelAbandonedDonations";
             Description = "Cancela as doações abandonadas.";
             Interval    = Interval.Dayly;
             Active      = true;
