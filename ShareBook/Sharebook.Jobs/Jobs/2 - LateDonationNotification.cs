@@ -16,9 +16,14 @@ public class LateDonationNotification : GenericJob, IJob
     private readonly IEmailService _emailService;
     private readonly IEmailTemplate _emailTemplate;
     private readonly IBookService _bookService;
-
-    private readonly int maxLateDonationDays;
     private readonly IConfiguration _configuration;
+    public new const string JobName = "LateDonationNotification";
+    public const string EmailTemplateName = "LateDonationNotification";
+    public const string EmailAdminsSubject = "SHAREBOOK - STATUS DO DIA.";
+    public const string EmailDonatorHardSubject = "Doação abandonada no Sharebook. Urgente!";
+    public const string EmailDonatorSoftSubject = "Lembrete do Sharebook";
+    public const string ConfigMaxLateDonationDaysKey = "SharebookSettings:MaxLateDonationDays";
+    private readonly int maxLateDonationDays;
 
 
     public LateDonationNotification(IJobHistoryRepository jobHistoryRepo,
@@ -26,7 +31,6 @@ public class LateDonationNotification : GenericJob, IJob
         IEmailService emailService,
         IEmailTemplate emailTemplate, IConfiguration configuration) : base(jobHistoryRepo)
     {
-        JobName     = "LateDonationNotification";
         Description = "Notifica o facilitador e doador com lista de doações em atraso " +
                         "ordenado pelo mais atrasado.";
         Interval    = Interval.Dayly;
@@ -38,7 +42,7 @@ public class LateDonationNotification : GenericJob, IJob
         _emailTemplate = emailTemplate;
 
         _configuration = configuration;
-        maxLateDonationDays = int.Parse(_configuration["SharebookSettings:MaxLateDonationDays"]);
+        maxLateDonationDays = int.Parse(_configuration[ConfigMaxLateDonationDaysKey]);
 
     }
 
@@ -93,17 +97,15 @@ public class LateDonationNotification : GenericJob, IJob
 
         htmlTable += "</TABLE>";
 
-        var emailSubject = "SHAREBOOK - STATUS DO DIA.";
-
         var vm = new { 
             htmlTable, 
             totalWaitingApproval = status.TotalWaitingApproval,
             totalLate = booksLate.Count,
             totalOk = status.TotalOk
         };
-        var emailBodyHTML = await _emailTemplate.GenerateHtmlFromTemplateAsync("LateDonationNotification", vm);
+        var emailBodyHTML = await _emailTemplate.GenerateHtmlFromTemplateAsync(EmailTemplateName, vm);
 
-        await _emailService.SendToAdminsAsync(emailBodyHTML, emailSubject);
+        await _emailService.SendToAdminsAsync(emailBodyHTML, EmailAdminsSubject);
     }
 
     private string GetWhatsappLink(string phone)
@@ -148,9 +150,7 @@ public class LateDonationNotification : GenericJob, IJob
         html += "<p>Sinceramente,</p>";
         html += "<p>Sharebook</p>";
 
-        var emailSubject = "Doação abandonada no Sharebook. Urgente!";
-
-        await _emailService.SendAsync(donator.Email, donator.Name, html, emailSubject, copyAdmins: true, highPriority: true);
+        await _emailService.SendAsync(donator.Email, donator.Name, html, EmailDonatorHardSubject, copyAdmins: true, highPriority: true);
     }
 
     private async Task SendEmailDonatorSoftAsync(User donator)
@@ -161,9 +161,7 @@ public class LateDonationNotification : GenericJob, IJob
         html += "<p>Obrigado. Qualquer dúvida pode entrar em contato com o seu facilitador. É um prazer ajudar. =)</p>";
         html += "<p>Sharebook</p>";
 
-        var emailSubject = "Lembrete do Sharebook";
-
-        await _emailService.SendAsync(donator.Email, donator.Name, html, emailSubject, copyAdmins: false, highPriority: true);
+        await _emailService.SendAsync(donator.Email, donator.Name, html, EmailDonatorSoftSubject, copyAdmins: false, highPriority: true);
     }
 
     #endregion
