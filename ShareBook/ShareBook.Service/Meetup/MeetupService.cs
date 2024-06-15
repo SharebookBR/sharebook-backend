@@ -218,7 +218,7 @@ namespace ShareBook.Service
         public async Task<IList<Meetup>> SearchAsync(string criteria)
         {
             return await _repository.Get()
-                .Where(m => m.Active && ( m.Title.Contains(criteria, StringComparison.InvariantCultureIgnoreCase) || m.Description.Contains(criteria, StringComparison.InvariantCultureIgnoreCase)))
+                .Where(m => m.Active && (m.Title.Contains(criteria) || m.Description.Contains(criteria)))
                 .OrderByDescending(m => m.CreationDate)
                 .ToListAsync();
         }
