@@ -6,6 +6,7 @@ using ShareBook.Domain.Common;
 using ShareBook.Service.Generic;
 using System;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace ShareBook.Api.Controllers
 {
@@ -48,12 +49,12 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpGet()]
-        public virtual PagedList<T> GetAll() => Paged(1, 15);
+        public virtual async Task<PagedList<T>> GetAllAsync() => await PagedAsync(1, 15);
 
         [HttpGet("{page}/{items}")]
-        public virtual PagedList<T> Paged(int page, int items) => _service.Get(x => true, _defaultOrder, page, items);
+        public virtual async Task<PagedList<T>> PagedAsync(int page, int items) => await _service.GetAsync(x => true, _defaultOrder, page, items);
 
         [HttpGet("{id}")]
-        public T GetById(string id) => _service.Find(new Guid(id));
+        public async Task<T> GetByIdAsync(string id) => await _service.FindAsync(new Guid(id));
     }
 }

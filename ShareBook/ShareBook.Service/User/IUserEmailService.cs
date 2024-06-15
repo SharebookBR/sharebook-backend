@@ -7,8 +7,8 @@ namespace ShareBook.Service
     public interface IUserEmailService
     {
         Task SendEmailForgotMyPasswordToUserAsync(User user);
-        void SendEmailRequestParentAproval(RegisterUserDTO userDto, User user);
-        void SendEmailParentAprovedNotifyUser(User user);
-        void SendEmailAnonymizeNotifyAdms(UserAnonymizeDTO dto);
+        Task SendEmailRequestParentAprovalAsync(RegisterUserDTO userDto, User user);
+        Task SendEmailParentAprovedNotifyUserAsync(User user);
+        Task SendEmailAnonymizeNotifyAdmsAsync(UserAnonymizeDTO dto);
     }
 }

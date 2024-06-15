@@ -85,3 +85,14 @@ dotnet test ./ShareBook/ShareBook.Test.Unit/ShareBook.Test.Unit.csproj
 # clean
 dotnet clean ./ShareBook/ShareBook.Api/ShareBook.Api.csproj --verbosity quiet
 ```
+
+## **[WIP] 8 - Como testar a aplicação usando postman**
+
+Atenção! Este passo está em construção e ainda exige alguns passos manuais. Em breve será automatizado.
+
+Consiste em usar uma collection do postman (v2.1) para testar os resultados das requisições. No momento a collection está pronta para usa no ambiente de dev.
+
+1. Obter o arquivo [ShareBook API - Tests.postman_collection.json](./ShareBook%20API%20-%20Tests.postman_collection.json) do repositório
+2. Usando a ferramenta postman, clique em importar e selecione o arquivo
+3. Com o botão direito na collection `ShareBook API - Tests`, clique em `Run collection`
+4. Na nova janela clique em executar. Após executar verifique a quantidade de erros.

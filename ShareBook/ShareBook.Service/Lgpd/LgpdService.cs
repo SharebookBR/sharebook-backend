@@ -5,6 +5,7 @@ using ShareBook.Domain.Enums;
 using ShareBook.Domain.Exceptions;
 using ShareBook.Repository;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ShareBook.Service.Lgpd
 {
@@ -27,14 +28,14 @@ namespace ShareBook.Service.Lgpd
             _ctx = context;
         }
 
-        public void Anonymize(UserAnonymizeDTO dto)
+        public async Task AnonymizeAsync(UserAnonymizeDTO dto)
         {
-            var user = _ctx.Users
+            var user = await _ctx.Users
                 .Where(u => u.Id == dto.UserId)
                 .Include(u => u.Address)
                 .Include(u => u.BooksDonated)
                 .Include(u => u.BookUsers) // livros solicitados
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (user == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound, "Nenhum usuário encontrado.");
@@ -52,7 +53,7 @@ namespace ShareBook.Service.Lgpd
             RemoveOpenRequests(user);
 
             // 2 - Cancela doações em aberto.
-            RemoveOpenDonations(user);
+            await RemoveOpenDonationsAsync(user);
 
             // 3 - Anonimiza a conta
             user.Anonymize();
@@ -61,10 +62,10 @@ namespace ShareBook.Service.Lgpd
             RemoveLogs(user);
 
             // 5 - Notifica os adms.
-            _userEmailService.SendEmailAnonymizeNotifyAdms(dto);
+            await _userEmailService.SendEmailAnonymizeNotifyAdmsAsync(dto);
 
             // 6 - Enfim salva
-            _ctx.SaveChanges();
+            await _ctx.SaveChangesAsync();
 
         }
 
@@ -79,18 +80,18 @@ namespace ShareBook.Service.Lgpd
             }
         }
 
-        private void RemoveOpenDonations(User user)
+        private async Task RemoveOpenDonationsAsync(User user)
         {
             foreach (var book in user.BooksDonated)
             {
                 if (book.Status == BookStatus.WaitingApproval || book.Status == BookStatus.Available || book.Status == BookStatus.AwaitingDonorDecision)
                 {
-                    CancelDonation(book);
+                    await CancelDonationAsync(book);
                 }
             }
         }
 
-        private void CancelDonation(Book book)
+        private async Task CancelDonationAsync(Book book)
         {
             var cancelationDTO = new BookCancelationDTO
             {
@@ -99,7 +100,7 @@ namespace ShareBook.Service.Lgpd
                 Reason = "Doação cancelada porque o usuário removeu a própria conta."
             };
 
-            _bookUserService.Cancel(cancelationDTO);
+            await _bookUserService.CancelAsync(cancelationDTO);
         }
 
         private void RemoveLogs(User user)

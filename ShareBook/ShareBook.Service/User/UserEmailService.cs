@@ -31,43 +31,39 @@ namespace ShareBook.Service
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync("ForgotPasswordTemplate", vm);
 
             var title = "Esqueceu sua senha - Sharebook";
-            await _emailService.Send(user.Email, user.Name, html, title);
+            await _emailService.SendAsync(user.Email, user.Name, html, title);
         }
 
-        public void SendEmailRequestParentAproval(RegisterUserDTO userDto, User user)
+        public async Task SendEmailRequestParentAprovalAsync(RegisterUserDTO userDto, User user)
         {
             var vm = new
             {
                 UserName = user.Name,
                 AprovalLink = $"{_serverSettings.DefaultUrl}/consentimento-dos-pais/{user.ParentHashCodeAproval}",
             };
-            // TODO: Remove "GetAwaiter().GetResult()"
-            var html = _emailTemplate.GenerateHtmlFromTemplateAsync("RequestParentAproval", vm).GetAwaiter().GetResult();
+            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync("RequestParentAproval", vm);
 
             var title = "Consentimento dos pais";
-            // TODO: Remove ".Wait()"
-            _emailService.Send(userDto.ParentEmail, "Pais", html, title).Wait();
+            await _emailService.SendAsync(userDto.ParentEmail, "Pais", html, title);
         }
 
-        public void SendEmailParentAprovedNotifyUser(User user)
+        public async Task SendEmailParentAprovedNotifyUserAsync(User user)
         {
             var vm = new
             {
                 SharebookLink = _serverSettings.DefaultUrl
             };
-            // TODO: Remove "GetAwaiter().GetResult()"
-            var html = _emailTemplate.GenerateHtmlFromTemplateAsync("ParentAprovedNotifyUser", vm).GetAwaiter().GetResult();
+            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync("ParentAprovedNotifyUser", vm);
 
             var title = "Consentimento dos pais";
-            _emailService.Send(user.Email, user.Name, html, title).Wait();
+            await _emailService.SendAsync(user.Email, user.Name, html, title);
         }
 
-        public void SendEmailAnonymizeNotifyAdms(UserAnonymizeDTO dto)
+        public async Task SendEmailAnonymizeNotifyAdmsAsync(UserAnonymizeDTO dto)
         {
-            // TODO: Remove "GetAwaiter().GetResult()"
-            var html = _emailTemplate.GenerateHtmlFromTemplateAsync("AnonymizeNotifyAdms", dto).GetAwaiter().GetResult();
+            var html = await _emailTemplate.GenerateHtmlFromTemplateAsync("AnonymizeNotifyAdms", dto);
             var title = "Anonimização de conta";
-            _emailService.SendToAdmins(html, title);
+            await _emailService.SendToAdminsAsync(html, title);
         }
     }
 }

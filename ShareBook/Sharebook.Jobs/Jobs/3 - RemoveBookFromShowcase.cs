@@ -38,8 +38,7 @@ namespace Sharebook.Jobs
         {
             var messages = new List<string>();
 
-            // TODO: Migrate to async
-            var books = _bookService.GetBooksChooseDateIsTodayOrLate();
+            var books = await _bookService.GetBooksChooseDateIsTodayOrLateAsync();
 
             if (books.Count == 0) messages.Add("Nenhum livro encontrado.");
 
@@ -66,8 +65,7 @@ namespace Sharebook.Jobs
                     await SendEmailAsync(book);
                 }
 
-                // TODO: Migrate to async
-                _bookService.Update(book);
+                await _bookService.UpdateAsync(book);
             }
 
             return new JobHistory()
@@ -97,7 +95,7 @@ namespace Sharebook.Jobs
             };
             var emailBodyHTML = await _emailTemplate.GenerateHtmlFromTemplateAsync("ChooseDateRenewTemplate", vm);
 
-            await _emailService.Send(book.User.Email, book.User.Name, emailBodyHTML, emailSubject, copyAdmins: false, highPriority: true);
+            await _emailService.SendAsync(book.User.Email, book.User.Name, emailBodyHTML, emailSubject, copyAdmins: false, highPriority: true);
         }
 
         #endregion

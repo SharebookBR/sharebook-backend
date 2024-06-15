@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using AutoMapper;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -45,13 +46,13 @@ namespace ShareBook.Service
             _recaptchaService = recaptchaService;
         }
 
-        public Result<User> AuthenticationByEmailAndPassword(User user)
+        public async Task<Result<User>> AuthenticationByEmailAndPasswordAsync(User user)
         {
             var result = Validate(user, x => x.Email, x => x.Password);
 
             string decryptedPass = user.Password;
 
-            user = _repository.Find(e => e.Email == user.Email);
+            user = await _repository.FindAsync(e => e.Email == user.Email);
 
             if (user == null)
             {
@@ -68,7 +69,7 @@ namespace ShareBook.Service
             // persiste última tentativa de login ANTES do SUCESSO ou FALHA pra ter métrica de
             // verificação de brute force.
             user.LastLogin = DateTime.Now;
-            _userRepository.Update(user);
+            await _userRepository.UpdateAsync(user);
 
             if (!IsValidPassword(user, decryptedPass))
             {
@@ -92,12 +93,12 @@ namespace ShareBook.Service
             return result;
         }
 
-        public Result<User> Insert(RegisterUserDTO userDto)
+        public async Task<Result<User>> InsertAsync(RegisterUserDTO userDto)
         {
             User user = _mapper.Map<User>(userDto);
             Result resultRecaptcha = _recaptchaService.SimpleValidationRecaptcha(userDto?.RecaptchaReactive);
 
-            var result = Validate(user);
+            var result = await ValidateAsync(user);
             if (!resultRecaptcha.Success && resultRecaptcha.Messages != null) 
                 result.Messages.AddRange(resultRecaptcha.Messages);
 
@@ -106,23 +107,23 @@ namespace ShareBook.Service
 
             // Senha forte não é mais obrigatória.
 
-            if (_repository.Any(x => x.Email == user.Email))
+            if (await _repository.AnyAsync(x => x.Email == user.Email))
                 throw new ShareBookException("Usuário já possui email cadastrado.");
 
             // LGPD - CONSENTIMENTO DOS PAIS.
             if (userDto.Age < 12)
-                ParentAprovalStartFlow(userDto, user);
+                await ParentAprovalStartFlowAsync(userDto, user);
 
             user.Email = user.Email.ToLowerInvariant();
             if (result.Success)
             {
                 user = GetUserEncryptedPass(user);
-                result.Value = UserCleanup(_repository.Insert(user));
+                result.Value = UserCleanup(await _repository.InsertAsync(user));
             }
             return result;
         }
 
-        private void ParentAprovalStartFlow(RegisterUserDTO userDto, User user)
+        private async Task ParentAprovalStartFlowAsync(RegisterUserDTO userDto, User user)
         {
             user.ParentAproved = false;
             user.ParentHashCodeAproval = Guid.NewGuid().ToString();
@@ -130,10 +131,10 @@ namespace ShareBook.Service
             if (string.IsNullOrEmpty(userDto.ParentEmail))
                 throw new ShareBookException("Menor de idade. Obrigatório informar o email do pai ou responsável.");
 
-            _userEmailService.SendEmailRequestParentAproval(userDto, user);
+            await _userEmailService.SendEmailRequestParentAprovalAsync(userDto, user);
         }
 
-        public override Result<User> Update(User user)
+        public override async Task<Result<User>> UpdateAsync(User user)
         {
             user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             Result<User> result = Validate(user, x =>
@@ -145,11 +146,11 @@ namespace ShareBook.Service
 
             if (!result.Success) return result;
 
-            var userAux = _repository.Find(new IncludeList<User>(x => x.Address), user.Id);
+            var userAux = await _repository.FindAsync(new IncludeList<User>(x => x.Address), user.Id);
 
             if (userAux == null) result.Messages.Add("Usuário não existe.");
 
-            if (_repository.Any(u => u.Email == user.Email && u.Id != user.Id))
+            if (await _repository.AnyAsync(u => u.Email == user.Email && u.Id != user.Id))
                 result.Messages.Add("Email já existe.");
 
             if (result.Success)
@@ -157,31 +158,31 @@ namespace ShareBook.Service
                 userAux.Change(user.Email, user.Name, user.Linkedin, user.Instagram, user.Phone, user.AllowSendingEmail);
                 userAux.ChangeAddress(user.Address);
 
-                result.Value = UserCleanup(_repository.Update(userAux));
+                result.Value = UserCleanup(await _repository.UpdateAsync(userAux));
             }
 
             return result;
         }
 
-        public override User Find(object keyValue)
+        public override async Task<User> FindAsync(object keyValue)
         {
             var includes = new IncludeList<User>(x => x.Address);
-            return _repository.Find(includes, keyValue);
+            return await _repository.FindAsync(includes, keyValue);
         }
 
-        public Result<User> ValidOldPasswordAndChangeUserPassword(User user, string newPassword)
+        public async Task<Result<User>> ValidOldPasswordAndChangeUserPasswordAsync(User user, string newPassword)
         {
             var resultUserAuth = this.AuthenticationByIdAndPassword(user);
 
             if (resultUserAuth.Success)
-                ChangeUserPassword(resultUserAuth.Value, newPassword);
+                await ChangeUserPasswordAsync(resultUserAuth.Value, newPassword);
 
             return resultUserAuth;
         }
 
-        public Result<User> ChangeUserPassword(User user, string newPassword)
+        public async Task<Result<User>> ChangeUserPasswordAsync(User user, string newPassword)
         {
-            var result = Validate(user);
+            var result = await ValidateAsync(user);
 
             // Senha forte não é mais obrigatória. Apenas validação de tamanho.
             if (newPassword.Length < 6 || newPassword.Length > 32)
@@ -189,17 +190,16 @@ namespace ShareBook.Service
 
             user.ChangePassword(newPassword);
             user = GetUserEncryptedPass(user);
-            // TODO: Remove "GetAwaiter().GetResult()"
-            user = _userRepository.UpdatePassword(user).GetAwaiter().GetResult();
+            user = await _userRepository.UpdatePasswordAsync(user);
             result.Value = UserCleanup(user);
 
             return result;
         }
 
-        public Result GenerateHashCodePasswordAndSendEmailToUser(string email)
+        public async Task<Result> GenerateHashCodePasswordAndSendEmailToUserAsync(string email)
         {
             var result = new Result();
-            var user = _repository.Find(e => e.Email == email);
+            var user = await _repository.FindAsync(e => e.Email == email);
 
             if (user == null)
             {
@@ -208,17 +208,17 @@ namespace ShareBook.Service
             }
 
             user.GenerateHashCodePassword();
-            _repository.Update(user);
-            _userEmailService.SendEmailForgotMyPasswordToUserAsync(user).Wait();
+            await _repository.UpdateAsync(user);
+            await _userEmailService.SendEmailForgotMyPasswordToUserAsync(user);
             result.SuccessMessage = "E-mail enviado com as instruções para recuperação da senha.";
             return result;
         }
 
-        public Result ConfirmHashCodePassword(string hashCodePassword)
+        public async Task<Result> ConfirmHashCodePasswordAsync(string hashCodePassword)
         {
             var result = new Result();
 
-            var userConfirmedHashCodePassword = _repository.Find(e => e.HashCodePassword.Equals(hashCodePassword));
+            var userConfirmedHashCodePassword = await _repository.FindAsync(e => e.HashCodePassword.Equals(hashCodePassword));
 
             if (userConfirmedHashCodePassword == null)
                 result.Messages.Add("Hash code não encontrado.");
@@ -268,6 +268,7 @@ namespace ShareBook.Service
 
         private Result<User> AuthenticationByIdAndPassword(User user)
         {
+            // TODO: Migrate to async
             var result = Validate(user, x => x.Id, x => x.Password);
 
             string decryptedPass = user.Password;
@@ -305,33 +306,33 @@ namespace ShareBook.Service
             return user;
         }
 
-        public IList<User> GetBySolicitedBookCategory(Guid bookCategoryId) =>
-            _userRepository.Get().Where(u => u.AllowSendingEmail && u.BookUsers.Any(bu => bu.Book.CategoryId == bookCategoryId)).ToList();
+        public async Task<IList<User>> GetBySolicitedBookCategoryAsync(Guid bookCategoryId) =>
+            await _userRepository.Get().Where(u => u.AllowSendingEmail && u.BookUsers.Any(bu => bu.Book.CategoryId == bookCategoryId)).ToListAsync();
 
-        public UserStatsDTO GetStats(Guid? userId)
+        public async Task<UserStatsDTO> GetStatsAsync(Guid? userId)
         {
-            var user = _userRepository.Find(userId);
-            var books = _bookRepository.Get().Where(b => b.UserId == userId).ToList();
+            var user = await _userRepository.FindAsync(userId);
+            var books = await _bookRepository.Get().Where(b => b.UserId == userId).ToListAsync();
 
             if (user == null) throw new ShareBookException(ShareBookException.Error.NotFound, "Usuário não encontrado.");
 
             var stats = new UserStatsDTO
             {
                 CreationDate = user.CreationDate,
-                TotalLate = books.Where(b => b.ChooseDate < DateTime.Today && b.Status == BookStatus.AwaitingDonorDecision).Count(),
-                TotalOk = books.Where(b => b.Status == BookStatus.WaitingSend || b.Status == BookStatus.Sent || b.Status == BookStatus.Received).Count(),
-                TotalCanceled = books.Where(b => b.Status == BookStatus.Canceled).Count(),
-                TotalWaitingApproval = books.Where(b => b.Status == BookStatus.WaitingApproval).Count(),
-                TotalAvailable = books.Where(b => b.Status == BookStatus.Available).Count(),
+                TotalLate = books.Count(b => b.ChooseDate < DateTime.Today && b.Status == BookStatus.AwaitingDonorDecision),
+                TotalOk = books.Count(b => b.Status == BookStatus.WaitingSend || b.Status == BookStatus.Sent || b.Status == BookStatus.Received),
+                TotalCanceled = books.Count(b => b.Status == BookStatus.Canceled),
+                TotalWaitingApproval = books.Count(b => b.Status == BookStatus.WaitingApproval),
+                TotalAvailable = books.Count(b => b.Status == BookStatus.Available),
             };
             return stats;
         }
 
-        public void ParentAproval(string parentHashCodeAproval)
+        public async Task ParentAprovalAsync(string parentHashCodeAproval)
         {
-            var user = _repository.Get()
+            var user = await _repository.Get()
                 .Where(u => u.ParentHashCodeAproval == parentHashCodeAproval)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (user == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound, "Nenhum usuário encontrado.");
@@ -340,9 +341,9 @@ namespace ShareBook.Service
                 throw new ShareBookException(ShareBookException.Error.NotFound, "O acesso já foi liberado anteriormente. Tudo certo.");
 
             user.ParentAproved = true;
-            _userRepository.Update(user);
+            await _userRepository.UpdateAsync(user);
 
-            _userEmailService.SendEmailParentAprovedNotifyUser(user);
+            await _userEmailService.SendEmailParentAprovedNotifyUserAsync(user);
         }
 
         

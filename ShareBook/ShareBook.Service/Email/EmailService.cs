@@ -44,22 +44,22 @@ public class EmailService : IEmailService
         _ctx = ctx;
     }
 
-    public async Task SendToAdmins(string messageText, string subject)
+    public async Task SendToAdminsAsync(string messageText, string subject)
     {
-        var firstAdm = _userRepository.Get().Where(u => u.Profile == Domain.Enums.Profile.Administrator).FirstOrDefault();
-        await Send(firstAdm.Email, firstAdm.Name, messageText, subject, copyAdmins: true, highPriority: true);
+        var firstAdm = await _userRepository.Get().Where(u => u.Profile == Domain.Enums.Profile.Administrator).FirstOrDefaultAsync();
+        await SendAsync(firstAdm.Email, firstAdm.Name, messageText, subject, copyAdmins: true, highPriority: true);
     }
 
-    public async Task Send(string emailRecipient, string nameRecipient, string messageText, string subject)
-        => await Send(emailRecipient, nameRecipient, messageText, subject, copyAdmins: false, highPriority: true);
+    public async Task SendAsync(string emailRecipient, string nameRecipient, string messageText, string subject)
+        => await SendAsync(emailRecipient, nameRecipient, messageText, subject, copyAdmins: false, highPriority: true);
 
-    public async Task Send(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins = false, bool highPriority = true)
+    public async Task SendAsync(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins = false, bool highPriority = true)
     {
         var sqsEnabled = bool.Parse(_configuration["AwsSqsSettings:IsActive"]);
 
         if (!sqsEnabled)
         {
-            await SendSmtp(emailRecipient, nameRecipient, messageText, subject, copyAdmins);
+            await SendSmtpAsync(emailRecipient, nameRecipient, messageText, subject, copyAdmins);
             return;
         }
 
@@ -78,15 +78,15 @@ public class EmailService : IEmailService
         };
 
         if (highPriority)
-            await _mailSenderHighPriorityQueue.SendMessage(queueMessage);
+            await _mailSenderHighPriorityQueue.SendMessageAsync(queueMessage);
         else
-            await _mailSenderLowPriorityQueue.SendMessage(queueMessage);
+            await _mailSenderLowPriorityQueue.SendMessageAsync(queueMessage);
 
     }
 
-    public async Task SendSmtp(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins)
+    public async Task SendSmtpAsync(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins)
     {
-        var message = FormatEmail(emailRecipient, nameRecipient, messageText, subject, copyAdmins);
+        var message = await FormatEmailAsync(emailRecipient, nameRecipient, messageText, subject, copyAdmins);
 
         var client = new SmtpClient();
         
@@ -94,13 +94,13 @@ public class EmailService : IEmailService
             client.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
         client.CheckCertificateRevocation = false;
-        client.Connect(_settings.HostName, _settings.Port, _settings.UseSSL);
-        client.Authenticate(_settings.Username, _settings.Password);
+        await client.ConnectAsync(_settings.HostName, _settings.Port, _settings.UseSSL);
+        await client.AuthenticateAsync(_settings.Username, _settings.Password);
         await client.SendAsync(message);
-        client.Disconnect(true); 
+        await client.DisconnectAsync(true); 
     }
 
-    private MimeMessage FormatEmail(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins)
+    private async Task<MimeMessage> FormatEmailAsync(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins)
     {
         var message = new MimeMessage();
         message.From.Add(new MailboxAddress("Sharebook", "contato@sharebook.com.br"));
@@ -108,7 +108,7 @@ public class EmailService : IEmailService
 
         if (copyAdmins)
         {
-            var adminsEmails = FormatEmailGetAdminEmails();
+            var adminsEmails = await FormatEmailGetAdminEmailsAsync();
             message.Cc.AddRange(adminsEmails);
         }
 
@@ -120,16 +120,16 @@ public class EmailService : IEmailService
         return message;
     }
 
-    private InternetAddressList FormatEmailGetAdminEmails()
+    private async Task<InternetAddressList> FormatEmailGetAdminEmailsAsync()
     {
-        var admins = _userRepository.Get()
+        var admins = await _userRepository.Get()
             .Select(u => new User {
                 Email = u.Email,
                 Profile = u.Profile
             }
             )
             .Where(u => u.Profile == Domain.Enums.Profile.Administrator)
-            .ToList();
+            .ToListAsync();
 
         InternetAddressList list = new InternetAddressList();
         foreach (var admin in admins)
@@ -140,14 +140,14 @@ public class EmailService : IEmailService
         return list;
     }
 
-    public async Task Test(string email, string name)
+    public async Task TestAsync(string email, string name)
     {
         var subject = "Sharebook - teste de email";
         var message = $"<p>Olá {name},</p> <p>Esse é um email de teste para verificar se o sharebook consegue fazer contato com você. Por favor avise o facilitador quando esse email chegar. Obrigado.</p>";
-        await this.SendSmtp(email, name, message, subject, copyAdmins: false);
+        await this.SendSmtpAsync(email, name, message, subject, copyAdmins: false);
     }
 
-    public async Task<IList<string>> ProcessBounceMessages()
+    public async Task<IList<string>> ProcessBounceMessagesAsync()
     {
         var log = new List<string>();
 
@@ -157,25 +157,25 @@ public class EmailService : IEmailService
             return log;
         }
 
-        _imapClient.Connect(_settings.HostName, _settings.ImapPort, true);
-        _imapClient.Authenticate(_settings.Username, _settings.Password);
+        await _imapClient.ConnectAsync(_settings.HostName, _settings.ImapPort, true);
+        await _imapClient.AuthenticateAsync(_settings.Username, _settings.Password);
 
-        var bounceFolder = GetBounceFolder();
+        var bounceFolder = await GetBounceFolderAsync();
         await bounceFolder.OpenAsync(FolderAccess.ReadWrite);
 
         var MAX_EMAILS_TO_PROCESS = 50;
-        var items = bounceFolder.Fetch(0, MAX_EMAILS_TO_PROCESS, MessageSummaryItems.UniqueId | MessageSummaryItems.Size | MessageSummaryItems.Flags);
+        var items = await bounceFolder.FetchAsync(0, MAX_EMAILS_TO_PROCESS, MessageSummaryItems.UniqueId | MessageSummaryItems.Size | MessageSummaryItems.Flags);
 
         foreach (var item in items)
         {
-            var message = bounceFolder.GetMessage(item.UniqueId);
+            var message = await bounceFolder.GetMessageAsync(item.UniqueId);
             var bounce = new MailBounce(message.Subject, message.TextBody);
-            bounceFolder.AddFlags(item.UniqueId, MessageFlags.Deleted, true);
+            await bounceFolder.AddFlagsAsync(item.UniqueId, MessageFlags.Deleted, true);
 
             if (bounce.IsBounce)
             {
                 log.Add($"Email bounce processado:  subject: {message.Subject}, errorCode: {bounce.ErrorCode}");
-                _ctx.MailBounces.Add(bounce);
+                await _ctx.MailBounces.AddAsync(bounce);
             }
             else
             {
@@ -184,27 +184,27 @@ public class EmailService : IEmailService
    
         }
 
-        _ctx.SaveChanges();
+        await _ctx.SaveChangesAsync();
 
         // Remove os emails bounce no server
-        bounceFolder.Expunge();
+        await bounceFolder.ExpungeAsync();
 
-        _imapClient.Disconnect(true);
+        await _imapClient.DisconnectAsync(true);
 
         return log;
     }
 
-    private IMailFolder? GetBounceFolder()
+    private async Task<IMailFolder?> GetBounceFolderAsync()
     {
-        var personal = _imapClient.GetFolder(_imapClient.PersonalNamespaces[0]);
-        foreach (var folder in personal.GetSubfolders(false))
+        var personal = await _imapClient.GetFolderAsync(_imapClient.PersonalNamespaces[0].Path);
+        foreach (var folder in await personal.GetSubfoldersAsync(false))
             if (folder.Name == _settings.BounceFolder)
                 return folder;
 
         return null;
     }
 
-    public async Task<IList<MailBounce>> GetBounces(IList<string> emails)
+    public async Task<IList<MailBounce>> GetBouncesAsync(IList<string> emails)
     {
         return await _ctx.MailBounces.Where(m => emails.Contains(m.Email)).ToListAsync();
     }
@@ -214,10 +214,10 @@ public class EmailService : IEmailService
         var hardBounces = bounces.Where(b => !b.IsSoft).ToList();
         var softBounces = bounces.Where(b => b.IsSoft && b.CreationDate > DateTime.Now.AddDays(-1)).ToList();
 
-        if (hardBounces.Any(b => b.Email == email))
+        if (hardBounces.Exists(b => b.Email == email))
             return true;
 
-        if (softBounces.Any(b => b.Email == email))
+        if (softBounces.Exists(b => b.Email == email))
             return true;
 
         return false;

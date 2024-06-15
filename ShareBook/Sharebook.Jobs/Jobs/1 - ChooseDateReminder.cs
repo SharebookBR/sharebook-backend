@@ -13,6 +13,8 @@ namespace Sharebook.Jobs
         private readonly IEmailService _emailService;
         private readonly IEmailTemplate _emailTemplate;
         private readonly IBookService _bookService;
+        public new const string JobName = "ChooseDateReminder";
+        public const string EmailSubject = "Hoje é o dia de escolher o ganhador!";
 
         public ChooseDateReminder(
             IJobHistoryRepository jobHistoryRepo,
@@ -21,7 +23,6 @@ namespace Sharebook.Jobs
             IEmailTemplate emailTemplate
             ) : base(jobHistoryRepo)
         {
-            JobName = "ChooseDateReminder";
             Description = "Notifica o doador, com um lembrete amigável, no dia da doação. " +
                           "Com cópia para o facilitador.";
             Interval = Interval.Dayly;
@@ -67,8 +68,6 @@ namespace Sharebook.Jobs
 
         private async Task SendEmailAsync(Book book)
         {
-            var emailSubject = "Hoje é o dia de escolher o ganhador!";
-
             var vm = new
             {
                 DonorName = book.User.Name,
@@ -80,7 +79,7 @@ namespace Sharebook.Jobs
             };
             var emailBodyHTML = await _emailTemplate.GenerateHtmlFromTemplateAsync("ChooseDateReminderTemplate", vm);
 
-            await _emailService.Send(book.User.Email, book.User.Name, emailBodyHTML, emailSubject, copyAdmins: false, highPriority: true);
+            await _emailService.SendAsync(book.User.Email, book.User.Name, emailBodyHTML, EmailSubject, copyAdmins: false, highPriority: true);
         }
 
         #endregion

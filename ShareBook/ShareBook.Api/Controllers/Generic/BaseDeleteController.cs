@@ -6,6 +6,7 @@ using ShareBook.Api.ViewModels;
 using ShareBook.Domain.Common;
 using ShareBook.Service.Generic;
 using System;
+using System.Threading.Tasks;
 
 namespace ShareBook.Api.Controllers
 {
@@ -34,6 +35,6 @@ namespace ShareBook.Api.Controllers
  
         [Authorize("Bearer")]
         [HttpDelete("{id}")]
-        public Result Delete(Guid id) => _service.Delete(id);
+        public async Task<Result> Delete(Guid id) => await _service.DeleteAsync(id);
     }
 }

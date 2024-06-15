@@ -4,23 +4,24 @@ using ShareBook.Domain.DTOs;
 using ShareBook.Service.Generic;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ShareBook.Service
 {
     public interface IUserService : IBaseService<User>
     {
-        Result<User> AuthenticationByEmailAndPassword(User user);
+        Task<Result<User>> AuthenticationByEmailAndPasswordAsync(User user);
         bool IsValidPassword(User user, string decryptedPass);
-        new Result<User> Update(User user);
-        Result<User> ValidOldPasswordAndChangeUserPassword(User user, string newPassword);
-        Result<User> ChangeUserPassword(User user, string newPassword);
-        Result GenerateHashCodePasswordAndSendEmailToUser(string email);
-        Result ConfirmHashCodePassword(string hashCodePassword);
+        new Task<Result<User>> UpdateAsync(User user);
+        Task<Result<User>> ValidOldPasswordAndChangeUserPasswordAsync(User user, string newPassword);
+        Task<Result<User>> ChangeUserPasswordAsync(User user, string newPassword);
+        Task<Result> GenerateHashCodePasswordAndSendEmailToUserAsync(string email);
+        Task<Result> ConfirmHashCodePasswordAsync(string hashCodePassword);
         IList<User> GetFacilitators(Guid userIdDonator);
         IList<User> GetAdmins();
-        IList<User> GetBySolicitedBookCategory(Guid BookCategoryId);
-        UserStatsDTO GetStats(Guid? userId);
-        Result<User> Insert(RegisterUserDTO userDto);
-        void ParentAproval(string parentHashCodeAproval);
+        Task<IList<User>> GetBySolicitedBookCategoryAsync(Guid bookCategoryId);
+        Task<UserStatsDTO> GetStatsAsync(Guid? userId);
+        Task<Result<User>> InsertAsync(RegisterUserDTO userDto);
+        Task ParentAprovalAsync(string parentHashCodeAproval);
     }
 }

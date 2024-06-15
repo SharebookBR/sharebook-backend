@@ -20,19 +20,18 @@ namespace ShareBook.Api.Controllers
         }
         [HttpGet]
 
-        public PagedList<Meetup> Get(int? page, int? pageSize, bool upcoming = false)
+        public async Task<PagedList<Meetup>> GetAsync(int? page, int? pageSize, bool upcoming = false)
         {
-            return _meetupService.Get(upcoming ? x => x.Active && x.StartDate > DateTime.Now : x => x.Active && x.StartDate <= DateTime.Now, x => x.StartDate, page ?? 1, pageSize ?? 10);
+            return await _meetupService.GetAsync(upcoming ? x => x.Active && x.StartDate > DateTime.Now : x => x.Active && x.StartDate <= DateTime.Now, x => x.StartDate, page ?? 1, pageSize ?? 10);
         }
 
         [HttpGet("{id}")]
-        public IActionResult Get(string id)
+        public async Task<IActionResult> GetAsync(string id)
         {
             if (!Guid.TryParse(id, out var meetupId))
-            {
                 BadRequest();
-            }
-            var meetup = _meetupService.Find(x => x.Id == meetupId);
+            
+            var meetup = await _meetupService.FindAsync(x => x.Id == meetupId);
             return meetup != null ? Ok(meetup) : NotFound();
         }
 

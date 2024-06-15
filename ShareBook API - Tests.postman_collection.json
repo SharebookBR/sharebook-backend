@@ -1,0 +1,922 @@
+{
+	"info": {
+		"_postman_id": "f7913a70-c6f4-4636-86a3-347efa40216f",
+		"name": "ShareBook API - Tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29881360"
+	},
+	"item": [
+		{
+			"name": "Anonymous",
+			"item": [
+				{
+					"name": "assets/img/logo.png",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"OK/200 and Content-Type is image/png\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.response.to.have.header(\"Content-Type\");\r",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.be.equal('image/png')\r",
+									"});\r",
+									"\r",
+									"// TODO: Add validations to the json values"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{sharebookUrl}}assets/img/logo.png",
+							"host": [
+								"{{sharebookUrl}}assets"
+							],
+							"path": [
+								"img",
+								"logo.png"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "AvailableBooks",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"OK/200 and json\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.response.json();\r",
+									"});\r",
+									"\r",
+									"// TODO: Add validations to the json values"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{sharebookUrl}}api/book/AvailableBooks",
+							"host": [
+								"{{sharebookUrl}}api"
+							],
+							"path": [
+								"book",
+								"AvailableBooks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Books/freightOptions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"OK/200 and json\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.response.json();\r",
+									"});\r",
+									"\r",
+									"// TODO: Add validations to the json values"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{sharebookUrl}}api/Book/freightOptions",
+							"host": [
+								"{{sharebookUrl}}api"
+							],
+							"path": [
+								"Book",
+								"freightOptions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Books/Slug - 200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"OK/200 and json\", function () {\r",
+									"    // This Slug \"volta-ao-mundo-em-80-dias\" cames from \"ShareBookSeeder.Seed()\"\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.response.json();\r",
+									"});\r",
+									"\r",
+									"// TODO: Add validations to the json values"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{sharebookUrl}}api/Book/Slug/volta-ao-mundo-em-80-dias",
+							"host": [
+								"{{sharebookUrl}}api"
+							],
+							"path": [
+								"Book",
+								"Slug",
+								"volta-ao-mundo-em-80-dias"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Book/Slug - 404",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"404 - Not Found\", function () {\r",
+									"    pm.response.to.have.status(404);\r",
+									"});\r",
+									"\r",
+									"// TODO: Add validations to the json values"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{SharebookAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{sharebookUrl}}api/Book/Slug/inexistent-aleatory",
+							"host": [
+								"{{sharebookUrl}}api"
+							],
+							"path": [
+								"Book",
+								"Slug",
+								"inexistent-aleatory"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Meetups - Past",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"OK/200 and json\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.response.json();\r",
+									"});\r",
+									"\r",
+									"// TODO: Add validations to the json values"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{sharebookUrl}}api/Meetup?page=1&pagesize=10&upcoming=false",
+							"host": [
+								"{{sharebookUrl}}api"
+							],
+							"path": [
+								"Meetup"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "pagesize",
+									"value": "10"
+								},
+								{
+									"key": "upcoming",
+									"value": "false"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Meetups - Upcoming",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"OK/200 and json\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.response.json();\r",
+									"});\r",
+									"\r",
+									"// TODO: Add validations to the json values"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{sharebookUrl}}api/Meetup?page=1&pagesize=50&upcoming=true",
+							"host": [
+								"{{sharebookUrl}}api"
+							],
+							"path": [
+								"Meetup"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "pagesize",
+									"value": "50"
+								},
+								{
+									"key": "upcoming",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Meetups Search",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"OK/200 and json\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.response.json();\r",
+									"});\r",
+									"\r",
+									"// TODO: Add validations to the json values"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{sharebookUrl}}api/Meetup/search?criteria=QuAliDade",
+							"host": [
+								"{{sharebookUrl}}api"
+							],
+							"path": [
+								"Meetup",
+								"search"
+							],
+							"query": [
+								{
+									"key": "criteria",
+									"value": "QuAliDade"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Meetup \"Qualidade de vida\"",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"OK/200 and json\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.response.json();\r",
+									"});\r",
+									"\r",
+									"// TODO: Add validations to the json values"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{sharebookUrl}}api/Meetup/46b5e5ee-8d7c-417e-9872-11555ebb7bd2",
+							"host": [
+								"{{sharebookUrl}}api"
+							],
+							"path": [
+								"Meetup",
+								"46b5e5ee-8d7c-417e-9872-11555ebb7bd2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Book/Random15Books",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"OK/200 and json\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.response.json();\r",
+									"});\r",
+									"\r",
+									"// TODO: Add validations to the json values"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{sharebookUrl}}api/Book/Random15Books",
+							"host": [
+								"{{sharebookUrl}}api"
+							],
+							"path": [
+								"Book",
+								"Random15Books"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Book/Random15EBooks",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"OK/200 and json\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.response.json();\r",
+									"});\r",
+									"\r",
+									"// TODO: Add validations to the json values"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{sharebookUrl}}api/Book/Random15EBooks",
+							"host": [
+								"{{sharebookUrl}}api"
+							],
+							"path": [
+								"Book",
+								"Random15EBooks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Category",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"OK/200 and json\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.response.json();\r",
+									"});\r",
+									"\r",
+									"// TODO: Add validations to the json values"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{sharebookUrl}}api/Category",
+							"host": [
+								"{{sharebookUrl}}api"
+							],
+							"path": [
+								"Category"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Operations/Ping",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"OK/200 and json\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.response.json();\r",
+									"});\r",
+									"\r",
+									"// TODO: Add validations to the json values"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{sharebookUrl}}api/Operations/Ping",
+							"host": [
+								"{{sharebookUrl}}api"
+							],
+							"path": [
+								"Operations",
+								"Ping"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Authenticated",
+			"item": [
+				{
+					"name": "Login (web)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"OK/200 and json\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.response.json();\r",
+									"});\r",
+									"\r",
+									"\r",
+									"// TODO: Add validations to the json values\r",
+									"// TODO: Verify the environment and use different logins or skip this test\r",
+									"\r",
+									"const sharebookAccessTokenName = 'SharebookAccessToken'\r",
+									"pm.test(\"Getting Access Token\", function () {\r",
+									"    var jsonData = pm.response.json()\r",
+									"    pm.expect(jsonData.value.accessToken.length > 100, 'Access Token').to.be.true\r",
+									"    pm.collectionVariables.set(sharebookAccessTokenName, jsonData.value.accessToken)\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// TODO: Verify the environment and use different logins or skip this test\r",
+									"\r",
+									"const sharebookAccessTokenName = 'SharebookAccessToken'\r",
+									"if (pm.collectionVariables.has(sharebookAccessTokenName))\r",
+									"    pm.collectionVariables.set(sharebookAccessTokenName, '')"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-requested-with",
+								"value": "web"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\t\"email\": \"raffacabofrio@gmail.com\",\r\n\t\"password\": \"123456\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{sharebookUrl}}/api/Account/Login",
+							"host": [
+								"{{sharebookUrl}}"
+							],
+							"path": [
+								"api",
+								"Account",
+								"Login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Account",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"OK/200 and json\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.response.json();\r",
+									"});\r",
+									"\r",
+									"// TODO: Add validations to the json values"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{SharebookAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{sharebookUrl}}api/Account",
+							"host": [
+								"{{sharebookUrl}}api"
+							],
+							"path": [
+								"Account"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Account/Profile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"OK/200 and json\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.response.json();\r",
+									"});\r",
+									"\r",
+									"// TODO: Add validations to the json values"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{SharebookAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{sharebookUrl}}api/Account/Profile",
+							"host": [
+								"{{sharebookUrl}}api"
+							],
+							"path": [
+								"Account",
+								"Profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Book",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"OK/200 and json\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.response.json();\r",
+									"});\r",
+									"\r",
+									"// TODO: Add validations to the json values"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{SharebookAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{sharebookUrl}}api/Book",
+							"host": [
+								"{{sharebookUrl}}api"
+							],
+							"path": [
+								"Book"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Book/MyDonations",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"OK/200 and json\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.response.json();\r",
+									"});\r",
+									"\r",
+									"// TODO: Add validations to the json values"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{SharebookAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{sharebookUrl}}api/Book/MyDonations",
+							"host": [
+								"{{sharebookUrl}}api"
+							],
+							"path": [
+								"Book",
+								"MyDonations"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Unauthorized",
+			"item": [
+				{
+					"name": "Account",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Should be Unauthorized/401\", function () {\r",
+									"    pm.response.to.have.status(401);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{sharebookUrl}}api/Account",
+							"host": [
+								"{{sharebookUrl}}api"
+							],
+							"path": [
+								"Account"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Account/Profile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Should be Unauthorized/401\", function () {\r",
+									"    pm.response.to.have.status(401);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{sharebookUrl}}api/Account/Profile",
+							"host": [
+								"{{sharebookUrl}}api"
+							],
+							"path": [
+								"Account",
+								"Profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Book",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Should be Unauthorized/401\", function () {\r",
+									"    pm.response.to.have.status(401);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{sharebookUrl}}api/Book",
+							"host": [
+								"{{sharebookUrl}}api"
+							],
+							"path": [
+								"Book"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					"const sharebookUrlName = 'sharebookUrl'\r",
+					"if (pm.globals.has(sharebookUrlName))\r",
+					"    console.log(`Running using ${pm.globals.get(sharebookUrlName)}`)\r",
+					"else {\r",
+					"    const fallbackUrl = 'https://dev.sharebook.com.br/'\r",
+					"    console.log(`The global variable ${sharebookUrlName} isn't found. Using ${fallbackUrl} as default value... `)\r",
+					"    pm.globals.set(sharebookUrlName, fallbackUrl)\r",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "SharebookAccessToken",
+			"value": ""
+		}
+	]
+}

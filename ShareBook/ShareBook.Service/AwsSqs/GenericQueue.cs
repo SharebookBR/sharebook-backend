@@ -34,7 +34,7 @@ public class GenericQueue<T> : IAwsSqsQueue<T>
         }
     }
 
-    public async Task SendMessage(T message)
+    public async Task SendMessageAsync(T message)
     {
         if (!_awsSqsSettings.IsActive)
         {
@@ -52,7 +52,7 @@ public class GenericQueue<T> : IAwsSqsQueue<T>
         await _amazonSQSClient.SendMessageAsync(request);
     }
 
-    public async Task<SharebookMessage<T>> GetMessage()
+    public async Task<SharebookMessage<T>> GetMessageAsync()
     {
         if (!_awsSqsSettings.IsActive)
         {
@@ -81,7 +81,7 @@ public class GenericQueue<T> : IAwsSqsQueue<T>
     }
 
 
-    public async Task DeleteMessage(string receiptHandle)
+    public async Task DeleteMessageAsync(string receiptHandle)
     {
         if (!_awsSqsSettings.IsActive)
         {
