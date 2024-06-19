@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace ShareBook.Repository {
     public class AccessHistoryRepository : RepositoryGeneric<AccessHistory>, IAccessHistoryRepository {
         public AccessHistoryRepository(ApplicationDbContext context) : base(context) { }
-        public async Task<IEnumerable<AccessHistory>> GetWhoAccessedMyProfile(Guid userId) {
+        public async Task<IEnumerable<AccessHistory>> GetWhoAccessedMyProfileAsync(Guid userId) {
             if (userId.Equals(null)) return null;
 
             var list = from u in _context.AccessHistories

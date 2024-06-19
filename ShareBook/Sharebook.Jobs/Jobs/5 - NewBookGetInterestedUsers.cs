@@ -56,7 +56,7 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
         int sendEmailMaxDestinationsPerQueueMessage = GetEmailMaxDestinationsPerQueueMessage();
         
         // 1 - lê a fila de origem
-        var newBookMessage = await _newBookQueue.GetMessage();
+        var newBookMessage = await _newBookQueue.GetMessageAsync();
 
         // fila vazia, não faz nada
         if (newBookMessage == null)
@@ -71,8 +71,7 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
 
         // Obtem usuários interessados
         var newBook = newBookMessage.Body;
-        // TODO: Migrate to async
-        var interestedUsers = _userService.GetBySolicitedBookCategory(newBook.CategoryId);
+        var interestedUsers = await _userService.GetBySolicitedBookCategoryAsync(newBook.CategoryId);
         totalDestinations = interestedUsers.Count;
         var template = await GetEmailTemplateAsync(newBook.BookId);
 
@@ -89,11 +88,11 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
                 Destinations = destinations.ToList()
             };
 
-            await _mailSenderLowPriorityQueue.SendMessage(mailSenderbody);
+            await _mailSenderLowPriorityQueue.SendMessageAsync(mailSenderbody);
         }
 
         // remove a mensagem da fila de origem
-        await _newBookQueue.DeleteMessage(newBookMessage.ReceiptHandle);
+        await _newBookQueue.DeleteMessageAsync(newBookMessage.ReceiptHandle);
 
         // finaliza com sucesso
         return new JobHistory() 
@@ -117,7 +116,7 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
     }
 
     private async Task<string> GetEmailTemplateAsync(Guid bookId){
-        var book = _bookService.Find(bookId);
+        var book = await _bookService.FindAsync(bookId);
         
         var vm = new
         {

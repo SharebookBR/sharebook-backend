@@ -11,42 +11,42 @@ namespace ShareBook.Service
 {
     public interface IBookService : IBaseService<Book>
     {
-        void Approve(Guid bookId, DateTime? chooseDate);
+        Task ApproveAsync(Guid bookId, DateTime? chooseDate);
 
-        void Received(Guid bookId, Guid winnerUserId);
-        void UpdateBookStatus(Guid bookId, BookStatus bookStatus);
+        Task ReceivedAsync(Guid bookId, Guid winnerUserId);
+        Task UpdateBookStatusAsync(Guid bookId, BookStatus bookStatus);
 
         IList<dynamic> FreightOptions();
 
-        IList<Book> AvailableBooks();
+        Task<IList<Book>> AvailableBooksAsync();
 
-        IList<Book> Random15Books();
+        Task<IList<Book>> Random15BooksAsync();
 
-        IList<Book> Random15EBooks();
+        Task<IList<Book>> Random15EBooksAsync();
 
-        PagedList<Book> FullSearch(string criteria, int page, int itemsPerPage, bool isAdmin = false);
+        Task<PagedList<Book>> FullSearchAsync(string criteria, int page, int itemsPerPage, bool isAdmin = false);
 
-        PagedList<Book> ByCategoryId(Guid categoryId, int page, int items);
+        Task<PagedList<Book>> ByCategoryIdAsync(Guid categoryId, int page, int items);
 
-        IList<Book> GetAll(int page, int items);
+        Task<IList<Book>> GetAllAsync(int page, int items);
 
-        Book BySlug(string slug);
+        Task<Book> BySlugAsync(string slug);
 
-        bool UserRequestedBook(Guid bookId);
+        Task<bool> UserRequestedBookAsync(Guid bookId);
 
-        IList<Book> GetUserDonations(Guid userId);
+        Task<IList<Book>> GetUserDonationsAsync(Guid userId);
 
         Task<IList<Book>> GetBooksChooseDateIsTodayAsync();
 
         Task<IList<Book>> GetBooksChooseDateIsLateAsync();
 
-        IList<Book> GetBooksChooseDateIsTodayOrLate();
+        Task<IList<Book>> GetBooksChooseDateIsTodayOrLateAsync();
 
-        void AddFacilitatorNotes(Guid bookId, string facilitatorNotes);
+        Task AddFacilitatorNotesAsync(Guid bookId, string facilitatorNotes);
 
-        Book GetBookWithAllUsers(Guid bookId);
+        Task<Book> GetBookWithAllUsersAsync(Guid bookId);
 
-        void RenewChooseDate(Guid bookId);
-        BookStatsDTO GetStats();
+        Task RenewChooseDateAsync(Guid bookId);
+        Task<BookStatsDTO> GetStatsAsync();
     }
 }

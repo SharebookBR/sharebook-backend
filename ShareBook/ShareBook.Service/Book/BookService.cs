@@ -44,20 +44,20 @@ namespace ShareBook.Service
             _newBookQueue = newBookQueue;
         }
 
-        public void Approve(Guid bookId, DateTime? chooseDate = null)
+        public async Task ApproveAsync(Guid bookId, DateTime? chooseDate = null)
         {
             var daysInShowcase = int.Parse(_configuration["SharebookSettings:DaysInShowcase"]);
 
-            var book = _repository.Get().Include(b => b.Category).FirstOrDefault(b => b.Id == bookId);
+            var book = await _repository.Get().Include(b => b.Category).FirstOrDefaultAsync(b => b.Id == bookId);
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
             book.Status = BookStatus.Available;
             book.ChooseDate = chooseDate?.Date ?? DateTime.Today.AddDays(daysInShowcase);
-            _repository.Update(book);
+            await _repository.UpdateAsync(book);
 
             // notifica o doador
-            _booksEmailService.SendEmailBookApproved(book).Wait();
+            await _booksEmailService.SendEmailBookApprovedAsync(book);
 
             // notifica possíveis interessados.
             var message = new NewBookBody{
@@ -65,15 +65,15 @@ namespace ShareBook.Service
                 BookTitle = book.Title,
                 CategoryId = book.CategoryId
             };
-            _newBookQueue.SendMessage(message).Wait();
+            await _newBookQueue.SendMessageAsync(message);
             
         }
 
-        public void Received(Guid bookId, Guid winnerUserId)
+        public async Task ReceivedAsync(Guid bookId, Guid winnerUserId)
         {
-            var book = _repository.Get().Include(f => f.BookUsers)
+            var book = await _repository.Get().Include(f => f.BookUsers)
                 .ThenInclude(bu => bu.User)
-                .FirstOrDefault(f => f.Id == bookId);
+                .FirstOrDefaultAsync(f => f.Id == bookId);
 
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
@@ -84,19 +84,19 @@ namespace ShareBook.Service
                 throw new ShareBookException(ShareBookException.Error.Forbidden);
 
             book.Status = BookStatus.Received;
-            _repository.Update(book);
+            await _repository.UpdateAsync(book);
 
-            _booksEmailService.SendEmailBookReceived(book);
+            await _booksEmailService.SendEmailBookReceivedAsync(book);
         }
 
-        public void UpdateBookStatus(Guid bookId, BookStatus bookStatus)
+        public async Task UpdateBookStatusAsync(Guid bookId, BookStatus bookStatus)
         {
-            var book = _repository.Find(bookId);
+            var book = await _repository.FindAsync(bookId);
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
             book.Status = bookStatus;
-            _repository.Update(book);
+            await _repository.UpdateAsync(book);
         }
 
         public IList<dynamic> FreightOptions()
@@ -113,44 +113,44 @@ namespace ShareBook.Service
             return enumValues;
         }
 
-        public IList<Book> AvailableBooks()
+        public async Task<IList<Book>> AvailableBooksAsync()
         {
             return SetImageUrl(
-                _repository.Get()
-                .Include(b => b.User)
-                .ThenInclude(u => u.Address)
-                .Include(b => b.Category)
-                .Where(b => b.Status == BookStatus.Available)
-                .OrderByDescending(b => b.CreationDate)
-                .ToList()
+                await _repository.Get()
+                    .Include(b => b.User)
+                    .ThenInclude(u => u.Address)
+                    .Include(b => b.Category)
+                    .Where(b => b.Status == BookStatus.Available)
+                    .OrderByDescending(b => b.CreationDate)
+                    .ToListAsync()
             );
         }
 
-        public IList<Book> Random15Books()
+        public async Task<IList<Book>> Random15BooksAsync()
         {
             return SetImageUrl(
-                _repository.Get()
-                .Include(b => b.User)
-                .ThenInclude(u => u.Address)
-                .Include(b => b.Category)
-                .Where(b => b.Status == BookStatus.Available)
-                .OrderBy(x => Guid.NewGuid()) // ordem aleatória
-                .Take(15) // apenas 15 registros
-                .ToList()
+                await _repository.Get()
+                    .Include(b => b.User)
+                    .ThenInclude(u => u.Address)
+                    .Include(b => b.Category)
+                    .Where(b => b.Status == BookStatus.Available)
+                    .OrderBy(x => Guid.NewGuid()) // ordem aleatória
+                    .Take(15) // apenas 15 registros
+                    .ToListAsync()
              );
         }
 
-        public IList<Book> Random15EBooks()
+        public async Task<IList<Book>> Random15EBooksAsync()
         {
             return SetImageUrl(
-                _repository.Get()
-                .Include(b => b.User)
-                .ThenInclude(u => u.Address)
-                .Include(b => b.Category)
-                .Where(b => b.Status == BookStatus.Available && b.Type == BookType.Eletronic)
-                .OrderBy(x => Guid.NewGuid()) // ordem aleatória
-                .Take(15) // apenas 15 registros
-                .ToList()
+                await _repository.Get()
+                    .Include(b => b.User)
+                    .ThenInclude(u => u.Address)
+                    .Include(b => b.Category)
+                    .Where(b => b.Status == BookStatus.Available && b.Type == BookType.Eletronic)
+                    .OrderBy(x => Guid.NewGuid()) // ordem aleatória
+                    .Take(15) // apenas 15 registros
+                    .ToListAsync()
              );
         }
 
@@ -160,20 +160,20 @@ namespace ShareBook.Service
         }
 
 
-        public IList<Book> GetAll(int page, int items)
-            => _repository.Get().Include(b => b.User).Include(b => b.BookUsers)
-            .Skip((page - 1) * items)
-            .Take(items).ToList();
+        public async Task<IList<Book>> GetAllAsync(int page, int items)
+            => await _repository.Get().Include(b => b.User).Include(b => b.BookUsers)
+                .Skip((page - 1) * items)
+                .Take(items).ToListAsync();
 
-        public override Book Find(object keyValue)
+        public override async Task<Book> FindAsync(object keyValue)
         {
-            var result = _repository.Get()
+            var result = await _repository.Get()
                 .Include(b => b.User)
                 .ThenInclude(u => u.Address)
                 .Include(b => b.Category)
                 .Include(b => b.UserFacilitator)
                 .Where(b => b.Id == (Guid)keyValue)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (result == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
@@ -183,14 +183,13 @@ namespace ShareBook.Service
             return result;
         }
 
-        public override Result<Book> Insert(Book entity)
+        public override async Task<Result<Book>> InsertAsync(Book entity)
         {
-            // TODO: Migrate to Async and remove ".GetAwaiter().GetResult()" and ".Wait()"
             entity.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
 
             EBookValidate(entity);
 
-            var result = Validate(entity);
+            var result = await ValidateAsync(entity);
             if (result.Success)
             {
                 entity.Slug = SetSlugByTitleOrIncremental(entity);
@@ -198,22 +197,21 @@ namespace ShareBook.Service
                 entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, entity.Slug);
 
                 if (entity.IsEbookPdfValid())
-                    entity.EBookPdfFile = _uploadService.UploadPdfAsync(entity.EBookPdfBytes, entity.EBookPdfFile, "EBooks").GetAwaiter().GetResult();
+                    entity.EBookPdfFile = await _uploadService.UploadPdfAsync(entity.EBookPdfBytes, entity.EBookPdfFile, "EBooks");
 
-                result.Value = _repository.Insert(entity);
+                result.Value = await _repository.InsertAsync(entity);
 
-                result.Value.ImageUrl = _uploadService.UploadImageAsync(entity.ImageBytes, entity.ImageSlug, "Books").GetAwaiter().GetResult();
+                result.Value.ImageUrl = await _uploadService.UploadImageAsync(entity.ImageBytes, entity.ImageSlug, "Books");
 
                 result.Value.ImageBytes = null;
 
-                _booksEmailService.SendEmailNewBookInserted(entity).Wait();
+                await _booksEmailService.SendEmailNewBookInsertedAsync(entity);
             }
             return result;
         }
 
-        public override Result<Book> Update(Book entity)
+        public override async Task<Result<Book>> UpdateAsync(Book entity)
         {
-            // TODO: Migrate to Async and remove ".GetAwaiter().GetResult()" and ".Wait()"
             Result<Book> result = Validate(entity, x =>
                 x.Title,
                 x => x.Author,
@@ -225,7 +223,7 @@ namespace ShareBook.Service
             if (!result.Success) return result;
 
             //buscar o book no banco para obter um objeto para ser re-hidratado
-            var savedBook = this._repository.Find(bookId);
+            var savedBook = await this._repository.FindAsync(bookId);
 
             if (savedBook == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
@@ -236,7 +234,7 @@ namespace ShareBook.Service
             if (!string.IsNullOrEmpty(entity.ImageName) && entity.ImageBytes.Length > 0)
             {
                 entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, savedBook.Slug);
-                _uploadService.UploadImageAsync(entity.ImageBytes, savedBook.ImageSlug, "Books").GetAwaiter().GetResult();
+                await _uploadService.UploadImageAsync(entity.ImageBytes, savedBook.ImageSlug, "Books");
             }
 
             //preparar o book para atualização
@@ -258,14 +256,13 @@ namespace ShareBook.Service
             if (entity.UserIdFacilitator.HasValue && entity.UserIdFacilitator != Guid.Empty)
                 savedBook.UserIdFacilitator = entity.UserIdFacilitator;
 
-            // TODO: Remove "GetAwaiter().GetResult()"
-            result.Value = _repository.UpdateAsync(savedBook).GetAwaiter().GetResult();
+            result.Value = await _repository.UpdateAsync(savedBook);
             result.Value.ImageBytes = null;
 
             return result;
         }
 
-        public PagedList<Book> FullSearch(string criteria, int page, int itemsPerPage, bool isAdmin)
+        public async Task<PagedList<Book>> FullSearchAsync(string criteria, int page, int itemsPerPage, bool isAdmin)
         {
             Expression<Func<Book, bool>> filter = x => (x.Author.Contains(criteria)
                                                         || x.Title.Contains(criteria)
@@ -276,22 +273,22 @@ namespace ShareBook.Service
                                         || x.Title.Contains(criteria)
                                         || x.Category.Name.Contains(criteria);
 
-            return SearchBooks(filter, page, itemsPerPage);
+            return await SearchBooksAsync(filter, page, itemsPerPage);
         }
 
-        public PagedList<Book> ByCategoryId(Guid categoryId, int page, int itemsPerPage)
-            => SearchBooks(x => x.Status == BookStatus.Available && x.CategoryId == categoryId, page, itemsPerPage);
+        public async Task<PagedList<Book>> ByCategoryIdAsync(Guid categoryId, int page, int itemsPerPage)
+            => await SearchBooksAsync(x => x.Status == BookStatus.Available && x.CategoryId == categoryId, page, itemsPerPage);
 
-        public Book BySlug(string slug)
+        public async Task<Book> BySlugAsync(string slug)
         {
-            var pagedBook = SearchBooks(x => (x.Slug.Equals(slug)), 1, 1);
+            var pagedBook = await SearchBooksAsync(x => (x.Slug.Equals(slug)), 1, 1);
             return pagedBook.Items.FirstOrDefault();
         }
 
-        public bool UserRequestedBook(Guid bookId)
+        public async Task<bool> UserRequestedBookAsync(Guid bookId)
         {
             var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            return _repository.Any(x =>
+            return await _repository.AnyAsync(x =>
                     x.Id == bookId &&
                     x.BookUsers
                     .Any(y =>
@@ -300,16 +297,16 @@ namespace ShareBook.Service
               ));
         }
 
-        public override PagedList<Book> Get<TKey>(Expression<Func<Book, bool>> filter, Expression<Func<Book, TKey>> order, int page, int itemsPerPage)
-            => base.Get(filter, order, page, itemsPerPage);
+        public override async Task<PagedList<Book>> GetAsync<TKey>(Expression<Func<Book, bool>> filter, Expression<Func<Book, TKey>> order, int page, int itemsPerPage)
+            => await base.GetAsync(filter, order, page, itemsPerPage);
 
-        public IList<Book> GetUserDonations(Guid userId)
+        public async Task<IList<Book>> GetUserDonationsAsync(Guid userId)
         {
-            return _repository.Get()
+            return await _repository.Get()
                 .Include(b => b.BookUsers)
                 .Where(b => b.UserId == userId)
                 .OrderByDescending(b => b.CreationDate)
-                .ToList();
+                .ToListAsync();
         }
 
         public async Task<IList<Book>> GetBooksChooseDateIsTodayAsync()
@@ -346,24 +343,24 @@ namespace ShareBook.Service
         /// Bom para remover o livro da vitrine.
         /// </summary>
         /// <returns></returns>
-        public IList<Book> GetBooksChooseDateIsTodayOrLate()
+        public async Task<IList<Book>> GetBooksChooseDateIsTodayOrLateAsync()
         {
             // limite é o dia de hoje.
             DateTime endDateTime = DateTime.Today.AddDays(1).AddTicks(-1); //Today at 23:59:59
 
             // livros em que o choosedate é hoje.
-            var books = _repository
-            .Get().Include(x => x.User).Include(x => x.BookUsers).Include(x => x.UserFacilitator)
-            .Where(x =>
-                x.ChooseDate <= endDateTime && x.Status == BookStatus.Available
-            ).ToList();
+            var books = await _repository
+                .Get().Include(x => x.User).Include(x => x.BookUsers).Include(x => x.UserFacilitator)
+                .Where(x =>
+                    x.ChooseDate <= endDateTime && x.Status == BookStatus.Available
+                ).ToListAsync();
 
             return books;
         }
 
-        public void AddFacilitatorNotes(Guid bookId, string facilitatorNotes)
+        public async Task AddFacilitatorNotesAsync(Guid bookId, string facilitatorNotes)
         {
-            var book = _repository.Find(bookId);
+            var book = await _repository.FindAsync(bookId);
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
@@ -372,24 +369,22 @@ namespace ShareBook.Service
             var lineBreak = (string.IsNullOrEmpty(book.FacilitatorNotes)) ? "" : "\n";
             book.FacilitatorNotes += string.Format("{0}{1} - {2}", lineBreak, date, facilitatorNotes);
 
-            _repository.Update(book);
+            await _repository.UpdateAsync(book);
         }
 
-        public Book GetBookWithAllUsers(Guid bookId)
+        public async Task<Book> GetBookWithAllUsersAsync(Guid bookId)
         {
-            var books = _repository
-            .Get().Include(x => x.User).ThenInclude(u => u.Address)
-            .Include(x => x.UserFacilitator).ThenInclude(u => u.Address)
-            .Include(x => x.BookUsers).ThenInclude(bu => bu.User).ThenInclude(u => u.Address)
-            .Where(x => x.Id == bookId)
-            .ToList();
-
-            return books.FirstOrDefault();
+            return await _repository
+                .Get().Include(x => x.User).ThenInclude(u => u.Address)
+                .Include(x => x.UserFacilitator).ThenInclude(u => u.Address)
+                .Include(x => x.BookUsers).ThenInclude(bu => bu.User).ThenInclude(u => u.Address)
+                .Where(x => x.Id == bookId)
+                .FirstOrDefaultAsync();
         }
 
-        public void RenewChooseDate(Guid bookId)
+        public async Task RenewChooseDateAsync(Guid bookId)
         {
-            var book = _repository.Find(bookId);
+            var book = await _repository.FindAsync(bookId);
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
@@ -398,15 +393,15 @@ namespace ShareBook.Service
 
             book.Status = BookStatus.Available;
             book.ChooseDate = DateTime.Now.AddDays(10);
-            _repository.Update(book);
+            await _repository.UpdateAsync(book);
         }
 
         #region Private
 
-        private PagedList<Book> SearchBooks(Expression<Func<Book, bool>> filter, int page, int itemsPerPage)
-            => SearchBooks(filter, page, itemsPerPage, x => x.CreationDate);
+        private async Task<PagedList<Book>> SearchBooksAsync(Expression<Func<Book, bool>> filter, int page, int itemsPerPage)
+            => await SearchBooksAsync(filter, page, itemsPerPage, x => x.CreationDate);
 
-        private PagedList<Book> SearchBooks<TKey>(Expression<Func<Book, bool>> filter, int page, int itemsPerPage, Expression<Func<Book, TKey>> expression)
+        private async Task<PagedList<Book>> SearchBooksAsync<TKey>(Expression<Func<Book, bool>> filter, int page, int itemsPerPage, Expression<Func<Book, TKey>> expression)
         {
             var query = _repository.Get()
                 .Where(filter)
@@ -443,15 +438,16 @@ namespace ShareBook.Service
                     Category = u.Category
                 });
 
-            return FormatPagedList(query, page, itemsPerPage);
+            return await FormatPagedListAsync(query, page, itemsPerPage);
         }
 
         private string SetSlugByTitleOrIncremental(Book entity)
         {
+            // TODO: Migrate to async/await (P.s: breaking unit tests)
             var slug = _repository.Get()
                         .Where(x => x.Title.ToUpper().Trim().Equals(entity.Title.ToUpper().Trim())
                                     && !x.Id.Equals(entity.Id))
-                        .OrderByDescending(x => x.CreationDate)?.FirstOrDefault()?.Slug;
+                        .OrderByDescending(x => x.CreationDate).FirstOrDefault()?.Slug;
 
             return string.IsNullOrWhiteSpace(slug) ? entity.Title.GenerateSlug() : slug.AddIncremental();
         }
@@ -467,21 +463,21 @@ namespace ShareBook.Service
             }
         }
 
-        public BookStatsDTO GetStats()
+        public async Task<BookStatsDTO> GetStatsAsync()
         {
-            var groupedStatus = _repository.Get()
+            var groupedStatus = await _repository.Get()
                 .GroupBy(b => b.Status)
                 .Select(g => new
                 {
                     Status = g.Key,
                     Total = g.Count()
                 })
-                .ToList();
+                .ToListAsync();
 
             var status = new BookStatsDTO();
 
-            status.TotalWaitingApproval = groupedStatus.Where(g => g.Status == BookStatus.WaitingApproval).Any()
-                ? groupedStatus.Where(g => g.Status == BookStatus.WaitingApproval).FirstOrDefault().Total
+            status.TotalWaitingApproval = groupedStatus.Exists(g => g.Status == BookStatus.WaitingApproval)
+                ? groupedStatus.Find(g => g.Status == BookStatus.WaitingApproval).Total
                 : 0;
 
             status.TotalOk = groupedStatus

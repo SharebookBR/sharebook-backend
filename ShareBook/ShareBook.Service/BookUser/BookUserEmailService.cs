@@ -42,11 +42,11 @@ namespace ShareBook.Service
             _cache = memoryCache;
         }
 
-        public async Task SendEmailBookDonated(BookUser bookUser)
+        public async Task SendEmailBookDonatedAsync(BookUser bookUser)
         {
             var bookDonated = bookUser.Book;
             if (bookDonated.User == null)
-                bookDonated.User = _userService.Find(bookUser.Book.UserId);
+                bookDonated.User = await _userService.FindAsync(bookUser.Book.UserId);
 
             if (bookDonated.User.AllowSendingEmail)
             {
@@ -56,11 +56,11 @@ namespace ShareBook.Service
                     bookUser.User
                 };
                 var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookDonatedTemplate, vm);
-                await _emailService.Send(bookUser.User.Email, bookUser.User.Name, html, BookDonatedTitle, copyAdmins: false, highPriority: true);
+                await _emailService.SendAsync(bookUser.User.Email, bookUser.User.Name, html, BookDonatedTitle, copyAdmins: false, highPriority: true);
             }
         }
 
-        public async Task SendEmailBookDonatedNotifyDonor(Book book, User winner)
+        public async Task SendEmailBookDonatedNotifyDonorAsync(Book book, User winner)
         {
             if (book.User.AllowSendingEmail)
             {
@@ -74,18 +74,18 @@ namespace ShareBook.Service
                 var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookDonatedTemplateNotifyDonor, vm);
 
                 // TODO: não enviar cópia para admins quando esse processo estiver bem amadurecido.
-                await _emailService.Send(book.User.Email, book.User.Name, html, BookDonatedTitleNotifyDonor, copyAdmins: true, highPriority: true);
+                await _emailService.SendAsync(book.User.Email, book.User.Name, html, BookDonatedTitleNotifyDonor, copyAdmins: true, highPriority: true);
             }
         }
 
-        public async Task SendEmailBookDonor(BookUser bookUser, Book bookRequested)
+        public async Task SendEmailBookDonorAsync(BookUser bookUser, Book bookRequested)
         {
             // envia no máximo 1 email por hora. Pra não sobrecarregar o doador.
             if (!MaxEmailsDonorValid(bookRequested))
                 return;
 
             //obter o endereço do interessado
-            var donatedUser = this._userService.Find(bookUser.UserId);
+            var donatedUser = await this._userService.FindAsync(bookUser.UserId);
             if (bookRequested.User.AllowSendingEmail)
             {
                 var htmlTable = GenerateInterestedListHtml(bookRequested);
@@ -104,7 +104,7 @@ namespace ShareBook.Service
                 };
 
                 // push notification
-                _notificationService.SendNotificationByEmail(
+                await _notificationService.SendNotificationByEmailAsync(
                     bookRequested.User.Email,
                     $"Seu livro foi solicitado", $" O Interessado é {vm.RequestingUser.NickName}"
                 );
@@ -112,7 +112,7 @@ namespace ShareBook.Service
                 var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookNoticeDonorTemplate, vm);
 
                 // TODO: remover cópia adm quando esse processo estiver amadurecido.
-                await _emailService.Send(bookRequested.User.Email, bookRequested.User.Name, html, BookNoticeDonorTitle, copyAdmins: true, highPriority: true);
+                await _emailService.SendAsync(bookRequested.User.Email, bookRequested.User.Name, html, BookNoticeDonorTitle, copyAdmins: true, highPriority: true);
 
                 EmailsDonorAddCache(bookRequested);
             }
@@ -153,11 +153,11 @@ namespace ShareBook.Service
             _cache.Set(key, true, cacheOptions);
         }
 
-        public async Task SendEmailBookInterested(BookUser bookUser, Book book)
+        public async Task SendEmailBookInterestedAsync(BookUser bookUser, Book book)
         {
             // lazy load depression
             if (bookUser.User == null)
-                bookUser.User = _userService.Find(bookUser.UserId);
+                bookUser.User = await _userService.FindAsync(bookUser.UserId);
 
             if (bookUser.User.AllowSendingEmail)
             {
@@ -173,10 +173,10 @@ namespace ShareBook.Service
                 };
 
                 // push notification
-                _notificationService.SendNotificationByEmail(bookUser.User.Email, $"Você solicitou o livro {vm.NameBook}", $"Aguarde até o dia {vm.ChooseDate} que será anunciado o ganhador. Boa sorte!");
+                await _notificationService.SendNotificationByEmailAsync(bookUser.User.Email, $"Você solicitou o livro {vm.NameBook}", $"Aguarde até o dia {vm.ChooseDate} que será anunciado o ganhador. Boa sorte!");
 
                 var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookNoticeInterestedTemplate, vm);
-                await _emailService.Send(bookUser.User.Email, bookUser.User.Name, html, BookNoticeInterestedTitle);
+                await _emailService.SendAsync(bookUser.User.Email, bookUser.User.Name, html, BookNoticeInterestedTitle);
             }
         }
 
@@ -206,7 +206,7 @@ namespace ShareBook.Service
 
         }
 
-        public async Task SendEmailDonationDeclined(Book book, BookUser bookUserWinner, List<BookUser> bookUsersDeclined)
+        public async Task SendEmailDonationDeclinedAsync(Book book, BookUser bookUserWinner, List<BookUser> bookUsersDeclined)
         {
             var vm = new
             {
@@ -215,28 +215,30 @@ namespace ShareBook.Service
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookNoticeDeclinedUsersTemplate, vm);
             var emailSubject = $"Resultado da doação do livro {book.Title}.";
 
-            bookUsersDeclined.ForEach(bookUser =>
+            bookUsersDeclined.ForEach(async (bookUser) =>
             {
+                // TODO: Find out a better approach instead of awaiting one by one
                 if (bookUser.User.AllowSendingEmail)
-                    _emailService.Send(bookUser.User.Email, bookUser.User.Name, html, emailSubject).Wait();
+                    await _emailService.SendAsync(bookUser.User.Email, bookUser.User.Name, html, emailSubject);
             });
 
         }
 
-        public async Task SendEmailDonationCanceled(Book book, List<BookUser> bookUsers)
+        public async Task SendEmailDonationCanceledAsync(Book book, List<BookUser> bookUsers)
         {
             var vm = new { book };
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookCanceledNoticeUsersTemplate, vm);
 
-            bookUsers.ForEach(bookUser =>
+            bookUsers.ForEach(async (bookUser) =>
             {
+                // TODO: Find out a better approach instead of awaiting one by one
                 if (bookUser.User.AllowSendingEmail)
-                    _emailService.Send(bookUser.User.Email, bookUser.User.Name, html, $"Resultado da doação do livro {book.Title}.").Wait();
+                    await _emailService.SendAsync(bookUser.User.Email, bookUser.User.Name, html, $"Resultado da doação do livro {book.Title}.");
             });
             
         }
 
-        public async Task SendEmailBookCanceledToAdminsAndDonor(BookCancelationDTO dto)
+        public async Task SendEmailBookCanceledToAdminsAndDonorAsync(BookCancelationDTO dto)
         {
             var donor = dto.Book.User;
 
@@ -249,10 +251,10 @@ namespace ShareBook.Service
             };
 
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookCanceledTemplate, templateData);
-            _emailService.Send(donor.Email, donor.Name, html, BookCanceledTitle, copyAdmins: true, highPriority: true).Wait();
+            await _emailService.SendAsync(donor.Email, donor.Name, html, BookCanceledTitle, copyAdmins: true, highPriority: true);
         }
     
-        public async Task SendEmailTrackingNumberInformed(BookUser bookUserWinner, Book book)
+        public async Task SendEmailTrackingNumberInformedAsync(BookUser bookUserWinner, Book book)
         {
             if (bookUserWinner.User.AllowSendingEmail)
             {
@@ -265,15 +267,15 @@ namespace ShareBook.Service
                     EmailFacilitator = book.UserFacilitator.Email,
                 };
                 var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookTrackingNumberNoticeWinnerTemplate, vm);
-                await _emailService.Send(bookUserWinner.User.Email, bookUserWinner.User.Name, html, BookTrackingNumberNoticeWinnerTitle, copyAdmins: false, highPriority: true);
+                await _emailService.SendAsync(bookUserWinner.User.Email, bookUserWinner.User.Name, html, BookTrackingNumberNoticeWinnerTitle, copyAdmins: false, highPriority: true);
             }
         }
 
-        public async Task SendEmailMaxRequests(Book bookRequested)
+        public async Task SendEmailMaxRequestsAsync(Book bookRequested)
         {
             var subject = "Limite de pedidos";
             var body = $"Prezados adms, o livro <b>{bookRequested.Title}</b> atingiu o limite de pedidos e foi removido automaticamente da vitrine. A data de decisão foi configurada pra amanhã. Obrigado.";
-            await _emailService.SendToAdmins(body, subject);
+            await _emailService.SendToAdminsAsync(body, subject);
         }
     }
 }

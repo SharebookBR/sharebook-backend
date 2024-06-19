@@ -84,7 +84,7 @@ public class MailSender : GenericJob, IJob
         var copyAdmins = sqsMessage.Body.CopyAdmins;
 
         var emails = destinations.Select(x => x.Email).ToList();
-        var bounces = await _emailService.GetBounces(emails);
+        var bounces = await _emailService.GetBouncesAsync(emails);
 
         foreach (var destination in destinations)
         {
@@ -97,7 +97,7 @@ public class MailSender : GenericJob, IJob
 
                 string firstName = GetFirstName(destination.Name);
                 var bodyHtml2 = bodyHtml.Replace("{name}", firstName, StringComparison.OrdinalIgnoreCase);
-                await _emailService.SendSmtp(destination.Email, destination.Name, bodyHtml2, subject, copyAdmins);
+                await _emailService.SendSmtpAsync(destination.Email, destination.Name, bodyHtml2, subject, copyAdmins);
 
                 _log.Add($"Enviei um email com SUCESSO para {destination.Email}.");
             }
@@ -124,11 +124,11 @@ public class MailSender : GenericJob, IJob
 
     private async Task<SharebookMessage<MailSenderbody>> GetSqsMessageAsync()
     {
-        var sqsMessage = await _sqsHighPriority.GetMessage();
+        var sqsMessage = await _sqsHighPriority.GetMessageAsync();
         _lastQueue = "HighPriority";
     
         if(sqsMessage == null) {
-            sqsMessage = await _sqsLowPriority.GetMessage();
+            sqsMessage = await _sqsLowPriority.GetMessageAsync();
             _lastQueue = "LowPriority";
         }
 
@@ -145,9 +145,9 @@ public class MailSender : GenericJob, IJob
         _log.Add($"Removendo a mensagem da fila. _lastQueue = {_lastQueue}");
         
         if(_lastQueue == "HighPriority")
-            await _sqsHighPriority.DeleteMessage(sqsMessage.ReceiptHandle);
+            await _sqsHighPriority.DeleteMessageAsync(sqsMessage.ReceiptHandle);
         else
-            await _sqsLowPriority.DeleteMessage(sqsMessage.ReceiptHandle);
+            await _sqsLowPriority.DeleteMessageAsync(sqsMessage.ReceiptHandle);
     }
 
     private int GetMaxEmailsToSend()

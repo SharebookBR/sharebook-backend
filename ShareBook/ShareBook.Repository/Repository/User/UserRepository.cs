@@ -9,7 +9,7 @@ namespace ShareBook.Repository
         {
         }
 
-        public async Task<User> UpdatePassword(User user)
+        public async Task<User> UpdatePasswordAsync(User user)
         {
             _dbSet.Update(user);
             _context.Entry(user).Property(x => x.Password).IsModified = true;

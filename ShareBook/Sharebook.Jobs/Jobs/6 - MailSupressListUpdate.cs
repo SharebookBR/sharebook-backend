@@ -28,7 +28,7 @@ public class MailSupressListUpdate : GenericJob, IJob
 
     public override async Task<JobHistory> WorkAsync()
     {
-        var log = await _emailService.ProcessBounceMessages();
+        var log = await _emailService.ProcessBounceMessagesAsync();
 
         return new JobHistory()
         {

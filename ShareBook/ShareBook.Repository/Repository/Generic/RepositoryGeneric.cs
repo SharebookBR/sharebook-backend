@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Repository
 {
-    // TODO: Remove all uses of "GetAwaiter().GetResult()" to be trully async
     public class RepositoryGeneric<TEntity> : IRepositoryGeneric<TEntity> where TEntity : class
     {
         protected readonly ApplicationDbContext _context;
@@ -53,7 +52,7 @@ namespace ShareBook.Repository
             if (count > 1)
                 throw new ShareBookException("More than one entity find for the specified filter");
 
-            return query.FirstOrDefault();
+            return await query.FirstOrDefaultAsync();
         }
 
         public virtual async Task<PagedList<TEntity>> GetAsync<TKey>(
@@ -161,49 +160,16 @@ namespace ShareBook.Repository
 
         public IQueryable<TEntity> Get() => _dbSet;
 
-        public TEntity Find(object keyValue) => _dbSet.Find(keyValue);
+        public async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> filter) => await FindAsync(null, filter);
 
-        public TEntity Find(IncludeList<TEntity> includes, object keyValue) => FindAsync(includes, keyValue).GetAwaiter().GetResult();
+        public async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order)
+            => await GetAsync(filter, order, null);
 
-        public TEntity Find(Expression<Func<TEntity, bool>> filter) => FindAsync(null, filter).GetAwaiter().GetResult();
+        public async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, IncludeList<TEntity> includes)
+           => await GetAsync(filter, order, 1, int.MaxValue, includes);
 
-        public TEntity Find(IncludeList<TEntity> includes, Expression<Func<TEntity, bool>> filter) => FindAsync(includes, filter).GetAwaiter().GetResult();
-
-        public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, TKey>> order)
-            => Get(order, null);
-
-        public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, TKey>> order, IncludeList<TEntity> includes)
-            => Get(x => true, order, includes);
-
-        public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order)
-            => Get(filter, order, null);
-
-        public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, IncludeList<TEntity> includes)
-           => Get(filter, order, 1, int.MaxValue, includes);
-
-        public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage)
-            => Get(order, page, itemsPerPage, null);
-
-        public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes)
-            => Get(x => true, order, page, itemsPerPage, includes);
-
-        public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage)
-            => Get(filter, order, page, itemsPerPage, null);
-
-        public PagedList<TEntity> Get<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes)
-            => GetAsync(filter, order, page, itemsPerPage, includes).GetAwaiter().GetResult();
-
-        public int Count(Expression<Func<TEntity, bool>> filter) => CountAsync(filter).GetAwaiter().GetResult();
-
-        public bool Any(Expression<Func<TEntity, bool>> filter) => AnyAsync(filter).GetAwaiter().GetResult();
-
-        public TEntity Insert(TEntity entity) => InsertAsync(entity).GetAwaiter().GetResult();
-
-        public TEntity Update(TEntity entity) => UpdateAsync(entity).GetAwaiter().GetResult();
-
-        public void Delete(params object[] keyValues) => DeleteAsync(keyValues).GetAwaiter().GetResult();
-
-        public void Delete(TEntity entity) => DeleteAsync(entity).GetAwaiter().GetResult();
+        public async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes)
+            => await GetAsync(x => true, order, page, itemsPerPage, includes);
 
         #endregion Synchronous
     }

@@ -53,10 +53,10 @@ namespace ShareBook.Api.Controllers
 
         [HttpGet]
         [Authorize("Bearer")]
-        public UserVM Get() 
+        public async Task<UserVM> GetAsync() 
         {
             var id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            var user = _userService.Find(id);
+            var user = await _userService.FindAsync(id);
 
             var userVM = _mapper.Map<UserVM>(user);
             return userVM;
@@ -64,10 +64,10 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpGet("Profile")]
-        public object Profile() 
+        public async Task<object> ProfileAsync() 
         {
             var id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            return new { profile = _userService.Find(id).Profile.ToString() };
+            return new { profile = (await _userService.FindAsync(id)).Profile.ToString() };
         }
 
         [Authorize("Bearer")]
@@ -93,7 +93,7 @@ namespace ShareBook.Api.Controllers
             if (userId.Equals(null) || userId.Equals(Guid.Empty)) return BadRequest(ModelState);
 
             var whoAccessHistory = _mapper.Map<IEnumerable<AccessHistory>, IEnumerable<AccessHistoryVM>>(
-                await _historyRepository.GetWhoAccessedMyProfile(userId));
+                await _historyRepository.GetWhoAccessedMyProfileAsync(userId));
 
             if (whoAccessHistory is null) return NotFound(userId);
 
@@ -107,9 +107,9 @@ namespace ShareBook.Api.Controllers
         [HttpPost("Register")]
         [ProducesResponseType(typeof(object), 200)]
         [ProducesResponseType(409)]
-        public IActionResult Post([FromBody] RegisterUserDTO registerUserDto, [FromServices] SigningConfigurations signingConfigurations, [FromServices] TokenConfigurations tokenConfigurations)
+        public async Task<IActionResult> Post([FromBody] RegisterUserDTO registerUserDto, [FromServices] SigningConfigurations signingConfigurations, [FromServices] TokenConfigurations tokenConfigurations)
         {
-            var result = _userService.Insert(registerUserDto);
+            var result = await _userService.InsertAsync(registerUserDto);
 
             if (result.Success)
             {
@@ -126,7 +126,7 @@ namespace ShareBook.Api.Controllers
         [HttpPost("Login")]
         [ProducesResponseType(typeof(object), 200)]
         [ProducesResponseType(404)]
-        public IActionResult Login(
+        public async Task<IActionResult> LoginAsync(
             [FromBody] LoginUserVM loginUserVM,
             [FromServices] SigningConfigurations signingConfigurations,
             [FromServices] TokenConfigurations tokenConfigurations,
@@ -142,7 +142,7 @@ namespace ShareBook.Api.Controllers
                 throw new ShareBookException("Não é possível fazer login porque seu app está desatualizado. Por favor atualize seu app na loja do Google Play.");
 
             var user = _mapper.Map<User>(loginUserVM);
-            var result = _userService.AuthenticationByEmailAndPassword(user);
+            var result = await _userService.AuthenticationByEmailAndPasswordAsync(user);
 
             if (result.Success)
             {
@@ -160,9 +160,9 @@ namespace ShareBook.Api.Controllers
         [HttpPost("ForgotMyPassword")]
         [ProducesResponseType(typeof(Result), 200)]
         [ProducesResponseType(404)]
-        public IActionResult ForgotMyPassword([FromBody] ForgotMyPasswordVM forgotMyPasswordVM)
+        public async Task<IActionResult> ForgotMyPasswordAsync([FromBody] ForgotMyPasswordVM forgotMyPasswordVM)
         {
-            var result = _userService.GenerateHashCodePasswordAndSendEmailToUser(forgotMyPasswordVM.Email);
+            var result = await _userService.GenerateHashCodePasswordAndSendEmailToUserAsync(forgotMyPasswordVM.Email);
 
             if (result.Success)
                 return Ok(result);
@@ -172,13 +172,13 @@ namespace ShareBook.Api.Controllers
 
         [HttpPost("Anonymize")]
         [Authorize("Bearer")]
-        public IActionResult Anonymize([FromBody] UserAnonymizeDTO dto)
+        public async Task<IActionResult> AnonymizeAsync([FromBody] UserAnonymizeDTO dto)
         {
             var userIdFromSession = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             if(dto.UserId != userIdFromSession)
                 throw new ShareBookException(ShareBookException.Error.Forbidden, "Você não tem permissão para remover esse conta.");
 
-            _lgpdService.Anonymize(dto);
+            await _lgpdService.AnonymizeAsync(dto);
             return Ok(new Result("Sua conta foi removida com sucesso."));
         }
 
@@ -190,7 +190,7 @@ namespace ShareBook.Api.Controllers
         [Authorize("Bearer")]
         [ProducesResponseType(typeof(Result<User>), 200)]
         [ProducesResponseType(409)]
-        public IActionResult Update([FromBody] UpdateUserVM updateUserVM, [FromServices] SigningConfigurations signingConfigurations, [FromServices] TokenConfigurations tokenConfigurations)
+        public async Task<IActionResult> UpdateAsync([FromBody] UpdateUserVM updateUserVM, [FromServices] SigningConfigurations signingConfigurations, [FromServices] TokenConfigurations tokenConfigurations)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -199,7 +199,7 @@ namespace ShareBook.Api.Controllers
 
             user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
 
-            var result = _userService.Update(user);
+            var result = await _userService.UpdateAsync(user);
 
             if (!result.Success)
                 return Conflict(result);
@@ -209,26 +209,26 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpPut("ChangePassword")]
-        public Result<User> ChangePassword([FromBody] ChangePasswordUserVM changePasswordUserVM)
+        public async Task<Result<User>> ChangePasswordAsync([FromBody] ChangePasswordUserVM changePasswordUserVM)
         {
             var user = new User() { Password = changePasswordUserVM.OldPassword };
             user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            return _userService.ValidOldPasswordAndChangeUserPassword(user, changePasswordUserVM.NewPassword);
+            return await _userService.ValidOldPasswordAndChangeUserPasswordAsync(user, changePasswordUserVM.NewPassword);
         }
 
         [HttpPut("ChangeUserPasswordByHashCode")]
         [ProducesResponseType(typeof(Result<User>), 200)]
         [ProducesResponseType(404)]
-        public IActionResult ChangeUserPasswordByHashCode([FromBody] ChangeUserPasswordByHashCodeVM changeUserPasswordByHashCodeVM)
+        public async Task<IActionResult> ChangeUserPasswordByHashCodeAsync([FromBody] ChangeUserPasswordByHashCodeVM changeUserPasswordByHashCodeVM)
         {
-            var result = _userService.ConfirmHashCodePassword(changeUserPasswordByHashCodeVM.HashCodePassword);
+            var result = await _userService.ConfirmHashCodePasswordAsync(changeUserPasswordByHashCodeVM.HashCodePassword);
             if (!result.Success)
                 return NotFound(result);
             var newPassword = changeUserPasswordByHashCodeVM.NewPassword;
-            var user = _userService.Find((result.Value as User).Id);
+            var user = await _userService.FindAsync((result.Value as User).Id);
             user.Password = newPassword;
 
-            var resultChangePasswordUser = _userService.ChangeUserPassword(user, newPassword);
+            var resultChangePasswordUser = await _userService.ChangeUserPasswordAsync(user, newPassword);
 
             if (!resultChangePasswordUser.Success)
                 return BadRequest(resultChangePasswordUser);
@@ -237,14 +237,14 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpPut("ParentAproval")]
-        public IActionResult ParentAproval([FromBody] ParentAprovalVM parentAprovalVM)
+        public async Task<IActionResult> ParentAprovalAsync([FromBody] ParentAprovalVM parentAprovalVM)
         {
             var ParentHashCodeAproval = parentAprovalVM.ParentHashCodeAproval;
 
             if (string.IsNullOrEmpty(ParentHashCodeAproval) || !Guid.TryParse(ParentHashCodeAproval, out _))
                 throw new ShareBookException("Código inválido.");
             
-            _userService.ParentAproval(ParentHashCodeAproval);
+            await _userService.ParentAprovalAsync(ParentHashCodeAproval);
             return Ok();
         }
 
@@ -267,10 +267,10 @@ namespace ShareBook.Api.Controllers
             }
         }
 
-        private User GetSessionUser()
+        private async Task<User> GetSessionUserAsync()
         {
             var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            return _userService.Find(userId);
+            return await _userService.FindAsync(userId);
         }
     }
 }

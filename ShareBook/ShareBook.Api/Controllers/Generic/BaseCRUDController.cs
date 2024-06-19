@@ -7,6 +7,7 @@ using ShareBook.Api.ViewModels;
 using ShareBook.Domain.Common;
 using ShareBook.Service.Generic;
 using System;
+using System.Threading.Tasks;
 
 namespace ShareBook.Api.Controllers
 {
@@ -41,13 +42,13 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpPost]
-        public virtual Result<A> Create([FromBody] R viewModel)
+        public virtual async Task<Result<A>> CreateAsync([FromBody] R viewModel)
         {
             if (!HasRequestViewModel)
-                return _mapper.Map<Result<A>>(_service.Insert(viewModel as T));
+                return _mapper.Map<Result<A>>(await _service.InsertAsync(viewModel as T));
 
             var entity = _mapper.Map<T>(viewModel);
-            var result = _service.Insert(entity);
+            var result = await _service.InsertAsync(entity);
 
             var resultVM = _mapper.Map<Result<A>>(result);
             return resultVM;
@@ -55,15 +56,15 @@ namespace ShareBook.Api.Controllers
 
         [Authorize("Bearer")]
         [HttpPut("{id}")]
-        public virtual Result<A> Update(Guid id, [FromBody] R viewModel)
+        public virtual async Task<Result<A>> UpdateAsync(Guid id, [FromBody] R viewModel)
         {
             viewModel.Id = id;
 
             if (!HasRequestViewModel)
-                return _mapper.Map<Result<A>>(_service.Update(viewModel as T));
+                return _mapper.Map<Result<A>>(await _service.UpdateAsync(viewModel as T));
             
             var entity = _mapper.Map<T>(viewModel);
-            var result = _service.Update(entity);
+            var result = await _service.UpdateAsync(entity);
             var resultVM = _mapper.Map<A>(result);
             return new Result<A>(resultVM);
         }

@@ -16,10 +16,10 @@ namespace Sharebook.Jobs
         private readonly IBookUserService _bookUserService;
         private readonly int _maxLateDonationDaysAutoCancel;
         private readonly IConfiguration _configuration;
+        public new const string JobName = "CancelAbandonedDonations";
 
         public CancelAbandonedDonations(IJobHistoryRepository jobHistoryRepo, IBookService bookService, IBookUserService bookUserService, IConfiguration configuration) : base(jobHistoryRepo)
         {
-            JobName     = "CancelAbandonedDonations";
             Description = "Cancela as doações abandonadas.";
             Interval    = Interval.Dayly;
             Active      = true;
@@ -50,8 +50,7 @@ namespace Sharebook.Jobs
                     Reason = $"Cancelamento automático de doação abandonada. Com mais de {_maxLateDonationDaysAutoCancel} dias de atraso.",
                 };
 
-                // TODO: Migrate to async
-                _bookUserService.Cancel(dto);
+                await _bookUserService.CancelAsync(dto);
                 details += $"Doação do livro {book.Title} foi cancelada.\n";
             }
             

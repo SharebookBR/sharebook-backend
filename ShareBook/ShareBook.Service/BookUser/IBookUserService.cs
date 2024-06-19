@@ -9,28 +9,28 @@ namespace ShareBook.Service
 {
     public interface IBookUserService 
     {
-        void Insert(Guid bookId, string reason);
+        Task InsertAsync(Guid bookId, string reason);
 
-        IList<User> GetGranteeUsersByBookId(Guid bookId);
+        Task<IList<User>> GetGranteeUsersByBookIdAsync(Guid bookId);
 
-        IList<BookUser> GetRequestersList(Guid bookId);
+        Task<IList<BookUser>> GetRequestersListAsync(Guid bookId);
 
-        void DonateBook(Guid bookId, Guid userId, string note);
+        Task DonateBookAsync(Guid bookId, Guid userId, string note);
 
-        void DeniedBookUsers(Guid bookId);
+        Task DeniedBookUsersAsync(Guid bookId);
 
-        PagedList<BookUser> GetRequestsByUser(int page, int items);
+        Task<PagedList<BookUser>> GetRequestsByUserAsync(int page, int items);
 
         /// <summary>
         /// Comunicar os interessados não escolhidos sobre a finalização da doação. e quem ganhou o livro
         /// </summary>
         /// <param name="bookId"></param>
-        Task NotifyInterestedAboutBooksWinner(Guid bookId);
+        Task NotifyInterestedAboutBooksWinnerAsync(Guid bookId);
 
-        Result<Book> Cancel(BookCancelationDTO dto);
+        Task<Result<Book>> CancelAsync(BookCancelationDTO dto);
 
-        void InformTrackingNumber(Guid bookId, string trackingNumber);
-        BookUser GetRequest(Guid requestId);
-        bool CancelRequest(BookUser request);
+        Task InformTrackingNumberAsync(Guid bookId, string trackingNumber);
+        Task<BookUser> GetRequestAsync(Guid requestId);
+        Task<bool> CancelRequestAsync(BookUser request);
     }
 }

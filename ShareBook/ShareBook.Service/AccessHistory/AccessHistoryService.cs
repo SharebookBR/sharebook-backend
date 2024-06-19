@@ -19,7 +19,7 @@ namespace ShareBook.Service {
             _accessHistoryRepository = repository;
         }
 
-        public async Task InsertVisitor(User user, User visitor, VisitorProfile profile) {
+        public async Task InsertVisitorAsync(User user, User visitor, VisitorProfile profile) {
             var visitorProfile = new AccessHistory(user.Id, visitor.Name, profile);
 
             await _accessHistoryRepository.InsertAsync(visitorProfile);

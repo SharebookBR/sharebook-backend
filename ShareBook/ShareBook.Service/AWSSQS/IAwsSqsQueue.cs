@@ -1,16 +1,14 @@
-﻿using ShareBook.Domain;
-using ShareBook.Service.AwsSqs.Dto;
-using System;
+﻿using ShareBook.Service.AwsSqs.Dto;
 using System.Threading.Tasks;
 
 namespace ShareBook.Service.AwsSqs
 {
     public interface IAwsSqsQueue<T>
     {
-        Task SendMessage(T message);
+        Task SendMessageAsync(T message);
 
-        Task<SharebookMessage<T>> GetMessage();
+        Task<SharebookMessage<T>> GetMessageAsync();
 
-        Task DeleteMessage(string receiptHandle);
+        Task DeleteMessageAsync(string receiptHandle);
     }
 }

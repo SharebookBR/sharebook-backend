@@ -75,7 +75,7 @@ namespace ShareBook.Service
 
         private async Task<int> GetYoutubeVideosAsync()
         {
-            var meetups = _repository.Get(x => x.YoutubeUrl == null, x => x.StartDate);
+            var meetups = await _repository.GetAsync(x => x.YoutubeUrl == null, x => x.StartDate);
 
             if (meetups.TotalItems == 0) return 0;
 
@@ -106,8 +106,8 @@ namespace ShareBook.Service
 
             if (updatedMeetups.Any())
             {
-                // TODO: Migrate to async
-                updatedMeetups.ForEach(m => _repository.Update(m));
+                // TODO: Verify if it's possible to use Task.WhenAll or similar
+                updatedMeetups.ForEach(async(m) => await _repository.UpdateAsync(m));
             }
 
             return updatedMeetups.Count;
@@ -218,7 +218,7 @@ namespace ShareBook.Service
         public async Task<IList<Meetup>> SearchAsync(string criteria)
         {
             return await _repository.Get()
-                .Where(m => m.Active && ( m.Title.Contains(criteria, StringComparison.InvariantCultureIgnoreCase) || m.Description.Contains(criteria, StringComparison.InvariantCultureIgnoreCase)))
+                .Where(m => m.Active && (m.Title.Contains(criteria) || m.Description.Contains(criteria)))
                 .OrderByDescending(m => m.CreationDate)
                 .ToListAsync();
         }

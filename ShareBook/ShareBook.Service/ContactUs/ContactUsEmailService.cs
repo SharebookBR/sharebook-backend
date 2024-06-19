@@ -29,12 +29,12 @@ namespace ShareBook.Service
         private async Task SendEmailContactUsToAdministratorAsync(ContactUs contactUs)
         {
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(ContactUsTemplate, contactUs);
-            await _emailService.SendToAdmins(html, ContactUsTitle);
+            await _emailService.SendToAdminsAsync(html, ContactUsTitle);
         }
         private async Task SendEmailNotificationToUserAsync(ContactUs contactUs)
         {
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(ContactUsNotificationTemplate, contactUs);
-            await _emailService.Send(contactUs.Email, contactUs.Name, html, ContactUsNotificationTitle, copyAdmins: false, highPriority: true);
+            await _emailService.SendAsync(contactUs.Email, contactUs.Name, html, ContactUsNotificationTitle, copyAdmins: false, highPriority: true);
         }
     }
 }

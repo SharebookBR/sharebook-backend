@@ -8,13 +8,12 @@ using ShareBook.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service;
 using ShareBook.Service.AwsSqs;
-using ShareBook.Service.AwsSqs.Dto;
-using ShareBook.Service.Muambator;
 using ShareBook.Service.Upload;
 using ShareBook.Test.Unit.Mocks;
 using System;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace ShareBook.Test.Unit.Services
@@ -43,22 +42,22 @@ namespace ShareBook.Test.Unit.Services
             configurationMock = new Mock<IConfiguration>();
             sqsMock = new Mock<NewBookQueue>();
 
-            bookRepositoryMock.Setup(repo => repo.Insert(It.IsAny<Book>())).Returns(() =>
+            bookRepositoryMock.Setup(repo => repo.InsertAsync(It.IsAny<Book>())).ReturnsAsync(() =>
             {
                 return BookMock.GetLordTheRings();
             });
-            uploadServiceMock.Setup(service => service.UploadImageAsync(null, null, null));
-            bookServiceMock.Setup(service => service.Insert(It.IsAny<Book>())).Verifiable();
+            uploadServiceMock.Setup(service => service.UploadImageAsync(It.IsAny<byte[]>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync("Ok Mocked");
+            bookServiceMock.Setup(service => service.InsertAsync(It.IsAny<Book>())).ReturnsAsync(() => new Result<Book>(new Book())).Verifiable();
         }
 
         [Fact]
-        public void AddBook()
+        public async Task AddBook()
         {
             Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
             var service = new BookService(bookRepositoryMock.Object, 
                 unitOfWorkMock.Object, new BookValidator(),
                 uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object);
-            Result<Book> result = service.Insert(new Book()
+            Result<Book> result = await service.InsertAsync(new Book()
             {
                 Title = "Lord of the Rings",
                 Author = "J. R. R. Tolkien",
@@ -73,13 +72,13 @@ namespace ShareBook.Test.Unit.Services
         }
 
         [Fact]
-        public void AddEBookByLink()
+        public async Task AddEBookByLink()
         {
             Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
             var service = new BookService(bookRepositoryMock.Object,
                 unitOfWorkMock.Object, new BookValidator(),
                 uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object);
-            Result<Book> result = service.Insert(new Book()
+            Result<Book> result = await service.InsertAsync(new Book()
             {
                 Title = "Lord of the Rings",
                 Author = "J. R. R. Tolkien",
@@ -95,13 +94,13 @@ namespace ShareBook.Test.Unit.Services
         }
 
         [Fact]
-        public void AddEBookByPdfFile()
+        public async Task AddEBookByPdfFile()
         {
             Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
             var service = new BookService(bookRepositoryMock.Object,
                 unitOfWorkMock.Object, new BookValidator(),
                 uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object);
-            Result<Book> result = service.Insert(new Book()
+            Result<Book> result = await service.InsertAsync(new Book()
             {
                 Title = "Lord of the Rings",
                 Author = "J. R. R. Tolkien",

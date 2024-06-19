@@ -7,6 +7,7 @@ using ShareBook.Domain;
 using ShareBook.Domain.Enums;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ShareBook.Service.Notification;
 
@@ -20,7 +21,7 @@ public class PushNotificationService : IPushNotificationService
         _oneSignalClient = new OneSignalClient(_settings.ApiKey);
     }
 
-    public string SendNotificationSegments(NotificationOnesignal onesignal)
+    public async Task<string> SendNotificationSegmentsAsync(NotificationOnesignal onesignal)
     {
         if (!_settings.IsActive) return "";
 
@@ -37,12 +38,12 @@ public class PushNotificationService : IPushNotificationService
         notificationCreateOptions.Headings.Add(LanguageCodes.Portuguese, onesignal.Title);
         notificationCreateOptions.Contents.Add(LanguageCodes.Portuguese, onesignal.Content);
 
-        _oneSignalClient.Notifications.Create(notificationCreateOptions);
+        await _oneSignalClient.Notifications.CreateAsync(notificationCreateOptions);
 
         return "Enviado com sucesso";
     }
 
-    public string SendNotificationByKey(NotificationOnesignal onesignal)
+    public async Task<string> SendNotificationByKeyAsync(NotificationOnesignal onesignal)
     {
         if (!_settings.IsActive) return "";
 
@@ -62,13 +63,13 @@ public class PushNotificationService : IPushNotificationService
         notificationCreateOptions.Headings.Add(LanguageCodes.Portuguese, onesignal.Title);
         notificationCreateOptions.Contents.Add(LanguageCodes.Portuguese, onesignal.Content);
 
-        _oneSignalClient.Notifications.Create(notificationCreateOptions);
+        await _oneSignalClient.Notifications.CreateAsync(notificationCreateOptions);
 
         return $"Notification enviado para o {onesignal.Value} com sucesso";
     }
 
 
-    public string SendNotificationByEmail(string email, string title, string content)
+    public async Task<string> SendNotificationByEmailAsync(string email, string title, string content)
     {
         if (!_settings.IsActive) return "";
 
@@ -89,7 +90,7 @@ public class PushNotificationService : IPushNotificationService
             notificationCreateOptions.Headings.Add(LanguageCodes.Portuguese, title);
             notificationCreateOptions.Contents.Add(LanguageCodes.Portuguese, content);
 
-            _oneSignalClient.Notifications.Create(notificationCreateOptions);
+            await _oneSignalClient.Notifications.CreateAsync(notificationCreateOptions);
 
             return $"Notification enviado para o {email} com sucesso";
         }
