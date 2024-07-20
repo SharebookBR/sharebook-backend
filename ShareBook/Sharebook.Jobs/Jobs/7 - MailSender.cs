@@ -84,12 +84,11 @@ public class MailSender : GenericJob, IJob
         var copyAdmins = sqsMessage.Body.CopyAdmins;
 
         var emails = destinations.Select(x => x.Email).ToList();
-        var bounces = await _emailService.GetBouncesAsync(emails);
 
         foreach (var destination in destinations)
         {
             try {
-                if (_emailService.IsBounce(destination.Email, bounces))
+                if (await _emailService.IsBounceAsync(destination.Email))
                 {
                     _log.Add($"Não enviei email para {destination.Email} porque está em estado de BOUNCE.");
                     continue;
