@@ -13,7 +13,7 @@ namespace ShareBook.Service
         Task TestAsync(string email, string name);
 
         Task<IList<string>> ProcessBounceMessagesAsync();
-        Task<IList<MailBounce>> GetBouncesAsync(IList<string> emails);
-        bool IsBounce(string email, IList<MailBounce> bounces);
+        Task<IList<MailBounce>> GetBouncesAsync(string email);
+        Task<bool> IsBounceAsync(string email);
     }
 }
