@@ -17,7 +17,7 @@ public class LateDonationNotification : GenericJob, IJob
     private readonly IEmailTemplate _emailTemplate;
     private readonly IBookService _bookService;
     private readonly IConfiguration _configuration;
-    public new const string JobName = "LateDonationNotification";
+
     public const string EmailTemplateName = "LateDonationNotification";
     public const string EmailAdminsSubject = "SHAREBOOK - STATUS DO DIA.";
     public const string EmailDonatorHardSubject = "Doação abandonada no Sharebook. Urgente!";
@@ -31,6 +31,7 @@ public class LateDonationNotification : GenericJob, IJob
         IEmailService emailService,
         IEmailTemplate emailTemplate, IConfiguration configuration) : base(jobHistoryRepo)
     {
+        JobName = "LateDonationNotification";
         Description = "Notifica o facilitador e doador com lista de doações em atraso " +
                         "ordenado pelo mais atrasado.";
         Interval    = Interval.Dayly;
