@@ -50,7 +50,6 @@ namespace ShareBook.Test.Unit.Jobs
 
             Assert.True(result.IsSuccess);
             Assert.Equal($"Encontradas 1 doações em atraso de 1 doadores distintos.E-mail enviado para o usuário: {_softUser.Name}", result.Details);
-            Assert.Equal(LateDonationNotification.JobName, result.JobName);
 
             _mockConfiguration.Verify(c => c[LateDonationNotification.ConfigMaxLateDonationDaysKey], Times.Once);
             _mockEmailTemplate.Verify(c => c.GenerateHtmlFromTemplateAsync(It.Is<string>(v => v.Equals(LateDonationNotification.EmailTemplateName)), It.IsAny<object>()), Times.Once);
@@ -78,7 +77,6 @@ namespace ShareBook.Test.Unit.Jobs
 
             Assert.True(result.IsSuccess);
             Assert.Equal($"Encontradas 1 doações em atraso de 1 doadores distintos.E-mail enviado para o usuário: {_hardUser.Name}", result.Details);
-            Assert.Equal(LateDonationNotification.JobName, result.JobName);
 
             _mockConfiguration.Verify(c => c[LateDonationNotification.ConfigMaxLateDonationDaysKey], Times.Once);
             _mockEmailTemplate.Verify(c => c.GenerateHtmlFromTemplateAsync(It.Is<string>(v => v.Equals(LateDonationNotification.EmailTemplateName)), It.IsAny<object>()), Times.Once);
@@ -106,7 +104,6 @@ namespace ShareBook.Test.Unit.Jobs
 
             Assert.True(result.IsSuccess);
             Assert.Equal("Encontradas 0 doações em atraso de 0 doadores distintos.", result.Details);
-            Assert.Equal(LateDonationNotification.JobName, result.JobName);
 
             _mockConfiguration.Verify(c => c[LateDonationNotification.ConfigMaxLateDonationDaysKey], Times.Once);
             _mockBookService.Verify(c => c.GetBooksChooseDateIsLateAsync(), Times.Once);

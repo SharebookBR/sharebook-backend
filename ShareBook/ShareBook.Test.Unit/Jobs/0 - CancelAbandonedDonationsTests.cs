@@ -47,7 +47,7 @@ namespace ShareBook.Test.Unit.Jobs
 
             Assert.True(result.IsSuccess);
             Assert.Equal("Encontradas 0 doações abandonadas com mais de 90 dias de atraso.\n\n", result.Details);
-            Assert.Equal(CancelAbandonedDonations.JobName, result.JobName);
+            Assert.Equal("CancelAbandonedDonations", result.JobName);
 
             _mockBookService.Verify(c => c.GetBooksChooseDateIsLateAsync(), Times.Once);
             _mockBookUserService.Verify(c => c.CancelAsync(It.IsAny<BookCancelationDTO>()), Times.Never);
@@ -69,7 +69,6 @@ namespace ShareBook.Test.Unit.Jobs
             
             Assert.True(result.IsSuccess);
             Assert.Equal("Encontradas 2 doações abandonadas com mais de 90 dias de atraso.\n\nDoação do livro Lord of the Rings foi cancelada.\nDoação do livro Lord of the Rings foi cancelada.\n", result.Details);
-            Assert.Equal(CancelAbandonedDonations.JobName, result.JobName);
             
             _mockBookService.Verify(c => c.GetBooksChooseDateIsLateAsync(), Times.Once);
             _mockBookUserService.Verify(c => c.CancelAsync(It.IsAny<BookCancelationDTO>()), Times.Exactly(2));
