@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "f7913a70-c6f4-4636-86a3-347efa40216f",
+		"_postman_id": "4a0b707e-0039-4e40-8fbe-17d85d626c63",
 		"name": "ShareBook API - Tests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "29881360"
@@ -583,7 +583,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n\t\"email\": \"raffacabofrio@gmail.com\",\r\n\t\"password\": \"123456\"\r\n}",
+							"raw": "{\r\n\t\"email\": \"{{sharebookEmail}}\",\r\n\t\"password\": \"{{sharebookPassword}}\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -891,13 +891,34 @@
 				"type": "text/javascript",
 				"packages": {},
 				"exec": [
+					"\r",
+					"console.log('Setting up...')\r",
+					"\r",
 					"const sharebookUrlName = 'sharebookUrl'\r",
-					"if (pm.globals.has(sharebookUrlName))\r",
-					"    console.log(`Running using ${pm.globals.get(sharebookUrlName)}`)\r",
+					"if (pm.environment.has(sharebookUrlName))\r",
+					"    console.log(`Running with ${sharebookUrlName} ${pm.environment.get(sharebookUrlName)}`)\r",
 					"else {\r",
 					"    const fallbackUrl = 'https://dev.sharebook.com.br/'\r",
-					"    console.log(`The global variable ${sharebookUrlName} isn't found. Using ${fallbackUrl} as default value... `)\r",
-					"    pm.globals.set(sharebookUrlName, fallbackUrl)\r",
+					"    console.log(`The environment variable ${sharebookUrlName} isn't found. Using ${fallbackUrl} as default value... `)\r",
+					"    pm.environment.set(sharebookUrlName, fallbackUrl)\r",
+					"}\r",
+					"\r",
+					"const sharebookEmailName = 'sharebookEmail';\r",
+					"if (pm.environment.has(sharebookEmailName))\r",
+					"    console.log(`Running with ${sharebookEmailName} : ${pm.environment.get(sharebookEmailName)}`)\r",
+					"else {\r",
+					"    const fallBackEmail = 'raffacabofrio@gmail.com'\r",
+					"    console.log(`The environment variable ${sharebookEmailName} isn't found. Using ${fallBackEmail} as default value... `)\r",
+					"    pm.environment.set(sharebookEmailName, fallBackEmail)\r",
+					"}\r",
+					"\r",
+					"const sharebookPasswordName = 'sharebookPassword';\r",
+					"if (pm.environment.has(sharebookPasswordName))\r",
+					"    console.log(`Running with ${sharebookPasswordName} : ${pm.environment.get(sharebookPasswordName)}`)\r",
+					"else {\r",
+					"    const fallBackPassword = '123456'\r",
+					"    console.log(`The environment variable ${sharebookPasswordName} isn't found. Using ${fallBackPassword} as default value... `)\r",
+					"    pm.environment.set(sharebookPasswordName, fallBackPassword)\r",
 					"}"
 				]
 			}
