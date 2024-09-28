@@ -157,7 +157,7 @@ public class EmailService : IEmailService
             return log;
         }
 
-        await _imapClient.ConnectAsync(_settings.HostName, _settings.ImapPort, true);
+        await _imapClient.ConnectAsync(_settings.HostName, _settings.ImapPort, _settings.UseSSL);
         await _imapClient.AuthenticateAsync(_settings.Username, _settings.Password);
 
         var bounceFolder = await GetBounceFolderAsync();

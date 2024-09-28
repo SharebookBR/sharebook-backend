@@ -1,0 +1,17 @@
+name: Postman collection validations
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-postman-collection-dev:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Postman collection - Development environment
+        uses: matt-ball/newman-action@master
+        with:
+          collection: ShareBook API - Tests.postman_collection.json
+          delayRequest: 2000
+          envVar: '[{ "key": "sharebookUrl", "value": "https://dev.sharebook.com.br/" }, { "key": "sharebookEmail", "value": "raffacabofrio@gmail.com" }, { "key": "sharebookPassword", "value": "123456" }]'
+# TODO: Add a job for production environment which must get username and password from github secrets
