@@ -7,6 +7,7 @@ using ShareBook.Api.Services;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.Exceptions;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ShareBook.Api.Middleware
@@ -34,7 +35,7 @@ namespace ShareBook.Api.Middleware
 
                 httpContext.Response.Clear();
                 httpContext.Response.StatusCode = (int)ex.ErrorType;
-                httpContext.Response.Headers.Add("Content-Type", "application/json");
+                httpContext.Response.Headers.TryAdd("Content-Type", "application/json");
                 await httpContext.Response.WriteAsync(jsonResponse);
             }
             catch (Exception ex)
@@ -53,7 +54,7 @@ namespace ShareBook.Api.Middleware
 
                 httpContext.Response.Clear();
                 httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
-                httpContext.Response.Headers.Add("Content-Type", "application/json");
+                httpContext.Response.Headers.TryAdd("Content-Type", "application/json");
                 await httpContext.Response.WriteAsync(jsonResponse);
             }
         }

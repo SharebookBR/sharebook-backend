@@ -1,4 +1,4 @@
-﻿using MailKit;
+using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Net.Smtp;
 using Microsoft.EntityFrameworkCore;
@@ -134,7 +134,7 @@ public class EmailService : IEmailService
         InternetAddressList list = new InternetAddressList();
         foreach (var admin in admins)
         {
-            list.Add(new MailboxAddress(admin.Email));
+            list.Add(MailboxAddress.Parse(admin.Email));
         }
 
         return list;
