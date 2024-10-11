@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using MimeKit;
-using Rollbar.DTOs;
 using ShareBook.Domain;
 using ShareBook.Repository;
 using ShareBook.Service.AwsSqs;
