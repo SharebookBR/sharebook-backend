@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using ShareBook.Domain;
 using ShareBook.Domain.Enums;
 using ShareBook.Domain.Exceptions;
@@ -80,7 +80,7 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
 
         for(int i = 1; i <= maxMessages; i++)
         {
-            var destinations = interestedUsers.Skip((i - 1) * sendEmailMaxDestinationsPerQueueMessage).Take(sendEmailMaxDestinationsPerQueueMessage).Select(u => new Destination { Name = u.Name, Email = u.Email });
+            var destinations = interestedUsers.OrderBy(i => i.Id).Skip((i - 1) * sendEmailMaxDestinationsPerQueueMessage).Take(sendEmailMaxDestinationsPerQueueMessage).Select(u => new Destination { Name = u.Name, Email = u.Email });
 
             var mailSenderbody = new MailSenderbody {
                 Subject = $"Chegou o livro '{newBook.BookTitle}'",
