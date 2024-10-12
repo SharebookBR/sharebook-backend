@@ -9,10 +9,5 @@ public class AwsSqsDisabledException : Exception
     public AwsSqsDisabledException(string message) : base(message)
     {
     }
-
-    private AwsSqsDisabledException(SerializationInfo info, StreamingContext context)
-        : base(info, context)
-    {
-    }
 }
 

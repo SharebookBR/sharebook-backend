@@ -37,6 +37,9 @@ namespace ShareBook.Repository
             new LogEntryMap(modelBuilder.Entity<LogEntry>());
             new MailBounceMap(modelBuilder.Entity<MailBounce>());
 
+            // EF Precisa p/ entender que o default p/ esse campo é true, ao contrário do padrão c#.
+            modelBuilder.Entity<User>().Property(p => p.Active).HasDefaultValue(true).HasSentinel(false);
+
             //O Contexto procura pelas classes que implementam IEntityTypeConfiguration adicionando o mapeamento de forma automática.
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
         }

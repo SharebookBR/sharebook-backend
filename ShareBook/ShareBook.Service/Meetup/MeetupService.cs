@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using Flurl;
 using Flurl.Http;
 using Microsoft.EntityFrameworkCore;
@@ -51,7 +51,7 @@ namespace ShareBook.Service
         private async Task SyncMeetupParticipantsListAsync(IList<string> logs)
         {
             // Carrega os inscritos no evento um dia após o evento ser feito. Carrega apenas 5 para poupar recursos.
-            var meetups = _repository.Get().Where(x => x.StartDate < DateTime.Now.AddDays(1) && !x.IsParticipantListSynced).Take(5).ToList();
+            var meetups = _repository.Get().Where(x => x.StartDate < DateTime.Now.AddDays(1) && !x.IsParticipantListSynced).OrderBy(x => x.Id).Take(5).ToList();
 
             logs.Add($"Sincronizando inscritos nos meetups. Encontrei {meetups.Count} meetups pra sincronizar.");
 
