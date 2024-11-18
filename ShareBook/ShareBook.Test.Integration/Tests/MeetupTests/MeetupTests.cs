@@ -16,15 +16,16 @@ public class MeetupTests
     }
 
     [Theory]
-    [InlineData(1, 1, 1)]
-    [InlineData(1, 10, 8)]
-    [InlineData(2, 10, 0)]
-    [InlineData(2, 5, 3)]
-    [InlineData(3, 3, 2)]
-    public async Task MeetupList(int page, int pageSize, int expectedQuantity)
+    [InlineData(1, 1, false, 1)]
+    [InlineData(1, 10, false, 8)]
+    [InlineData(2, 10, false, 0)]
+    [InlineData(2, 5, false, 3)]
+    [InlineData(3, 3, false, 2)]
+    [InlineData(1, 5, true, 1)]
+    [InlineData(2, 5, true, 0)]
+    public async Task MeetupList(int page, int pageSize, bool upcoming, int expectedQuantity)
     {
-        // TODO: Add tests for upcoming=true
-        var response = await _fixture.ShareBookApiClient.GetAsync($"api/Meetup?page={page}&pageSize={pageSize}");
+        var response = await _fixture.ShareBookApiClient.GetAsync($"api/Meetup?page={page}&pageSize={pageSize}&upcoming={upcoming}");
 
         response.Should().NotBeNull();
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -35,7 +36,14 @@ public class MeetupTests
         meetups!.Page.Should().Be(page);
         meetups!.ItemsPerPage.Should().Be(pageSize);
         meetups!.Items.Should().HaveCount(expectedQuantity);
-        // TODO: Validate all items have title, url and so on
-        meetups!.TotalItems.Should().Be(8);
+        meetups!.TotalItems.Should().Be(upcoming ? 1 : 8);
+
+        meetups!.Items.Where(i =>
+            string.IsNullOrWhiteSpace(i.Title)
+            || string.IsNullOrWhiteSpace(i.Description)
+            || string.IsNullOrWhiteSpace(i.Cover)
+            || i.StartDate == default
+        ).Should().BeEmpty();
+
     }
 }
