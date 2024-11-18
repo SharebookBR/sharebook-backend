@@ -1,6 +1,7 @@
-using FluentAssertions;
-using ShareBook.Test.Integration.Setup;
 using System.Net;
+using System.Text.Json;
+using ShareBook.Domain;
+using ShareBook.Domain.Common;
 
 namespace ShareBook.Test.Integration.Tests.MeetupTests;
 
@@ -15,13 +16,17 @@ public class MeetupTests
     }
 
     [Fact]
-    public async Task AvailableBooks_Empty()
+    public async Task MeetupList_Empty()
     {
-        var response = await _fixture.ShareBookApiClient.GetAsync("api/book/AvailableBooks");
+        var response = await _fixture.ShareBookApiClient.GetAsync("api/Meetup");
 
         response.Should().NotBeNull();
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         string responseAsString = await response.Content.ReadAsStringAsync();
-        responseAsString.Should().Be("[]");
+        responseAsString.Should().NotBeNullOrWhiteSpace();
+        PagedList<Meetup>? meetups = JsonSerializer.Deserialize<PagedList<Meetup>>(responseAsString);
+        meetups.Should().NotBeNull();
+        meetups!.Page.Should().Be(0);
+        meetups!.Items.Should().BeNull();
     }
 }

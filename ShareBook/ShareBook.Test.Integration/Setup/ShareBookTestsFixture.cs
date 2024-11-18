@@ -18,5 +18,9 @@ public class ShareBookTestsFixture
     {
         ShareBookApiClient = ShareBookWebAppFactory.CreateClient();
         ApplicationDbContext = ShareBookWebAppFactory.Services.GetRequiredService<ApplicationDbContext>();
+
+        // Seed data
+        var sharebookSeeder = new ShareBookSeeder(ApplicationDbContext);
+        sharebookSeeder.Seed();
     }
 }
