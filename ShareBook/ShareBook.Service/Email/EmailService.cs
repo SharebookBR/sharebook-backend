@@ -1,11 +1,10 @@
-﻿using MailKit;
+using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Net.Smtp;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using MimeKit;
-using Rollbar.DTOs;
 using ShareBook.Domain;
 using ShareBook.Repository;
 using ShareBook.Service.AwsSqs;
@@ -134,7 +133,7 @@ public class EmailService : IEmailService
         InternetAddressList list = new InternetAddressList();
         foreach (var admin in admins)
         {
-            list.Add(new MailboxAddress(admin.Email));
+            list.Add(MailboxAddress.Parse(admin.Email));
         }
 
         return list;

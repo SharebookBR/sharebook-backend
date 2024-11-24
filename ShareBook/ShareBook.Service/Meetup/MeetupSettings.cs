@@ -1,12 +1,7 @@
-﻿
-using System;
+﻿namespace ShareBook.Service;
 
-namespace ShareBook.Service
+public class MeetupSettings
 {
-    public class MeetupSettings
-    {
-        public string YoutubeToken { get; set; }
-        public string SymplaToken { get; set; }
-        public bool IsActive { get; set; }
-    }
+    public string YoutubeToken { get; set; }
+    public bool IsActive { get; set; }
 }

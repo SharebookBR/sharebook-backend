@@ -161,7 +161,10 @@ namespace ShareBook.Service
 
 
         public async Task<IList<Book>> GetAllAsync(int page, int items)
-            => await _repository.Get().Include(b => b.User).Include(b => b.BookUsers)
+            => await _repository.Get()
+                .Include(b => b.User)
+                .Include(b => b.BookUsers)
+                .OrderBy(b => b.Id)
                 .Skip((page - 1) * items)
                 .Take(items).ToListAsync();
 
