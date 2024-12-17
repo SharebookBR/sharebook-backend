@@ -38,12 +38,12 @@ public class MeetupTests
         meetups!.Items.Should().HaveCount(expectedQuantity);
         meetups!.TotalItems.Should().Be(upcoming ? 1 : 8);
 
-        meetups!.Items.Where(i =>
-            string.IsNullOrWhiteSpace(i.Title)
-            || string.IsNullOrWhiteSpace(i.Description)
-            || string.IsNullOrWhiteSpace(i.Cover)
-            || i.StartDate == default
-        ).Should().BeEmpty();
+        meetups!.Items.All(i =>
+            !string.IsNullOrWhiteSpace(i.Title)
+            && !string.IsNullOrWhiteSpace(i.Description)
+            && !string.IsNullOrWhiteSpace(i.Cover)
+            && i.StartDate != default
+        ).Should().BeTrue();
 
     }
 }

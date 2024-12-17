@@ -1,5 +1,5 @@
 using System.Net;
-using System.Text.Json;
+using Newtonsoft.Json;
 using ShareBook.Api.ViewModels;
 
 namespace ShareBook.Test.Integration.Tests.BookTests;
@@ -23,9 +23,15 @@ public class BookTests
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         string responseAsString = await response.Content.ReadAsStringAsync();
         responseAsString.Should().NotBeNullOrWhiteSpace();
-        List<BookVM>? books = JsonSerializer.Deserialize<List<BookVM>>(responseAsString);
+        IList<BookVM>? books = JsonConvert.DeserializeObject<IList<BookVM>>(responseAsString);
         books.Should().NotBeNullOrEmpty();
         books!.Count.Should().Be(22);
-        // TODO: Validate all items have title, author and so on
+
+        books!.All(i =>
+            !string.IsNullOrWhiteSpace(i.Title)
+            && !string.IsNullOrWhiteSpace(i.Author)
+            && !string.IsNullOrWhiteSpace(i.Slug)
+            && i.CategoryId != default
+        ).Should().BeTrue();
     }
 }
