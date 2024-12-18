@@ -76,6 +76,9 @@ dotnet restore ./ShareBook/ShareBook.sln
 # build
 dotnet build ./ShareBook/ShareBook.Api/ShareBook.Api.csproj --verbosity minimal
 
+# Spinning up database (needs docker)
+docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=weWkh]6qA3jk" -p 1433:1433 --name=sql-server --hostname=sql-server -d mcr.microsoft.com/mssql/server:2022-latest
+
 # rodar o app com hot reload
 dotnet watch --project ./ShareBook/ShareBook.Api/ShareBook.Api.csproj
 
