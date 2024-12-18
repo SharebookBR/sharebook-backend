@@ -44,6 +44,30 @@ public class MeetupTests
             && !string.IsNullOrWhiteSpace(i.Cover)
             && i.StartDate != default
         ).Should().BeTrue();
+    }
 
+    [Theory]
+    [InlineData("Qualidade de vida", 1)]
+    [InlineData("Azure", 2)]
+    [InlineData("invalid-nonexist", 0)]
+    public async Task MeetupSearch(string criteria, int totalExpected)
+    {
+        var response = await _fixture.ShareBookApiClient.GetAsync($"api/Meetup/search?criteria={criteria}");
+
+        response.Should().NotBeNull();
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        string responseAsString = await response.Content.ReadAsStringAsync();
+        responseAsString.Should().NotBeNullOrWhiteSpace();
+        IList<Meetup>? meetups = JsonConvert.DeserializeObject<IList<Meetup>>(responseAsString);
+        meetups.Should().NotBeNull();
+        meetups!.Count.Should().Be(totalExpected);
+
+        meetups!.All(i =>
+            !string.IsNullOrWhiteSpace(i.Title)
+            && i.Title.Contains(criteria, StringComparison.InvariantCultureIgnoreCase)
+            && !string.IsNullOrWhiteSpace(i.Description)
+            && !string.IsNullOrWhiteSpace(i.Cover)
+            && i.StartDate != default
+        ).Should().BeTrue();
     }
 }
