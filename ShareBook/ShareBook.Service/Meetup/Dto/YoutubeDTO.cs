@@ -54,4 +54,3 @@ public class ThumbnailDetailDto
     public int Height { get; set; }
 }
 
-

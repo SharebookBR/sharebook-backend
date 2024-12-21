@@ -49,12 +49,15 @@ public class MeetupService : BaseService<Meetup>, IMeetupService
             {
                 var meetup = new Meetup
                 {
-                    StartDate = video.Snippet.PublishedAt,
                     Cover = video.Snippet.Thumbnails.Medium.Url,
                     Title = title,
-                    Description = video.Snippet.Description,
                     YoutubeUrl = $"https://www.youtube.com/watch?v={video.Id.VideoId}"
                 };
+
+               // alguns detalhes do vídeo precisamos pegar em outro endpoint da api do you tube
+                var videoDetails = await GetYoutubeVideoDetailsAsync(video.Id.VideoId);
+                meetup.Description = videoDetails.Items[0].Snippet.Description;
+                meetup.StartDate = videoDetails.Items[0].liveStreamingDetails?.scheduledStartTime ?? videoDetails.Items[0].Snippet.PublishedAt;
 
                 _context.Meetups.Add(meetup);
                 await _context.SaveChangesAsync();
@@ -75,8 +78,6 @@ public class MeetupService : BaseService<Meetup>, IMeetupService
 
 
 
-    // 24/11 - por enquanto não vai ter vídeos UPCOMING. A api de search não dá suporte.
-    // vamos precisa de um discovery pra etender com trazer os vídeos UPCOMING.
     private async Task<YoutubeDto> GetYoutubeVideosAsync(int level = 1, string pageToken = "")
     {
         YoutubeDto youtubeDto;
@@ -112,7 +113,32 @@ public class MeetupService : BaseService<Meetup>, IMeetupService
         return youtubeDto;
     }
 
-   
+    private async Task<YoutubeDtoDetail> GetYoutubeVideoDetailsAsync(string id)
+    {
+        YoutubeDtoDetail youtubeDto = new YoutubeDtoDetail();
+
+
+        try
+        {
+            youtubeDto = await "https://youtube.googleapis.com/youtube/v3/videos"
+                .SetQueryParams(new
+                {
+                    key = _settings.YoutubeToken,
+                    part = "snippet, liveStreamingDetails",
+                    id
+                }).GetJsonAsync<YoutubeDtoDetail>();
+
+            
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
+
+        return youtubeDto;
+    }
+
+
     private static async Task<byte[]> GetCoverImageBytesAsync(string url)
     {
         try
