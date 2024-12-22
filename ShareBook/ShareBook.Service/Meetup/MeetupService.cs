@@ -106,7 +106,6 @@ public class MeetupService : BaseService<Meetup>, IMeetupService
         catch (FlurlHttpException e)
         {
             var dtoError = await e.GetResponseJsonAsync<YoutubeDtoError>();
-
             throw new ShareBookException(dtoError == null ? e.Message : dtoError.error.Message);
         }
 
@@ -130,9 +129,10 @@ public class MeetupService : BaseService<Meetup>, IMeetupService
 
             
         }
-        catch(Exception ex)
+        catch(FlurlHttpException e)
         {
-            Console.WriteLine(ex.ToString());
+            var dtoError = await e.GetResponseJsonAsync<YoutubeDtoError>();
+            throw new ShareBookException(dtoError == null ? e.Message : dtoError.error.Message);
         }
 
         return youtubeDto;
