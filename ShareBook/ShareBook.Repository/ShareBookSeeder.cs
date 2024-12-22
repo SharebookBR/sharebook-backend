@@ -28,8 +28,7 @@ namespace ShareBook.Repository
 
             if (!(_context.Users.Any()
                 && _context.Books.Any()
-                && _context.Categories.Any()
-                && _context.Meetups.Any()))
+                && _context.Categories.Any()))
             {
                 var grantee = new User()
                 {
