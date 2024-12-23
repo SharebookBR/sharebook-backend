@@ -27,14 +27,16 @@ public class OperationsController : Controller
     readonly IEmailService _emailService;
     private readonly IWebHostEnvironment _env;
     private readonly IMemoryCache _cache;
+    private readonly IMeetupService _meetupService;
 
-    public OperationsController(IJobExecutor executor, IOptions<ServerSettings> settings, IEmailService emailService, IWebHostEnvironment env, IMemoryCache memoryCache)
+    public OperationsController(IJobExecutor executor, IOptions<ServerSettings> settings, IEmailService emailService, IWebHostEnvironment env, IMemoryCache memoryCache, IMeetupService meetupService)
     {
         _executor = executor;
         _validToken = settings.Value.JobExecutorToken;
         _emailService = emailService;
         _env = env;
         _cache = memoryCache;
+        _meetupService = meetupService;
     }
 
     [HttpGet]
@@ -85,6 +87,15 @@ public class OperationsController : Controller
 
         await _emailService.TestAsync(emailVM.Email, emailVM.Name);
         return Ok();
+    }
+
+    [HttpPost("JobTest")]
+    [Authorize("Bearer")]
+    [AuthorizationFilter(Permissions.Permission.ApproveBook)] // adm
+    public async Task<IActionResult> JobTestAsync()
+    {
+        var logs = await _meetupService.FetchMeetupsAsync();
+        return Ok(logs);
     }
 
     protected bool _IsValidJobToken() => Request.Headers["Authorization"].ToString() == _validToken;

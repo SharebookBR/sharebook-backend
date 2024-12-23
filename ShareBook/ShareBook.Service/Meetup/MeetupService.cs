@@ -68,6 +68,8 @@ public class MeetupService : BaseService<Meetup>, IMeetupService
             else
             {
                 logs.Add($"O vídeo '{title}' já estava no banco de dados. Não fiz nada.");
+                logs.Add($"Paranda de carregar meetups. Apenas o delta interessa. ( poupando cota api you tube )");
+                break;
             }
 
         }
@@ -170,7 +172,7 @@ public class MeetupService : BaseService<Meetup>, IMeetupService
     {
         return await _repository.Get()
             .Where(m => m.Active && (m.Title.Contains(title) || m.Description.Contains(title)))
-            .OrderByDescending(m => m.CreationDate)
+            .OrderByDescending(m => m.StartDate)
             .ToListAsync();
     }
 }
