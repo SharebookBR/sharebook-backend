@@ -20,7 +20,7 @@ public class MeetupSearch : GenericJob, IJob
         JobName = "MeetupSearch";
         Description = "Atualiza a lista de Meetups do Sharebook com base no youtube.";
         Interval = Interval.Dayly;
-        Active = false;
+        Active = true;
         BestTimeToExecute = new TimeSpan(1, 0, 0);
         _configuration = configuration;
     }
