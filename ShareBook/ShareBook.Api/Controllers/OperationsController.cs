@@ -94,7 +94,7 @@ public class OperationsController : Controller
     [AuthorizationFilter(Permissions.Permission.ApproveBook)] // adm
     public async Task<IActionResult> JobTestAsync()
     {
-        var logs = await _meetupService.FetchMeetupsAsync();
+        var logs = await _emailService.ProcessBounceMessagesAsync();
         return Ok(logs);
     }
 

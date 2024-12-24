@@ -1,6 +1,7 @@
 using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Net.Smtp;
+using MailKit.Search;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
@@ -162,8 +163,8 @@ public class EmailService : IEmailService
         var bounceFolder = await GetBounceFolderAsync();
         await bounceFolder.OpenAsync(FolderAccess.ReadWrite);
 
-        var MAX_EMAILS_TO_PROCESS = 50;
-        var items = await bounceFolder.FetchAsync(0, MAX_EMAILS_TO_PROCESS, MessageSummaryItems.UniqueId | MessageSummaryItems.Size | MessageSummaryItems.Flags);
+        var uniqueIds = await bounceFolder.SearchAsync(SearchQuery.All);
+        var items = await bounceFolder.FetchAsync(uniqueIds, MessageSummaryItems.UniqueId | MessageSummaryItems.Size | MessageSummaryItems.Flags);
 
         foreach (var item in items)
         {
