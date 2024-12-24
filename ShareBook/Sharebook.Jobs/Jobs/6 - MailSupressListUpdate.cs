@@ -20,7 +20,7 @@ public class MailSupressListUpdate : GenericJob, IJob
         Description = @"Atualiza a lista de emails suprimidos. Essa lista serve para manter boa reputação do nosso 
                         mailling. Além de ser um requisito da AWS.";
         Interval = Interval.Dayly;
-        Active = false;
+        Active = true;
         BestTimeToExecute = new TimeSpan(2, 0, 0);
 
         _emailService = emailService;
