@@ -23,13 +23,15 @@ public class MailSender : GenericJob, IJob
     private readonly  IConfiguration _configuration;
     private string _lastQueue;
     private IList<string> _log;
+    private readonly IUserService _userService;
 
     public MailSender(
         IJobHistoryRepository jobHistoryRepo,
         IEmailService emailService,
         MailSenderLowPriorityQueue sqsLowPriority,
         MailSenderHighPriorityQueue sqsHighPriority,
-        IConfiguration configuration) : base(jobHistoryRepo)
+        IConfiguration configuration,
+        IUserService userService) : base(jobHistoryRepo)
     {
 
         JobName = "MailSender";
@@ -43,7 +45,8 @@ public class MailSender : GenericJob, IJob
         _sqsLowPriority = sqsLowPriority;
         _sqsHighPriority = sqsHighPriority;
         _configuration = configuration;
-        _log = new List<string>();       
+        _log = new List<string>();
+        _userService = userService;
     }
 
     public override async Task<JobHistory> WorkAsync()
@@ -97,12 +100,16 @@ public class MailSender : GenericJob, IJob
 
                 string firstName = GetFirstName(destination.Name);
                 var bodyHtml2 = bodyHtml.Replace("{name}", firstName, StringComparison.OrdinalIgnoreCase);
+
+                var unsubToken = await _userService.GenerateUnsubscriptionToken(destination.Email);
+                bodyHtml2 = bodyHtml.Replace("{unsubToken}", unsubToken, StringComparison.OrdinalIgnoreCase);
+
                 await _emailService.SendSmtpAsync(destination.Email, destination.Name, bodyHtml2, subject, copyAdmins);
 
                 _log.Add($"Enviei um email com SUCESSO para {destination.Email}.");
             }
             catch(Exception ex) {
-                RollbarLocator.RollbarInstance.Error(ex);
+                RollbarLocator.RollbarInstance.Error(ex); // deveria estar abstraído no uso do illoger
                 _log.Add($"Ocorreu um ERRO ao enviar email para {destination.Email}. Erro: {ex.Message}");
             }
 

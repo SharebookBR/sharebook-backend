@@ -124,7 +124,8 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
             BookSlug = book.Slug,
             BookImageSlug = book.ImageSlug,
             SharebookBaseUrl = _configuration["ServerSettings:DefaultUrl"],
-            Name = "{Name}"// o MailSender vai trocar pelo nome do usuário.
+            Name = "{Name}", // o MailSender vai trocar pelo nome do usuário.
+            UnsubToken = "{UnsubToken}", // o MailSender vai trocar pelo unsub token.
         };
 
         return await _emailTemplate.GenerateHtmlFromTemplateAsync("NewBookNotifyTemplate", vm);
