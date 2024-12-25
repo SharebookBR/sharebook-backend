@@ -8,6 +8,7 @@ using ShareBook.Infra.CrossCutting.Identity.Interfaces;
 using ShareBook.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service;
+using ShareBook.Service.Authorization;
 using ShareBook.Service.AwsSqs;
 using ShareBook.Service.Lgpd;
 using ShareBook.Service.Muambator;
@@ -37,6 +38,7 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<ILgpdService, LgpdService>();
             services.AddScoped<IMeetupService, MeetupService>();
             services.AddScoped<IRecaptchaService, RecaptchaService>();
+            services.AddScoped<ICrypto, Crypto>();
 
             //repositories
             services.AddScoped<IBookRepository, BookRepository>();

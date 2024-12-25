@@ -23,5 +23,7 @@ namespace ShareBook.Service
         Task<UserStatsDTO> GetStatsAsync(Guid? userId);
         Task<Result<User>> InsertAsync(RegisterUserDTO userDto);
         Task ParentAprovalAsync(string parentHashCodeAproval);
+        Task<string> GenerateUnsubscriptionToken(string email);
+        Task Unsubscribe(string unsubToken);
     }
 }

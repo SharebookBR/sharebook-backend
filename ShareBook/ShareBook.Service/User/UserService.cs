@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.DTOs;
@@ -15,6 +16,7 @@ using ShareBook.Helper.Crypto;
 using ShareBook.Repository;
 using ShareBook.Repository.Repository;
 using ShareBook.Repository.UoW;
+using ShareBook.Service.Authorization;
 using ShareBook.Service.Generic;
 using ShareBook.Service.Recaptcha;
 
@@ -26,8 +28,10 @@ namespace ShareBook.Service
         private readonly IBookRepository _bookRepository;
         private readonly IUserEmailService _userEmailService;
         private readonly IRecaptchaService _recaptchaService;
-        
         private readonly IMapper _mapper;
+        private readonly ICrypto _crypto;
+        private readonly ILogger<UserService> _logger;
+        private readonly ApplicationDbContext _context;
 
 
         #region Public
@@ -37,13 +41,16 @@ namespace ShareBook.Service
             IValidator<User> validator,
             IMapper mapper,
             IUserEmailService userEmailService,
-            IRecaptchaService recaptchaService) : base(userRepository, unitOfWork, validator)
+            IRecaptchaService recaptchaService, ICrypto crypto, ILogger<UserService> logger, ApplicationDbContext context) : base(userRepository, unitOfWork, validator)
         {
             _userRepository = userRepository;
             _userEmailService = userEmailService;
             _bookRepository = bookRepository;
             _mapper = mapper;
             _recaptchaService = recaptchaService;
+            _crypto = crypto;
+            _logger = logger;
+            _context = context;
         }
 
         public async Task<Result<User>> AuthenticationByEmailAndPasswordAsync(User user)
@@ -346,7 +353,57 @@ namespace ShareBook.Service
             await _userEmailService.SendEmailParentAprovedNotifyUserAsync(user);
         }
 
-        
+        public async Task<string> GenerateUnsubscriptionToken(string email)
+        {
+            var user = await _repository.Get()
+                .Where(u => u.Email == email)
+                .FirstOrDefaultAsync();
+
+            if (user == null)
+                throw new ShareBookException(ShareBookException.Error.NotFound, "Nenhum usuário encontrado.");
+
+            DateTime expires = DateTime.Now.AddDays(5);
+            var unsubToken = user.Id.ToString() + "__" + expires.ToString("yyyy-MM-dd");
+            unsubToken = _crypto.Encrypt(unsubToken);
+            return unsubToken;
+        }
+
+        public async Task Unsubscribe(string unsubtoken)
+        {
+            try
+            {
+                string userId;
+                DateOnly expires;
+
+                var tokenData = _crypto.Decrypt(unsubtoken).Split("__");
+                if (tokenData.Length != 2) throw new Exception("Erro ao desinscrever. Token inválido: " + unsubtoken);
+
+                userId = tokenData[0];
+                expires = DateOnly.ParseExact(tokenData[1], "yyyy-MM-dd");
+
+                var user = await _repository.Get()
+                .Where(u => u.Id == new Guid(userId))
+                .FirstOrDefaultAsync();
+                if (user == null) throw new Exception("Erro ao desinscrever. Nenhum usuário encontrado com id: " + userId);
+
+                DateOnly today = DateOnly.FromDateTime(DateTime.Now);
+                if(expires < today) throw new Exception("Erro ao desinscrever. Token expirado em: " + expires.ToString("yyyy-MM-dd"));
+
+
+                // enfim, estando tudo certo, desisncreve o usuário
+                user.AllowSendingEmail = false;
+                _context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                // loga o erro, mas não mostra pro usuário por questão de segurança.
+                _logger.LogError(ex.Message);
+                throw new Exception("Ocorreu um erro ao desinscrever. Tente novamente mais tarde.");
+            }
+        }
+
+
+
         #endregion Private
     }
 }
