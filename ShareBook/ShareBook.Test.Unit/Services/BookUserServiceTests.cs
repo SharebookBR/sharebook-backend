@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Moq;
 using ShareBook.Domain;
 using ShareBook.Domain.Validators;
@@ -28,6 +29,7 @@ namespace ShareBook.Test.Unit.Services
         readonly Mock<IMuambatorService> muambatorServiceMock = new();
         readonly Mock<IBookRepository> bookRepositoryMock = new();
         readonly Mock<IConfiguration> configurationMock = new();
+        readonly Mock<IHttpContextAccessor> httpContextAccessorMock = new();
 
 
         public BookUserServiceTests()
@@ -51,7 +53,7 @@ namespace ShareBook.Test.Unit.Services
             Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
             var service = new BookUserService(bookUserRepositoryMock.Object,
                 bookServiceMock.Object, bookUsersEmailService.Object, muambatorServiceMock.Object, bookRepositoryMock.Object,
-                unitOfWorkMock.Object, bookUserValidator.Object, configurationMock.Object);
+                unitOfWorkMock.Object, bookUserValidator.Object, configurationMock.Object, httpContextAccessorMock.Object);
 
 
             string reason = "I need this book because I'm learning a new programming language.";
