@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using ShareBook.Domain;
@@ -14,6 +15,7 @@ using ShareBook.Service.Muambator;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,6 +29,7 @@ namespace ShareBook.Service
         private readonly IMuambatorService _muambatorService;
         private readonly IBookRepository _bookRepository;
         private readonly IConfiguration _configuration;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public BookUserService(
             IBookUserRepository bookUserRepository,
@@ -35,7 +38,9 @@ namespace ShareBook.Service
             IMuambatorService muambatorService,
             IBookRepository bookRepository,
             IUnitOfWork unitOfWork,
-            IValidator<BookUser> validator, IConfiguration configuration)
+            IValidator<BookUser> validator,
+            IConfiguration configuration,
+            IHttpContextAccessor httpContextAccessor)
             : base(bookUserRepository, unitOfWork, validator)
         {
             _bookUserRepository = bookUserRepository;
@@ -44,6 +49,7 @@ namespace ShareBook.Service
             _muambatorService = muambatorService;
             _bookRepository = bookRepository;
             _configuration = configuration;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<IList<User>> GetGranteeUsersByBookIdAsync(Guid bookId) =>
@@ -88,7 +94,7 @@ namespace ShareBook.Service
 
             await _bookUsersEmailService.SendEmailBookDonorAsync(bookUser, bookRequested);
             await _bookUsersEmailService.SendEmailBookInterestedAsync(bookUser, bookRequested);
-            
+
         }
 
         private async Task MaxRequestsValidationAsync(Book bookRequested)
@@ -232,10 +238,16 @@ namespace ShareBook.Service
 
         public async Task InformTrackingNumberAsync(Guid bookId, string trackingNumber)
         {
+            Guid.TryParse(_httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Name)?.Value, out var currentUserId);
             var book = await _bookRepository.Get()
                                       .Include(d => d.User)
                                       .Include(f => f.UserFacilitator)
-                                      .FirstOrDefaultAsync(id => id.Id == bookId);
+                                      .FirstOrDefaultAsync(book => book.Id == bookId &&
+                                      book.UserId == currentUserId);
+
+            if (book == null)
+                throw new ShareBookException(ShareBookException.Error.NotFound);
+
             var winnerBookUser = await _bookUserRepository
                                         .Get()
                                         .Include(u => u.User)
