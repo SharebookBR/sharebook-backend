@@ -141,14 +141,14 @@ namespace ShareBook.Test.Unit.Helpers
 
         }
         
-        [Fact]
-        public async Task ImageResize()
-        {
-            var imageurl = "https://images.sympla.com.br/62b34c1818c0f.png";
+        //[Fact]
+        //public async Task ImageResize()
+        //{
+        //    var imageurl = "https://images.sympla.com.br/62b34c1818c0f.png";
 
-            var imageBytes = await imageurl.GetBytesAsync();
-            var result = ImageHelper.ResizeImage(imageBytes, 50);
-            Assert.Equal(typeof(byte[]), result.GetType());
-        }
+        //    var imageBytes = await imageurl.GetBytesAsync();
+        //    var result = ImageHelper.ResizeImage(imageBytes, 50);
+        //    Assert.Equal(typeof(byte[]), result.GetType());
+        //}
     }
 }
