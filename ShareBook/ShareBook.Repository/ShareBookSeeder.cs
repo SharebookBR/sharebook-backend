@@ -582,7 +582,7 @@ namespace ShareBook.Repository
                     StartDate = DateTime.Parse("2022-09-07T19:00:00"),
                     Cover = "https://www.sharebook.com.br/Images/Meetup/desenvolvimento-de-software-sustentavel.png",
                     YoutubeUrl = null,
-                    SymplaEventUrl = "https://www.sympla.com.br/desenvolvimento-de-software-sustentavel__1709335"
+                    SymplaEventUrl = "https://www.sympla.com.br/desenvolvimento-de-software-sustentavel__1709335",
                 };
 
                 var meetup8 = new Meetup()
@@ -596,6 +596,17 @@ namespace ShareBook.Repository
                     SymplaEventUrl = "https://www.sympla.com.br/java-spring-boot---criando-uma-api-crud-do-zero---2-de-2__1706178"
                 };
 
+                var meetup9 = new Meetup()
+                {
+                    SymplaEventId = 2432671,
+                    Title = "GITHUB ACTIONS NA PRÁTICA",
+                    Description = "<div>O GitHub Actions é uma ferramenta poderosa para automação de fluxos de trabalho de desenvolvimento. Ao permitir que você defina e execute uma série de ações baseadas em eventos específicos do GitHub, como push, pull request ou issues, ele simplifica tarefas complexas, desde a integração contínua até a implantação contínua. Com sua flexibilidade e capacidade de personalização, o GitHub Actions capacita os desenvolvedores a otimizarem seus processos de desenvolvimento, melhorando a qualidade do código, reduzindo erros e aumentando a eficiência geral do projeto. Em um mundo onde cada segundo conta, o GitHub Actions se torna um aliado indispensável na busca pela excelência técnica.</div><div><br></div><div><b>Palestrante</b>: Renan Barbosa</div><div><b>Host</b>: Raffaello Damgaard</div><div><br></div><div><b>Nossa live será transmitida ao vivo via You Tube</b>:</div><div><a href=\"https://www.youtube.com/watch?v=2d7PchqkRVQ\" target=\"_blank\"  rel=\"nofollow noopener noreferrer\">https://www.youtube.com/watch?v=2d7PchqkRVQ</a><br></div>",
+                    StartDate = DateTime.Now.AddDays(7), // Upcoming = true
+                    Cover = "https://www.sharebook.com.br/Images/Meetup/github-actions-na-pratica.png",
+                    YoutubeUrl = "https://www.sharebook.com.br/Images/Meetup/github-actions-na-pratica.png",
+                    SymplaEventUrl = "https://www.sympla.com.br/java-spring-boot---criando-uma-api-crud-do-zero---2-de-2__1706178"
+                };
+
                 _context.Categories.AddRange(adm, dir, psico, med, eng, geo_his, cien, art);
                 _context.Users.AddRange(grantee, @operator, raffa);
                 _context.Books.AddRange(book1, book2, book3, book4, book5, book6, book7,
@@ -603,7 +614,7 @@ namespace ShareBook.Repository
                     book16, book18, book19, book20, book21, book22, book23);
 
                 _context.BookUser.Add(request);
-                _context.Meetups.AddRange(meetup1, meetup2, meetup3, meetup4, meetup5, meetup6, meetup7, meetup8);
+                _context.Meetups.AddRange(meetup1, meetup2, meetup3, meetup4, meetup5, meetup6, meetup7, meetup8, meetup9);
 
                 _context.SaveChanges();
             }

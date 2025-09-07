@@ -29,6 +29,11 @@ namespace ShareBook.Api
 {
     public class Startup
     {
+        /// <summary>
+        /// Only should be used for integration tests
+        /// </summary>
+        public static bool IgnoreMigrations = false;
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -164,11 +169,15 @@ namespace ShareBook.Api
             {
                 var scopeServiceProvider = serviceScope.ServiceProvider;
                 var context = serviceScope.ServiceProvider.GetService<ApplicationDbContext>();
-                context.Database.Migrate();
-                if (env.IsDevelopment() || env.IsStaging())
+
+                if (!IgnoreMigrations)
                 {
-                    var sharebookSeeder = new ShareBookSeeder(context);
-                    sharebookSeeder.Seed();
+                    context.Database.Migrate();
+                    if (env.IsDevelopment() || env.IsStaging())
+                    {
+                        var sharebookSeeder = new ShareBookSeeder(context);
+                        sharebookSeeder.Seed();
+                    }
                 }
             }
         }
