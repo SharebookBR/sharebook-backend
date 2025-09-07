@@ -96,3 +96,12 @@ Consiste em usar uma collection do postman (v2.1) para testar os resultados das 
 2. Usando a ferramenta postman, clique em importar e selecione o arquivo
 3. Com o botão direito na collection `ShareBook API - Tests`, clique em `Run collection`
 4. Na nova janela clique em executar. Após executar verifique a quantidade de erros.
+
+# Build e Run com Docker!
+```bash
+# Build da imagem
+docker build -t sharebook-api -f devops/Dockerfile .
+
+# Run com environment Development
+docker run -d -p 8000:8080 -e ASPNETCORE_ENVIRONMENT=Development --name sharebook-container sharebook-api
+```
