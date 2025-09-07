@@ -57,8 +57,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "devops", "devops", "{1049A5
 		..\devops\Dockerfile = ..\devops\Dockerfile
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShareBook.Test.Integration", "ShareBook.Test.Integration\ShareBook.Test.Integration.csproj", "{51D010F3-DE4C-467E-A35C-19A91768B6A9}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -115,10 +113,8 @@ Global
 		{E59DF563-5B90-479E-9E08-FA99442EEE13} = {CC695E9A-927F-4BCA-B43F-1DD488258B6D}
 		{4A07DFF3-3909-4081-8495-714179019A08} = {F4693E98-387E-4804-A818-FEC59FEDD41C}
 		{51D010F3-DE4C-467E-A35C-19A91768B6A9} = {4DC3351F-0B20-4D5E-8727-3730DF7A9B88}
-
 		{02EA681E-C7D8-13C7-8484-4AC65E1B71E8} = {6728E7E5-0D94-4795-9B03-7E6374A19CB8}
 		{1049A56B-EE7B-41E0-A54E-F910B549E88B} = {6728E7E5-0D94-4795-9B03-7E6374A19CB8}
-
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FF5BA500-51EA-4DD9-8523-8EE368731B63}
