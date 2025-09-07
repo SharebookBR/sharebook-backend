@@ -14,5 +14,4 @@ jobs:
     - uses: actions/checkout@v2
     - name: Build the Docker image
       run: | 
-        cd ./ShareBook
-        docker build . --file ./devops/Dockerfile --tag my-image-name:$(date +%s)
+        docker build -t sharebook-api -f devops/Dockerfile .
