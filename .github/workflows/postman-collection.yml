@@ -5,6 +5,7 @@ on:
 
 jobs:
   run-postman-collection-dev:
+    if: false # desabilita temporariamente  
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master

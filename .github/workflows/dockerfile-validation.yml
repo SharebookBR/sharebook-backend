@@ -15,4 +15,4 @@ jobs:
     - name: Build the Docker image
       run: | 
         cd ./ShareBook
-        docker build . --file ./ShareBook.Api/Dockerfile --tag my-image-name:$(date +%s)
+        docker build . --file ./devops/Dockerfile --tag my-image-name:$(date +%s)

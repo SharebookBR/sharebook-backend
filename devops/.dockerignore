@@ -1,0 +1,74 @@
+# Build outputs
+**/bin/
+**/obj/
+**/out/
+**/publish/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# JetBrains
+.idea/
+*.sln.iml
+
+# Test results
+TestResults/
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+msbuild.log
+msbuild.err
+msbuild.wrn
+
+# Node.js (if used for frontend)
+node_modules/
+npm-debug.log*
+
+# Docker
+Dockerfile*
+.dockerignore
+docker-compose*.yml
+
+# DevOps
+devops/
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+README*
+
+# Logs
+logs/
+*.log
+
+# User-specific files
+*.rsuser
+*.userprefs
+launchSettings.json
+
+# Coverage reports
+coverage/
+*.cobertura.xml
+
+# Database files
+*.db
+*.sqlite*
+
+# Temporary files
+[Tt]mp/
+[Tt]emp/

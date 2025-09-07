@@ -204,13 +204,16 @@ public class EmailService : IEmailService
         return null;
     }
 
-    public async Task<IList<MailBounce>> GetBouncesAsync(IList<string> emails)
+    public async Task<IList<MailBounce>> GetBouncesAsync(string email)
     {
-        return await _ctx.MailBounces.Where(m => emails.Contains(m.Email)).ToListAsync();
+        return await _ctx.MailBounces.Where(m => email.Contains(m.Email)).ToListAsync();
     }
 
-    public bool IsBounce(string email, IList<MailBounce> bounces)
+    public async Task<bool> IsBounceAsync(string email)
     {
+        var bounces = await GetBouncesAsync(email);
+
+
         var hardBounces = bounces.Where(b => !b.IsSoft).ToList();
         var softBounces = bounces.Where(b => b.IsSoft && b.CreationDate > DateTime.Now.AddDays(-1)).ToList();
 
