@@ -151,8 +151,6 @@ namespace ShareBook.Api
                     name: "default",
                     pattern: "{controller=Book}/{action=Index}/{id?}");
 
-                endpoints.MapFallbackToController("Index", "ClientSpa");
-
                 endpoints.MapHealthChecks("/health", new HealthCheckOptions()
                 {
                     AllowCachingResponses = false,
