@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "Read(//c/REPOS/_PEGASUS/pegasus-core-api/**)",
+      "Bash(dotnet build)",
+      "Bash(dotnet run:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dir:*)",
+      "Bash(findstr:*)",
+      "Read(//c/Users/brnra019/Documents/Lightshot/**)",
+      "Bash(git rm:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -207,6 +207,11 @@ UpgradeLog*.htm
 *.mdf
 *.ldf
 
+# SQLite files
+*.db
+*.db-shm
+*.db-wal
+
 # Business Intelligence projects
 *.rdl.data
 *.bim.layout
@@ -265,3 +270,8 @@ coverage.xml
 
 # git internal
 .git
+
+# SQLite
+sharebook.db
+sharebook.db-shm
+sharebook.db-wal

@@ -4,9 +4,9 @@ using ShareBook.Domain;
 
 namespace ShareBook.Repository.Mapping
 {
-    public class BookUserMap
+    public class BookUserMap : IEntityTypeConfiguration<BookUser>
     {
-        public BookUserMap(EntityTypeBuilder<BookUser> entityBuilder)
+        public void Configure(EntityTypeBuilder<BookUser> entityBuilder)
         {
 
             entityBuilder
@@ -23,15 +23,12 @@ namespace ShareBook.Repository.Mapping
                 .HasForeignKey(bu => bu.UserId);
 
             entityBuilder.Property(bu => bu.Note)
-               .HasColumnType("varchar(2000)")
                .HasMaxLength(2000);
 
             entityBuilder.Property(bu => bu.Reason)
-                .HasColumnType("varchar(2000)")
                 .HasMaxLength(2000);
 
             entityBuilder.Property(bu => bu.NickName)
-                .HasColumnType("varchar(64)")
                 .HasMaxLength(64);
         }
     }
