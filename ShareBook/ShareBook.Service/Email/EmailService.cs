@@ -217,7 +217,8 @@ public class EmailService : IEmailService
 
 
         var hardBounces = bounces.Where(b => !b.IsSoft).ToList();
-        var softBounces = bounces.Where(b => b.IsSoft && b.CreationDate > DateTime.Now.AddDays(-1)).ToList();
+        var oneDayAgo = DateTime.UtcNow.AddDays(-1);
+        var softBounces = bounces.Where(b => b.IsSoft && b.CreationDate > oneDayAgo).ToList();
 
         if (hardBounces.Exists(b => b.Email == email))
             return true;

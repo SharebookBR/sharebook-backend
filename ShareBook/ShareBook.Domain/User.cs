@@ -99,7 +99,8 @@ namespace ShareBook.Domain
         public bool HasAbandonedDonation(int maxLateDonationDays = 15)
         {
             if (BooksDonated == null) return false;
-            return BooksDonated.Any(b => b.Status == BookStatus.AwaitingDonorDecision && (DateTime.Now - b.ChooseDate).Value.Days > maxLateDonationDays);
+            var now = DateTime.UtcNow;
+            return BooksDonated.Any(b => b.Status == BookStatus.AwaitingDonorDecision && (now - b.ChooseDate).Value.Days > maxLateDonationDays);
         }
 
         public void Anonymize()

@@ -22,7 +22,8 @@ namespace ShareBook.Api.Controllers
 
         public async Task<PagedList<Meetup>> GetAsync(int? page, int? pageSize, bool upcoming = false)
         {
-            return await _meetupService.GetAsync(upcoming ? x => x.Active && x.StartDate > DateTime.Now : x => x.Active && x.StartDate <= DateTime.Now, x => x.StartDate, page ?? 1, pageSize ?? 10);
+            var now = DateTime.UtcNow;
+            return await _meetupService.GetAsync(upcoming ? x => x.Active && x.StartDate > now : x => x.Active && x.StartDate <= now, x => x.StartDate, page ?? 1, pageSize ?? 10);
         }
 
         [HttpGet("{id}")]
