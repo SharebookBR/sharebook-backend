@@ -4,19 +4,17 @@ using ShareBook.Domain;
 
 namespace ShareBook.Repository.Mapping
 {
-    public class CategoryMap
+    public class CategoryMap : IEntityTypeConfiguration<Category>
     {
-        public CategoryMap(EntityTypeBuilder<Category> entityBuilder)
+        public void Configure(EntityTypeBuilder<Category> entityBuilder)
         {
 
             entityBuilder.HasKey(t => t.Id);
 
             entityBuilder.Property(t => t.Name)
-                .HasColumnType("varchar(100)")
                 .HasMaxLength(100)
                 .IsRequired();
 
-            
         }
     }
 }
