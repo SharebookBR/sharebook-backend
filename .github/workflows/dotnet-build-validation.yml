@@ -22,3 +22,4 @@ jobs:
         run: dotnet build  ./ShareBook/ShareBook.sln --no-restore
       - name: Test
         run: dotnet test  ./ShareBook/ShareBook.sln --no-build --verbosity normal
+        if: success()
