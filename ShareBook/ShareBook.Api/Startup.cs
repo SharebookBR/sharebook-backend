@@ -43,8 +43,7 @@ namespace ShareBook.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
-            var connectionStringKey = "DefaultConnection";
-            RegisterHealthChecks(services, Configuration.GetConnectionString(connectionStringKey));
+            services.AddDatabaseConfiguration(Configuration);
 
             services.RegisterRepositoryServices();
             services.AddAutoMapper(typeof(Startup));
@@ -96,10 +95,6 @@ namespace ShareBook.Api
                     });
             });
 
-            services
-                .AddDbContext<ApplicationDbContext>(options =>
-                    options
-                        .UseSqlServer(Configuration.GetConnectionString(connectionStringKey)));
 
             RollbarConfigurator
                 .Configure(environment: Configuration.GetSection("Rollbar:Environment").Value,
@@ -151,8 +146,6 @@ namespace ShareBook.Api
                     name: "default",
                     pattern: "{controller=Book}/{action=Index}/{id?}");
 
-                endpoints.MapFallbackToController("Index", "ClientSpa");
-
                 endpoints.MapHealthChecks("/health", new HealthCheckOptions()
                 {
                     AllowCachingResponses = false,
@@ -165,27 +158,19 @@ namespace ShareBook.Api
                 });
             });
 
-            using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
+            if (!IgnoreMigrations)
             {
-                var scopeServiceProvider = serviceScope.ServiceProvider;
-                var context = serviceScope.ServiceProvider.GetService<ApplicationDbContext>();
+                DatabaseConfiguration.EnsureDatabaseCreated(app.ApplicationServices, Configuration);
 
-                if (!IgnoreMigrations)
+                if (env.IsDevelopment() || env.IsStaging())
                 {
-                    context.Database.Migrate();
-                    if (env.IsDevelopment() || env.IsStaging())
-                    {
-                        var sharebookSeeder = new ShareBookSeeder(context);
-                        sharebookSeeder.Seed();
-                    }
+                    using var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
+                    var context = serviceScope.ServiceProvider.GetService<ApplicationDbContext>();
+                    var sharebookSeeder = new ShareBookSeeder(context);
+                    sharebookSeeder.Seed();
                 }
             }
         }
 
-        private void RegisterHealthChecks(IServiceCollection services, string connectionString)
-        {
-            services.AddHealthChecks()
-                .AddSqlServer(connectionString);
-        }
     }
 }

@@ -4,19 +4,17 @@ using ShareBook.Domain;
 
 namespace ShareBook.Repository.Mapping
 {
-    public class UserMap
+    public class UserMap : IEntityTypeConfiguration<User>
     {
-        public UserMap(EntityTypeBuilder<User> entityBuilder)
+        public void Configure(EntityTypeBuilder<User> entityBuilder)
         {
             entityBuilder.HasKey(t => t.Id);
 
             entityBuilder.Property(t => t.Name)
-                .HasColumnType("varchar(200)")
-                .HasMaxLength(100)
+                .HasMaxLength(200)
                 .IsRequired();
 
             entityBuilder.Property(t => t.Email)
-                .HasColumnType("varchar(100)")
                 .HasMaxLength(100)
                 .IsRequired();
 
@@ -24,42 +22,35 @@ namespace ShareBook.Repository.Mapping
                 .IsUnique();
 
             entityBuilder.Property(t => t.Password)
-                    .HasColumnType("varchar(50)")
-                    .HasMaxLength(50)
-                    .IsRequired();
+                .HasMaxLength(50)
+                .IsRequired();
 
             entityBuilder.Property(t => t.PasswordSalt)
-                    .HasColumnType("varchar(50)")
-                    .HasMaxLength(50)
-                    .IsRequired();
+                .HasMaxLength(50)
+                .IsRequired();
 
             entityBuilder.Property(t => t.Linkedin)
-                .HasColumnType("varchar(100)")
                 .HasMaxLength(100);
 
             entityBuilder.Property(t => t.Phone)
-                .HasColumnType("varchar(30)")
                 .HasMaxLength(30);
 
             entityBuilder.Property(t => t.HashCodePassword)
-                .HasColumnType("varchar(200)")
                 .HasMaxLength(200);
 
-            entityBuilder.Property(t => t.HashCodePasswordExpiryDate)
-                .HasColumnType("datetime2(7)");
+            // Removido HasColumnType específico - EF Core escolhe automaticamente
 
             entityBuilder.HasMany(t => t.BooksDonated)
                 .WithOne(b => b.User);
 
             entityBuilder.Property(t => t.Active)
-                .HasDefaultValueSql("1");
+                .HasDefaultValue(true); // Valor padrão compatível
 
             entityBuilder.Property(t => t.AllowSendingEmail)
                 .ValueGeneratedNever()
                 .HasDefaultValue(true);
 
-            entityBuilder.Property(t => t.LastLogin)
-                .HasDefaultValueSql("getdate()");
+            // Removido LastLogin default - será definido no código
 
             entityBuilder.Property(t => t.ParentAproved);
             entityBuilder.Property(t => t.ParentEmail);

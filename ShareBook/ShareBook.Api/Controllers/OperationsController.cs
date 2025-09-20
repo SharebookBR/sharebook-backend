@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Sharebook.Jobs;
 using ShareBook.Api.Filters;
@@ -28,8 +29,9 @@ public class OperationsController : Controller
     private readonly IWebHostEnvironment _env;
     private readonly IMemoryCache _cache;
     private readonly IMeetupService _meetupService;
+    private readonly IConfiguration _config;
 
-    public OperationsController(IJobExecutor executor, IOptions<ServerSettings> settings, IEmailService emailService, IWebHostEnvironment env, IMemoryCache memoryCache, IMeetupService meetupService)
+    public OperationsController(IJobExecutor executor, IOptions<ServerSettings> settings, IEmailService emailService, IWebHostEnvironment env, IMemoryCache memoryCache, IMeetupService meetupService, IConfiguration config)
     {
         _executor = executor;
         _validToken = settings.Value.JobExecutorToken;
@@ -37,6 +39,7 @@ public class OperationsController : Controller
         _env = env;
         _cache = memoryCache;
         _meetupService = meetupService;
+        _config = config;
     }
 
     [HttpGet]
@@ -55,6 +58,7 @@ public class OperationsController : Controller
         var ass = Assembly.GetEntryAssembly();
         var result = new
         {
+            DatabaseProvider = _config["DatabaseProvider"],
             Service = ass.GetName().Name.ToString(),
             Version = ass.GetName().Version.ToString(),
             DotNetVersion = System.Environment.Version.ToString(),

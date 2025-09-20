@@ -4,9 +4,9 @@ using ShareBook.Domain;
 
 namespace ShareBook.Repository.Mapping
 {
-    public class MailBounceMap
+    public class MailBounceMap : IEntityTypeConfiguration<MailBounce>
     {
-        public MailBounceMap(EntityTypeBuilder<MailBounce> entityBuilder)
+        public void Configure(EntityTypeBuilder<MailBounce> entityBuilder)
         {
             entityBuilder.HasIndex("Email");
         }

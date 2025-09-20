@@ -100,6 +100,58 @@ Consiste em usar uma collection do postman (v2.1) para testar os resultados das 
 3. Com o botão direito na collection `ShareBook API - Tests`, clique em `Run collection`
 4. Na nova janela clique em executar. Após executar verifique a quantidade de erros.
 
+# Suporte Multi-Database
+
+O ShareBook agora suporta múltiplos provedores de banco de dados:
+
+## Provedores Suportados
+- **SQL Server** (padrão)
+- **PostgreSQL**
+- **SQLite**
+
+## Configuração
+
+Para alternar entre bancos de dados, edite o arquivo `appsettings.Development.json`:
+
+```json
+{
+  "DatabaseProvider": "sqlserver", // "postgres", "sqlite"
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost;Database=sharebook;...",
+    "PostgresConnection": "Host=localhost;Database=sharebook;Username=postgres;Password=postgres;",
+    "SqliteConnection": "Data Source=sharebook.db;"
+  }
+}
+```
+
+### SQL Server (padrão)
+```json
+"DatabaseProvider": "sqlserver"
+```
+
+### PostgreSQL
+```json
+"DatabaseProvider": "postgres"
+```
+Requer PostgreSQL instalado localmente ou via Docker:
+```bash
+docker run --name postgres-sharebook -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=sharebook -p 5432:5432 -d postgres:15
+```
+
+### SQLite
+```json
+"DatabaseProvider": "sqlite"
+```
+Ideal para desenvolvimento local - não requer instalação de servidor de banco.
+
+## Health Checks
+
+A aplicação inclui health checks automáticos para monitorar a conectividade do banco:
+
+- **Endpoint**: `GET /health` ou `GET /hc`
+- **Resposta**: `Healthy` quando o banco está conectado
+- **Status HTTP**: 200 (Healthy) ou 503 (Unhealthy)
+
 # Build e Run com Docker!
 ```bash
 # Build da imagem
@@ -107,4 +159,12 @@ docker build -t sharebook-api -f devops/Dockerfile .
 
 # Run com environment Development
 docker run -d -p 8000:8080 -e ASPNETCORE_ENVIRONMENT=Development --name sharebook-container sharebook-api
+```
+---
+
+## Migrations - Caminho feliz
+
+```bash
+# cria sua migration
+Add-Migration MigrationInicialPostgres
 ```

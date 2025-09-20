@@ -28,17 +28,10 @@ namespace ShareBook.Repository
         {
             base.OnModelCreating(modelBuilder);
 
-            new BookMap(modelBuilder.Entity<Book>());
-            new UserMap(modelBuilder.Entity<User>());
-            new BookUserMap(modelBuilder.Entity<BookUser>());
-            new CategoryMap(modelBuilder.Entity<Category>());
-            new AddressMap(modelBuilder.Entity<Address>());
-            new JobHistoryMap(modelBuilder.Entity<JobHistory>());
-            new LogEntryMap(modelBuilder.Entity<LogEntry>());
-            new MailBounceMap(modelBuilder.Entity<MailBounce>());
-
             //O Contexto procura pelas classes que implementam IEntityTypeConfiguration adicionando o mapeamento de forma automática.
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+
+            this.SetUtcOnDatabase(modelBuilder);
         }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken))

@@ -63,7 +63,8 @@ public class EmailService : IEmailService
             return;
         }
 
-        var queueMessage = new MailSenderbody{
+        var queueMessage = new MailSenderbody
+        {
             CopyAdmins = copyAdmins,
             Subject = subject,
             BodyHTML = messageText,
@@ -89,7 +90,7 @@ public class EmailService : IEmailService
         var message = await FormatEmailAsync(emailRecipient, nameRecipient, messageText, subject, copyAdmins);
 
         var client = new SmtpClient();
-        
+
         if (_settings.UseSSL)
             client.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
@@ -97,13 +98,13 @@ public class EmailService : IEmailService
         await client.ConnectAsync(_settings.HostName, _settings.Port, _settings.UseSSL);
         await client.AuthenticateAsync(_settings.Username, _settings.Password);
         await client.SendAsync(message);
-        await client.DisconnectAsync(true); 
+        await client.DisconnectAsync(true);
     }
 
     private async Task<MimeMessage> FormatEmailAsync(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins)
     {
         var message = new MimeMessage();
-        message.From.Add(new MailboxAddress("Sharebook", "contato@sharebook.com.br"));
+        message.From.Add(new MailboxAddress("Sharebook", "noreply@pegasus-soft.com.br"));
         message.To.Add(new MailboxAddress(nameRecipient, emailRecipient));
 
         if (copyAdmins)
@@ -123,7 +124,8 @@ public class EmailService : IEmailService
     private async Task<InternetAddressList> FormatEmailGetAdminEmailsAsync()
     {
         var admins = await _userRepository.Get()
-            .Select(u => new User {
+            .Select(u => new User
+            {
                 Email = u.Email,
                 Profile = u.Profile
             }
@@ -151,7 +153,7 @@ public class EmailService : IEmailService
     {
         var log = new List<string>();
 
-        if(string.IsNullOrEmpty(_settings.BounceFolder))
+        if (string.IsNullOrEmpty(_settings.BounceFolder))
         {
             log.Add("Não foi possível processar os emails bounce porque o 'BounceFolder' não está configurado.");
             return log;
@@ -181,7 +183,7 @@ public class EmailService : IEmailService
             {
                 log.Add($"Não vou processar porque NÃO É um email bounce:  subject: {message.Subject}");
             }
-   
+
         }
 
         await _ctx.SaveChangesAsync();
