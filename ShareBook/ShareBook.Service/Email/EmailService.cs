@@ -104,7 +104,7 @@ public class EmailService : IEmailService
     private async Task<MimeMessage> FormatEmailAsync(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins)
     {
         var message = new MimeMessage();
-        message.From.Add(new MailboxAddress("Sharebook", "noreply@pegasus-soft.com.br"));
+        message.From.Add(new MailboxAddress("Sharebook", _settings.Sender));
         message.To.Add(new MailboxAddress(nameRecipient, emailRecipient));
 
         if (copyAdmins)
