@@ -55,7 +55,8 @@ namespace ShareBook.Service
 
             string decryptedPass = user.Password;
 
-            user = await _repository.FindAsync(e => e.Email == user.Email);
+            var normalizedEmail = user.Email?.Trim().ToLowerInvariant();
+            user = await _repository.FindAsync(e => e.Email == normalizedEmail);
 
             if (user == null)
             {
@@ -202,7 +203,8 @@ namespace ShareBook.Service
         public async Task<Result> GenerateHashCodePasswordAndSendEmailToUserAsync(string email)
         {
             var result = new Result();
-            var user = await _repository.FindAsync(e => e.Email == email);
+            var normalizedEmail = email?.Trim().ToLowerInvariant();
+            var user = await _repository.FindAsync(e => e.Email == normalizedEmail);
 
             if (user == null)
             {

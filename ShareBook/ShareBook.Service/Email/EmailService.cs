@@ -91,7 +91,7 @@ public class EmailService : IEmailService
         var message = await FormatEmailAsync(emailRecipient, nameRecipient, messageText, subject, copyAdmins);
 
         using var client = new SmtpClient();
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
 
         if (_settings.UseSSL)
             client.ServerCertificateValidationCallback = (s, c, h, e) => true;
