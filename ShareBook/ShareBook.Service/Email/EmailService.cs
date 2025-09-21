@@ -13,6 +13,7 @@ using ShareBook.Service.AwsSqs.Dto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ShareBook.Service;
@@ -89,17 +90,20 @@ public class EmailService : IEmailService
     {
         var message = await FormatEmailAsync(emailRecipient, nameRecipient, messageText, subject, copyAdmins);
 
-        var client = new SmtpClient();
+        using var client = new SmtpClient();
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
 
         if (_settings.UseSSL)
             client.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
         client.CheckCertificateRevocation = false;
-        await client.ConnectAsync(_settings.HostName, _settings.Port, _settings.UseSSL);
-        await client.AuthenticateAsync(_settings.Username, _settings.Password);
-        await client.SendAsync(message);
-        await client.DisconnectAsync(true);
+
+        await client.ConnectAsync(_settings.HostName, _settings.Port, _settings.UseSSL, cts.Token);
+        await client.AuthenticateAsync(_settings.Username, _settings.Password, cts.Token);
+        await client.SendAsync(message, cts.Token);
+        await client.DisconnectAsync(true, cts.Token);
     }
+
 
     private async Task<MimeMessage> FormatEmailAsync(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins)
     {
