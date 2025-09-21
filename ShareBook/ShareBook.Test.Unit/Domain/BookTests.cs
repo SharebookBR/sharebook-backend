@@ -44,7 +44,7 @@ namespace ShareBook.Test.Unit.Domain
             int expectedDays = 5;
             var book = new Book
             {
-                CreationDate = DateTime.Now.AddDays(expectedDays * -1)
+                CreationDate = DateTime.UtcNow.AddDays(expectedDays * -1)
             };
 
             Assert.Equal(expectedDays, book.DaysInShowcase());

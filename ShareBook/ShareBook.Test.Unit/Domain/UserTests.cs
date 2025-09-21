@@ -12,7 +12,7 @@ namespace ShareBook.Test.Unit.Domain
         [Fact]
         public void HashCodePasswordDateExpired()
         {
-            var expectedDay = DateTime.Now.AddDays(2);
+            var expectedDay = DateTime.UtcNow.AddDays(2);
             var hashCodePassword = Salt.Create();
             var user = new User()
             {
@@ -26,7 +26,7 @@ namespace ShareBook.Test.Unit.Domain
         [Fact]
         public void HashCodePasswordDateValid()
         {
-            var expectedDay = DateTime.Now.AddDays(1);
+            var expectedDay = DateTime.UtcNow.AddDays(1);
             var hashCodePassword = Salt.Create();
             var user = new User()
             {
@@ -40,7 +40,7 @@ namespace ShareBook.Test.Unit.Domain
         [Fact]
         public void HashCodeInValid()
         {
-            var expectedDay = DateTime.Now.AddDays(1);
+            var expectedDay = DateTime.UtcNow.AddDays(1);
             var hashCodePassword = Salt.Create();
             var user = new User()
             {
@@ -54,7 +54,7 @@ namespace ShareBook.Test.Unit.Domain
         [Fact]
         public void GenerateHashCodePasswordValid()
         {
-            var expectedDay = DateTime.Now.AddDays(1);
+            var expectedDay = DateTime.UtcNow.AddDays(1);
             var hashCodePassword = Salt.Create();
             var user = new User()
             {
@@ -68,14 +68,14 @@ namespace ShareBook.Test.Unit.Domain
         [Fact]
         public void CheckBruteForceTrue()
         {
-            var user = new User() { LastLogin = DateTime.Now.AddSeconds(-5) };
+            var user = new User() { LastLogin = DateTime.UtcNow.AddSeconds(-5) };
             Assert.True(user.IsBruteForceLogin());
         }
 
         [Fact]
         public void CheckBruteForceFalse()
         {
-            var user = new User() { LastLogin = DateTime.Now.AddSeconds(-31) };
+            var user = new User() { LastLogin = DateTime.UtcNow.AddSeconds(-31) };
             Assert.False(user.IsBruteForceLogin());
         }
     }

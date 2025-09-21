@@ -61,7 +61,7 @@ namespace ShareBook.Test.Unit.Jobs
             // Mocking 4 books. 2 Of them are ready to be cancelled.
             var booksToCancel = _allBooks.Take(2);
             foreach (var book in booksToCancel)
-                book.ChooseDate = DateTime.Now.AddDays((_maxLateDonationDaysAutoCancel + 2) * -1);
+                book.ChooseDate = DateTime.UtcNow.AddDays((_maxLateDonationDaysAutoCancel + 2) * -1);
 
             CancelAbandonedDonations job = new CancelAbandonedDonations(_mockJobHistoryRepository.Object, _mockBookService.Object, _mockBookUserService.Object, _mockConfiguration.Object);
             

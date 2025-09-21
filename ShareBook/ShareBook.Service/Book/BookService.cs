@@ -34,7 +34,7 @@ namespace ShareBook.Service
 
         public BookService(IBookRepository bookRepository,
                     IUnitOfWork unitOfWork, IValidator<Book> validator,
-                    IUploadService uploadService, IBooksEmailService booksEmailService, IConfiguration configuration, 
+                    IUploadService uploadService, IBooksEmailService booksEmailService, IConfiguration configuration,
                     NewBookQueue newBookQueue)
                     : base(bookRepository, unitOfWork, validator)
         {
@@ -60,13 +60,14 @@ namespace ShareBook.Service
             await _booksEmailService.SendEmailBookApprovedAsync(book);
 
             // notifica possíveis interessados.
-            var message = new NewBookBody{
+            var message = new NewBookBody
+            {
                 BookId = book.Id,
                 BookTitle = book.Title,
                 CategoryId = book.CategoryId
             };
             await _newBookQueue.SendMessageAsync(message);
-            
+
         }
 
         public async Task ReceivedAsync(Guid bookId, Guid winnerUserId)
@@ -367,7 +368,7 @@ namespace ShareBook.Service
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
-            var saoPauloNow = DateTimeHelper.ConvertDateTimeSaoPaulo(DateTime.Now);
+            var saoPauloNow = DateTimeHelper.ConvertDateTimeSaoPaulo(DateTime.UtcNow);
             var date = saoPauloNow.ToString("dd/MM/yyyy");
             var lineBreak = (string.IsNullOrEmpty(book.FacilitatorNotes)) ? "" : "\n";
             book.FacilitatorNotes += string.Format("{0}{1} - {2}", lineBreak, date, facilitatorNotes);
@@ -395,7 +396,7 @@ namespace ShareBook.Service
                 throw new ShareBookException(ShareBookException.Error.BadRequest, "Aguarde a data de decisão.");
 
             book.Status = BookStatus.Available;
-            book.ChooseDate = DateTime.Now.AddDays(10);
+            book.ChooseDate = DateTime.UtcNow.AddDays(10);
             await _repository.UpdateAsync(book);
         }
 

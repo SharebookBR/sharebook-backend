@@ -51,7 +51,7 @@ namespace Sharebook.Jobs
 
         public DateTime GetDateLimitByInterval(Interval i)
         {
-            var result = DateTime.Now;
+            var result = DateTime.UtcNow;
 
             switch (i)
             {

@@ -16,11 +16,11 @@ namespace ShareBook.Domain
         public string PasswordSalt { get; set; }
         public string HashCodePassword { get; set; }
         public DateTime HashCodePasswordExpiryDate { get; set; }
-        public DateTime LastLogin { get; set; } = DateTime.Now;
+        public DateTime LastLogin { get; set; } = DateTime.UtcNow;
         public string Linkedin { get; set; }
         public string Instagram { get; set; }
-        public  string Phone{ get; set; }
-        public Profile Profile { get;  set; } = Profile.User;
+        public string Phone { get; set; }
+        public Profile Profile { get; set; } = Profile.User;
         public bool Active { get; set; } = true;
         public bool AllowSendingEmail { get; set; } = true;
         public virtual Address Address { get; set; }
@@ -50,14 +50,14 @@ namespace ShareBook.Domain
 
         public void GenerateHashCodePassword()
         {
-            this.HashCodePassword =  Guid.NewGuid().ToString();
-            this.HashCodePasswordExpiryDate = DateTime.Now.AddDays(1); 
+            this.HashCodePassword = Guid.NewGuid().ToString();
+            this.HashCodePasswordExpiryDate = DateTime.UtcNow.AddDays(1);
         }
 
         public bool HashCodePasswordIsValid(string hashCodePassword)
-             => hashCodePassword == this.HashCodePassword 
-                && (this.HashCodePasswordExpiryDate.Date == DateTime.Now.AddDays(1).Date
-                   || this.HashCodePasswordExpiryDate.Date == DateTime.Now.Date);
+             => hashCodePassword == this.HashCodePassword
+                && (this.HashCodePasswordExpiryDate.Date == DateTime.UtcNow.AddDays(1).Date
+                   || this.HashCodePasswordExpiryDate.Date == DateTime.UtcNow.Date);
 
         public void Change(string email, string name, string linkedin, string instagram, string phone, bool AllowSendingEmail)
         {
@@ -85,13 +85,13 @@ namespace ShareBook.Domain
 
         public bool IsBruteForceLogin()
         {
-            var refDate = DateTime.Now.AddSeconds(-30);
+            var refDate = DateTime.UtcNow.AddSeconds(-30);
             return LastLogin > refDate;
         }
 
         public string Location() => Address.City + "-" + Address.State;
 
-        public int TotalBooksWon() => BookUsers.Where(b => b.Status == DonationStatus.Donated).ToList().Count ;
+        public int TotalBooksWon() => BookUsers.Where(b => b.Status == DonationStatus.Donated).ToList().Count;
 
         public int TotalBooksDonated() => BooksDonated.Count(b => b.Status == BookStatus.WaitingSend || b.Status == BookStatus.Sent || b.Status == BookStatus.Received);
 
@@ -106,7 +106,7 @@ namespace ShareBook.Domain
         public void Anonymize()
         {
             Name = "USUÁRIO ANONIMIZADO";
-            Email = "anonimizado_" + DateTime.Now.ToFileTime() + "@sharebook.com.br";
+            Email = "anonimizado_" + DateTime.UtcNow.ToFileTime() + "@sharebook.com.br";
             Active = false;
             AllowSendingEmail = false;
             Linkedin = null;

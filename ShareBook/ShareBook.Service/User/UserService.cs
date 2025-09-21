@@ -71,7 +71,7 @@ namespace ShareBook.Service
 
             // persiste última tentativa de login ANTES do SUCESSO ou FALHA pra ter métrica de
             // verificação de brute force.
-            user.LastLogin = DateTime.Now;
+            user.LastLogin = DateTime.UtcNow;
             await _userRepository.UpdateAsync(user);
 
             if (!IsValidPassword(user, decryptedPass))

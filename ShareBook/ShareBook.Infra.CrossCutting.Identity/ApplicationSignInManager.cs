@@ -19,7 +19,7 @@ namespace ShareBook.Infra.CrossCutting.Identity
                     }
                 );
 
-            DateTime creationDate = DateTime.Now;
+            DateTime creationDate = DateTime.UtcNow;
             DateTime expireDate = creationDate + TimeSpan.FromSeconds(tokenConfigurations.Seconds);
 
             var handler = new JwtSecurityTokenHandler();
