@@ -86,9 +86,9 @@ namespace ShareBook.Api.Controllers
         }
 
         [Authorize("Bearer")]
-        [HttpPost("promote/{id}")]
+        [HttpPost("promote")]
         [AuthorizationFilter(Permissions.Permission.ApproveBook)]
-        public async Task<Result> Promote(string id, [FromBody] NewBookBody newBook)
+        public async Task<Result> Promote([FromBody] NewBookBody newBook)
         {
             await _service.Promote(newBook);
             return new Result("Livro promovido com sucesso.");
