@@ -123,7 +123,7 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
             BookTitle = book.Title,
             BookSlug = book.Slug,
             BookImageSlug = book.ImageSlug,
-            SharebookBaseUrl = _configuration["ServerSettings:DefaultUrl"],
+            SharebookBaseUrl = _configuration["ServerSettings:FrontendUrl"],
             Name = "{Name}"// o MailSender vai trocar pelo nome do usuário.
         };
 
