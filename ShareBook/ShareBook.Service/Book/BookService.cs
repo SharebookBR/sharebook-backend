@@ -70,6 +70,11 @@ namespace ShareBook.Service
 
         }
 
+        public async Task Promote(NewBookBody newBook)
+        {
+            await _newBookQueue.SendMessageAsync(newBook);
+        }
+
         public async Task ReceivedAsync(Guid bookId, Guid winnerUserId)
         {
             var book = await _repository.Get().Include(f => f.BookUsers)
