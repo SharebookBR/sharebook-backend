@@ -50,18 +50,18 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
     public override async Task<JobHistory> WorkAsync()
     {
         var awsSqsEnabled = bool.Parse(_configuration["AwsSqsSettings:IsActive"]);
-        if(!awsSqsEnabled) throw new AwsSqsDisabledException("Serviço aws sqs está desabilitado no appsettings.");
-        
+        if (!awsSqsEnabled) throw new AwsSqsDisabledException("Serviço aws sqs está desabilitado no appsettings.");
+
         int totalDestinations = 0;
         int sendEmailMaxDestinationsPerQueueMessage = GetEmailMaxDestinationsPerQueueMessage();
-        
+
         // 1 - lê a fila de origem
         var newBookMessage = await _newBookQueue.GetMessageAsync();
 
         // fila vazia, não faz nada
         if (newBookMessage == null)
         {
-            return new JobHistory() 
+            return new JobHistory()
             {
                 JobName = JobName,
                 IsSuccess = true,
@@ -78,11 +78,12 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
         // Alimenta a fila de destino - baixa prioridade do Mail Sender
         int maxMessages = interestedUsers.Count % sendEmailMaxDestinationsPerQueueMessage == 0 ? interestedUsers.Count / sendEmailMaxDestinationsPerQueueMessage : interestedUsers.Count / sendEmailMaxDestinationsPerQueueMessage + 1;
 
-        for(int i = 1; i <= maxMessages; i++)
+        for (int i = 1; i <= maxMessages; i++)
         {
             var destinations = interestedUsers.OrderBy(i => i.Id).Skip((i - 1) * sendEmailMaxDestinationsPerQueueMessage).Take(sendEmailMaxDestinationsPerQueueMessage).Select(u => new Destination { Name = u.Name, Email = u.Email });
 
-            var mailSenderbody = new MailSenderbody {
+            var mailSenderbody = new MailSenderbody
+            {
                 Subject = $"Chegou o livro '{newBook.BookTitle}'",
                 BodyHTML = template,
                 Destinations = destinations.ToList()
@@ -95,7 +96,7 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
         await _newBookQueue.DeleteMessageAsync(newBookMessage.ReceiptHandle);
 
         // finaliza com sucesso
-        return new JobHistory() 
+        return new JobHistory()
         {
             JobName = JobName,
             IsSuccess = true,
@@ -110,20 +111,22 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
 
         // Queremos que o MailSender processe 3 mensagens sqs pra fazer seu trabalho
         var totalSqsMessagensPerWork = 3;
-        
+
         var maxEmailsPerHour = int.Parse(_configuration["EmailSettings:MaxEmailsPerHour"]);
         return (maxEmailsPerHour / mailSenderInvocationsPerHour) / totalSqsMessagensPerWork;
     }
 
-    private async Task<string> GetEmailTemplateAsync(Guid bookId){
+    private async Task<string> GetEmailTemplateAsync(Guid bookId)
+    {
         var book = await _bookService.FindAsync(bookId);
-        
+
         var vm = new
         {
             BookTitle = book.Title,
             BookSlug = book.Slug,
             BookImageSlug = book.ImageSlug,
-            SharebookBaseUrl = _configuration["ServerSettings:FrontendUrl"],
+            BackendUrl = _configuration["ServerSettings:BackendUrl"],
+            FrontendUrl = _configuration["ServerSettings:FrontendUrl"],
             Name = "{Name}"// o MailSender vai trocar pelo nome do usuário.
         };
 
