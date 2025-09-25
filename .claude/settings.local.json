@@ -10,7 +10,8 @@
       "Bash(findstr:*)",
       "Read(//c/Users/brnra019/Documents/Lightshot/**)",
       "Bash(git rm:*)",
-      "Read(//c/REPOS/SHAREBOOK/sharebook-frontend/**)"
+      "Read(//c/REPOS/SHAREBOOK/sharebook-frontend/**)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []
