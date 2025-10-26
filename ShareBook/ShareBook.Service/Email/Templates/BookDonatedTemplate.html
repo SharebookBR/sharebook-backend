@@ -5,22 +5,35 @@
     <title>Parabéns você foi selecionado para receber o livro - Sharebook</title>
 </head>
 <body>
-    <h4>Parabéns você foi selecionado para receber o livro <strong>{Book.Title}</strong></h4>
     <p>
-        Olá {User.Name},
-    </p>
-    <p>
-        Veja mais informações abaixo sobre o livro doado:
+        Olá, {User.Name}! 🎉<br /><br />
+
+        <strong>Temos uma ótima notícia: você foi escolhido(a) para receber o livro "{Book.Title}"!</strong><br /><br />
+
+        O doador leu sua mensagem com atenção e sentiu que esse livro pode fazer a diferença na sua vida neste momento.
+        Estamos muito felizes em fazer parte dessa conexão! 💛<br /><br />
+
+        <strong>Sobre o doador:</strong><br />
+        {Book.User.Name} está enviando este livro especialmente para você.
+        Entre em contato para combinar a entrega e, se possível, agradeça — gestos como esse fortalecem nossa comunidade de leitores.<br /><br />
     </p>
 
     <ul>
-        <li><strong>Livro: </strong>{Book.Title}</li>
-        <li><strong>Doador: </strong>{Book.User.Name}</li>
-        <li><strong>Linkedin Doador: </strong>{Book.User.Linkedin}</li>
-        <li><strong>Telefone Doador: </strong>{Book.User.Phone}</li>
-        <li><strong>Email Doador: </strong>{Book.User.Email}</li>
+        <li><strong>Nome: </strong>{Book.User.Name}</li>
+        <li><strong>Email: </strong>{Book.User.Email}</li>
+        <li><strong>Telefone: </strong>{Book.User.Phone}</li>
+        <li><strong>LinkedIn: </strong>{Book.User.Linkedin}</li>
     </ul>
 
-    <p>Sharebook</p>
+    <p>
+        <br />
+        Aproveite cada página! E quando terminar a leitura, que tal devolver esse gesto de generosidade doando outro livro?
+        A corrente do conhecimento continua com você. 📚<br /><br />
+    </p>
+
+    <p>
+        Com carinho,<br />
+        Equipe Sharebook – Compartilhando conhecimento
+    </p>
 </body>
 </html>  
