@@ -1,7 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,7 +13,7 @@
     <ProjectReference Include="..\ShareBook.Service\ShareBook.Service.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Rollbar" Version="4.0.3" />
-    <PackageReference Include="Rollbar.NetCore.AspNet" Version="4.0.3" />
+    <PackageReference Include="Rollbar" Version="5.2.2" />
+    <PackageReference Include="Rollbar.NetCore.AspNet" Version="5.2.2" />
   </ItemGroup>
 </Project>
