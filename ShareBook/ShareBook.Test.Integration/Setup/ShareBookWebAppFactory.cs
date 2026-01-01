@@ -1,11 +1,8 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using ShareBook.Api;
-using ShareBook.Repository;
 
 namespace ShareBook.Test.Integration.Setup;
 
@@ -14,6 +11,24 @@ public class ShareBookWebAppFactory : WebApplicationFactory<Program>
     protected override IHostBuilder? CreateHostBuilder()
     {
         return Host.CreateDefaultBuilder()
+            .ConfigureAppConfiguration((context, config) =>
+            {
+                // Add test configuration values
+                config.AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["TokenConfigurations:SecretJwtKey"] = "ShareBookTestSecretKeyForIntegrationTests12345",
+                    ["TokenConfigurations:Audience"] = "ShareBookAudience",
+                    ["TokenConfigurations:Issuer"] = "Sharebook",
+                    ["TokenConfigurations:Seconds"] = "86400",
+                    ["DatabaseProvider"] = "inmemory",
+                    ["Rollbar:IsActive"] = "false",
+                    ["EmailSettings:IsActive"] = "false",
+                    ["PushNotificationSettings:IsActive"] = "false",
+                    ["Muambator:IsActive"] = "false",
+                    ["AwsSqsSettings:IsActive"] = "false",
+                    ["MeetupSettings:IsActive"] = "false"
+                });
+            })
             .ConfigureWebHostDefaults(webBuilder =>
             {
                 webBuilder.UseStartup<Startup>();
@@ -24,17 +39,5 @@ public class ShareBookWebAppFactory : WebApplicationFactory<Program>
     {
         base.ConfigureWebHost(builder);
         Startup.IgnoreMigrations = true;
-
-        builder.ConfigureTestServices(services =>
-        {
-            var dbOptions = services.FirstOrDefault(x => x.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
-            if (dbOptions != null)
-                services.Remove(dbOptions);
-
-            services.AddDbContext<ApplicationDbContext>(options =>
-            {
-                options.UseInMemoryDatabase("ShareBookInMemoryDb");
-            });
-        });
     }
 }
