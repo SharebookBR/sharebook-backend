@@ -1,5 +1,5 @@
 # Build stage
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /app
 
 # Copy source code
@@ -9,7 +9,7 @@ COPY ShareBook/ ./ShareBook/
 RUN dotnet publish ShareBook/ShareBook.Api/ShareBook.Api.csproj -c Release -o /app/publish --verbosity normal
 
 # Runtime stage
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 
 # Instala curl - necessário pro health check funcionar
 RUN apt-get update && apt-get install -y curl
@@ -35,3 +35,6 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=30s \
 
 # Set entry point
 ENTRYPOINT ["dotnet", "ShareBook.Api.dll"]
+
+# docker build -t sharebook-api -f devops/Dockerfile .
+# docker run -d -p 8080:8080 --name sharebook-api sharebook-api
