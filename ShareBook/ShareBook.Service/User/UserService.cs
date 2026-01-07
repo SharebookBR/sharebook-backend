@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.DTOs;
@@ -17,6 +13,11 @@ using ShareBook.Repository.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service.Generic;
 using ShareBook.Service.Recaptcha;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ShareBook.Service
 {
@@ -26,7 +27,8 @@ namespace ShareBook.Service
         private readonly IBookRepository _bookRepository;
         private readonly IUserEmailService _userEmailService;
         private readonly IRecaptchaService _recaptchaService;
-        
+        private readonly IConfiguration _config;
+
         private readonly IMapper _mapper;
 
 
@@ -37,13 +39,14 @@ namespace ShareBook.Service
             IValidator<User> validator,
             IMapper mapper,
             IUserEmailService userEmailService,
-            IRecaptchaService recaptchaService) : base(userRepository, unitOfWork, validator)
+            IRecaptchaService recaptchaService, IConfiguration config) : base(userRepository, unitOfWork, validator)
         {
             _userRepository = userRepository;
             _userEmailService = userEmailService;
             _bookRepository = bookRepository;
             _mapper = mapper;
             _recaptchaService = recaptchaService;
+            _config = config;
         }
 
         public async Task<Result<User>> AuthenticationByEmailAndPasswordAsync(User user)
@@ -52,7 +55,8 @@ namespace ShareBook.Service
 
             string decryptedPass = user.Password;
 
-            user = await _repository.FindAsync(e => e.Email == user.Email);
+            var normalizedEmail = user.Email?.Trim().ToLowerInvariant();
+            user = await _repository.FindAsync(e => e.Email == normalizedEmail);
 
             if (user == null)
             {
@@ -68,7 +72,7 @@ namespace ShareBook.Service
 
             // persiste última tentativa de login ANTES do SUCESSO ou FALHA pra ter métrica de
             // verificação de brute force.
-            user.LastLogin = DateTime.Now;
+            user.LastLogin = DateTime.UtcNow;
             await _userRepository.UpdateAsync(user);
 
             if (!IsValidPassword(user, decryptedPass))
@@ -99,7 +103,7 @@ namespace ShareBook.Service
             Result resultRecaptcha = _recaptchaService.SimpleValidationRecaptcha(userDto?.RecaptchaReactive);
 
             var result = await ValidateAsync(user);
-            if (!resultRecaptcha.Success && resultRecaptcha.Messages != null) 
+            if (!resultRecaptcha.Success && resultRecaptcha.Messages != null)
                 result.Messages.AddRange(resultRecaptcha.Messages);
 
             if (!result.Success)
@@ -199,7 +203,8 @@ namespace ShareBook.Service
         public async Task<Result> GenerateHashCodePasswordAndSendEmailToUserAsync(string email)
         {
             var result = new Result();
-            var user = await _repository.FindAsync(e => e.Email == email);
+            var normalizedEmail = email?.Trim().ToLowerInvariant();
+            var user = await _repository.FindAsync(e => e.Email == normalizedEmail);
 
             if (user == null)
             {
@@ -232,31 +237,53 @@ namespace ShareBook.Service
 
         public IList<User> GetFacilitators(Guid userIdDonator)
         {
-            string query = @"SELECT
-                            CONCAT(Name, ' (', total, ')') as Name, Id
-                            FROM
-                            (
-                                SELECT TOP 100
-                                    u.Name, u.Id,
-                                    (SELECT COUNT(*) as total FROM Books b
-                                      WHERE b.UserIdFacilitator = u.Id and b.UserId = {0}
-                                    ) as total
-                                FROM
-                                    Users u
-                                WHERE u.Profile = 0 -- Administrador
-                                ORDER BY total desc, u.Name
-                            ) sub";
+            var database = _config["DatabaseProvider"].ToLower();
+
+            string query;
+
+            if (database == "sqlserver")
+            {
+                query = @"
+                    SELECT TOP 100
+                        u.Id,
+                        CONCAT(u.Name, ' (', COUNT(b.Id), ')') as Name
+                    FROM Users u
+                    LEFT JOIN Books b
+                        ON b.UserIdFacilitator = u.Id
+                       AND b.UserId = {0}
+                    WHERE u.Profile = 0
+                    GROUP BY u.Id, u.Name
+                    ORDER BY COUNT(b.Id) DESC, u.Name";
+            }
+            else // Postgres ou SQLite
+            {
+                query = @"
+                    SELECT
+                        u.""Id"",
+                        (u.""Name"" || ' (' || COUNT(b.""Id"") || ')') as ""Name""
+                    FROM ""Users"" u
+                    LEFT JOIN ""Books"" b
+                        ON b.""UserIdFacilitator"" = u.""Id""
+                       AND b.""UserId"" = {0}
+                    WHERE u.""Profile"" = 0
+                    GROUP BY u.""Id"", u.""Name""
+                    ORDER BY COUNT(b.""Id"") DESC, u.""Name""
+                    LIMIT 100";
+            }
+
             var parameters = new object[] { userIdDonator };
 
             return _repository.FromSql(query, parameters)
-                    .Select(x => new User
-                    {
-                        Id = x.Id,
-                        Name = x.Name
-                    }).ToList();
+                .Select(x => new User
+                {
+                    Id = x.Id,
+                    Name = x.Name
+                }).ToList();
         }
 
-        public IList<User> GetAdmins() {
+
+        public IList<User> GetAdmins()
+        {
             return _userRepository.Get()
                 .Where(u => u.Profile == Domain.Enums.Profile.Administrator)
                 .ToList();
@@ -346,7 +373,7 @@ namespace ShareBook.Service
             await _userEmailService.SendEmailParentAprovedNotifyUserAsync(user);
         }
 
-        
+
         #endregion Private
     }
 }

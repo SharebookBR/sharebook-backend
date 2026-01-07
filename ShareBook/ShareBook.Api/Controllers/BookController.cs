@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Flurl.Util;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
@@ -7,17 +8,17 @@ using ShareBook.Api.ViewModels;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.DTOs;
+using ShareBook.Domain.Enums;
+using ShareBook.Domain.Exceptions;
 using ShareBook.Repository.Repository;
 using ShareBook.Service;
 using ShareBook.Service.Authorization;
+using ShareBook.Service.AwsSqs.Dto;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Flurl.Util;
-using ShareBook.Domain.Enums;
-using ShareBook.Domain.Exceptions;
 
 namespace ShareBook.Api.Controllers
 {
@@ -82,6 +83,15 @@ namespace ShareBook.Api.Controllers
         {
             await _service.ApproveAsync(new Guid(id), model?.ChooseDate);
             return new Result("Livro aprovado com sucesso.");
+        }
+
+        [Authorize("Bearer")]
+        [HttpPost("promote")]
+        [AuthorizationFilter(Permissions.Permission.ApproveBook)]
+        public async Task<Result> Promote([FromBody] NewBookBody newBook)
+        {
+            await _service.Promote(newBook);
+            return new Result("Livro promovido com sucesso.");
         }
 
         [Authorize("Bearer")]

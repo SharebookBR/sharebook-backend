@@ -4,6 +4,15 @@
 
 Sharebook é nosso app livre e gratuito para doação de livros. Nosso backend é feito em .NET 8, com arquitetura limpa e testes unitários. O frontend é em Angular.
 
+### 💛 Sobre o Público do Sharebook
+**CONTEXTO CRÍTICO:** Muitos usuários do Sharebook passam por depressão e vulnerabilidade emocional. Alguns já comentaram sobre tentativas de suicídio. Se abriram isso no app, é porque confiam na plataforma e estão em situação delicada.
+
+**Implicações:**
+- **Comunicação**: Sempre use tom acolhedor, empático e humanizado. Evite frieza ou objetividade excessiva.
+- **Rejeições**: Nunca seja seco ao comunicar que não foram escolhidos. Valide o esforço, mostre que importam, deixe esperança.
+- **Emails/notificações**: Preferir texto um pouco mais longo e carinhoso do que curto e direto. Emojis apropriados são bem-vindos.
+- **UX**: Lembrar que cada interação pode impactar alguém fragilizado. Funcionalidades devem ser claras e gentis.
+
 ### Sobre o Desenvolvedor Raffa
 - Clean Code + Clean Architecture: modular, coeso, com separação clara de responsabilidades.
 - Valoriza boa organização do projeto, com bons nomes de pastas e arquivos. Vale a pena investir tempo nisso.

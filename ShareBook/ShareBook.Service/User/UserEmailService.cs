@@ -25,7 +25,7 @@ namespace ShareBook.Service
         {
             var vm = new
             {
-                LinkForgotMyPassword = $"{_serverSettings.DefaultUrl}/ForgotPassword/{user.HashCodePassword}",
+                LinkForgotMyPassword = $"{_serverSettings.FrontendUrl}/ForgotPassword/{user.HashCodePassword}",
                 User = user,
             };
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync("ForgotPasswordTemplate", vm);
@@ -39,7 +39,7 @@ namespace ShareBook.Service
             var vm = new
             {
                 UserName = user.Name,
-                AprovalLink = $"{_serverSettings.DefaultUrl}/consentimento-dos-pais/{user.ParentHashCodeAproval}",
+                AprovalLink = $"{_serverSettings.FrontendUrl}/consentimento-dos-pais/{user.ParentHashCodeAproval}",
             };
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync("RequestParentAproval", vm);
 
@@ -51,7 +51,7 @@ namespace ShareBook.Service
         {
             var vm = new
             {
-                SharebookLink = _serverSettings.DefaultUrl
+                SharebookLink = _serverSettings.FrontendUrl
             };
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync("ParentAprovedNotifyUser", vm);
 

@@ -1,375 +1,212 @@
-﻿<!DOCTYPE html>
-<html style="padding: 0px; margin: 0px;" lang="pt_br">
+<!DOCTYPE html>
+<html lang="pt-br">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fale Conosco - Sharebook</title>
     <style>
-        body {
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
         }
 
-        @media only screen and (max-width:640px) {
-            table, img[class="partial-image"] {
-                width: 100% !important;
-                height: auto !important;
-                min-width: 200px !important;
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.6;
+            color: #777;
+            background-color: #f2f2f2;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            text-align: center;
+            padding: 30px 20px 10px;
+            background: linear-gradient(135deg, #40BEFF 0%, #009FC7 100%);
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 300;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .logo {
+            text-align: center;
+            padding: 30px 20px;
+            background-color: #f8f9fa;
+        }
+
+        .logo img {
+            max-width: 188px;
+            height: auto;
+            border: none;
+        }
+
+        .main-content {
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .greeting {
+            font-size: 26px;
+            color: #333;
+            margin-bottom: 30px;
+            font-weight: 300;
+        }
+
+        .message {
+            font-size: 16px;
+            line-height: 1.7;
+            color: #555;
+            margin-bottom: 30px;
+        }
+
+        .message p {
+            margin-bottom: 15px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #40BEFF 0%, #009FC7 100%);
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 16px;
+            padding: 15px 30px;
+            border-radius: 25px;
+            margin: 20px 0;
+            transition: transform 0.2s ease;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .footer {
+            background-color: #f8f9fa;
+            padding: 30px 20px;
+            text-align: center;
+            border-top: 1px solid #eee;
+        }
+
+        .social-title {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .social-links {
+            margin-bottom: 20px;
+        }
+
+        .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            transition: transform 0.2s ease;
+        }
+
+        .social-links a:hover {
+            transform: scale(1.1);
+        }
+
+        .social-links img {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 4px;
+        }
+
+        .copyright {
+            font-size: 12px;
+            color: #999;
+            font-style: italic;
+        }
+
+        @media only screen and (max-width: 600px) {
+            .container {
+                margin: 10px;
+                border-radius: 4px;
             }
+
+            .main-content {
+                padding: 30px 20px;
+            }
+
+            .greeting {
+                font-size: 22px;
+            }
+
+            .message {
+                font-size: 15px;
+            }
+
+            .cta-button {
+                padding: 12px 25px;
+                font-size: 15px;
+            }
+        }
     </style>
 </head>
 <body>
-    <table style="border-collapse: collapse; border-spacing:
-   0; min-height: 418px;" cellpadding="0" cellspacing="0" width="100%" bgcolor="#f2f2f2">
-        <tbody>
-            <tr>
-                <td align="center" style="border-collapse: collapse;
-            padding-top: 30px; padding-bottom: 30px;">
-                    <table cellpadding="5" cellspacing="5" width="600" bgcolor="white" style="border-collapse: collapse;
-               border-spacing: 0;">
-                        <tbody>
-                            <tr>
-                                <td style="border-collapse: collapse; padding: 0px;
-                        text-align: center; width: 600px;">
-                                    <table style="border-collapse: collapse; border-spacing:
-                           0; box-sizing: border-box; min-height: 40px;
-                           position: relative; width: 100%;">
-                                        <tbody>
-                                            <tr>
-                                                <td style="border-collapse: collapse; font-family:
-                                    Arial; padding: 10px 15px; background:
-                                    #fff;">
-                                                    <table width="100%" style="border-collapse: collapse; border-spacing:
-                                       0; font-family: Arial;">
-                                                        <tbody>
-                                                            <tr>
-                                                                <td style="border-collapse: collapse;">
-                                                                    <h2>
-                                                                        <a style="display: inline-block; text-decoration:
-                                                   none; box-sizing: border-box; font-family: arial;
-                                                   width: 100%; text-align: center; color:
-                                                   rgb(102,102,102); font-size: 16px; cursor: text;" target="_blank">
-                                                                            <span style="font-weight: normal;
-                                                   color: rgb(105, 105, 105);">Fale Conosco - Sharebook!</span>
-                                                                        </a>
-                                                                    </h2>
-                                                                </td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                    <table style="border-collapse: collapse;
-                           border-spacing: 0; box-sizing: border-box;
-                           min-height: 40px; position: relative; width:
-                           100%;">
-                                        <tbody>
-                                            <tr>
-                                                <td style="border-collapse:
-                                    collapse; font-family: Arial; padding: 10px
-                                    15px;">
-                                                    <table width="100%" style="border-collapse: collapse; border-spacing:
-                                       0; font-family: Arial;">
-                                                        <tbody>
-                                                            <tr>
-                                                                <td style="border-collapse: collapse;">
-                                                                    <hr style="border-color: rgb(255,255,255);
-                                                   border-style:
-                                                   solid;">
-                                                                </td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                    <table style="border-collapse: collapse;
-                           border-spacing: 0; box-sizing: border-box;
-                           min-height: 40px; position: relative; width: 100%;
-                           max-width: 600px; padding-bottom: 0px;
-                           padding-left: 0px; padding-right: 0px;
-                           padding-top: 0px; text-align: center;">
-                                        <tbody>
-                                            <tr>
-                                                <td style="border-collapse: collapse;
-                                    font-family: Arial; padding: 0px; line-height:
-                                    0px; mso-line-height-rule: exactly;">
-                                                    <table width="100%" style="border-collapse: collapse;
-                                       border-spacing: 0; font-family: Arial;">
-                                                        <tbody>
-                                                            <tr>
-                                                                <td align="center" style="border-collapse:
-                                                collapse; line-height: 0px; padding: 0;
-                                                mso-line-height-rule: exactly;">
-                                                                    <a target="_blank" style="display: block; text-decoration: none;
-                                                box-sizing: border-box; font-family: arial; width:
-                                                100%;">
-                                                                        <img class="partial-image" width="188" height="82" style="box-sizing: border-box;
-                                                display: block; max-width: 188px; min-width:
-                                                188px;" dfsrc="http://www.sharebook.com.br/assets/img/logo.png" src="http://www.sharebook.com.br/assets/img/logo.png">
-                                                                    </a>
-                                                                </td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                    <table style="border-collapse: collapse;
-                           border-spacing: 0; box-sizing: border-box;
-                           min-height: 40px; position: relative; width:
-                           100%;">
-                                        <tbody>
-                                            <tr>
-                                                <td style="border-collapse:
-                                    collapse; font-family: Arial; padding: 10px
-                                    15px;">
-                                                    <table width="100%" style="border-collapse: collapse; border-spacing:
-                                       0; font-family: Arial;">
-                                                        <tbody>
-                                                            <tr>
-                                                                <td style="border-collapse: collapse;">
-                                                                    <hr style="border-color: rgb(255,255,255);
-                                                   border-style:
-                                                   solid;">
-                                                                </td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                    <table style="border-collapse: collapse;
-                           border-spacing: 0; box-sizing: border-box;
-                           min-height: 40px; position: relative; width: 100%;
-                           font-family: Arial; font-size: 25px;
-                           padding-bottom: 20px; padding-top: 20px;
-                           text-align: center; vertical-align:
-                           middle;">
-                                        <tbody>
-                                            <tr>
-                                                <td style="border-collapse: collapse; font-family:
-                                    Arial; padding: 10px 15px;">
-                                                    <table width="100%" style="border-collapse: collapse; border-spacing:
-                                       0; font-family: Arial;">
-                                                        <tbody>
-                                                            <tr>
-                                                                <td style="border-collapse: collapse;">
-                                                                    <h2 style="font-weight: normal; margin: 0px; padding:
-                                                   0px; color: #777; word-wrap: break-word;">
-                                                                        <a style="display: inline-block; text-decoration:
-                                                   none; box-sizing: border-box; font-family: arial;
-                                                   width: 100%; font-size: 25px; text-align: center;
-                                                   word-wrap: break-word; color: rgb(102,102,102);
-                                                   cursor: text;" target="_blank">
-                                                                            <span style="font-size: inherit; text-align: center;
-                                                   width: 100%; color: #777;">Olá, {Name}!</span>
-                                                                        </a>
-                                                                    </h2>
-                                                                </td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                    <table style="border-collapse: collapse;
-                           border-spacing: 0; box-sizing: border-box;
-                           min-height: 40px; position: relative; width:
-                           100%;">
-                                        <tbody>
-                                            <tr>
-                                                <td style="border-collapse:
-                                    collapse; font-family: Arial; padding: 10px
-                                    15px;">
-                                                    <table width="100%" style="border-collapse: collapse; border-spacing:
-                                       0; text-align: left; font-family:
-                                       Arial;">
-                                                        <tbody>
-                                                            <tr>
-                                                                <td style="border-collapse:
-                                                collapse;">
-                                                                    <div style="font-family: Arial;
-                                                   font-size: 15px; font-weight: normal; line-height:
-                                                   170%; text-align: left; color: #777; word-wrap:
-                                                   break-word;">
-                                                                        <div style="text-align:
-                                                      center;">
-                                                                            <p>
-                                                                                Muito obrigado por entrar em contato conosco.
-                                                                            </p>
-                                                                            <p>
-                                                                                Nossa equipe ira analistar a sua mensagem e logo entraremos em contato.
-                                                                            </p>
-                                                                            <p>
-                                                                                Solicitamos que aguarde o contato de um dos nossos administradores,
-                                                                                enquanto isso continue navegando no sharebook!
-                                                                            </p><span style="line-height: 0;
-                                                         display: none;"></span><span style="line-height:
-                                                         0; display:
-                                                         none;"></span>.
-                                                                        </div>
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                    <table style="border-collapse: collapse;
-                           border-spacing: 0; box-sizing: border-box;
-                           min-height: 40px; position: relative; width: 100%;
-                           padding-bottom: 10px; padding-top: 10px;
-                           text-align: center;">
-                                        <tbody>
-                                            <tr>
-                                                <td style="border-collapse: collapse; font-family:
-                                    Arial; padding: 10px 15px;">
-                                                    <div style="font-family: Arial; text-align:
-                                       center;">
-                                                        <table style="border-collapse:
-                                          collapse; border-spacing: 0; background-color:
-                                          rgb(64,190,255); border-radius: 10px; color:
-                                          rgb(255,255,255); display: inline-block;
-                                          font-family: Arial; font-size: 15px; font-weight:
-                                          bold; text-align: center;">
-                                                            <tbody style="display:
-                                             inline-block;">
-                                                                <tr style="display:
-                                                inline-block;">
-                                                                    <td align="center" style="border-collapse: collapse; display:
-                                                   inline-block; padding: 15px 20px;">
-                                                                        <a target="_blank" href="http://www.sharebook.com.br/" style="display: inline-block;
-                                                   text-decoration: none; box-sizing: border-box;
-                                                   font-family: arial; color: #fff; font-size: 15px;
-                                                   font-weight: bold; margin: 0px; padding: 0px;
-                                                   text-align: center; word-wrap: break-word; width:
-                                                   100%;">Sharebook</a>
-                                                                    </td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                    <table style="border-collapse: collapse;
-                           border-spacing: 0; box-sizing: border-box;
-                           min-height: 40px; position: relative; width:
-                           100%;">
-                                        <tbody>
-                                            <tr>
-                                                <td style="border-collapse:
-                                    collapse; font-family: Arial; padding: 10px
-                                    15px;">
-                                                    <table width="100%" style="border-collapse: collapse; border-spacing:
-                                       0; font-family: Arial;">
-                                                        <tbody>
-                                                            <tr>
-                                                                <td style="border-collapse: collapse;">
-                                                                    <hr style="border-color: rgb(255,255,255);
-                                                   border-style:
-                                                   solid;">
-                                                                </td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                    <table style="border-collapse: collapse;
-                           border-spacing: 0; box-sizing: border-box;
-                           min-height: 40px; position: relative; width:
-                           100%;">
-                                        <tbody>
-                                            <tr>
-                                                <td style="border-collapse:
-                                    collapse; font-family: Arial; padding: 10px
-                                    15px;">
-                                                    <table width="100%" style="border-collapse: collapse; border-spacing:
-                                       0; text-align: left; font-family:
-                                       Arial;">
-                                                        <tbody>
-                                                            <tr>
-                                                                <td style="border-collapse:
-                                                collapse;">
-                                                                    <div style="font-family: Arial;
-                                                   font-size: 15px; font-weight: normal; line-height:
-                                                   100%; text-align: left; color: rgb(120,113,99);
-                                                   word-wrap: break-word;">
-                                                                        <div style="text-align:
-                                                      center; color: rgb(120,113,99);">
-                                                                            <span style="line-height: 0; display: none; color:
-                                                      rgb(120,113,99);"></span>Redes Sociais!
-                                                                        </div>
+    <div class="container">
+        <div class="header">
+            <h1>Fale Conosco</h1>
+            <p>Sua mensagem foi recebida com sucesso!</p>
+        </div>
 
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                    <table style="border-collapse: collapse;
-                           border-spacing: 0; box-sizing: border-box;
-                           min-height: 40px; position: relative; width: 100%;
-                           padding: 30px 0px; text-align: center;">
-                                        <tbody>
-                                            <tr>
-                                                <td style="border-collapse: collapse;
-                                    font-family: Arial; padding: 10px 15px;">
-                                                    <table width="100%" style="border-collapse: collapse;
-                                       border-spacing: 0; font-family: Arial;">
-                                                        <tbody>
-                                                            <tr>
-                                                                <td align="center" style="border-collapse:
-                                                collapse;">
-                                                                    <a href="https://www.facebook.com/sharebookbr/" target="_blank" style="display: inline-block;
-                                                text-decoration: none; box-sizing: border-box;
-                                                font-family: arial; width: auto!important;">
-                                                                        &nbsp;
-                                                                        <img style="height: auto; width: 30px;" dfsrc="http://imgnode1.iagentecorp.com/iagentemail/drag-drop/facebook.png" src="http://imgnode1.iagentecorp.com/iagentemail/drag-drop/facebook.png">
-                                                                        &nbsp;
-                                                                    </a>
-                                                                    <a href="https://www.instagram.com/sharebook.com.br/" target="_blank" style="display: inline-block;
-                                                   text-decoration: none; box-sizing: border-box;
-                                                   font-family: arial; width: auto!important;">
-                                                                        &nbsp;
-                                                                        <img style="height: auto; width: 30px;" dfsrc="http://imgnode1.iagentecorp.com/iagentemail/drag-drop/instagram.png" src="http://imgnode1.iagentecorp.com/iagentemail/drag-drop/instagram.png">
-                                                                        &nbsp;
-                                                                    </a>
-                                                                    <a href="https://www.linkedin.com/company/sharebook-br/" target="_blank" style="display: inline-block;
-                                                   text-decoration: none; box-sizing: border-box;
-                                                   font-family: arial; width: auto!important;">
-                                                                        &nbsp;
-                                                                        <img style="height: auto; width: 30px;" dfsrc="http://imgnode1.iagentecorp.com/iagentemail/drag-drop/linkedin.png" src="http://imgnode1.iagentecorp.com/iagentemail/drag-drop/linkedin.png">
-                                                                        &nbsp;
-                                                                    </a>
-                                                                </td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+        <div class="logo">
+            <img src="http://www.sharebook.com.br/assets/img/logo.png" alt="Sharebook" />
+        </div>
+
+        <div class="main-content">
+            <h2 class="greeting">Olá, {Name}!</h2>
+
+            <div class="message">
+                <p>✨ Muito obrigado por entrar em contato conosco!</p>
+                <p>Nossa equipe irá <strong>analisar</strong> a sua mensagem e logo entraremos em contato.</p>
+                <p>Solicitamos que aguarde o contato de um dos nossos administradores. Enquanto isso, continue navegando no Sharebook!</p>
+            </div>
+
+            <a href="http://www.sharebook.com.br/" class="cta-button" target="_blank">
+                Continuar navegando
+            </a>
+        </div>
+
+        <div class="footer">
+            <h3 class="social-title">Conecte-se conosco</h3>
+
+            <div class="social-links">
+                <a href="https://www.facebook.com/sharebookbr/" target="_blank">
+                    <img src="https://cdn-images.mailchimp.com/icons/social-block-v2/outline-dark-facebook-48.png" alt="Facebook">
+                </a>
+                <a href="https://www.instagram.com/sharebook.com.br/" target="_blank">
+                    <img src="https://cdn-images.mailchimp.com/icons/social-block-v2/outline-dark-instagram-48.png" alt="Instagram">
+                </a>
+                <a href="https://www.linkedin.com/company/sharebook-br/" target="_blank">
+                    <img src="https://cdn-images.mailchimp.com/icons/social-block-v2/outline-dark-linkedin-48.png" alt="LinkedIn">
+                </a>
+            </div>
+
+            <div class="copyright">
+                Copyleft © 2025 Sharebook, All rights open source.
+            </div>
+        </div>
+    </div>
 </body>
 </html>

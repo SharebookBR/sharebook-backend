@@ -37,7 +37,7 @@ namespace ShareBook.Repository
                     Linkedin = "linkedin.com/walter.cardoso",
                     Password = PASSWORD_HASH,
                     PasswordSalt = PASSWORD_SALT,
-                    CreationDate = DateTime.Now,
+                    CreationDate = DateTime.UtcNow,
                     Address = new Address()
                     {
                         Street = "Rua teste",
@@ -59,7 +59,7 @@ namespace ShareBook.Repository
                     Profile = Profile.Administrator,
                     Password = PASSWORD_HASH,
                     PasswordSalt = PASSWORD_SALT,
-                    CreationDate = DateTime.Now,
+                    CreationDate = DateTime.UtcNow,
                     Address = new Address()
                     {
                         Street = "Rua teste",
@@ -81,7 +81,7 @@ namespace ShareBook.Repository
                     Profile = Profile.Administrator,
                     Password = PASSWORD_HASH,
                     PasswordSalt = PASSWORD_SALT,
-                    CreationDate = DateTime.Now,
+                    CreationDate = DateTime.UtcNow,
                     Address = new Address()
                     {
                         Street = "Rua teste",
@@ -102,7 +102,7 @@ namespace ShareBook.Repository
                     Linkedin = "linkedin.com/rodrigo",
                     Password = PASSWORD_HASH,
                     PasswordSalt = PASSWORD_SALT,
-                    CreationDate = DateTime.Now,
+                    CreationDate = DateTime.UtcNow,
                     Address = new Address()
                     {
                         Street = "Rua teste",
@@ -124,7 +124,7 @@ namespace ShareBook.Repository
                     Profile = Profile.Administrator,
                     Password = PASSWORD_HASH,
                     PasswordSalt = PASSWORD_SALT,
-                    CreationDate = DateTime.Now,
+                    CreationDate = DateTime.UtcNow,
                     Address = new Address()
                     {
                         Street = "Rua teste",
@@ -138,17 +138,17 @@ namespace ShareBook.Repository
                     }
                 };
 
-                var dir = new Category() { Name = "Direito", CreationDate = DateTime.Now };
-                var psico = new Category() { Name = "Psicologia", CreationDate = DateTime.Now };
-                var adm = new Category() { Name = "Administração", CreationDate = DateTime.Now };
+                var dir = new Category() { Name = "Direito", CreationDate = DateTime.UtcNow };
+                var psico = new Category() { Name = "Psicologia", CreationDate = DateTime.UtcNow };
+                var adm = new Category() { Name = "Administração", CreationDate = DateTime.UtcNow };
                 var adv = new Category() { Name = "Aventura" };
-                var eng = new Category() { Name = "Engenharia", CreationDate = DateTime.Now };
-                var cien = new Category() { Name = "Ciências Biógicas", CreationDate = DateTime.Now };
-                var geo_his = new Category() { Name = "Geografia e História", CreationDate = DateTime.Now };
-                var art = new Category() { Name = "Artes", CreationDate = DateTime.Now };
-                var med = new Category() { Name = "Medicina", CreationDate = DateTime.Now };
-                var eco = new Category() { Name = "Economia", CreationDate = DateTime.Now };
-                var inf = new Category() { Name = "Informática", CreationDate = DateTime.Now };
+                var eng = new Category() { Name = "Engenharia", CreationDate = DateTime.UtcNow };
+                var cien = new Category() { Name = "Ciências Biógicas", CreationDate = DateTime.UtcNow };
+                var geo_his = new Category() { Name = "Geografia e História", CreationDate = DateTime.UtcNow };
+                var art = new Category() { Name = "Artes", CreationDate = DateTime.UtcNow };
+                var med = new Category() { Name = "Medicina", CreationDate = DateTime.UtcNow };
+                var eco = new Category() { Name = "Economia", CreationDate = DateTime.UtcNow };
+                var inf = new Category() { Name = "Informática", CreationDate = DateTime.UtcNow };
 
                 var book1 = new Book()
                 {
@@ -160,8 +160,8 @@ namespace ShareBook.Repository
                     User = donor,
                     Status = BookStatus.Available,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-1),
-                    ChooseDate = DateTime.Now.AddDays(5),
+                    CreationDate = DateTime.UtcNow.AddDays(-1),
+                    ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
 
@@ -176,8 +176,8 @@ namespace ShareBook.Repository
                     User = donor,
                     Status = BookStatus.Available,
                     Category = dir,
-                    CreationDate = DateTime.Now.AddDays(-2),
-                    ChooseDate = DateTime.Now.AddDays(5),
+                    CreationDate = DateTime.UtcNow.AddDays(-2),
+                    ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
 
@@ -191,8 +191,8 @@ namespace ShareBook.Repository
                     User = donor,
                     Status = BookStatus.Available,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-2),
-                    ChooseDate = DateTime.Now.AddDays(5),
+                    CreationDate = DateTime.UtcNow.AddDays(-2),
+                    ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
 
@@ -206,8 +206,8 @@ namespace ShareBook.Repository
                     User = donor,
                     Status = BookStatus.Available,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-2),
-                    ChooseDate = DateTime.Now.AddDays(5),
+                    CreationDate = DateTime.UtcNow.AddDays(-2),
+                    ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
 
@@ -221,8 +221,8 @@ namespace ShareBook.Repository
                     User = donor,
                     Status = BookStatus.Available,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-2),
-                    ChooseDate = DateTime.Now.AddDays(5),
+                    CreationDate = DateTime.UtcNow.AddDays(-2),
+                    ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
 
@@ -236,8 +236,8 @@ namespace ShareBook.Repository
                     User = donor,
                     Status = BookStatus.Available,
                     Category = inf,
-                    CreationDate = DateTime.Now.AddDays(-1),
-                    ChooseDate = DateTime.Now.AddDays(5),
+                    CreationDate = DateTime.UtcNow.AddDays(-1),
+                    ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
 
@@ -251,8 +251,8 @@ namespace ShareBook.Repository
                     User = donor,
                     Status = BookStatus.Available,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-5),
-                    ChooseDate = DateTime.Now.AddDays(5),
+                    CreationDate = DateTime.UtcNow.AddDays(-5),
+                    ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
 
@@ -266,8 +266,8 @@ namespace ShareBook.Repository
                     User = donor,
                     Status = BookStatus.Available,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-6),
-                    ChooseDate = DateTime.Now.AddDays(5),
+                    CreationDate = DateTime.UtcNow.AddDays(-6),
+                    ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
 
@@ -281,8 +281,8 @@ namespace ShareBook.Repository
                     User = donor,
                     Status = BookStatus.Available,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-8),
-                    ChooseDate = DateTime.Now.AddDays(5),
+                    CreationDate = DateTime.UtcNow.AddDays(-8),
+                    ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
 
@@ -297,8 +297,8 @@ namespace ShareBook.Repository
                     User = donor,
                     Status = BookStatus.Available,
                     Category = inf,
-                    CreationDate = DateTime.Now.AddDays(-5),
-                    ChooseDate = DateTime.Now.AddDays(5),
+                    CreationDate = DateTime.UtcNow.AddDays(-5),
+                    ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
 
@@ -312,8 +312,8 @@ namespace ShareBook.Repository
                     User = donor,
                     Status = BookStatus.Available,
                     Category = inf,
-                    CreationDate = DateTime.Now.AddDays(-10),
-                    ChooseDate = DateTime.Now.AddDays(5),
+                    CreationDate = DateTime.UtcNow.AddDays(-10),
+                    ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
 
@@ -327,8 +327,8 @@ namespace ShareBook.Repository
                     User = donor,
                     Status = BookStatus.Available,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-2),
-                    ChooseDate = DateTime.Now.AddDays(5),
+                    CreationDate = DateTime.UtcNow.AddDays(-2),
+                    ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
 
@@ -342,8 +342,8 @@ namespace ShareBook.Repository
                     User = donor,
                     Status = BookStatus.Available,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-9),
-                    ChooseDate = DateTime.Now.AddDays(5),
+                    CreationDate = DateTime.UtcNow.AddDays(-9),
+                    ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
 
@@ -357,8 +357,8 @@ namespace ShareBook.Repository
                     User = donor,
                     Status = BookStatus.Available,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-1),
-                    ChooseDate = DateTime.Now.AddDays(5),
+                    CreationDate = DateTime.UtcNow.AddDays(-1),
+                    ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
 
@@ -372,8 +372,8 @@ namespace ShareBook.Repository
                     User = donor,
                     Status = BookStatus.Available,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-2),
-                    ChooseDate = DateTime.Now.AddDays(5),
+                    CreationDate = DateTime.UtcNow.AddDays(-2),
+                    ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
 
@@ -387,8 +387,8 @@ namespace ShareBook.Repository
                     User = donor,
                     Status = BookStatus.Available,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-3),
-                    ChooseDate = DateTime.Now.AddDays(5),
+                    CreationDate = DateTime.UtcNow.AddDays(-3),
+                    ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
 
@@ -402,8 +402,8 @@ namespace ShareBook.Repository
                     User = donor,
                     Status = BookStatus.Available,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-1),
-                    ChooseDate = DateTime.Now.AddDays(5),
+                    CreationDate = DateTime.UtcNow.AddDays(-1),
+                    ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
 
@@ -417,8 +417,8 @@ namespace ShareBook.Repository
                     User = donor,
                     Status = BookStatus.Available,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-3),
-                    ChooseDate = DateTime.Now.AddDays(5),
+                    CreationDate = DateTime.UtcNow.AddDays(-3),
+                    ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
 
@@ -432,8 +432,8 @@ namespace ShareBook.Repository
                     User = donor,
                     Status = BookStatus.Available,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-4),
-                    ChooseDate = DateTime.Now.AddDays(5),
+                    CreationDate = DateTime.UtcNow.AddDays(-4),
+                    ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
 
@@ -447,8 +447,8 @@ namespace ShareBook.Repository
                     User = donor,
                     Status = BookStatus.Available,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-5),
-                    ChooseDate = DateTime.Now.AddDays(5),
+                    CreationDate = DateTime.UtcNow.AddDays(-5),
+                    ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
 
@@ -462,8 +462,8 @@ namespace ShareBook.Repository
                     User = donor,
                     Status = BookStatus.Available,
                     Category = psico,
-                    CreationDate = DateTime.Now.AddDays(-2),
-                    ChooseDate = DateTime.Now.AddDays(5),
+                    CreationDate = DateTime.UtcNow.AddDays(-2),
+                    ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
 
@@ -478,8 +478,8 @@ namespace ShareBook.Repository
                     User = donor,
                     Status = BookStatus.Available,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-4),
-                    ChooseDate = DateTime.Now.AddDays(5),
+                    CreationDate = DateTime.UtcNow.AddDays(-4),
+                    ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
 
@@ -493,8 +493,8 @@ namespace ShareBook.Repository
                     User = donor,
                     Status = BookStatus.Available,
                     Category = adv,
-                    CreationDate = DateTime.Now.AddDays(-2),
-                    ChooseDate = DateTime.Now.AddDays(5),
+                    CreationDate = DateTime.UtcNow.AddDays(-2),
+                    ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
 
@@ -503,7 +503,7 @@ namespace ShareBook.Repository
                 {
                     User = grantee,
                     Book = book5,
-                    CreationDate = DateTime.Now,
+                    CreationDate = DateTime.UtcNow,
                     Reason = "Quero muito esse livro.",
                     NickName = "Interessado 1"
                 };
@@ -601,7 +601,7 @@ namespace ShareBook.Repository
                     SymplaEventId = 2432671,
                     Title = "GITHUB ACTIONS NA PRÁTICA",
                     Description = "<div>O GitHub Actions é uma ferramenta poderosa para automação de fluxos de trabalho de desenvolvimento. Ao permitir que você defina e execute uma série de ações baseadas em eventos específicos do GitHub, como push, pull request ou issues, ele simplifica tarefas complexas, desde a integração contínua até a implantação contínua. Com sua flexibilidade e capacidade de personalização, o GitHub Actions capacita os desenvolvedores a otimizarem seus processos de desenvolvimento, melhorando a qualidade do código, reduzindo erros e aumentando a eficiência geral do projeto. Em um mundo onde cada segundo conta, o GitHub Actions se torna um aliado indispensável na busca pela excelência técnica.</div><div><br></div><div><b>Palestrante</b>: Renan Barbosa</div><div><b>Host</b>: Raffaello Damgaard</div><div><br></div><div><b>Nossa live será transmitida ao vivo via You Tube</b>:</div><div><a href=\"https://www.youtube.com/watch?v=2d7PchqkRVQ\" target=\"_blank\"  rel=\"nofollow noopener noreferrer\">https://www.youtube.com/watch?v=2d7PchqkRVQ</a><br></div>",
-                    StartDate = DateTime.Now.AddDays(7), // Upcoming = true
+                    StartDate = DateTime.UtcNow.AddDays(7), // Upcoming = true
                     Cover = "https://www.sharebook.com.br/Images/Meetup/github-actions-na-pratica.png",
                     YoutubeUrl = "https://www.sharebook.com.br/Images/Meetup/github-actions-na-pratica.png",
                     SymplaEventUrl = "https://www.sympla.com.br/java-spring-boot---criando-uma-api-crud-do-zero---2-de-2__1706178"

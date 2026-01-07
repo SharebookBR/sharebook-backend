@@ -20,7 +20,9 @@ public class MailSupressListUpdate : GenericJob, IJob
         Description = @"Atualiza a lista de emails suprimidos. Essa lista serve para manter boa reputação do nosso 
                         mailling. Além de ser um requisito da AWS.";
         Interval = Interval.Dayly;
-        Active = true;
+
+        // TODO: usar webhook nos novos serviços de email como resend e demais.
+        Active = false;
         BestTimeToExecute = new TimeSpan(2, 0, 0);
 
         _emailService = emailService;

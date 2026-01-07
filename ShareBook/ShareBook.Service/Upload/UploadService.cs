@@ -21,7 +21,7 @@ namespace ShareBook.Service.Upload
         public string GetImageUrl(string imageName, string lastDirectory)
         {
             var dinamicDirectory = _imageSettings.ImagePath + "/" + lastDirectory;
-            return ImageHelper.GenerateImageUrl(imageName, dinamicDirectory, _serverSettings.DefaultUrl);
+            return ImageHelper.GenerateImageUrl(imageName, dinamicDirectory, _serverSettings.BackendUrl);
         }
 
 
@@ -33,7 +33,7 @@ namespace ShareBook.Service.Upload
 
             return GetImageUrl(imageName, lastDirectory);
         }
-     
+
         public async Task<string> UploadPdfAsync(byte[] imageBytes, string imageName, string lastDirectory)
         {
             var dinamicDirectory = Path.Combine(_imageSettings.EBookPdfPath, lastDirectory);

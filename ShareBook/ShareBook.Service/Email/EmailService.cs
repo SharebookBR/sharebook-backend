@@ -4,6 +4,7 @@ using MailKit.Net.Smtp;
 using MailKit.Search;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using ShareBook.Domain;
@@ -13,6 +14,7 @@ using ShareBook.Service.AwsSqs.Dto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ShareBook.Service;
@@ -25,12 +27,14 @@ public class EmailService : IEmailService
     private readonly MailSenderLowPriorityQueue _mailSenderLowPriorityQueue;
     private readonly MailSenderHighPriorityQueue _mailSenderHighPriorityQueue;
     private readonly ImapClient _imapClient;
+    private readonly ILogger<EmailService> _logger;
+
 
     private readonly ApplicationDbContext _ctx;
 
     public EmailService(IOptions<EmailSettings> emailSettings, IUserRepository userRepository,
     IConfiguration configuration, MailSenderLowPriorityQueue mailSenderLowPriorityQueue,
-    MailSenderHighPriorityQueue mailSenderHighPriorityQueue, ApplicationDbContext ctx)
+    MailSenderHighPriorityQueue mailSenderHighPriorityQueue, ApplicationDbContext ctx, ILogger<EmailService> logger)
     {
         _settings = emailSettings.Value;
         _userRepository = userRepository;
@@ -42,6 +46,7 @@ public class EmailService : IEmailService
         _imapClient.CheckCertificateRevocation = false;
         _imapClient.ServerCertificateValidationCallback = (s, c, h, e) => true;
         _ctx = ctx;
+        _logger = logger;
     }
 
     public async Task SendToAdminsAsync(string messageText, string subject)
@@ -89,22 +94,39 @@ public class EmailService : IEmailService
     {
         var message = await FormatEmailAsync(emailRecipient, nameRecipient, messageText, subject, copyAdmins);
 
-        var client = new SmtpClient();
+        try
+        {
+            using var client = new SmtpClient();
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
 
-        if (_settings.UseSSL)
-            client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+            if (_settings.UseSSL)
+                client.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
-        client.CheckCertificateRevocation = false;
-        await client.ConnectAsync(_settings.HostName, _settings.Port, _settings.UseSSL);
-        await client.AuthenticateAsync(_settings.Username, _settings.Password);
-        await client.SendAsync(message);
-        await client.DisconnectAsync(true);
+            client.CheckCertificateRevocation = false;
+
+            await client.ConnectAsync(_settings.HostName, _settings.Port, _settings.UseSSL, cts.Token);
+            await client.AuthenticateAsync(_settings.Username, _settings.Password, cts.Token);
+            await client.SendAsync(message, cts.Token);
+            await client.DisconnectAsync(true, cts.Token);
+        }
+        catch (TaskCanceledException ex)
+        {
+            _logger.LogWarning(ex, "Timeout ao enviar e-mail para {Email}. Será reprocessado pelo SQS/job.", emailRecipient);
+            // não relança, só registra warning
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Falha ao enviar e-mail para {Email}", emailRecipient);
+            throw; // esse sim deve ser capturado pelo Rollbar
+        }
     }
+
+
 
     private async Task<MimeMessage> FormatEmailAsync(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins)
     {
         var message = new MimeMessage();
-        message.From.Add(new MailboxAddress("Sharebook", "noreply@pegasus-soft.com.br"));
+        message.From.Add(new MailboxAddress("Sharebook", _settings.Sender));
         message.To.Add(new MailboxAddress(nameRecipient, emailRecipient));
 
         if (copyAdmins)
@@ -217,7 +239,8 @@ public class EmailService : IEmailService
 
 
         var hardBounces = bounces.Where(b => !b.IsSoft).ToList();
-        var softBounces = bounces.Where(b => b.IsSoft && b.CreationDate > DateTime.Now.AddDays(-1)).ToList();
+        var oneDayAgo = DateTime.UtcNow.AddDays(-1);
+        var softBounces = bounces.Where(b => b.IsSoft && b.CreationDate > oneDayAgo).ToList();
 
         if (hardBounces.Exists(b => b.Email == email))
             return true;

@@ -39,7 +39,7 @@ namespace ShareBook.Test.Unit.Mocks
                 Linkedin = "linkedin.com/rodrigo",
                 Instagram = "instagram.com/test/",
                 Profile = Profile.User,
-                LastLogin = DateTime.Now.AddMinutes(-60)
+                LastLogin = DateTime.UtcNow.AddMinutes(-60)
             };
         }
 
@@ -56,7 +56,7 @@ namespace ShareBook.Test.Unit.Mocks
                 Linkedin = "linkedin.com/walter",
                 Instagram = "instagram.com/test/",
                 Profile = Profile.User,
-                LastLogin = DateTime.Now.AddMinutes(-60),
+                LastLogin = DateTime.UtcNow.AddMinutes(-60),
                 Address = new Address()
                 {
                     Id = new Guid("C53B3552-606C-40C6-9D7F-FFC87572977E"),
@@ -81,7 +81,7 @@ namespace ShareBook.Test.Unit.Mocks
                 PasswordSalt = PASSWORD_SALT,
                 Email = "cussa@sharebook.com",
                 Profile = Profile.Administrator,
-                LastLogin = DateTime.Now.AddMinutes(-60)
+                LastLogin = DateTime.UtcNow.AddMinutes(-60)
             };
         }
     }

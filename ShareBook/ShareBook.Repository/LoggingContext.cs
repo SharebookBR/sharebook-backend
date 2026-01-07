@@ -18,7 +18,7 @@ namespace ShareBook.Repository
 
         public static async Task LogChanges(this ApplicationDbContext context)
         {
-            var logTime = DateTime.Now;
+            var logTime = DateTime.UtcNow;
             const string emptyJson = "{}";
             const string idColumn = "Id";
 
@@ -36,7 +36,7 @@ namespace ShareBook.Repository
             {
                 var original = emptyJson;
                 var updated = JsonConvert.SerializeObject(item.CurrentValues.Properties.ToDictionary(pn => pn.Name, pn => item.CurrentValues[pn]));
-                var creationDate = DateTime.Now;
+                var creationDate = DateTime.UtcNow;
 
                 if (item.State == EntityState.Modified)
                 {

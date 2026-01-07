@@ -54,7 +54,7 @@ public class MeetupService : BaseService<Meetup>, IMeetupService
                     YoutubeUrl = $"https://www.youtube.com/watch?v={video.Id.VideoId}"
                 };
 
-               // alguns detalhes do vídeo precisamos pegar em outro endpoint da api do you tube
+                // alguns detalhes do vídeo precisamos pegar em outro endpoint da api do you tube
                 var videoDetails = await GetYoutubeVideoDetailsAsync(video.Id.VideoId);
                 meetup.Description = videoDetails.Items[0].Snippet.Description;
                 meetup.StartDate = videoDetails.Items[0].liveStreamingDetails?.scheduledStartTime ?? videoDetails.Items[0].Snippet.PublishedAt;
@@ -78,8 +78,6 @@ public class MeetupService : BaseService<Meetup>, IMeetupService
         return logs;
     }
 
-
-
     private async Task<YoutubeDto> GetYoutubeVideosAsync(int level = 1, string pageToken = "")
     {
         YoutubeDto youtubeDto;
@@ -98,7 +96,7 @@ public class MeetupService : BaseService<Meetup>, IMeetupService
                 }).GetJsonAsync<YoutubeDto>();
 
             // cada requisição trás apenas 5 vídeos. Vamos fazer 3 requisições pra ter uma amostragem boa.
-            if(level <= 3)
+            if (level <= 3)
             {
                 level++;
                 var youtubeDto2 = await GetYoutubeVideosAsync(level, youtubeDto.nextPageToken);
@@ -129,9 +127,9 @@ public class MeetupService : BaseService<Meetup>, IMeetupService
                     id
                 }).GetJsonAsync<YoutubeDtoDetail>();
 
-            
+
         }
-        catch(FlurlHttpException e)
+        catch (FlurlHttpException e)
         {
             var dtoError = await e.GetResponseJsonAsync<YoutubeDtoError>();
             throw new ShareBookException(dtoError == null ? e.Message : dtoError.error.Message);

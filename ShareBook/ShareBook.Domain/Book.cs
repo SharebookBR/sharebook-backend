@@ -56,11 +56,11 @@ namespace ShareBook.Domain
 
         public string EBookDownloadLink { get; set; }
         public string EBookPdfFile { get; set; }
-        public byte[] EBookPdfBytes {get; set; }
+        public byte[] EBookPdfBytes { get; set; }
 
         public Book()
         {
-           Status = BookStatus.WaitingApproval;
+            Status = BookStatus.WaitingApproval;
         }
 
         public string WinnerName()
@@ -76,7 +76,7 @@ namespace ShareBook.Domain
 
         public int DaysInShowcase()
         {
-            TimeSpan diff = (TimeSpan)(DateTime.Now - this.CreationDate);
+            TimeSpan diff = (TimeSpan)(DateTime.UtcNow - this.CreationDate);
             return diff.Days;
         }
 
@@ -103,6 +103,6 @@ namespace ShareBook.Domain
         }
 
 
-        
+
     }
 }

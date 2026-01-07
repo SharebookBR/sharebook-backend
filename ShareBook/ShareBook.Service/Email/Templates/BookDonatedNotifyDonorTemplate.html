@@ -1,57 +1,305 @@
-﻿<!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="pt-br">
 <head>
-    <meta charset="utf-8" />
-    <title>Parabéns você escolheu um ganhador - Sharebook</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parabéns! Você escolheu um ganhador - Sharebook</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.6;
+            color: #555;
+            background-color: #f2f2f2;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            text-align: center;
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 300;
+            margin-bottom: 5px;
+        }
+
+        .header .emoji {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .greeting {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .intro {
+            font-size: 16px;
+            margin-bottom: 25px;
+            line-height: 1.7;
+        }
+
+        .winner-info, .facilitator-info {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #28a745;
+        }
+
+        .info-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-list {
+            list-style: none;
+        }
+
+        .info-list li {
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+
+        .info-list li strong {
+            color: #333;
+            display: inline-block;
+            width: 140px;
+        }
+
+        .address {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 10px;
+            border: 1px solid #e9ecef;
+        }
+
+        .steps-section {
+            margin: 30px 0;
+        }
+
+        .steps-title {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .steps-list {
+            counter-reset: step-counter;
+            list-style: none;
+        }
+
+        .steps-list li {
+            counter-increment: step-counter;
+            margin-bottom: 15px;
+            padding-left: 40px;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        .steps-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: #28a745;
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .casual-note {
+            font-size: 16px;
+            color: #333;
+            text-align: center;
+            margin: 25px 0;
+            font-style: italic;
+        }
+
+        .help-section {
+            background-color: #e8f4fd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+            border-left: 4px solid #007bff;
+        }
+
+        .footer {
+            background-color: #333;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .signature {
+            margin-bottom: 20px;
+        }
+
+        .signature .team {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .social-links {
+            margin-top: 15px;
+        }
+
+        .social-links a {
+            color: #20c997;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+
+        .social-links a:hover {
+            text-decoration: underline;
+        }
+
+        .copyright {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #ccc;
+            font-style: italic;
+        }
+
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                border-radius: 4px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .info-list li strong {
+                width: auto;
+                display: block;
+                margin-bottom: 3px;
+            }
+
+            .steps-list li {
+                padding-left: 35px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <p>
-        Olá {DonorName},
-    </p>
-    <p>Que legal! Você escolheu um ganhador para seu livro <strong>{BookTitle}</strong>. Agora é hora de conhecê-lo! Seguem os dados pessoais dele:</p>
+    <div class="container">
+        <div class="header">
+            <div class="emoji">🎉</div>
+            <h1>Parabéns! Você escolheu um ganhador</h1>
+        </div>
 
-    <ul>
-        <li><strong>Nome do ganhador: </strong>{Winner.Name}</li>
-        <li><strong>Email: </strong>{Winner.Email}</li>
-        <li><strong>Linkedin: </strong>{Winner.Linkedin}</li>
-        <li><strong>Whatsapp: </strong>{Winner.Phone}</li>
-        <li>
-            <strong>Endereço de entrega: </strong>{Winner.Address.Street} {Winner.Address.Number} {Winner.Address.Complement} <br />
-            bairro {Winner.Address.Neighborhood}, CEP {Winner.Address.PostalCode}, {Winner.Address.City}-{Winner.Address.State}, {Winner.Address.Country}
-        </li>
-    </ul>
+        <div class="content">
+            <div class="greeting">
+                Olá {DonorName},
+            </div>
 
-    <p>Próximos passos. Te pedir um favor...</p>
+            <div class="intro">
+                Que legal! Você escolheu um ganhador para seu livro <strong>{BookTitle}</strong>.
+                Agora é hora de conhecê-lo! Seguem os dados pessoais dele:
+            </div>
 
-    <ol>
-        <li> - Dê a boa notícia pro ganhador.</li>
-        <li> - Confirme o endereço de entrega e envie. ( ou combine entregar pessoalmente. Tomar um café. Certamente será um papo agradável com assunto em comum. )</li>
-        <li> - Assim que o livro chegar peça pra ele tirar uma foto. Pra gente postar na nossa fanpage e incentivar a galera a continuar compartilhando livros.</li>
-    </ol>
+            <div class="winner-info">
+                <div class="info-title">🏆 Dados do Ganhador</div>
+                <ul class="info-list">
+                    <li><strong>Nome:</strong> {Winner.Name}</li>
+                    <li><strong>E-mail:</strong> {Winner.Email}</li>
+                    <li><strong>LinkedIn:</strong> {Winner.Linkedin}</li>
+                    <li><strong>WhatsApp:</strong> {Winner.Phone}</li>
+                </ul>
 
-    <p>Blz?</p>
+                <div class="address">
+                    <strong>📍 Endereço de entrega:</strong><br>
+                    {Winner.Address.Street}, {Winner.Address.Number} {Winner.Address.Complement}<br>
+                    Bairro {Winner.Address.Neighborhood}, CEP {Winner.Address.PostalCode}<br>
+                    {Winner.Address.City}-{Winner.Address.State}, {Winner.Address.Country}
+                </div>
+            </div>
 
-    <p>
-        Dúvidas? Sem problemas, é um prazer ajudar. Entre em contato com seu facilitador.
-        <ul>
-            <li><strong>Nome do facilitador: </strong>{Facilitator.Name}</li>
-            <li><strong>Email: </strong>{Facilitator.Email}</li>
-            <li><strong>Linkedin: </strong>{Facilitator.Linkedin}</li>
-            <li><strong>Whatsapp: </strong>{Facilitator.Phone}</li>
-        </ul>
-    </p>
-    <p>&nbsp;</p>
+            <div class="steps-section">
+                <div class="steps-title">📋 Próximos passos (te pedir um favor...)</div>
+                <ol class="steps-list">
+                    <li>Dê a boa notícia para o ganhador.</li>
+                    <li>Confirme o endereço de entrega e envie (ou combine entregar pessoalmente. Tomar um café. Certamente será um papo agradável com assunto em comum).</li>
+                    <li>Assim que o livro chegar, peça para ele tirar uma foto. Para a gente postar na nossa fanpage e incentivar a galera a continuar compartilhando livros.</li>
+                </ol>
+            </div>
 
-    <p>
-        Atenciosamente,<br /><br />
+            <div class="casual-note">
+                Blz? 😊
+            </div>
 
-        Sharebook team - Compartilhando conhecimento<br />
-        Siga-nos no instagram:
-        <a target="_blank" href="https://www.instagram.com/sharebook.com.br/" title="Instagram Sharebook">@sharebook.com.br</a>
-        <br>
-        <br>
-        Curta nossa fanpage pra ficar por dentro das novidades:<br>
-        <a href="https://www.linkedin.com/company/sharebook-br/" target="_blank">https://www.linkedin.com/company/sharebook-br/</a>
-    </p>
+            <div class="help-section">
+                <div class="info-title">🆘 Precisa de Ajuda?</div>
+                <p style="margin-bottom: 15px;">Sem problemas, é um prazer ajudar! Entre em contato com seu facilitador:</p>
+                <ul class="info-list">
+                    <li><strong>Nome:</strong> {Facilitator.Name}</li>
+                    <li><strong>E-mail:</strong> {Facilitator.Email}</li>
+                    <li><strong>LinkedIn:</strong> {Facilitator.Linkedin}</li>
+                    <li><strong>WhatsApp:</strong> {Facilitator.Phone}</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="signature">
+                <div class="team">Sharebook Team</div>
+                <div>Compartilhando conhecimento</div>
+            </div>
+
+            <div class="social-links">
+                <a href="https://www.instagram.com/sharebook.com.br/" target="_blank">
+                    📸 @sharebook.com.br
+                </a>
+                <br><br>
+                <a href="https://www.linkedin.com/company/sharebook-br/" target="_blank">
+                    💼 LinkedIn Sharebook
+                </a>
+            </div>
+
+            <div class="copyright">
+                Copyleft © 2025 Sharebook, All rights open source.
+            </div>
+        </div>
+    </div>
 </body>
 </html>  

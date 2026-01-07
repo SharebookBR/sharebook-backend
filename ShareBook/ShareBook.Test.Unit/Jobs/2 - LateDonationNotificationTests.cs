@@ -32,7 +32,7 @@ namespace ShareBook.Test.Unit.Jobs
 
         public LateDonationNotificationTests()
         {
-            _hardBook.ChooseDate = DateTime.Now.AddDays((_maxLateDonationDays + 2) * -1);
+            _hardBook.ChooseDate = DateTime.UtcNow.AddDays((_maxLateDonationDays + 2) * -1);
             _hardBook.Status = BookStatus.AwaitingDonorDecision;
             _hardUser.BooksDonated = new List<Book> { _hardBook };
             _mockConfiguration.SetupGet(s => s[It.IsAny<string>()]).Returns(_maxLateDonationDays.ToString());
