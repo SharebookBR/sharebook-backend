@@ -97,10 +97,11 @@ namespace ShareBook.Test.Unit.Services
         {
             var result = await emailTemplate.GenerateHtmlFromTemplateAsync("ContactUsTemplate", contactUs);
 
-            Assert.Contains("<b>Nome:</b> Rafael Rocha", result);
-            Assert.Contains("<b>Email:</b> rafael@sharebook.com.br", result);
-            Assert.Contains("<b>Telefone:</b> (11) 954422-2765", result);
-            Assert.Contains("<b>Mensagem:</b> At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident", result);
+            Assert.Contains("<div class=\"field-label\">👤 Nome</div>", result);
+            Assert.Contains("<div class=\"field-value\">Rafael Rocha</div>", result);
+            Assert.Contains("<div class=\"field-value\">rafael@sharebook.com.br</div>", result);
+            Assert.Contains("<div class=\"field-value\">(11) 954422-2765</div>", result);
+            Assert.Contains("<div class=\"field-value\">At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident</div>", result);
 
         }
     }
