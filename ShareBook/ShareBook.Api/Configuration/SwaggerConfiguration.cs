@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace ShareBook.Api.Configuration
@@ -37,18 +38,12 @@ namespace ShareBook.Api.Configuration
                         Type = SecuritySchemeType.ApiKey
                     }
                 );
-                swagger.AddSecurityRequirement(
-                    new OpenApiSecurityRequirement {
+                swagger.AddSecurityRequirement(_ =>
+                    new OpenApiSecurityRequirement
+                    {
                         {
-                            new OpenApiSecurityScheme
-                            {
-                                Reference = new OpenApiReference
-                                {
-                                    Type = ReferenceType.SecurityScheme,
-                                    Id = "Bearer"
-                                }
-                            },
-                            new string[] { }
+                            new OpenApiSecuritySchemeReference("Bearer"),
+                            new List<string>()
                         }
                     }
                 );

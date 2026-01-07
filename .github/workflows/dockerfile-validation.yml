@@ -2,16 +2,14 @@ name: Dockerfile validation
 
 on:
   pull_request:
-    branches: [ develop, master ]
+    branches: [develop, master]
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Build the Docker image
-      run: | 
-        docker build -t sharebook-api -f devops/Dockerfile .
+      - uses: actions/checkout@v4
+      - name: Build the Docker image
+        run: |
+          docker build -t sharebook-api -f devops/Dockerfile .

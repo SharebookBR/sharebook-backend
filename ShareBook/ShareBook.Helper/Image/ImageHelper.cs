@@ -34,7 +34,11 @@ namespace ShareBook.Helper.Image
                 throw new ArgumentException("'scalefactor' deve ser maior que 0");
             }
 
-            SixLabors.ImageSharp.Image image = SixLabors.ImageSharp.Image.Load(imageBytes, out IImageFormat imageFormat);
+            using var memoryStreamInput = new MemoryStream(imageBytes);
+            IImageFormat imageFormat = SixLabors.ImageSharp.Image.DetectFormat(memoryStreamInput);
+            memoryStreamInput.Position = 0;
+            
+            using SixLabors.ImageSharp.Image image = SixLabors.ImageSharp.Image.Load(memoryStreamInput);
 
             var width = image.Width * scalefactor / 100;
             var height = image.Height * scalefactor / 100;

@@ -1,16 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <DebugType>Full</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.SQS" Version="3.7.300.74" />
+    <PackageReference Include="AWSSDK.SQS" Version="4.0.2.9" />
     <PackageReference Include="Flurl.Http" Version="4.0.2" />
-    <PackageReference Include="MailKit" Version="2.15.0" />
+    <PackageReference Include="MailKit" Version="4.14.1" />
     <PackageReference Include="OneSignal.RestAPIv3.Client" Version="1.2.0" />
-    <PackageReference Include="Rollbar" Version="4.0.3" />
+    <PackageReference Include="Rollbar" Version="5.2.2" />
   </ItemGroup>
 
   <ItemGroup>

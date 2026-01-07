@@ -12,22 +12,29 @@ public static class DatabaseConfiguration
     {
         var dbProvider = config["DatabaseProvider"]?.ToLower() ?? "sqlserver";
 
-        // Health Checks
-        var healthChecksBuilder = services.AddHealthChecks();
-
-        switch (dbProvider)
+        // Health Checks - skip for inmemory (tests)
+        if (dbProvider != "inmemory")
         {
-            case "postgres":
-                healthChecksBuilder.AddNpgSql(config.GetConnectionString("PostgresConnection"));
-                break;
+            var healthChecksBuilder = services.AddHealthChecks();
 
-            case "sqlite":
-                healthChecksBuilder.AddSqlite(config.GetConnectionString("SqliteConnection"));
-                break;
+            switch (dbProvider)
+            {
+                case "postgres":
+                    healthChecksBuilder.AddNpgSql(config.GetConnectionString("PostgresConnection"));
+                    break;
 
-            default:
-                healthChecksBuilder.AddSqlServer(config.GetConnectionString("DefaultConnection"));
-                break;
+                case "sqlite":
+                    healthChecksBuilder.AddSqlite(config.GetConnectionString("SqliteConnection"));
+                    break;
+
+                default:
+                    healthChecksBuilder.AddSqlServer(config.GetConnectionString("DefaultConnection"));
+                    break;
+            }
+        }
+        else
+        {
+            services.AddHealthChecks();
         }
 
         services.AddDbContext<ApplicationDbContext>(options =>
@@ -40,6 +47,10 @@ public static class DatabaseConfiguration
 
                 case "sqlite":
                     options.UseSqlite(config.GetConnectionString("SqliteConnection"));
+                    break;
+
+                case "inmemory":
+                    options.UseInMemoryDatabase("ShareBookInMemoryDb");
                     break;
 
                 default:
@@ -58,7 +69,7 @@ public static class DatabaseConfiguration
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-        if (dbProvider == "sqlite")
+        if (dbProvider == "sqlite" || dbProvider == "inmemory")
             context.Database.EnsureCreated();
         else
             context.Database.Migrate();

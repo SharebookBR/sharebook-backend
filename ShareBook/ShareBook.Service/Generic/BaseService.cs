@@ -64,7 +64,26 @@ namespace ShareBook.Service.Generic
 
         protected async Task<Result<TEntity>> ValidateAsync(TEntity entity) => new Result<TEntity>(await _validator.ValidateAsync(entity));
 
-        protected Result<TEntity> Validate(TEntity entity, params Expression<Func<TEntity, object>>[] filter) => new Result<TEntity>(_validator.Validate(entity, filter));
+        protected Result<TEntity> Validate(TEntity entity, params Expression<Func<TEntity, object>>[] propertiesToValidate)
+        {
+            var propertyNames = propertiesToValidate
+                .Select(GetPropertyName)
+                .ToArray();
+
+            var result = _validator.Validate(entity, options => options.IncludeProperties(propertyNames));
+            return new Result<TEntity>(result);
+        }
+
+        private static string GetPropertyName(Expression<Func<TEntity, object>> expression)
+        {
+            if (expression.Body is MemberExpression memberExpression)
+                return memberExpression.Member.Name;
+
+            if (expression.Body is UnaryExpression unaryExpression && unaryExpression.Operand is MemberExpression operand)
+                return operand.Member.Name;
+
+            throw new ArgumentException("Expression must be a member expression");
+        }
 
         public virtual async Task<Result<TEntity>> InsertAsync(TEntity entity)
         {
