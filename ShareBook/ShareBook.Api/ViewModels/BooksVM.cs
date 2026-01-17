@@ -30,8 +30,7 @@ namespace ShareBook.Api.ViewModels
         public string Slug { get; set; }
         public Guid? UserId { get; set; }
         public string Type { get; set; }
-        public string EBookDownloadLink { get; set; }
-        public string EBookPdfFile { get; set; }
+        public string EBookPdfPath { get; set; }
     }
 
     public class BookVM
@@ -52,7 +51,6 @@ namespace ShareBook.Api.ViewModels
         public string Synopsis { get; set; }
         public string Slug { get; set; }
         public string Type { get; set; }
-        public string EBookDownloadLink { get; set; }
-        public string EBookPdfFile { get; set; }
+        public string EBookPdfPath { get; set; }
     }
 }

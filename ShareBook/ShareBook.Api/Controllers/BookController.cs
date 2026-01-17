@@ -14,8 +14,10 @@ using ShareBook.Repository.Repository;
 using ShareBook.Service;
 using ShareBook.Service.Authorization;
 using ShareBook.Service.AwsSqs.Dto;
+using ShareBook.Service.EBook;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,6 +33,7 @@ namespace ShareBook.Api.Controllers
         private readonly IBookService _service;
         private readonly IUserService _userService;
         private readonly IAccessHistoryService _accessHistoryService;
+        private readonly IEBookService _ebookService;
         private Expression<Func<Book, object>> _defaultOrder = x => x.Id;
         private readonly IMapper _mapper;
 
@@ -38,13 +41,15 @@ namespace ShareBook.Api.Controllers
                               IBookUserService bookUserService,
                               IUserService userService,
                               IMapper mapper,
-                              IAccessHistoryService accessHistoryService)
+                              IAccessHistoryService accessHistoryService,
+                              IEBookService ebookService)
         {
             _service = bookService;
             _bookUserService = bookUserService;
             _userService = userService;
             _mapper = mapper;
             _accessHistoryService = accessHistoryService;
+            _ebookService = ebookService;
         }
 
         protected void SetDefault(Expression<Func<Book, object>> defaultOrder)
@@ -154,8 +159,10 @@ namespace ShareBook.Api.Controllers
         public async Task<IActionResult> GetAsync(string slug)
         {
             var book = await _service.BySlugAsync(slug);
+            if (book == null) return NotFound();
+
             var bookVM = _mapper.Map<BookVM>(book);
-            return book != null ? (IActionResult)Ok(bookVM) : NotFound();
+            return Ok(bookVM);
         }
 
         [Authorize("Bearer")]
@@ -494,6 +501,39 @@ namespace ShareBook.Api.Controllers
         {
             var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             return await _userService.FindAsync(userId);
+        }
+
+        [HttpGet("DownloadEBook/{slug}")]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(FileContentResult), 200)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> DownloadEBookAsync(string slug)
+        {
+            var book = await _service.BySlugAsync(slug);
+
+            if (book == null)
+                return NotFound(new { message = "Livro não encontrado." });
+
+            if (!book.IsEbook())
+                return BadRequest(new { message = "Este livro não é um e-book." });
+
+            if (string.IsNullOrEmpty(book.EBookPdfPath))
+                return NotFound(new { message = "PDF do e-book não disponível." });
+
+            var pdfPath = Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                "wwwroot",
+                "EbookPdfs",
+                book.EBookPdfPath
+            );
+
+            if (!System.IO.File.Exists(pdfPath))
+                return NotFound(new { message = "Arquivo PDF não encontrado." });
+
+            var pdfBytes = await System.IO.File.ReadAllBytesAsync(pdfPath);
+            var fileName = book.GetPdfFileName();
+
+            return File(pdfBytes, "application/pdf", fileName);
         }
     }
 }

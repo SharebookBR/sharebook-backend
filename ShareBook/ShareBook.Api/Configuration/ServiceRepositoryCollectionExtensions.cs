@@ -9,6 +9,7 @@ using ShareBook.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service;
 using ShareBook.Service.AwsSqs;
+using ShareBook.Service.EBook;
 using ShareBook.Service.Lgpd;
 using ShareBook.Service.Muambator;
 using ShareBook.Service.Notification;
@@ -67,6 +68,9 @@ namespace ShareBook.Api.Configuration
 
             //Upload
             services.AddScoped<IUploadService, UploadService>();
+
+            //EBook
+            services.AddScoped<IEBookService, EBookService>();
 
             //UnitOfWork
             services.AddScoped<IUnitOfWork, UnitOfWork>();

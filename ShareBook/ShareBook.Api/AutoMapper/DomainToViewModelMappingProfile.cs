@@ -25,20 +25,22 @@ namespace ShareBook.Api.AutoMapper
                  .ForMember(dest => dest.DaysLate, opt => opt.MapFrom(src => src.DaysLate()))
                  .ForMember(dest => dest.TotalInterested, opt => opt.MapFrom(src => src.TotalInterested()))
                  .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
-                 .ForMember(dest => dest.FreightOption, opt => opt.MapFrom(src => src.FreightOption.ToString()))
+                 .ForMember(dest => dest.FreightOption, opt => opt.MapFrom(src => src.FreightOption.HasValue ? src.FreightOption.ToString() : null))
                  .ForMember(dest => dest.CreationDate, opt => opt.MapFrom(src => src.CreationDate))
                  .ForMember(dest => dest.ChooseDate, opt => opt.MapFrom(src => src.ChooseDate))
                  .ForMember(dest => dest.Winner, opt => opt.MapFrom(src => src.WinnerName()))
                  .ForMember(dest => dest.TrackingNumber, opt => opt.MapFrom(src => src.TrackingNumber))
-                 .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.Name));
+                 .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.Name))
+                 .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()));
 
             CreateMap<Book, BookVM>()
                  .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.User.Address.City))
                  .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.User.Address.State))
                  .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
-                 .ForMember(dest => dest.FreightOption, opt => opt.MapFrom(src => src.FreightOption.ToString()))
+                 .ForMember(dest => dest.FreightOption, opt => opt.MapFrom(src => src.FreightOption.HasValue ? src.FreightOption.ToString() : null))
                  .ForMember(dest => dest.CreationDate, opt => opt.MapFrom(src => src.CreationDate))
-                 .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.Name));
+                 .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.Name))
+                 .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()));
 
             CreateMap<BookUser, MyBookRequestVM>()
                 .ForMember(dest => dest.Author, opt => opt.MapFrom(src => src.Book.Author))
