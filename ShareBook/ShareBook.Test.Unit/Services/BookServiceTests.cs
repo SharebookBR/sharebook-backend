@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using Moq;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
@@ -8,6 +8,7 @@ using ShareBook.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service;
 using ShareBook.Service.AwsSqs;
+using ShareBook.Service.EBook;
 using ShareBook.Service.Upload;
 using ShareBook.Test.Unit.Mocks;
 using System;
@@ -22,6 +23,7 @@ namespace ShareBook.Test.Unit.Services
     {
         readonly Mock<IBookService> bookServiceMock;
         readonly Mock<IUploadService> uploadServiceMock;
+        readonly Mock<IEBookService> ebookServiceMock;
         readonly Mock<IBookRepository> bookRepositoryMock;
         readonly Mock<IBooksEmailService> bookEmailService;
         readonly Mock<IUnitOfWork> unitOfWorkMock;
@@ -35,6 +37,7 @@ namespace ShareBook.Test.Unit.Services
             // Definindo quais serão as classes mockadas
             bookServiceMock = new Mock<IBookService>();
             uploadServiceMock = new Mock<IUploadService>();
+            ebookServiceMock = new Mock<IEBookService>();
             unitOfWorkMock = new Mock<IUnitOfWork>();
             bookRepositoryMock = new Mock<IBookRepository>();
             bookEmailService = new Mock<IBooksEmailService>();
@@ -47,6 +50,7 @@ namespace ShareBook.Test.Unit.Services
                 return BookMock.GetLordTheRings();
             });
             uploadServiceMock.Setup(service => service.UploadImageAsync(It.IsAny<byte[]>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync("Ok Mocked");
+            ebookServiceMock.Setup(service => service.UploadPdfAsync(It.IsAny<Book>())).ReturnsAsync("EBooks/test-book.pdf");
             bookServiceMock.Setup(service => service.InsertAsync(It.IsAny<Book>())).ReturnsAsync(() => new Result<Book>(new Book())).Verifiable();
         }
 
@@ -54,30 +58,9 @@ namespace ShareBook.Test.Unit.Services
         public async Task AddBook()
         {
             Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
-            var service = new BookService(bookRepositoryMock.Object, 
-                unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object);
-            Result<Book> result = await service.InsertAsync(new Book()
-            {
-                Title = "Lord of the Rings",
-                Author = "J. R. R. Tolkien",
-                ImageName = "lotr.png",
-                ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
-                FreightOption = FreightOption.City,
-                CategoryId = Guid.NewGuid()
-                
-            });
-            Assert.NotNull(result);
-            Assert.True(result.Success);
-        }
-
-        [Fact]
-        public async Task AddEBookByLink()
-        {
-            Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
             var service = new BookService(bookRepositoryMock.Object,
                 unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object);
+                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object);
             Result<Book> result = await service.InsertAsync(new Book()
             {
                 Title = "Lord of the Rings",
@@ -86,35 +69,92 @@ namespace ShareBook.Test.Unit.Services
                 ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
                 FreightOption = FreightOption.City,
                 CategoryId = Guid.NewGuid(),
-                Type = BookType.Eletronic,
-                EBookDownloadLink = "download-link-ebook"
+                Type = BookType.Printed
             });
             Assert.NotNull(result);
             Assert.True(result.Success);
         }
 
         [Fact]
-        public async Task AddEBookByPdfFile()
+        public async Task AddEBookWithPdf()
         {
             Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
             var service = new BookService(bookRepositoryMock.Object,
                 unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object);
+                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object);
+            Result<Book> result = await service.InsertAsync(new Book()
+            {
+                Title = "Clean Code",
+                Author = "Robert C. Martin",
+                ImageName = "clean-code.png",
+                ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
+                CategoryId = Guid.NewGuid(),
+                Type = BookType.Eletronic,
+                PdfBytes = Encoding.UTF8.GetBytes("PDF_CONTENT_BASE64")
+            });
+            Assert.NotNull(result);
+            Assert.True(result.Success);
+        }
+
+        [Fact]
+        public async Task AddEBookWithoutPdf_ShouldFail()
+        {
+            Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
+            var service = new BookService(bookRepositoryMock.Object,
+                unitOfWorkMock.Object, new BookValidator(),
+                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object);
+            Result<Book> result = await service.InsertAsync(new Book()
+            {
+                Title = "Clean Code",
+                Author = "Robert C. Martin",
+                ImageName = "clean-code.png",
+                ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
+                CategoryId = Guid.NewGuid(),
+                Type = BookType.Eletronic
+            });
+            Assert.NotNull(result);
+            Assert.False(result.Success);
+        }
+
+        [Fact]
+        public async Task AddPrintedBookWithoutFreight_ShouldFail()
+        {
+            Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
+            var service = new BookService(bookRepositoryMock.Object,
+                unitOfWorkMock.Object, new BookValidator(),
+                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object);
             Result<Book> result = await service.InsertAsync(new Book()
             {
                 Title = "Lord of the Rings",
                 Author = "J. R. R. Tolkien",
                 ImageName = "lotr.png",
                 ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
-                FreightOption = FreightOption.City,
+                CategoryId = Guid.NewGuid(),
+                Type = BookType.Printed
+            });
+            Assert.NotNull(result);
+            Assert.False(result.Success);
+        }
+
+        [Fact]
+        public async Task EBookShouldNotRequireFreight()
+        {
+            Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
+            var service = new BookService(bookRepositoryMock.Object,
+                unitOfWorkMock.Object, new BookValidator(),
+                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object);
+            Result<Book> result = await service.InsertAsync(new Book()
+            {
+                Title = "Clean Code",
+                Author = "Robert C. Martin",
+                ImageName = "clean-code.png",
+                ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
                 CategoryId = Guid.NewGuid(),
                 Type = BookType.Eletronic,
-                EBookPdfFile = "pdf-ebook",
-                EBookPdfBytes = Encoding.UTF8.GetBytes("STRINGBASE64")
+                PdfBytes = Encoding.UTF8.GetBytes("PDF_CONTENT_BASE64")
             });
             Assert.NotNull(result);
             Assert.True(result.Success);
         }
-
     }
 }

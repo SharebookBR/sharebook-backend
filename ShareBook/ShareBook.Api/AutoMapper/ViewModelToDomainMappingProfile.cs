@@ -1,7 +1,11 @@
-﻿using AutoMapper;
+using AutoMapper;
 using ShareBook.Api.ViewModels;
 using ShareBook.Domain;
 using ShareBook.Domain.DTOs;
+using ShareBook.Domain.Enums;
+using System;
+
+using Profile = AutoMapper.Profile;
 
 namespace ShareBook.Api.AutoMapper
 {
@@ -15,8 +19,12 @@ namespace ShareBook.Api.AutoMapper
         {
             #region [ Book ]
 
-            CreateMap<CreateBookVM, Book>().ReverseMap();
-            CreateMap<UpdateBookVM, Book>().ReverseMap();
+            CreateMap<CreateBookVM, Book>()
+                .ForMember(dest => dest.Type, opt => opt.MapFrom(src => ParseBookType(src.Type)))
+                .ReverseMap();
+            CreateMap<UpdateBookVM, Book>()
+                .ForMember(dest => dest.Type, opt => opt.MapFrom(src => ParseBookType(src.Type)))
+                .ReverseMap();
             CreateMap<DonateBookUserVM, BookUser>().ReverseMap();
             CreateMap<Book, CancelBookDonationVM>();
 
@@ -49,6 +57,13 @@ namespace ShareBook.Api.AutoMapper
             CreateMap<NotificationOnesignalVM, NotificationOnesignal>();
 
             #endregion [ Notification ]
+        }
+
+        private static BookType ParseBookType(string type)
+        {
+            if (Enum.TryParse<BookType>(type, true, out var result))
+                return result;
+            return BookType.Printed;
         }
     }
 }

@@ -71,16 +71,54 @@ namespace ShareBook.Test.Unit.Domain
             Assert.False(book.MayChooseWinner());
         }
 
-        [Theory]
-        [InlineData(BookType.Eletronic ,"downloadLink", null)]
-        [InlineData(BookType.Eletronic, "downloadLink", "")]
-        [InlineData(BookType.Eletronic, null, "ebookPdfFile")]
-        [InlineData(BookType.Eletronic, "", "ebookPdfFile")]
-        [InlineData(BookType.Eletronic, "downloadLink", "ebookPdfFile")]
-        public void BookTypeShouldBeEletronicIfNemBookIsCreatedWithEBookDownloadLinkOrEbookPdfFile(BookType bookType, string downloadLink, string eBookPdfFile)
+        [Fact]
+        public void BookTypeShouldBeEletronicWhenSetExplicitly()
         {
-            var book = new Book() { Type = bookType, EBookDownloadLink = downloadLink, EBookPdfFile = eBookPdfFile};
-            Assert.Equal(bookType, book.Type);
+            var book = new Book() { Type = BookType.Eletronic };
+            Assert.Equal(BookType.Eletronic, book.Type);
+        }
+
+        [Fact]
+        public void HasPdfToUploadShouldReturnTrueForEbookWithPdfBytes()
+        {
+            var book = new Book()
+            {
+                Type = BookType.Eletronic,
+                PdfBytes = new byte[] { 1, 2, 3 }
+            };
+            Assert.True(book.HasPdfToUpload());
+        }
+
+        [Fact]
+        public void HasPdfToUploadShouldReturnFalseForPrintedBook()
+        {
+            var book = new Book()
+            {
+                Type = BookType.Printed,
+                PdfBytes = new byte[] { 1, 2, 3 }
+            };
+            Assert.False(book.HasPdfToUpload());
+        }
+
+        [Fact]
+        public void IsEbookShouldReturnTrueForEletronicType()
+        {
+            var book = new Book() { Type = BookType.Eletronic };
+            Assert.True(book.IsEbook());
+        }
+
+        [Fact]
+        public void IsEbookShouldReturnFalseForPrintedType()
+        {
+            var book = new Book() { Type = BookType.Printed };
+            Assert.False(book.IsEbook());
+        }
+
+        [Fact]
+        public void GetPdfFileNameShouldReturnSlugWithPdfExtension()
+        {
+            var book = new Book() { Slug = "clean-code" };
+            Assert.Equal("clean-code.pdf", book.GetPdfFileName());
         }
 
         [Fact]

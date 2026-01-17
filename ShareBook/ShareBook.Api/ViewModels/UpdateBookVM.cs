@@ -23,9 +23,10 @@ namespace ShareBook.Api.ViewModels
 
         public string Synopsis { get; set; }
 
-        public FreightOption FreightOption { get; set; }
-        public string Type { get; set; }
-        public string EBookDownloadLink { get; set; }
-        public string EBookPdfFile { get; set; }
+        public FreightOption? FreightOption { get; set; }
+
+        public string Type { get; set; } = "Printed";
+
+        public byte[] PdfBytes { get; set; }
     }
 }

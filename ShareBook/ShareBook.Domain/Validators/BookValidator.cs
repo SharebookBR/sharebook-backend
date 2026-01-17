@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using ShareBook.Domain.Enums;
 
 namespace ShareBook.Domain.Validators
@@ -11,8 +11,9 @@ namespace ShareBook.Domain.Validators
         public const string Image = "Imagem do livro é obrigatória";
         public const string Categoria = "Categoria do livro é obrigatória";
         public const string User = "O usuário deve ter vinculo com o livro";
-        public const string FreightOption = "A opção de frete é obrigatória";
+        public const string FreightOption = "A opção de frete é obrigatória para livros físicos";
         public const string HasNotImageExtension = "A extensão da imagem não é válida. É preciso ser png, jpg ou jpeg.";
+        public const string EBookPdfRequired = "É necessário enviar o arquivo PDF para cadastrar um E-Book";
         #endregion
 
         public BookValidator()
@@ -36,7 +37,8 @@ namespace ShareBook.Domain.Validators
                 .WithMessage(Image);
 
             RuleFor(b => b.FreightOption)
-                .Must(FreightOptionIsValid)
+                .NotNull()
+                .When(b => b.Type == BookType.Printed)
                 .WithMessage(FreightOption);
 
             RuleFor(b => b.UserId)
@@ -47,24 +49,23 @@ namespace ShareBook.Domain.Validators
                .NotEmpty()
                .WithMessage(Categoria);
 
-                
+            RuleFor(b => b.PdfBytes)
+                .NotEmpty()
+                .When(b => b.Type == BookType.Eletronic && string.IsNullOrEmpty(b.EBookPdfPath))
+                .WithMessage(EBookPdfRequired);
         }
 
 
         private bool HasImageExtension(string image)
         {
-            return (!string.IsNullOrEmpty(image) && 
-                       (image.ToLower().EndsWith(".png") 
+            return (!string.IsNullOrEmpty(image) &&
+                       (image.ToLower().EndsWith(".png")
                        || image.ToLower().EndsWith(".jpg")
                        || image.ToLower().EndsWith(".jpeg"))
                    );
         }
 
-        private bool FreightOptionIsValid(FreightOption freightOption)
-        {
-            return !string.IsNullOrEmpty(freightOption.ToString());
-        }
 
-      
+
     }
 }
