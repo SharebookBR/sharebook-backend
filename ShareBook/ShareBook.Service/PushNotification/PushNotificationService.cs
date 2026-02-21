@@ -1,8 +1,8 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using OneSignal.RestAPIv3.Client;
 using OneSignal.RestAPIv3.Client.Resources;
 using OneSignal.RestAPIv3.Client.Resources.Notifications;
-using Rollbar;
 using ShareBook.Domain;
 using ShareBook.Domain.Enums;
 using System;
@@ -15,10 +15,13 @@ public class PushNotificationService : IPushNotificationService
 {
     private readonly PushNotificationSettings _settings;
     private readonly OneSignalClient _oneSignalClient;
-    public PushNotificationService(IOptions<PushNotificationSettings> pushNotificationSettings)
+    private readonly ILogger<PushNotificationService> _logger;
+
+    public PushNotificationService(IOptions<PushNotificationSettings> pushNotificationSettings, ILogger<PushNotificationService> logger)
     {
         _settings = pushNotificationSettings.Value;
         _oneSignalClient = new OneSignalClient(_settings.ApiKey);
+        _logger = logger;
     }
 
     public async Task<string> SendNotificationSegmentsAsync(NotificationOnesignal onesignal)
@@ -95,7 +98,7 @@ public class PushNotificationService : IPushNotificationService
             return $"Notification enviado para o {email} com sucesso";
         }
         catch(Exception ex) {
-            RollbarLocator.RollbarInstance.Error(ex);
+            _logger.LogError(ex, "Erro ao enviar push notification para {Email}", email);
             return "";
         }            
     }

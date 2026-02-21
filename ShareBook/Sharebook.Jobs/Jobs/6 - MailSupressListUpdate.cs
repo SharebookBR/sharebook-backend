@@ -1,4 +1,5 @@
-﻿using ShareBook.Domain;
+﻿using Microsoft.Extensions.Logging;
+using ShareBook.Domain;
 using ShareBook.Domain.Enums;
 using ShareBook.Repository;
 using ShareBook.Service;
@@ -13,7 +14,8 @@ public class MailSupressListUpdate : GenericJob, IJob
 
     public MailSupressListUpdate(
         IJobHistoryRepository jobHistoryRepo,
-        IEmailService emailService) : base(jobHistoryRepo)
+        ILoggerFactory loggerFactory,
+        IEmailService emailService) : base(jobHistoryRepo, loggerFactory)
     {
 
         JobName = "MailSupressListUpdate";

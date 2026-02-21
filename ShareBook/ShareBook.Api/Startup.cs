@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Builder;
+using Serilog;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -9,11 +10,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
-using Rollbar.NetCore.AspNet;
 using ShareBook.Api.Configuration;
 using ShareBook.Api.Filters;
 using ShareBook.Api.Middleware;
-using ShareBook.Api.Services;
 using ShareBook.Repository;
 using ShareBook.Service;
 using ShareBook.Service.AwsSqs;
@@ -47,6 +46,7 @@ namespace ShareBook.Api
 
             services.RegisterRepositoryServices();
             services.AddAutoMapper(cfg => cfg.LicenseKey = Environment.GetEnvironmentVariable("AUTOMAPPER_LICENSE_KEY"), typeof(Startup).Assembly);
+            services.AddLogging();
 
             services
                 .AddControllers(x =>
@@ -96,14 +96,6 @@ namespace ShareBook.Api
             });
 
 
-            RollbarConfigurator
-                .Configure(environment: Configuration.GetSection("Rollbar:Environment").Value,
-                           isActive: Configuration.GetSection("Rollbar:IsActive").Value,
-                           token: Configuration.GetSection("Rollbar:Token").Value,
-                           logLevel: Configuration.GetSection("Rollbar:LogLevel").Value);
-
-            services.AddRollbarLogger();
-
             MuambatorConfigurator.Configure(Configuration.GetSection("Muambator:Token").Value, Configuration.GetSection("Muambator:IsActive").Value);
 
             services.AddMemoryCache();
@@ -111,11 +103,7 @@ namespace ShareBook.Api
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            bool rollbarActive = Configuration.GetSection("Rollbar:IsActive").Value == null ? false : Convert.ToBoolean(Configuration.GetSection("Rollbar:IsActive").Value.ToLower());
-            if (rollbarActive)
-            {
-                app.UseRollbarMiddleware();
-            }
+            app.UseSerilogRequestLogging();
 
             app.UseHealthChecks("/hc");
             app.UseExceptionHandlerMiddleware();

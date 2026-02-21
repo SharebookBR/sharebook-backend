@@ -1,9 +1,8 @@
-﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using Rollbar;
-using ShareBook.Api.Services;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.Exceptions;
 using System;
@@ -15,10 +14,12 @@ namespace ShareBook.Api.Middleware
     public class ExceptionHandlerMiddleware
     {
         private readonly RequestDelegate _next;
+        private readonly ILogger<ExceptionHandlerMiddleware> _logger;
 
-        public ExceptionHandlerMiddleware(RequestDelegate next)
+        public ExceptionHandlerMiddleware(RequestDelegate next, ILogger<ExceptionHandlerMiddleware> logger)
         {
             _next = next;
+            _logger = logger;
         }
 
         public async Task Invoke(HttpContext httpContext)
@@ -40,8 +41,7 @@ namespace ShareBook.Api.Middleware
             }
             catch (Exception ex)
             {
-                if (RollbarConfigurator.IsActive)
-                    SendErrorToRollbar(ex);
+                _logger.LogError(ex, "Unhandled exception");
 
                 var result = new Result();
                 result.Messages.Add(ex.ToString());
@@ -74,18 +74,6 @@ namespace ShareBook.Api.Middleware
 
             return json;
         }
-
-        private void SendErrorToRollbar(Exception ex)
-        {
-            object error = new
-            {
-                Message = ex.Message,
-                StackTrace = ex.StackTrace,
-                Source = ex.Source
-            };
-
-            RollbarLocator.RollbarInstance.Error(error);
-        }
     }
 
     // Extension method used to add the middleware to the HTTP request pipeline.
@@ -93,5 +81,4 @@ namespace ShareBook.Api.Middleware
     {
         public static IApplicationBuilder UseExceptionHandlerMiddleware(this IApplicationBuilder builder) => builder.UseMiddleware<ExceptionHandlerMiddleware>();
     }
-
 }

@@ -1,4 +1,5 @@
-﻿using ShareBook.Domain;
+﻿using Microsoft.Extensions.Logging;
+using ShareBook.Domain;
 using ShareBook.Domain.Enums;
 using ShareBook.Repository;
 using ShareBook.Service;
@@ -16,10 +17,11 @@ public class ChooseDateReminder : GenericJob, IJob
 
     public ChooseDateReminder(
         IJobHistoryRepository jobHistoryRepo,
+        ILoggerFactory loggerFactory,
         IBookService bookService,
-        IEmailService emailService, 
+        IEmailService emailService,
         IEmailTemplate emailTemplate
-        ) : base(jobHistoryRepo)
+        ) : base(jobHistoryRepo, loggerFactory)
     {
         JobName = "ChooseDateReminder";
         Description = "Notifica o doador, com um lembrete amigável, no dia da doação. " +

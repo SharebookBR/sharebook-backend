@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using ShareBook.Domain;
 using ShareBook.Domain.DTOs;
 using ShareBook.Domain.Enums;
@@ -29,7 +30,7 @@ public class LateDonationNotification : GenericJob, IJob
     public LateDonationNotification(IJobHistoryRepository jobHistoryRepo,
         IBookService bookService,
         IEmailService emailService,
-        IEmailTemplate emailTemplate, IConfiguration configuration) : base(jobHistoryRepo)
+        IEmailTemplate emailTemplate, ILoggerFactory loggerFactory, IConfiguration configuration) : base(jobHistoryRepo, loggerFactory)
     {
         JobName = "LateDonationNotification";
         Description = "Notifica o facilitador e doador com lista de doações em atraso " +

@@ -1,4 +1,5 @@
-﻿using ShareBook.Repository;
+﻿using Microsoft.Extensions.Logging;
+using ShareBook.Repository;
 using ShareBook.Service;
 using ShareBook.Domain.Enums;
 using System;
@@ -13,7 +14,7 @@ public class MeetupSearch : GenericJob, IJob
 {
     private readonly IMeetupService _meetupService;
     private readonly IConfiguration _configuration;
-    public MeetupSearch(IJobHistoryRepository jobHistoryRepo, IMeetupService meetupService, IConfiguration configuration) : base(jobHistoryRepo)
+    public MeetupSearch(IJobHistoryRepository jobHistoryRepo, ILoggerFactory loggerFactory, IMeetupService meetupService, IConfiguration configuration) : base(jobHistoryRepo, loggerFactory)
     {
         _meetupService = meetupService;
 

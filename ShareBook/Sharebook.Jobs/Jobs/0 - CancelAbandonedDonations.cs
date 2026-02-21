@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using ShareBook.Domain;
 using ShareBook.Domain.DTOs;
 using ShareBook.Domain.Enums;
@@ -17,7 +18,7 @@ public class CancelAbandonedDonations : GenericJob, IJob
     private readonly int _maxLateDonationDaysAutoCancel;
     private readonly IConfiguration _configuration;
 
-    public CancelAbandonedDonations(IJobHistoryRepository jobHistoryRepo, IBookService bookService, IBookUserService bookUserService, IConfiguration configuration) : base(jobHistoryRepo)
+    public CancelAbandonedDonations(IJobHistoryRepository jobHistoryRepo, ILoggerFactory loggerFactory, IBookService bookService, IBookUserService bookUserService, IConfiguration configuration) : base(jobHistoryRepo, loggerFactory)
     {
         JobName = "CancelAbandonedDonations";
         Description = "Cancela as doações abandonadas.";

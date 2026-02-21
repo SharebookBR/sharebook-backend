@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using ShareBook.Domain;
 using ShareBook.Domain.Enums;
 using ShareBook.Domain.Exceptions;
@@ -28,7 +29,8 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
         IUserService userService,
         IConfiguration configuration,
         IEmailTemplate emailTemplate,
-        IBookService bookService) : base(jobHistoryRepo)
+        ILoggerFactory loggerFactory,
+        IBookService bookService) : base(jobHistoryRepo, loggerFactory)
     {
 
         JobName = "NewBookGetInterestedUsers";
