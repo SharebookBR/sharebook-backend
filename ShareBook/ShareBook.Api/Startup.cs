@@ -46,7 +46,7 @@ namespace ShareBook.Api
             services.AddDatabaseConfiguration(Configuration);
 
             services.RegisterRepositoryServices();
-            services.AddAutoMapper(cfg => { }, typeof(Startup).Assembly);
+            services.AddAutoMapper(cfg => cfg.LicenseKey = Environment.GetEnvironmentVariable("AUTOMAPPER_LICENSE_KEY"), typeof(Startup).Assembly);
 
             services
                 .AddControllers(x =>
