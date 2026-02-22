@@ -63,7 +63,7 @@ public class GenericQueue<T> : IAwsSqsQueue<T>
 
         var result = await _amazonSQSClient.ReceiveMessageAsync(receiveMessageRequest);
 
-        if (result.Messages.Count > 0)
+        if (result?.Messages?.Count > 0)
         {
             var firstMessageTemp = result.Messages[0].Body;
             var firstMessage = System.Text.Json.JsonSerializer.Deserialize<T>(firstMessageTemp);
