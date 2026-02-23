@@ -102,6 +102,7 @@ public class EmailService : IEmailService
                 MaxRetryAttempts = 2,
                 Delay = TimeSpan.FromSeconds(2),
                 BackoffType = DelayBackoffType.Exponential,
+                ShouldHandle = new PredicateBuilder().Handle<Exception>(),
                 OnRetry = args =>
                 {
                     _logger.LogWarning(args.Outcome.Exception,
@@ -117,7 +118,7 @@ public class EmailService : IEmailService
             await retryPipeline.ExecuteAsync(async ct =>
             {
                 using var client = new SmtpClient();
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
                 if (_settings.UseSSL)
                     client.ServerCertificateValidationCallback = (s, c, h, e) => true;
