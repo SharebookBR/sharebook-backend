@@ -1,4 +1,4 @@
-﻿using Rollbar;
+﻿using Microsoft.Extensions.Logging;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.Enums;
@@ -17,9 +17,11 @@ public class JobExecutor : IJobExecutor
 {
     private readonly IList<IJob> _jobs;
     private readonly IJobHistoryRepository _jobHistoryRepo;
+    private readonly ILogger<JobExecutor> _logger;
     private Stopwatch _stopwatch;
 
     public JobExecutor(IJobHistoryRepository jobHistoryRepo,
+                        ILogger<JobExecutor> logger,
                         CancelAbandonedDonations job0,
                         ChooseDateReminder job1,
                         LateDonationNotification job2,
@@ -30,6 +32,7 @@ public class JobExecutor : IJobExecutor
                         MailSender job7) // MailSender precisa ser o último!
     {
         _jobHistoryRepo = jobHistoryRepo;
+        _logger = logger;
 
         // TODO: obter a lista automaticamente via reflection
         _jobs = new List<IJob>
@@ -103,7 +106,7 @@ public class JobExecutor : IJobExecutor
         {
             success = false;
             messages.Add(string.Format("Executor: ocorreu um erro fatal. {0}", ex.Message));
-            SendErrorToRollbar(ex);
+            _logger.LogError(ex, "JobExecutor falhou com erro fatal");
         }
 
         // Executor também loga seu histórico. Precisamos de rastreabilidade.
@@ -131,18 +134,5 @@ public class JobExecutor : IJobExecutor
         await _jobHistoryRepo.InsertAsync(history);
     }
 
-    // TODO: criar um service pro rollbar e reaproveitar aqui
-    // e no ExceptionHandlerMiddleware.
-    private void SendErrorToRollbar(Exception ex)
-    {
-        object error = new
-        {
-            Message = ex.Message,
-            StackTrace = ex.StackTrace,
-            Source = ex.Source
-        };
-
-        RollbarLocator.RollbarInstance.Error(error);
-    }
 }
 

@@ -1,4 +1,5 @@
-﻿using ShareBook.Domain;
+﻿using Microsoft.Extensions.Logging;
+using ShareBook.Domain;
 using ShareBook.Domain.Enums;
 using ShareBook.Repository;
 using ShareBook.Service;
@@ -19,7 +20,8 @@ namespace Sharebook.Jobs
             IBookService bookService, 
             IJobHistoryRepository jobHistoryRepo,
             IEmailService emailService,
-            IEmailTemplate emailTemplate) : base(jobHistoryRepo)
+            IEmailTemplate emailTemplate,
+            ILoggerFactory loggerFactory) : base(jobHistoryRepo, loggerFactory)
         {
 
             JobName     = "RemoveBookFromShowcase";

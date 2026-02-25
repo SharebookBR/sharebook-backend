@@ -1,4 +1,4 @@
-﻿using Rollbar;
+using Microsoft.Extensions.Logging;
 using ShareBook.Domain;
 using ShareBook.Domain.Enums;
 using ShareBook.Domain.Exceptions;
@@ -20,12 +20,14 @@ namespace Sharebook.Jobs
         public TimeSpan? BestTimeToExecute { get; set; }
 
         protected readonly IJobHistoryRepository _jobHistoryRepo;
+        protected readonly ILogger Logger;
 
         protected Stopwatch _stopwatch;
 
-        protected GenericJob(IJobHistoryRepository jobHistoryRepo)
+        protected GenericJob(IJobHistoryRepository jobHistoryRepo, ILoggerFactory loggerFactory)
         {
             _jobHistoryRepo = jobHistoryRepo;
+            Logger = loggerFactory.CreateLogger(GetType().Name);
         }
 
         public bool HasWork()
@@ -107,10 +109,10 @@ namespace Sharebook.Jobs
             }
             catch(Exception ex)
             {
-                RollbarLocator.RollbarInstance.Error(ex);
+                Logger.LogError(ex, "Job {JobName} falhou", JobName);
                 return JobResult.Error;
             }
-            
+
         }
 
         public abstract Task<JobHistory> WorkAsync();

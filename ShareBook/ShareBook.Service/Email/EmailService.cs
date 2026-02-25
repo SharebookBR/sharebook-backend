@@ -7,6 +7,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using Polly;
+using Polly.Retry;
 using ShareBook.Domain;
 using ShareBook.Repository;
 using ShareBook.Service.AwsSqs;
@@ -101,30 +103,45 @@ public class EmailService : IEmailService
     {
         var message = await FormatEmailAsync(emailRecipient, nameRecipient, messageText, subject, copyAdmins);
 
+        var retryPipeline = new ResiliencePipelineBuilder()
+            .AddRetry(new RetryStrategyOptions
+            {
+                MaxRetryAttempts = 2,
+                Delay = TimeSpan.FromSeconds(2),
+                BackoffType = DelayBackoffType.Exponential,
+                ShouldHandle = new PredicateBuilder().Handle<Exception>(),
+                OnRetry = args =>
+                {
+                    _logger.LogWarning(args.Outcome.Exception,
+                        "Tentativa {Attempt} falhou ao enviar e-mail para {Email}. Aguardando para nova tentativa.",
+                        args.AttemptNumber + 1, emailRecipient);
+                    return default;
+                }
+            })
+            .Build();
+
         try
         {
-            using var client = new SmtpClient();
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            await retryPipeline.ExecuteAsync(async ct =>
+            {
+                using var client = new SmtpClient();
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
-            if (_settings.UseSSL)
-                client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+                if (_settings.UseSSL)
+                    client.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
-            client.CheckCertificateRevocation = false;
+                client.CheckCertificateRevocation = false;
 
-            await client.ConnectAsync(_settings.HostName, _settings.Port, _settings.UseSSL, cts.Token);
-            await client.AuthenticateAsync(_settings.Username, _settings.Password, cts.Token);
-            await client.SendAsync(message, cts.Token);
-            await client.DisconnectAsync(true, cts.Token);
-        }
-        catch (TaskCanceledException ex)
-        {
-            _logger.LogWarning(ex, "Timeout ao enviar e-mail para {Email}. Será reprocessado pelo SQS/job.", emailRecipient);
-            // não relança, só registra warning
+                await client.ConnectAsync(_settings.HostName, _settings.Port, _settings.UseSSL, cts.Token);
+                await client.AuthenticateAsync(_settings.Username, _settings.Password, cts.Token);
+                await client.SendAsync(message, cts.Token);
+                await client.DisconnectAsync(true, cts.Token);
+            });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Falha ao enviar e-mail para {Email}", emailRecipient);
-            throw; // esse sim deve ser capturado pelo Rollbar
+            _logger.LogError(ex, "Falha ao enviar e-mail para {Email} após 3 tentativas", emailRecipient);
+            throw;
         }
     }
 

@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Rollbar;
+using Microsoft.Extensions.Logging;
 using ShareBook.Domain;
 using ShareBook.Domain.Enums;
 using ShareBook.Domain.Exceptions;
@@ -26,10 +26,11 @@ public class MailSender : GenericJob, IJob
 
     public MailSender(
         IJobHistoryRepository jobHistoryRepo,
+        ILoggerFactory loggerFactory,
         IEmailService emailService,
         MailSenderLowPriorityQueue sqsLowPriority,
         MailSenderHighPriorityQueue sqsHighPriority,
-        IConfiguration configuration) : base(jobHistoryRepo)
+        IConfiguration configuration) : base(jobHistoryRepo, loggerFactory)
     {
 
         JobName = "MailSender";
@@ -101,7 +102,7 @@ public class MailSender : GenericJob, IJob
                 _log.Add($"Enviei um email com SUCESSO para {destination.Email}.");
             }
             catch(Exception ex) {
-                RollbarLocator.RollbarInstance.Error(ex);
+                Logger.LogError(ex, "Erro ao enviar email para {Email}", destination.Email);
                 _log.Add($"Ocorreu um ERRO ao enviar email para {destination.Email}. Erro: {ex.Message}");
             }
 

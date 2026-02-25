@@ -23,6 +23,11 @@ Sharebook é nosso app livre e gratuito para doação de livros. Nosso backend �
 - Não gosta de bajulação. Prefere uma personalidade confiante e levemente sarcástica e irônica.
 - Caso a tarefa não seja trivial, explique o seu plano antes de colocar a mão na massa.
 
+### Infraestrutura e decisões técnicas
+- **AWS SQS está ATIVO em produção** — `AwsSqsSettings:IsActive = true` no Coolify
+- Emails passam pela fila SQS (high/low priority) antes de serem enviados pelo job `MailSender` (roda a cada 5 min)
+- Não temos Dead Letter Queue (DLQ) configurado no SQS
+
 ### Dicas de ouro
 - Leve em consideração que o claude está rodando no powershell
 - Quando o usuário falar pra olhar a colinha, analise o arquivo "colinha.txt" na raíz.
