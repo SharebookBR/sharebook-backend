@@ -13,6 +13,7 @@ using ShareBook.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service.AwsSqs;
 using ShareBook.Service.AwsSqs.Dto;
+using ShareBook.Service.EBook;
 using ShareBook.Service.Generic;
 using ShareBook.Service.Upload;
 using System;
@@ -29,19 +30,21 @@ namespace ShareBook.Service
         private readonly IUploadService _uploadService;
         private readonly IBooksEmailService _booksEmailService;
         private readonly IConfiguration _configuration;
+        private readonly IEBookService _ebookService;
 
         private readonly NewBookQueue _newBookQueue;
 
         public BookService(IBookRepository bookRepository,
                     IUnitOfWork unitOfWork, IValidator<Book> validator,
                     IUploadService uploadService, IBooksEmailService booksEmailService, IConfiguration configuration,
-                    NewBookQueue newBookQueue)
+                    NewBookQueue newBookQueue, IEBookService ebookService)
                     : base(bookRepository, unitOfWork, validator)
         {
             _uploadService = uploadService;
             _booksEmailService = booksEmailService;
             _configuration = configuration;
             _newBookQueue = newBookQueue;
+            _ebookService = ebookService;
         }
 
         public async Task ApproveAsync(Guid bookId, DateTime? chooseDate = null)
@@ -196,7 +199,8 @@ namespace ShareBook.Service
         {
             entity.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
 
-            EBookValidate(entity);
+            if (entity.IsEbook())
+                entity.ChooseDate = null;
 
             var result = await ValidateAsync(entity);
             if (result.Success)
@@ -205,14 +209,15 @@ namespace ShareBook.Service
 
                 entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, entity.Slug);
 
-                if (entity.IsEbookPdfValid())
-                    entity.EBookPdfFile = await _uploadService.UploadPdfAsync(entity.EBookPdfBytes, entity.EBookPdfFile, "EBooks");
+                if (entity.HasPdfToUpload())
+                    entity.EBookPdfPath = await _ebookService.UploadPdfAsync(entity);
 
                 result.Value = await _repository.InsertAsync(entity);
 
                 result.Value.ImageUrl = await _uploadService.UploadImageAsync(entity.ImageBytes, entity.ImageSlug, "Books");
 
                 result.Value.ImageBytes = null;
+                result.Value.PdfBytes = null;
 
                 await _booksEmailService.SendEmailNewBookInsertedAsync(entity);
             }
@@ -224,7 +229,6 @@ namespace ShareBook.Service
             Result<Book> result = Validate(entity, x =>
                 x.Title,
                 x => x.Author,
-                x => x.FreightOption,
                 x => x.Id);
 
             var bookId = entity.Id;
@@ -236,8 +240,6 @@ namespace ShareBook.Service
 
             if (savedBook == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
-
-            EBookValidate(entity);
 
             //imagem eh opcional no update
             if (!string.IsNullOrEmpty(entity.ImageName) && entity.ImageBytes.Length > 0)
@@ -444,7 +446,9 @@ namespace ShareBook.Service
                         }
                     },
                     CategoryId = u.CategoryId,
-                    Category = u.Category
+                    Category = u.Category,
+                    Type = u.Type,
+                    EBookPdfPath = u.EBookPdfPath
                 });
 
             return await FormatPagedListAsync(query, page, itemsPerPage);
@@ -461,16 +465,6 @@ namespace ShareBook.Service
             return string.IsNullOrWhiteSpace(slug) ? entity.Title.GenerateSlug() : slug.AddIncremental();
         }
 
-        private void EBookValidate(Book entity)
-        {
-            if (entity.Type == BookType.Eletronic &&
-                string.IsNullOrEmpty(entity.EBookDownloadLink) &&
-                string.IsNullOrEmpty(entity.EBookPdfFile))
-            {
-                throw new ShareBookException(ShareBookException.Error.BadRequest,
-                    "Necessário informar o link ou o arquivo em caso de um E-Book.");
-            }
-        }
 
         public async Task<BookStatsDTO> GetStatsAsync()
         {

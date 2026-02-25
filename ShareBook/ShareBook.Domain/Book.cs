@@ -20,7 +20,7 @@ namespace ShareBook.Domain
 
         public string ImageSlug { get; set; }
 
-        public FreightOption FreightOption { get; set; }
+        public FreightOption? FreightOption { get; set; }
 
         public Guid? UserId { get; set; }
 
@@ -54,9 +54,10 @@ namespace ShareBook.Domain
 
         public BookType Type { get; set; } = BookType.Printed;
 
-        public string EBookDownloadLink { get; set; }
-        public string EBookPdfFile { get; set; }
-        public byte[] EBookPdfBytes { get; set; }
+        public string EBookPdfPath { get; set; }
+
+        [NotMapped]
+        public byte[] PdfBytes { get; set; }
 
         public Book()
         {
@@ -95,11 +96,21 @@ namespace ShareBook.Domain
             return Status == BookStatus.AwaitingDonorDecision;
         }
 
-        public bool IsEbookPdfValid()
+        public bool HasPdfToUpload()
         {
             return Type == BookType.Eletronic
-                && EBookPdfBytes != null
-                && EBookPdfBytes.Length > 0;
+                && PdfBytes != null
+                && PdfBytes.Length > 0;
+        }
+
+        public bool IsEbook()
+        {
+            return Type == BookType.Eletronic;
+        }
+
+        public string GetPdfFileName()
+        {
+            return $"{Slug}.pdf";
         }
 
 

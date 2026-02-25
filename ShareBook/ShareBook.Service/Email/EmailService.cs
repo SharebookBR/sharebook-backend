@@ -60,6 +60,13 @@ public class EmailService : IEmailService
 
     public async Task SendAsync(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins = false, bool highPriority = true)
     {
+        var emailEnabled = bool.Parse(_configuration["EmailSettings:IsActive"] ?? "false");
+        if (!emailEnabled)
+        {
+            _logger.LogInformation("Email desabilitado. Não enviando email para {Email}", emailRecipient);
+            return;
+        }
+
         var sqsEnabled = bool.Parse(_configuration["AwsSqsSettings:IsActive"]);
 
         if (!sqsEnabled)

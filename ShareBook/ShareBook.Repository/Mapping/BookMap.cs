@@ -41,7 +41,13 @@ namespace ShareBook.Repository.Mapping
 
             entityBuilder.Ignore(t => t.ImageName);
 
-            entityBuilder.Ignore(t => t.EBookPdfBytes);
+            entityBuilder.Ignore(t => t.PdfBytes);
+
+            entityBuilder.Property(t => t.EBookPdfPath)
+                .HasMaxLength(500);
+
+            entityBuilder.Property(t => t.Type)
+                .HasConversion<int>();
 
             entityBuilder.HasOne(t => t.User);
 

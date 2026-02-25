@@ -22,7 +22,9 @@ using ShareBook.Service.Notification;
 using ShareBook.Service.Server;
 using ShareBook.Service.Upload;
 using System;
+using System.IO;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.FileProviders;
 
 
 namespace ShareBook.Api
@@ -120,14 +122,26 @@ namespace ShareBook.Api
             app.UseHealthChecks("/hc");
             app.UseExceptionHandlerMiddleware();
 
-            app.UseStaticFiles(new StaticFileOptions()
+            var staticFileOptions = new StaticFileOptions()
             {
                 OnPrepareResponse = (context) =>
                 {
                     // Enable cors
                     context.Context.Response.Headers["Access-Control-Allow-Origin"] = "*";
                 }
-            });
+            };
+
+            // Em desenvolvimento, servir arquivos do diretório de execução (bin/Debug)
+            if (env.IsDevelopment())
+            {
+                var wwwrootPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wwwroot");
+                if (Directory.Exists(wwwrootPath))
+                {
+                    staticFileOptions.FileProvider = new PhysicalFileProvider(wwwrootPath);
+                }
+            }
+
+            app.UseStaticFiles(staticFileOptions);
 
             app.UseSwagger();
             app.UseSwaggerUI(c =>
