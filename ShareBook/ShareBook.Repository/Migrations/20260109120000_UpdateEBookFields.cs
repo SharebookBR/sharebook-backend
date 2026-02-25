@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace ShareBook.Repository.Migrations
+namespace ShareBook.Infra.Data.Migrations
 {
     public partial class UpdateEBookFields : Migration
     {
