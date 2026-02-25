@@ -120,10 +120,7 @@ namespace ShareBook.Infra.Data.Migrations
                     b.Property<DateTime?>("CreationDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("EBookDownloadLink")
-                        .HasColumnType("text");
-
-                    b.Property<string>("EBookPdfFile")
+                    b.Property<string>("EBookPdfPath")
                         .HasColumnType("text");
 
                     b.Property<string>("FacilitatorNotes")
