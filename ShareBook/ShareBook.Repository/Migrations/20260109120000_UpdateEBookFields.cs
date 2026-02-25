@@ -19,8 +19,17 @@ namespace ShareBook.Repository.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "EBookPdfPath",
                 table: "Books",
-                type: "text",
+                type: "character varying(500)",
+                maxLength: 500,
                 nullable: true);
+
+            migrationBuilder.AlterColumn<int>(
+                name: "FreightOption",
+                table: "Books",
+                type: "integer",
+                nullable: true,
+                oldClrType: typeof(int),
+                oldType: "integer");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -28,6 +37,16 @@ namespace ShareBook.Repository.Migrations
             migrationBuilder.DropColumn(
                 name: "EBookPdfPath",
                 table: "Books");
+
+            migrationBuilder.AlterColumn<int>(
+                name: "FreightOption",
+                table: "Books",
+                type: "integer",
+                nullable: false,
+                defaultValue: 0,
+                oldClrType: typeof(int),
+                oldType: "integer",
+                oldNullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "EBookDownloadLink",
