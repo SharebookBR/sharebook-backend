@@ -520,12 +520,16 @@ namespace ShareBook.Api.Controllers
             if (string.IsNullOrEmpty(book.EBookPdfPath))
                 return NotFound(new { message = "PDF do e-book não disponível." });
 
-            var pdfPath = Path.Combine(
+            var basePath = Path.GetFullPath(Path.Combine(
                 AppDomain.CurrentDomain.BaseDirectory,
                 "wwwroot",
-                "EbookPdfs",
-                book.EBookPdfPath
-            );
+                "EbookPdfs"
+            ));
+
+            var pdfPath = Path.GetFullPath(Path.Combine(basePath, book.EBookPdfPath));
+
+            if (!pdfPath.StartsWith(basePath))
+                return BadRequest(new { message = "Caminho de arquivo inválido." });
 
             if (!System.IO.File.Exists(pdfPath))
                 return NotFound(new { message = "Arquivo PDF não encontrado." });

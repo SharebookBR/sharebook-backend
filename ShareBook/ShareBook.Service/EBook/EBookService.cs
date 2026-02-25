@@ -30,8 +30,7 @@ namespace ShareBook.Service.EBook
             // Usa o caminho configurado no appsettings (ex: wwwroot/EbookPdfs)
             var fullDirectoryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _imageSettings.EBookPdfPath);
 
-            if (!Directory.Exists(fullDirectoryPath))
-                Directory.CreateDirectory(fullDirectoryPath);
+            Directory.CreateDirectory(fullDirectoryPath);
 
             var pdfFullPath = Path.Combine(fullDirectoryPath, pdfFileName);
             await File.WriteAllBytesAsync(pdfFullPath, book.PdfBytes);
@@ -55,11 +54,17 @@ namespace ShareBook.Service.EBook
             if (book.Type != BookType.Eletronic)
                 return;
 
-            // E-book deve ter PDF para upload
             if (!book.HasPdfToUpload() && string.IsNullOrEmpty(book.EBookPdfPath))
             {
                 throw new ShareBookException(ShareBookException.Error.BadRequest,
-                    "E necessario enviar o arquivo PDF para cadastrar um E-Book.");
+                    "É necessário enviar o arquivo PDF para cadastrar um E-Book.");
+            }
+
+            const int maxSizeBytes = 50 * 1024 * 1024; // 50MB
+            if (book.HasPdfToUpload() && book.PdfBytes.Length > maxSizeBytes)
+            {
+                throw new ShareBookException(ShareBookException.Error.BadRequest,
+                    "O arquivo PDF não pode ser maior que 50MB.");
             }
         }
     }
