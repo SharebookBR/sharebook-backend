@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Xunit;
 using ShareBook.Repository;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using ShareBook.Domain;
 using ShareBook.Domain.DTOs;
@@ -19,6 +20,7 @@ namespace ShareBook.Test.Unit.Jobs
     public class CancelAbandonedDonationsTests
     {
         private readonly Mock<IJobHistoryRepository> _mockJobHistoryRepository = new();
+        private readonly Mock<ILoggerFactory> _mockLoggerFactory = new();
         private readonly Mock<IBookService> _mockBookService = new();
         private readonly Mock<IBookUserService> _mockBookUserService = new();
         private readonly Mock<IConfiguration> _mockConfiguration = new();
@@ -41,7 +43,7 @@ namespace ShareBook.Test.Unit.Jobs
         [Fact, Order(1)]
         public async Task NotCancellingAnyBook()
         {
-            CancelAbandonedDonations job = new CancelAbandonedDonations(_mockJobHistoryRepository.Object, _mockBookService.Object, _mockBookUserService.Object, _mockConfiguration.Object);
+            CancelAbandonedDonations job = new CancelAbandonedDonations(_mockJobHistoryRepository.Object, _mockLoggerFactory.Object, _mockBookService.Object, _mockBookUserService.Object, _mockConfiguration.Object);
 
             JobHistory result = await job.WorkAsync();
 
@@ -63,7 +65,7 @@ namespace ShareBook.Test.Unit.Jobs
             foreach (var book in booksToCancel)
                 book.ChooseDate = DateTime.UtcNow.AddDays((_maxLateDonationDaysAutoCancel + 2) * -1);
 
-            CancelAbandonedDonations job = new CancelAbandonedDonations(_mockJobHistoryRepository.Object, _mockBookService.Object, _mockBookUserService.Object, _mockConfiguration.Object);
+            CancelAbandonedDonations job = new CancelAbandonedDonations(_mockJobHistoryRepository.Object, _mockLoggerFactory.Object, _mockBookService.Object, _mockBookUserService.Object, _mockConfiguration.Object);
             
             JobHistory result = await job.WorkAsync();
             

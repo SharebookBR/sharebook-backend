@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Xunit;
 using ShareBook.Repository;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using ShareBook.Domain;
 using ShareBook.Domain.DTOs;
@@ -19,6 +20,7 @@ namespace ShareBook.Test.Unit.Jobs
     public class ChooseDateReminderTests
     {
         private readonly Mock<IJobHistoryRepository> _mockJobHistoryRepository = new();
+        private readonly Mock<ILoggerFactory> _mockLoggerFactory = new();
         private readonly Mock<IBookService> _mockBookService = new();
         private readonly Mock<IEmailService> _mockEmailService = new();
         private readonly Mock<IEmailTemplate> _mockEmailTemplate = new();
@@ -36,7 +38,7 @@ namespace ShareBook.Test.Unit.Jobs
         [Fact]
         public async Task SendReminderToTheUser()
         {
-            ChooseDateReminder job = new ChooseDateReminder(_mockJobHistoryRepository.Object, _mockBookService.Object, _mockEmailService.Object, _mockEmailTemplate.Object);
+            ChooseDateReminder job = new ChooseDateReminder(_mockJobHistoryRepository.Object, _mockLoggerFactory.Object, _mockBookService.Object, _mockEmailService.Object, _mockEmailTemplate.Object);
 
             JobHistory result = await job.WorkAsync();
 

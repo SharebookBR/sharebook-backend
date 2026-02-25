@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Xunit;
 using ShareBook.Repository;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using ShareBook.Domain;
 using ShareBook.Domain.DTOs;
@@ -18,6 +19,7 @@ namespace ShareBook.Test.Unit.Jobs
     public class LateDonationNotificationTests
     {
         private readonly Mock<IJobHistoryRepository> _mockJobHistoryRepository = new();
+        private readonly Mock<ILoggerFactory> _mockLoggerFactory = new();
         private readonly Mock<IBookService> _mockBookService = new();
         private readonly Mock<IEmailService> _mockEmailService = new();
         private readonly Mock<IEmailTemplate> _mockEmailTemplate = new();
@@ -44,7 +46,7 @@ namespace ShareBook.Test.Unit.Jobs
         public async Task SendSoftEmailToTheUserAndToAdmins_1BookLate()
         {
             _mockBookService.Setup(s => s.GetBooksChooseDateIsLateAsync()).ReturnsAsync(new List<Book> { _softBook });
-            LateDonationNotification job = new LateDonationNotification(_mockJobHistoryRepository.Object, _mockBookService.Object, _mockEmailService.Object, _mockEmailTemplate.Object, _mockConfiguration.Object);
+            LateDonationNotification job = new LateDonationNotification(_mockJobHistoryRepository.Object, _mockBookService.Object, _mockEmailService.Object, _mockEmailTemplate.Object, _mockLoggerFactory.Object, _mockConfiguration.Object);
 
             JobHistory result = await job.WorkAsync();
 
@@ -71,7 +73,7 @@ namespace ShareBook.Test.Unit.Jobs
         public async Task SendHardEmailToTheUserAndToAdmins_1BookLate()
         {
             _mockBookService.Setup(s => s.GetBooksChooseDateIsLateAsync()).ReturnsAsync(new List<Book> { _hardBook });
-            LateDonationNotification job = new LateDonationNotification(_mockJobHistoryRepository.Object, _mockBookService.Object, _mockEmailService.Object, _mockEmailTemplate.Object, _mockConfiguration.Object);
+            LateDonationNotification job = new LateDonationNotification(_mockJobHistoryRepository.Object, _mockBookService.Object, _mockEmailService.Object, _mockEmailTemplate.Object, _mockLoggerFactory.Object, _mockConfiguration.Object);
 
             JobHistory result = await job.WorkAsync();
 
@@ -98,7 +100,7 @@ namespace ShareBook.Test.Unit.Jobs
         public async Task NotSendAnyEmail_0BooksLate()
         {
             _mockBookService.Setup(s => s.GetBooksChooseDateIsLateAsync()).ReturnsAsync(new List<Book>());
-            LateDonationNotification job = new LateDonationNotification(_mockJobHistoryRepository.Object, _mockBookService.Object, _mockEmailService.Object, _mockEmailTemplate.Object, _mockConfiguration.Object);
+            LateDonationNotification job = new LateDonationNotification(_mockJobHistoryRepository.Object, _mockBookService.Object, _mockEmailService.Object, _mockEmailTemplate.Object, _mockLoggerFactory.Object, _mockConfiguration.Object);
 
             JobHistory result = await job.WorkAsync();
 

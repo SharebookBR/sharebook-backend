@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Xunit;
 using ShareBook.Repository;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using ShareBook.Domain.Enums;
 using System.Collections.Generic;
 using ShareBook.Domain;
@@ -14,6 +15,7 @@ namespace ShareBook.Test.Unit.Jobs
     public class MeetupSearchTests
     {
         private readonly Mock<IJobHistoryRepository> _mockJobHistoryRepository = new();
+        private readonly Mock<ILoggerFactory> _mockLoggerFactory = new();
         private readonly Mock<IMeetupService> _mockMeetupService = new();
         private readonly Mock<IConfiguration> _mockConfiguration = new();
 
@@ -21,7 +23,7 @@ namespace ShareBook.Test.Unit.Jobs
         public async Task MeetupSettingsDisabled_ShouldReturn_MeetupDisabled()
         {
             _mockConfiguration.SetupGet(s => s[It.IsAny<string>()]).Returns("false");
-            MeetupSearch job = new MeetupSearch(_mockJobHistoryRepository.Object, _mockMeetupService.Object, _mockConfiguration.Object);
+            MeetupSearch job = new MeetupSearch(_mockJobHistoryRepository.Object, _mockLoggerFactory.Object, _mockMeetupService.Object, _mockConfiguration.Object);
 
             JobResult result = await job.ExecuteAsync();
             Assert.Equal(JobResult.MeetupDisabled, result);
@@ -35,7 +37,7 @@ namespace ShareBook.Test.Unit.Jobs
             List<string> mockedMeetups = new List<string> { "Meetup Mock 1", "Meetup Mock 2" };
             _mockConfiguration.SetupGet(s => s[It.IsAny<string>()]).Returns("true");
             _mockMeetupService.Setup(s => s.FetchMeetupsAsync()).ReturnsAsync(() => mockedMeetups);
-            MeetupSearch job = new MeetupSearch(_mockJobHistoryRepository.Object, _mockMeetupService.Object, _mockConfiguration.Object);
+            MeetupSearch job = new MeetupSearch(_mockJobHistoryRepository.Object, _mockLoggerFactory.Object, _mockMeetupService.Object, _mockConfiguration.Object);
 
             JobHistory result = await job.WorkAsync();
             Assert.Equal("MeetupSearch", result.JobName);
