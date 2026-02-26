@@ -77,7 +77,7 @@ namespace ShareBook.Api.AutoMapper
                 .ForMember(dest => dest.TotalBooksWon, opt => opt.MapFrom(src => src.User.TotalBooksWon()))
                 .ForMember(dest => dest.TotalBooksDonated, opt => opt.MapFrom(src => src.User.TotalBooksDonated()))
                 .ForMember(dest => dest.RequestText, opt => opt.MapFrom(src => src.Reason))
-                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status));
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
 
             #endregion [ BookUser ]
         }

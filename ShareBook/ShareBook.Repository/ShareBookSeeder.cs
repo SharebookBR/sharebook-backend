@@ -531,7 +531,7 @@ namespace ShareBook.Repository
                 {
                     User = raffa,
                     Book = book19,
-                    CreationDate = DateTime.UtcNow.AddDays(-12),
+                    CreationDate = DateTime.UtcNow.AddDays(-6),
                     Reason = "Sou uma pessoa simples, gosto muito de ler e aprender coisas novas. Acredito que a leitura ajuda a gente a crescer.",
                     NickName = "Interessado 3"
                 };

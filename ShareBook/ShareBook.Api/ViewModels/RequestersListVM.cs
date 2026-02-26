@@ -1,8 +1,4 @@
-﻿using Newtonsoft.Json;
-using ShareBook.Domain;
-using ShareBook.Domain.Enums;
-using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System;
 
 namespace ShareBook.Api.ViewModels
 {
@@ -20,7 +16,7 @@ namespace ShareBook.Api.ViewModels
 
         public string RequestText { get; set; }
 
-        public DonationStatus Status { get; set; }
+        public string Status { get; set; }
 
     }
 }
