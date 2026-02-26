@@ -514,7 +514,6 @@ namespace ShareBook.Repository
                     User = grantee,
                     Book = book19,
                     CreationDate = DateTime.UtcNow.AddDays(-10),
-                    Status = DonationStatus.WaitingAction,
                     Reason = "Olá meu nome é João tenho 12 anos não tenho condições para comprar um livro pq sou pobre e meu sonho é ter uma estante de livros e sei que isso não está perto, minha mãe trabalha e eu ajudo ela mas não é dinheiro suficiente. Esse livro é importante para que seja meu primeiro passo no mundo dos livros.",
                     NickName = "Interessado 1"
                 };
@@ -524,7 +523,6 @@ namespace ShareBook.Repository
                     User = @operator,
                     Book = book19,
                     CreationDate = DateTime.UtcNow.AddDays(-8),
-                    Status = DonationStatus.WaitingAction,
                     Reason = "Eu queria porque queria ler algo diferente que eu possa criar um mundo que eu nao estou nele, que eu possa imaginar um mundo para que eu nao sofra igual. Eu estou em uma fase bem ruim mas lendo posso pelo menos esquecer.",
                     NickName = "Interessado 2"
                 };
@@ -534,10 +532,10 @@ namespace ShareBook.Repository
                     User = raffa,
                     Book = book19,
                     CreationDate = DateTime.UtcNow.AddDays(-12),
-                    Status = DonationStatus.Canceled,
                     Reason = "Sou uma pessoa simples, gosto muito de ler e aprender coisas novas. Acredito que a leitura ajuda a gente a crescer.",
                     NickName = "Interessado 3"
                 };
+                requestDecision3.UpdateBookUser(DonationStatus.Canceled, null);
 
                 var meetup1 = new Meetup()
                 {
