@@ -415,10 +415,10 @@ namespace ShareBook.Repository
                     ImageSlug = "o-pequeno-principe.jpg",
                     Slug = "o-pequeno-principe",
                     User = donor,
-                    Status = BookStatus.Available,
+                    Status = BookStatus.AwaitingDonorDecision,
                     Category = adv,
-                    CreationDate = DateTime.UtcNow.AddDays(-3),
-                    ChooseDate = DateTime.UtcNow.AddDays(5),
+                    CreationDate = DateTime.UtcNow.AddDays(-15),
+                    ChooseDate = DateTime.UtcNow.AddDays(-1),
                     UserFacilitator = facilitator
                 };
 
@@ -506,6 +506,37 @@ namespace ShareBook.Repository
                     CreationDate = DateTime.UtcNow,
                     Reason = "Quero muito esse livro.",
                     NickName = "Interessado 1"
+                };
+
+                // Cenário de teste: book19 em ponto de bala pra escolher o ganhador
+                var requestDecision1 = new BookUser()
+                {
+                    User = grantee,
+                    Book = book19,
+                    CreationDate = DateTime.UtcNow.AddDays(-10),
+                    Status = DonationStatus.WaitingAction,
+                    Reason = "Olá meu nome é João tenho 12 anos não tenho condições para comprar um livro pq sou pobre e meu sonho é ter uma estante de livros e sei que isso não está perto, minha mãe trabalha e eu ajudo ela mas não é dinheiro suficiente. Esse livro é importante para que seja meu primeiro passo no mundo dos livros.",
+                    NickName = "Interessado 1"
+                };
+
+                var requestDecision2 = new BookUser()
+                {
+                    User = @operator,
+                    Book = book19,
+                    CreationDate = DateTime.UtcNow.AddDays(-8),
+                    Status = DonationStatus.WaitingAction,
+                    Reason = "Eu queria porque queria ler algo diferente que eu possa criar um mundo que eu nao estou nele, que eu possa imaginar um mundo para que eu nao sofra igual. Eu estou em uma fase bem ruim mas lendo posso pelo menos esquecer.",
+                    NickName = "Interessado 2"
+                };
+
+                var requestDecision3 = new BookUser()
+                {
+                    User = raffa,
+                    Book = book19,
+                    CreationDate = DateTime.UtcNow.AddDays(-12),
+                    Status = DonationStatus.Canceled,
+                    Reason = "Sou uma pessoa simples, gosto muito de ler e aprender coisas novas. Acredito que a leitura ajuda a gente a crescer.",
+                    NickName = "Interessado 3"
                 };
 
                 var meetup1 = new Meetup()
@@ -614,6 +645,7 @@ namespace ShareBook.Repository
                     book16, book18, book19, book20, book21, book22, book23);
 
                 _context.BookUser.Add(request);
+                _context.BookUser.AddRange(requestDecision1, requestDecision2, requestDecision3);
                 _context.Meetups.AddRange(meetup1, meetup2, meetup3, meetup4, meetup5, meetup6, meetup7, meetup8, meetup9);
 
                 _context.SaveChanges();

@@ -1,8 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+using Flurl.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using OneSignal.RestAPIv3.Client;
-using OneSignal.RestAPIv3.Client.Resources;
-using OneSignal.RestAPIv3.Client.Resources.Notifications;
 using ShareBook.Domain;
 using ShareBook.Domain.Enums;
 using System;
@@ -13,14 +11,14 @@ namespace ShareBook.Service.Notification;
 
 public class PushNotificationService : IPushNotificationService
 {
+    private const string OneSignalApiUrl = "https://onesignal.com/api/v1/notifications";
+
     private readonly PushNotificationSettings _settings;
-    private readonly OneSignalClient _oneSignalClient;
     private readonly ILogger<PushNotificationService> _logger;
 
     public PushNotificationService(IOptions<PushNotificationSettings> pushNotificationSettings, ILogger<PushNotificationService> logger)
     {
         _settings = pushNotificationSettings.Value;
-        _oneSignalClient = new OneSignalClient(_settings.ApiKey);
         _logger = logger;
     }
 
@@ -28,20 +26,15 @@ public class PushNotificationService : IPushNotificationService
     {
         if (!_settings.IsActive) return "";
 
-        var notificationCreateOptions = new NotificationCreateOptions
+        var payload = new
         {
-            AppId = new Guid(_settings.AppId)
+            app_id = _settings.AppId,
+            headings = new Dictionary<string, string> { ["pt"] = onesignal.Title },
+            contents = new Dictionary<string, string> { ["pt"] = onesignal.Content },
+            included_segments = new[] { GetSegments(onesignal.TypeSegments) }
         };
 
-        notificationCreateOptions.IncludedSegments = new List<string>()
-        {
-            GetSegments(onesignal.TypeSegments)
-        };
-
-        notificationCreateOptions.Headings.Add(LanguageCodes.Portuguese, onesignal.Title);
-        notificationCreateOptions.Contents.Add(LanguageCodes.Portuguese, onesignal.Content);
-
-        await _oneSignalClient.Notifications.CreateAsync(notificationCreateOptions);
+        await PostNotificationAsync(payload);
 
         return "Enviado com sucesso";
     }
@@ -50,73 +43,60 @@ public class PushNotificationService : IPushNotificationService
     {
         if (!_settings.IsActive) return "";
 
-        var notificationCreateOptions = new NotificationCreateOptions
+        var payload = new
         {
-            AppId = new Guid(_settings.AppId)
+            app_id = _settings.AppId,
+            headings = new Dictionary<string, string> { ["en"] = onesignal.Title, ["pt"] = onesignal.Title },
+            contents = new Dictionary<string, string> { ["en"] = onesignal.Content, ["pt"] = onesignal.Content },
+            filters = new[] { new { field = "tag", key = onesignal.Key, relation = "=", value = onesignal.Value } }
         };
 
-        notificationCreateOptions.Filters = new List<INotificationFilter>
-        {
-            new NotificationFilterField { Field = NotificationFilterFieldTypeEnum.Tag, Key = onesignal.Key, Value = onesignal.Value}
-        };
-
-        notificationCreateOptions.Headings.Add(LanguageCodes.English, onesignal.Title);
-        notificationCreateOptions.Contents.Add(LanguageCodes.English, onesignal.Content);
-
-        notificationCreateOptions.Headings.Add(LanguageCodes.Portuguese, onesignal.Title);
-        notificationCreateOptions.Contents.Add(LanguageCodes.Portuguese, onesignal.Content);
-
-        await _oneSignalClient.Notifications.CreateAsync(notificationCreateOptions);
+        await PostNotificationAsync(payload);
 
         return $"Notification enviado para o {onesignal.Value} com sucesso";
     }
-
 
     public async Task<string> SendNotificationByEmailAsync(string email, string title, string content)
     {
         if (!_settings.IsActive) return "";
 
-        try {
-            var notificationCreateOptions = new NotificationCreateOptions
+        try
+        {
+            var payload = new
             {
-                AppId = new Guid(_settings.AppId)
+                app_id = _settings.AppId,
+                headings = new Dictionary<string, string> { ["en"] = title, ["pt"] = title },
+                contents = new Dictionary<string, string> { ["en"] = content, ["pt"] = content },
+                filters = new[] { new { field = "tag", key = "email", relation = "=", value = email } }
             };
 
-            notificationCreateOptions.Filters = new List<INotificationFilter>
-            {
-                new NotificationFilterField { Field = NotificationFilterFieldTypeEnum.Tag, Key = "email", Value = email}
-            };
-
-            notificationCreateOptions.Headings.Add(LanguageCodes.English, title);
-            notificationCreateOptions.Contents.Add(LanguageCodes.English, content);
-
-            notificationCreateOptions.Headings.Add(LanguageCodes.Portuguese, title);
-            notificationCreateOptions.Contents.Add(LanguageCodes.Portuguese, content);
-
-            await _oneSignalClient.Notifications.CreateAsync(notificationCreateOptions);
+            await PostNotificationAsync(payload);
 
             return $"Notification enviado para o {email} com sucesso";
         }
-        catch(Exception ex) {
+        catch (Exception ex)
+        {
             _logger.LogError(ex, "Erro ao enviar push notification para {Email}", email);
             return "";
-        }            
+        }
+    }
+
+    private async Task PostNotificationAsync(object payload)
+    {
+        await OneSignalApiUrl
+            .WithHeader("Authorization", $"Basic {_settings.ApiKey}")
+            .PostJsonAsync(payload);
     }
 
     private string GetSegments(TypeSegments typeSegments)
     {
-        switch (typeSegments)
+        return typeSegments switch
         {
-            case TypeSegments.Inactive:
-                return "Inactive Users";
-            case TypeSegments.Engaged:
-                return "Engaged Users";
-            case TypeSegments.All:
-                return "Subscribed Users";
-            case TypeSegments.Active:
-                return "Active Users";
-            default:
-                return "";
-        }
+            TypeSegments.Inactive => "Inactive Users",
+            TypeSegments.Engaged => "Engaged Users",
+            TypeSegments.All => "Subscribed Users",
+            TypeSegments.Active => "Active Users",
+            _ => ""
+        };
     }
 }

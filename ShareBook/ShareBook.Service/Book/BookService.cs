@@ -301,11 +301,7 @@ namespace ShareBook.Service
             var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             return await _repository.AnyAsync(x =>
                     x.Id == bookId &&
-                    x.BookUsers
-                    .Any(y =>
-                    y.Status == DonationStatus.WaitingAction
-                    && y.UserId == userId
-              ));
+                    x.BookUsers.Any(y => y.UserId == userId));
         }
 
         public override async Task<PagedList<Book>> GetAsync<TKey>(Expression<Func<Book, bool>> filter, Expression<Func<Book, TKey>> order, int page, int itemsPerPage)

@@ -28,6 +28,19 @@ Sharebook é nosso app livre e gratuito para doação de livros. Nosso backend �
 - Emails passam pela fila SQS (high/low priority) antes de serem enviados pelo job `MailSender` (roda a cada 5 min)
 - Não temos Dead Letter Queue (DLQ) configurado no SQS
 
+### EF Core — Regra de Ouro para Migrations
+
+**NUNCA criar migration manualmente.** Sempre usar `dotnet ef migrations add <Nome>`.
+
+Migrations criadas na mão têm dois problemas silenciosos que quebram tudo:
+1. **Namespace errado** — o arquivo fica com `ShareBook.Repository.Migrations` mas o projeto usa `ShareBook.Infra.Data.Migrations`. O EF ignora a migration silenciosamente — ela não aparece no `migrations list` e nunca é aplicada.
+2. **`.Designer.cs` ausente** — o EF exige o arquivo de design para reconhecer a migration. Sem ele, idem: ignorada.
+
+O sintoma é traiçoeiro: o banco sobe, o `Migrate()` não dá erro, mas a coluna simplesmente não existe. Só explode no primeiro INSERT.
+
+Diagnóstico rápido: `dotnet ef migrations list --project ShareBook.Repository --startup-project ShareBook.Api`
+Se a migration não aparecer, é namespace ou Designer ausente.
+
 ### Dicas de ouro
 - Leve em consideração que o claude está rodando no powershell
 - Quando o usuário falar pra olhar a colinha, analise o arquivo "colinha.txt" na raíz.
