@@ -14,6 +14,9 @@ namespace ShareBook.Repository
         private const string PASSWORD_HASH = "n71pJuPLLg4EJkRBf+SRDXHD3x5f1sNI+3Fi5bSjdx4=";
         private const string PASSWORD_SALT = "Uo5G5EKyKh5GnXy0D57i0w==";
 
+        // Evita IsBruteForceLogin() bloquear o login logo após o seed
+        private static readonly DateTime SEED_LAST_LOGIN = new DateTime(2019, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
 
         public ShareBookSeeder(ApplicationDbContext context)
         {
@@ -35,8 +38,10 @@ namespace ShareBook.Repository
                     Name = "Walter Vinicius Lopes Cardoso",
                     Email = "walter@sharebook.com",
                     Linkedin = "linkedin.com/walter.cardoso",
+                    Phone = "11987654321",
                     Password = PASSWORD_HASH,
                     PasswordSalt = PASSWORD_SALT,
+                    LastLogin = SEED_LAST_LOGIN,
                     CreationDate = DateTime.UtcNow,
                     Address = new Address()
                     {
@@ -59,6 +64,7 @@ namespace ShareBook.Repository
                     Profile = Profile.Administrator,
                     Password = PASSWORD_HASH,
                     PasswordSalt = PASSWORD_SALT,
+                    LastLogin = SEED_LAST_LOGIN,
                     CreationDate = DateTime.UtcNow,
                     Address = new Address()
                     {
@@ -81,6 +87,7 @@ namespace ShareBook.Repository
                     Profile = Profile.Administrator,
                     Password = PASSWORD_HASH,
                     PasswordSalt = PASSWORD_SALT,
+                    LastLogin = SEED_LAST_LOGIN,
                     CreationDate = DateTime.UtcNow,
                     Address = new Address()
                     {
@@ -102,6 +109,7 @@ namespace ShareBook.Repository
                     Linkedin = "linkedin.com/rodrigo",
                     Password = PASSWORD_HASH,
                     PasswordSalt = PASSWORD_SALT,
+                    LastLogin = SEED_LAST_LOGIN,
                     CreationDate = DateTime.UtcNow,
                     Address = new Address()
                     {
@@ -124,6 +132,7 @@ namespace ShareBook.Repository
                     Profile = Profile.Administrator,
                     Password = PASSWORD_HASH,
                     PasswordSalt = PASSWORD_SALT,
+                    LastLogin = SEED_LAST_LOGIN,
                     CreationDate = DateTime.UtcNow,
                     Address = new Address()
                     {
