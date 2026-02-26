@@ -56,7 +56,7 @@ namespace ShareBook.Service
                 .Include(x => x.User).ThenInclude(u => u.Address)
                 .Include(x => x.User).ThenInclude(u => u.BookUsers)
                 .Include(x => x.User).ThenInclude(u => u.BooksDonated)
-                .Where(x => x.BookId == bookId && x.Status == DonationStatus.WaitingAction)
+                .Where(x => x.BookId == bookId)
                 .OrderBy(x => x.CreationDate)
                 .ToListAsync();
 
