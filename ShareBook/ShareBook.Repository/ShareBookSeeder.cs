@@ -507,6 +507,55 @@ namespace ShareBook.Repository
                     UserFacilitator = facilitator
                 };
 
+                // E-books (domínio público) - Machado de Assis
+                var ebook1 = new Book()
+                {
+                    Author = "Machado de Assis",
+                    Title = "Dom Casmurro",
+                    ImageSlug = "dom-casmurro.jpg",
+                    Slug = "dom-casmurro",
+                    User = donor,
+                    Status = BookStatus.Available,
+                    Category = art,
+                    Type = BookType.Eletronic,
+                    EBookPdfPath = "dom-casmurro.pdf",
+                    CreationDate = DateTime.UtcNow.AddDays(-3),
+                    ChooseDate = null,
+                    UserFacilitator = facilitator
+                };
+
+                var ebook2 = new Book()
+                {
+                    Author = "Machado de Assis",
+                    Title = "Memórias Póstumas de Brás Cubas",
+                    ImageSlug = "memorias-postumas-de-bras-cubas.jpg",
+                    Slug = "memorias-postumas-de-bras-cubas",
+                    User = donor,
+                    Status = BookStatus.Available,
+                    Category = art,
+                    Type = BookType.Eletronic,
+                    EBookPdfPath = "memorias-postumas-de-bras-cubas.pdf",
+                    CreationDate = DateTime.UtcNow.AddDays(-2),
+                    ChooseDate = null,
+                    UserFacilitator = facilitator
+                };
+
+                var ebook3 = new Book()
+                {
+                    Author = "Machado de Assis",
+                    Title = "Quincas Borba",
+                    ImageSlug = "quincas-borba.jpg",
+                    Slug = "quincas-borba",
+                    User = donor,
+                    Status = BookStatus.Available,
+                    Category = art,
+                    Type = BookType.Eletronic,
+                    EBookPdfPath = "quincas-borba.pdf",
+                    CreationDate = DateTime.UtcNow.AddDays(-1),
+                    ChooseDate = null,
+                    UserFacilitator = facilitator
+                };
+
 
                 var request = new BookUser()
                 {
@@ -649,7 +698,8 @@ namespace ShareBook.Repository
                 _context.Users.AddRange(grantee, @operator, raffa);
                 _context.Books.AddRange(book1, book2, book3, book4, book5, book6, book7,
                     book8, book9, book10, book11, book12, book13, book14, book15, book16,
-                    book16, book18, book19, book20, book21, book22, book23);
+                    book16, book18, book19, book20, book21, book22, book23,
+                    ebook1, ebook2, ebook3);
 
                 _context.BookUser.Add(request);
                 _context.BookUser.AddRange(requestDecision1, requestDecision2, requestDecision3);

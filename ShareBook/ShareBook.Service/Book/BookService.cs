@@ -56,7 +56,9 @@ namespace ShareBook.Service
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
             book.Status = BookStatus.Available;
-            book.ChooseDate = chooseDate?.Date ?? DateTime.Today.AddDays(daysInShowcase);
+            book.ChooseDate = book.IsEbook()
+                ? null
+                : chooseDate?.Date ?? DateTime.Today.AddDays(daysInShowcase);
             await _repository.UpdateAsync(book);
 
             // notifica o doador
@@ -203,6 +205,20 @@ namespace ShareBook.Service
                 entity.ChooseDate = null;
 
             var result = await ValidateAsync(entity);
+            if (result.Success && entity.IsEbook())
+            {
+                var isDuplicate = await _repository.AnyAsync(b =>
+                    b.Type == BookType.Eletronic &&
+                    b.Title.ToLower().Trim() == entity.Title.ToLower().Trim() &&
+                    b.Author.ToLower().Trim() == entity.Author.ToLower().Trim());
+
+                if (isDuplicate)
+                {
+                    result.Messages.Add("Já existe um e-book com este título e autor no catálogo.");
+                    return result;
+                }
+            }
+
             if (result.Success)
             {
                 entity.Slug = SetSlugByTitleOrIncremental(entity);
@@ -275,14 +291,21 @@ namespace ShareBook.Service
 
         public async Task<PagedList<Book>> FullSearchAsync(string criteria, int page, int itemsPerPage, bool isAdmin)
         {
-            Expression<Func<Book, bool>> filter = x => (x.Author.Contains(criteria)
-                                                        || x.Title.Contains(criteria)
-                                                        || x.Category.Name.Contains(criteria))
-                                                        && x.Status == BookStatus.Available;
+            criteria = (criteria ?? string.Empty).Trim().ToLower();
 
-            if (!isAdmin) filter = x => x.Author.Contains(criteria)
-                                        || x.Title.Contains(criteria)
-                                        || x.Category.Name.Contains(criteria);
+            Expression<Func<Book, bool>> filter = x =>
+                (x.Author.ToLower().Contains(criteria)
+                 || x.Title.ToLower().Contains(criteria)
+                 || x.Category.Name.ToLower().Contains(criteria))
+                && x.Status == BookStatus.Available;
+
+            if (!isAdmin)
+            {
+                filter = x =>
+                    x.Author.ToLower().Contains(criteria)
+                    || x.Title.ToLower().Contains(criteria)
+                    || x.Category.Name.ToLower().Contains(criteria);
+            }
 
             return await SearchBooksAsync(filter, page, itemsPerPage);
         }
@@ -401,6 +424,18 @@ namespace ShareBook.Service
             book.Status = BookStatus.Available;
             book.ChooseDate = DateTime.UtcNow.AddDays(10);
             await _repository.UpdateAsync(book);
+        }
+
+        public async Task ReportCopyrightAsync(string slug)
+        {
+            var book = await BySlugAsync(slug);
+            if (book == null)
+                throw new ShareBookException(ShareBookException.Error.NotFound);
+
+            if (!book.IsEbook())
+                throw new ShareBookException(ShareBookException.Error.BadRequest, "Report de direitos autorais é aplicável apenas a e-books.");
+
+            await _booksEmailService.SendEmailCopyrightReportAsync(book);
         }
 
         #region Private

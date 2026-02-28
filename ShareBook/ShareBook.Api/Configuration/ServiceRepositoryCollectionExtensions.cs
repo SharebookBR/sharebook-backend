@@ -70,6 +70,7 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<IUploadService, UploadService>();
 
             //EBook
+            services.AddScoped<IS3Service, S3Service>();
             services.AddScoped<IEBookService, EBookService>();
 
             //UnitOfWork

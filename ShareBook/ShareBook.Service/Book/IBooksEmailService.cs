@@ -10,5 +10,7 @@ namespace ShareBook.Service
         Task SendEmailBookApprovedAsync(Book book);
 
         Task SendEmailBookReceivedAsync(Book book);
+
+        Task SendEmailCopyrightReportAsync(Book book);
     }
 }
