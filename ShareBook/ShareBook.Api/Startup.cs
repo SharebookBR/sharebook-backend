@@ -16,6 +16,7 @@ using ShareBook.Api.Middleware;
 using ShareBook.Repository;
 using ShareBook.Service;
 using ShareBook.Service.AwsSqs;
+using ShareBook.Service.EBook;
 using ShareBook.Service.Muambator;
 using ShareBook.Service.Notification;
 using ShareBook.Service.Server;
@@ -77,6 +78,8 @@ namespace ShareBook.Api
             services.Configure<PushNotificationSettings>(options => Configuration.GetSection("PushNotificationSettings").Bind(options));
 
             services.Configure<AwsSqsSettings>(options => Configuration.GetSection("AWSSQSSettings").Bind(options));
+
+            services.Configure<EBookStorageSettings>(options => Configuration.GetSection("EBookStorage").Bind(options));
 
             services.Configure<MeetupSettings>(options => Configuration.GetSection("MeetupSettings").Bind(options));
 

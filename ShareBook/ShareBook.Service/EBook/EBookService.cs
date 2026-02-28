@@ -14,11 +14,19 @@ namespace ShareBook.Service.EBook
     {
         private readonly ImageSettings _imageSettings;
         private readonly ServerSettings _serverSettings;
+        private readonly EBookStorageSettings _storageSettings;
+        private readonly IS3Service _s3Service;
 
-        public EBookService(IOptions<ImageSettings> imageSettings, IOptions<ServerSettings> serverSettings)
+        public EBookService(
+            IOptions<ImageSettings> imageSettings,
+            IOptions<ServerSettings> serverSettings,
+            IOptions<EBookStorageSettings> storageSettings,
+            IS3Service s3Service)
         {
             _imageSettings = imageSettings.Value;
             _serverSettings = serverSettings.Value;
+            _storageSettings = storageSettings.Value;
+            _s3Service = s3Service;
         }
 
         public async Task<string> UploadPdfAsync(Book book)
@@ -26,8 +34,15 @@ namespace ShareBook.Service.EBook
             if (!book.HasPdfToUpload())
                 return null;
 
+            if (_storageSettings.UseLocalStorage)
+                return await UploadLocalAsync(book);
+
+            return await UploadS3Async(book);
+        }
+
+        private async Task<string> UploadLocalAsync(Book book)
+        {
             var pdfFileName = book.GetPdfFileName();
-            // Usa o caminho configurado no appsettings (ex: wwwroot/EbookPdfs)
             var fullDirectoryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _imageSettings.EBookPdfPath);
 
             Directory.CreateDirectory(fullDirectoryPath);
@@ -35,8 +50,15 @@ namespace ShareBook.Service.EBook
             var pdfFullPath = Path.Combine(fullDirectoryPath, pdfFileName);
             await File.WriteAllBytesAsync(pdfFullPath, book.PdfBytes);
 
-            // Retorna apenas o nome do arquivo (o caminho do diretório já é conhecido via config)
             return pdfFileName;
+        }
+
+        private async Task<string> UploadS3Async(Book book)
+        {
+            var key = $"ebooks/{book.GetPdfFileName()}";
+
+            using var stream = new MemoryStream(book.PdfBytes);
+            return await _s3Service.UploadAsync(stream, key, "application/pdf");
         }
 
         public string GetPdfDownloadUrl(Book book)
@@ -44,7 +66,11 @@ namespace ShareBook.Service.EBook
             if (string.IsNullOrEmpty(book.EBookPdfPath))
                 return null;
 
-            // Monta a URL completa para download
+            // URL absoluta (S3): retorna diretamente
+            if (book.EBookPdfPath.StartsWith("https://") || book.EBookPdfPath.StartsWith("http://"))
+                return book.EBookPdfPath;
+
+            // Storage local: monta URL via backend
             var relativePath = _imageSettings.EBookPdfPath.Replace("wwwroot", "");
             return $"{_serverSettings.BackendUrl}{relativePath}/{book.EBookPdfPath}";
         }

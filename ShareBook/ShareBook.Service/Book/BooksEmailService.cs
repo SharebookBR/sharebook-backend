@@ -107,5 +107,19 @@ namespace ShareBook.Service
                 await _emailService.SendAsync(book.User.Email, book.User.Name, html, WaitingApprovalTitle, copyAdmins: false, highPriority: true);
             }
         }
+
+        public async Task SendEmailCopyrightReportAsync(Book book)
+        {
+            var subject = $"[Direitos Autorais] Report de violação — {book.Title}";
+            var body = $@"Um usuário reportou possível violação de direitos autorais no e-book abaixo.
+<br/><br/>
+<strong>Título:</strong> {book.Title}<br/>
+<strong>Autor:</strong> {book.Author}<br/>
+<strong>Slug:</strong> {book.Slug}<br/>
+<br/>
+Por favor, revise e, se necessário, oculte temporariamente o e-book no painel administrativo.";
+
+            await _emailService.SendToAdminsAsync(body, subject);
+        }
     }
 }

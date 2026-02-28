@@ -156,5 +156,64 @@ namespace ShareBook.Test.Unit.Services
             Assert.NotNull(result);
             Assert.True(result.Success);
         }
+
+        [Fact]
+        public async Task AddDuplicateEBook_ShouldFail()
+        {
+            Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
+
+            // Simula que já existe um ebook com o mesmo título e autor no banco
+            bookRepositoryMock
+                .Setup(repo => repo.AnyAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Book, bool>>>()))
+                .ReturnsAsync(true);
+
+            var service = new BookService(bookRepositoryMock.Object,
+                unitOfWorkMock.Object, new BookValidator(),
+                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object);
+
+            Result<Book> result = await service.InsertAsync(new Book()
+            {
+                Title = "Clean Code",
+                Author = "Robert C. Martin",
+                ImageName = "clean-code.png",
+                ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
+                CategoryId = Guid.NewGuid(),
+                Type = BookType.Eletronic,
+                PdfBytes = Encoding.UTF8.GetBytes("PDF_CONTENT_BASE64")
+            });
+
+            Assert.NotNull(result);
+            Assert.False(result.Success);
+            Assert.Contains("Já existe um e-book com este título e autor no catálogo.", result.Messages);
+        }
+
+        [Fact]
+        public async Task AddDuplicatePrintedBook_ShouldNotCheckForDuplicateEBook()
+        {
+            Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
+
+            // AnyAsync nunca deve ser chamado para livros físicos
+            bookRepositoryMock
+                .Setup(repo => repo.AnyAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Book, bool>>>()))
+                .ReturnsAsync(true);
+
+            var service = new BookService(bookRepositoryMock.Object,
+                unitOfWorkMock.Object, new BookValidator(),
+                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object);
+
+            Result<Book> result = await service.InsertAsync(new Book()
+            {
+                Title = "Lord of the Rings",
+                Author = "J. R. R. Tolkien",
+                ImageName = "lotr.png",
+                ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
+                FreightOption = FreightOption.City,
+                CategoryId = Guid.NewGuid(),
+                Type = BookType.Printed
+            });
+
+            Assert.NotNull(result);
+            Assert.True(result.Success);
+        }
     }
 }

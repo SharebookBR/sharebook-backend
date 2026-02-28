@@ -203,6 +203,20 @@ namespace ShareBook.Service
                 entity.ChooseDate = null;
 
             var result = await ValidateAsync(entity);
+            if (result.Success && entity.IsEbook())
+            {
+                var isDuplicate = await _repository.AnyAsync(b =>
+                    b.Type == BookType.Eletronic &&
+                    b.Title.ToLower().Trim() == entity.Title.ToLower().Trim() &&
+                    b.Author.ToLower().Trim() == entity.Author.ToLower().Trim());
+
+                if (isDuplicate)
+                {
+                    result.Messages.Add("Já existe um e-book com este título e autor no catálogo.");
+                    return result;
+                }
+            }
+
             if (result.Success)
             {
                 entity.Slug = SetSlugByTitleOrIncremental(entity);
@@ -401,6 +415,18 @@ namespace ShareBook.Service
             book.Status = BookStatus.Available;
             book.ChooseDate = DateTime.UtcNow.AddDays(10);
             await _repository.UpdateAsync(book);
+        }
+
+        public async Task ReportCopyrightAsync(string slug)
+        {
+            var book = await BySlugAsync(slug);
+            if (book == null)
+                throw new ShareBookException(ShareBookException.Error.NotFound);
+
+            if (!book.IsEbook())
+                throw new ShareBookException(ShareBookException.Error.BadRequest, "Report de direitos autorais é aplicável apenas a e-books.");
+
+            await _booksEmailService.SendEmailCopyrightReportAsync(book);
         }
 
         #region Private

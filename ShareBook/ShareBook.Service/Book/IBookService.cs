@@ -51,5 +51,6 @@ namespace ShareBook.Service
 
         Task RenewChooseDateAsync(Guid bookId);
         Task<BookStatsDTO> GetStatsAsync();
+        Task ReportCopyrightAsync(string slug);
     }
 }

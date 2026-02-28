@@ -503,9 +503,19 @@ namespace ShareBook.Api.Controllers
             return await _userService.FindAsync(userId);
         }
 
+        [HttpPost("ReportCopyright/{slug}")]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(Result), 200)]
+        public async Task<IActionResult> ReportCopyrightAsync(string slug)
+        {
+            await _service.ReportCopyrightAsync(slug);
+            return Ok(new Result("Report enviado. Obrigado pela colaboração."));
+        }
+
         [HttpGet("DownloadEBook/{slug}")]
         [AllowAnonymous]
         [ProducesResponseType(typeof(FileContentResult), 200)]
+        [ProducesResponseType(302)]
         [ProducesResponseType(404)]
         public async Task<IActionResult> DownloadEBookAsync(string slug)
         {
@@ -517,9 +527,17 @@ namespace ShareBook.Api.Controllers
             if (!book.IsEbook())
                 return BadRequest(new { message = "Este livro não é um e-book." });
 
+            if (book.Status == BookStatus.Canceled)
+                return StatusCode(410, new { message = "Este e-book não está mais disponível." });
+
             if (string.IsNullOrEmpty(book.EBookPdfPath))
                 return NotFound(new { message = "PDF do e-book não disponível." });
 
+            // URL absoluta (S3): redireciona diretamente para o arquivo no bucket
+            if (book.EBookPdfPath.StartsWith("https://") || book.EBookPdfPath.StartsWith("http://"))
+                return Redirect(book.EBookPdfPath);
+
+            // Storage local (retrocompatibilidade com livros cadastrados antes da migração)
             var basePath = Path.GetFullPath(Path.Combine(
                 AppDomain.CurrentDomain.BaseDirectory,
                 "wwwroot",
