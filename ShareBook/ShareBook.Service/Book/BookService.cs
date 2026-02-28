@@ -56,7 +56,9 @@ namespace ShareBook.Service
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
             book.Status = BookStatus.Available;
-            book.ChooseDate = chooseDate?.Date ?? DateTime.Today.AddDays(daysInShowcase);
+            book.ChooseDate = book.IsEbook()
+                ? null
+                : chooseDate?.Date ?? DateTime.Today.AddDays(daysInShowcase);
             await _repository.UpdateAsync(book);
 
             // notifica o doador
@@ -289,14 +291,21 @@ namespace ShareBook.Service
 
         public async Task<PagedList<Book>> FullSearchAsync(string criteria, int page, int itemsPerPage, bool isAdmin)
         {
-            Expression<Func<Book, bool>> filter = x => (x.Author.Contains(criteria)
-                                                        || x.Title.Contains(criteria)
-                                                        || x.Category.Name.Contains(criteria))
-                                                        && x.Status == BookStatus.Available;
+            criteria = (criteria ?? string.Empty).Trim().ToLower();
 
-            if (!isAdmin) filter = x => x.Author.Contains(criteria)
-                                        || x.Title.Contains(criteria)
-                                        || x.Category.Name.Contains(criteria);
+            Expression<Func<Book, bool>> filter = x =>
+                (x.Author.ToLower().Contains(criteria)
+                 || x.Title.ToLower().Contains(criteria)
+                 || x.Category.Name.ToLower().Contains(criteria))
+                && x.Status == BookStatus.Available;
+
+            if (!isAdmin)
+            {
+                filter = x =>
+                    x.Author.ToLower().Contains(criteria)
+                    || x.Title.ToLower().Contains(criteria)
+                    || x.Category.Name.ToLower().Contains(criteria);
+            }
 
             return await SearchBooksAsync(filter, page, itemsPerPage);
         }

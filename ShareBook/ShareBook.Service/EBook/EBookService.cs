@@ -11,6 +11,7 @@ namespace ShareBook.Service.EBook
 {
     public class EBookService : IEBookService
     {
+        private const string S3EbookPrefix = "ebooks/";
         private readonly ImageSettings _imageSettings;
         private readonly AwsS3Settings _storageSettings;
         private readonly IS3Service _s3Service;
@@ -71,7 +72,22 @@ namespace ShareBook.Service.EBook
                 return null;
 
             // Storage S3 privado: gera URL assinada temporária.
-            return await _s3Service.GeneratePreSignedDownloadUrlAsync(book.EBookPdfPath, book.GetPdfFileName());
+            var s3Key = NormalizeS3Key(book.EBookPdfPath);
+            return await _s3Service.GeneratePreSignedDownloadUrlAsync(s3Key, book.GetPdfFileName());
+        }
+
+        private string NormalizeS3Key(string eBookPdfPath)
+        {
+            var key = eBookPdfPath.Trim();
+
+            // Caminhos antigos seedados sem prefixo precisam apontar para "ebooks/".
+            if (!key.Contains("/"))
+                return $"{S3EbookPrefix}{key}";
+
+            if (key.StartsWith("/"))
+                key = key.TrimStart('/');
+
+            return key;
         }
 
         public void Validate(Book book)
