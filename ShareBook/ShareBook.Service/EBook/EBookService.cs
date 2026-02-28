@@ -12,12 +12,12 @@ namespace ShareBook.Service.EBook
     public class EBookService : IEBookService
     {
         private readonly ImageSettings _imageSettings;
-        private readonly EBookStorageSettings _storageSettings;
+        private readonly AwsS3Settings _storageSettings;
         private readonly IS3Service _s3Service;
 
         public EBookService(
             IOptions<ImageSettings> imageSettings,
-            IOptions<EBookStorageSettings> storageSettings,
+            IOptions<AwsS3Settings> storageSettings,
             IS3Service s3Service)
         {
             _imageSettings = imageSettings.Value;

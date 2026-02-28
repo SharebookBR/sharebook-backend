@@ -79,7 +79,12 @@ namespace ShareBook.Api
 
             services.Configure<AwsSqsSettings>(options => Configuration.GetSection("AWSSQSSettings").Bind(options));
 
-            services.Configure<EBookStorageSettings>(options => Configuration.GetSection("EBookStorage").Bind(options));
+            services.Configure<AwsS3Settings>(options =>
+            {
+                Configuration.GetSection("AwsS3Settings").Bind(options);
+                // Retrocompatibilidade temporária para ambientes com chave antiga.
+                Configuration.GetSection("EBookStorage").Bind(options);
+            });
 
             services.Configure<MeetupSettings>(options => Configuration.GetSection("MeetupSettings").Bind(options));
 

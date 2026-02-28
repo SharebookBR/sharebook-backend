@@ -12,9 +12,9 @@ namespace ShareBook.Service.EBook
 {
     public class S3Service : IS3Service
     {
-        private readonly EBookStorageSettings _settings;
+        private readonly AwsS3Settings _settings;
 
-        public S3Service(IOptions<EBookStorageSettings> settings)
+        public S3Service(IOptions<AwsS3Settings> settings)
         {
             _settings = settings.Value;
         }
