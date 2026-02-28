@@ -23,5 +23,10 @@ namespace ShareBook.Service.EBook
         /// Opcional. Par de S3AccessKey.
         /// </summary>
         public string S3SecretKey { get; set; }
+
+        /// <summary>
+        /// Duração, em minutos, da URL assinada de download.
+        /// </summary>
+        public int DownloadUrlExpirationMinutes { get; set; } = 5;
     }
 }

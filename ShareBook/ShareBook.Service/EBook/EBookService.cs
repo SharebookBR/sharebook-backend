@@ -2,7 +2,6 @@ using Microsoft.Extensions.Options;
 using ShareBook.Domain;
 using ShareBook.Domain.Enums;
 using ShareBook.Domain.Exceptions;
-using ShareBook.Service.Server;
 using ShareBook.Service.Upload;
 using System;
 using System.IO;
@@ -13,18 +12,15 @@ namespace ShareBook.Service.EBook
     public class EBookService : IEBookService
     {
         private readonly ImageSettings _imageSettings;
-        private readonly ServerSettings _serverSettings;
         private readonly EBookStorageSettings _storageSettings;
         private readonly IS3Service _s3Service;
 
         public EBookService(
             IOptions<ImageSettings> imageSettings,
-            IOptions<ServerSettings> serverSettings,
             IOptions<EBookStorageSettings> storageSettings,
             IS3Service s3Service)
         {
             _imageSettings = imageSettings.Value;
-            _serverSettings = serverSettings.Value;
             _storageSettings = storageSettings.Value;
             _s3Service = s3Service;
         }
@@ -61,18 +57,21 @@ namespace ShareBook.Service.EBook
             return await _s3Service.UploadAsync(stream, key, "application/pdf");
         }
 
-        public string GetPdfDownloadUrl(Book book)
+        public async Task<string> GetPdfDownloadUrlAsync(Book book)
         {
             if (string.IsNullOrEmpty(book.EBookPdfPath))
                 return null;
 
-            // URL absoluta (S3): retorna diretamente
+            // Registros antigos podem ter URL absoluta salva no banco.
             if (book.EBookPdfPath.StartsWith("https://") || book.EBookPdfPath.StartsWith("http://"))
                 return book.EBookPdfPath;
 
-            // Storage local: monta URL via backend
-            var relativePath = _imageSettings.EBookPdfPath.Replace("wwwroot", "");
-            return $"{_serverSettings.BackendUrl}{relativePath}/{book.EBookPdfPath}";
+            // Storage local: endpoint faz stream do arquivo com validação de path.
+            if (_storageSettings.UseLocalStorage)
+                return null;
+
+            // Storage S3 privado: gera URL assinada temporária.
+            return await _s3Service.GeneratePreSignedDownloadUrlAsync(book.EBookPdfPath, book.GetPdfFileName());
         }
 
         public void Validate(Book book)

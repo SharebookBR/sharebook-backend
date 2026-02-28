@@ -533,9 +533,9 @@ namespace ShareBook.Api.Controllers
             if (string.IsNullOrEmpty(book.EBookPdfPath))
                 return NotFound(new { message = "PDF do e-book não disponível." });
 
-            // URL absoluta (S3): redireciona diretamente para o arquivo no bucket
-            if (book.EBookPdfPath.StartsWith("https://") || book.EBookPdfPath.StartsWith("http://"))
-                return Redirect(book.EBookPdfPath);
+            var downloadUrl = await _ebookService.GetPdfDownloadUrlAsync(book);
+            if (!string.IsNullOrEmpty(downloadUrl))
+                return Redirect(downloadUrl);
 
             // Storage local (retrocompatibilidade com livros cadastrados antes da migração)
             var basePath = Path.GetFullPath(Path.Combine(

@@ -1,8 +1,10 @@
 using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
+using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using Microsoft.Extensions.Options;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -19,38 +21,61 @@ namespace ShareBook.Service.EBook
 
         public async Task<string> UploadAsync(Stream content, string key, string contentType)
         {
-            var region = RegionEndpoint.GetBySystemName(_settings.S3Region);
+            using var client = CreateClient();
+            var transferUtility = new TransferUtility(client);
 
-            AmazonS3Client client;
+            var uploadRequest = new TransferUtilityUploadRequest
+            {
+                BucketName = _settings.S3BucketName,
+                Key = key,
+                InputStream = content,
+                ContentType = contentType
+            };
+
+            await transferUtility.UploadAsync(uploadRequest);
+
+            return key;
+        }
+
+        public Task<string> GeneratePreSignedDownloadUrlAsync(string key, string fileName)
+        {
+            using var client = CreateClient();
+
+            var expiresInMinutes = _settings.DownloadUrlExpirationMinutes <= 0
+                ? 5
+                : _settings.DownloadUrlExpirationMinutes;
+
+            var request = new GetPreSignedUrlRequest
+            {
+                BucketName = _settings.S3BucketName,
+                Key = key,
+                Verb = HttpVerb.GET,
+                Expires = DateTime.UtcNow.AddMinutes(expiresInMinutes)
+            };
+
+            if (!string.IsNullOrWhiteSpace(fileName))
+            {
+                request.ResponseHeaderOverrides.ContentDisposition = $"inline; filename=\"{fileName}\"";
+            }
+
+            request.ResponseHeaderOverrides.ContentType = "application/pdf";
+
+            var preSignedUrl = client.GetPreSignedURL(request);
+            return Task.FromResult(preSignedUrl);
+        }
+
+        private AmazonS3Client CreateClient()
+        {
+            var region = RegionEndpoint.GetBySystemName(_settings.S3Region);
 
             if (!string.IsNullOrEmpty(_settings.S3AccessKey) && !string.IsNullOrEmpty(_settings.S3SecretKey))
             {
                 var credentials = new BasicAWSCredentials(_settings.S3AccessKey, _settings.S3SecretKey);
-                client = new AmazonS3Client(credentials, region);
-            }
-            else
-            {
-                // Usa credenciais padrão do ambiente: IAM role, variáveis AWS_* ou ~/.aws/credentials
-                client = new AmazonS3Client(region);
+                return new AmazonS3Client(credentials, region);
             }
 
-            using (client)
-            {
-                var transferUtility = new TransferUtility(client);
-
-                var uploadRequest = new TransferUtilityUploadRequest
-                {
-                    BucketName = _settings.S3BucketName,
-                    Key = key,
-                    InputStream = content,
-                    ContentType = contentType,
-                    CannedACL = S3CannedACL.PublicRead,
-                };
-
-                await transferUtility.UploadAsync(uploadRequest);
-            }
-
-            return $"https://{_settings.S3BucketName}.s3.{_settings.S3Region}.amazonaws.com/{key}";
+            // Usa credenciais padrão do ambiente: IAM role, variáveis AWS_* ou ~/.aws/credentials
+            return new AmazonS3Client(region);
         }
     }
 }

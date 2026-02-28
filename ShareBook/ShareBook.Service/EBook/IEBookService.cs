@@ -13,11 +13,13 @@ namespace ShareBook.Service.EBook
         Task<string> UploadPdfAsync(Book book);
 
         /// <summary>
-        /// Obtém a URL de download do PDF do e-book
+        /// Obtém a URL de download do PDF do e-book quando aplicável.
+        /// Para S3 privado, retorna URL assinada temporária.
+        /// Para storage local, retorna null (download é feito pelo endpoint local).
         /// </summary>
         /// <param name="book">Livro</param>
-        /// <returns>URL para download</returns>
-        string GetPdfDownloadUrl(Book book);
+        /// <returns>URL para download/redirect ou null.</returns>
+        Task<string> GetPdfDownloadUrlAsync(Book book);
 
         /// <summary>
         /// Valida se o e-book possui os dados necessários
