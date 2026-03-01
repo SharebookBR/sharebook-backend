@@ -31,7 +31,7 @@ namespace ShareBook.Service.EBook
             if (!book.HasPdfToUpload())
                 return null;
 
-            if (_storageSettings.UseLocalStorage)
+            if (!_storageSettings.IsActive)
                 return await UploadLocalAsync(book);
 
             return await UploadS3Async(book);
@@ -68,7 +68,7 @@ namespace ShareBook.Service.EBook
                 return book.EBookPdfPath;
 
             // Storage local: endpoint faz stream do arquivo com validação de path.
-            if (_storageSettings.UseLocalStorage)
+            if (!_storageSettings.IsActive)
                 return null;
 
             // Storage S3 privado: gera URL assinada temporária.

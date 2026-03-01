@@ -2,12 +2,12 @@ namespace ShareBook.Service.EBook
 {
     /// <summary>
     /// Configurações AWS S3 para armazenamento de PDFs de e-books.
-    /// UseLocalStorage = true  → salva em wwwroot/EbookPdfs (desenvolvimento)
-    /// UseLocalStorage = false → envia para AWS S3 (produção)
+    /// IsActive = false → salva em wwwroot/EbookPdfs (desenvolvimento)
+    /// IsActive = true  → envia para AWS S3 (produção)
     /// </summary>
     public class AwsS3Settings
     {
-        public bool UseLocalStorage { get; set; } = true;
+        public bool IsActive { get; set; } = false;
 
         public string S3BucketName { get; set; }
 
