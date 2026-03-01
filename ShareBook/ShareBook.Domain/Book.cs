@@ -58,6 +58,8 @@ namespace ShareBook.Domain
 
         public string EBookPdfPath { get; set; }
 
+        public int DownloadCount { get; set; } = 0;
+
         [NotMapped]
         public byte[] PdfBytes { get; set; }
 

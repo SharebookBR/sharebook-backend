@@ -555,6 +555,7 @@ namespace ShareBook.Api.Controllers
             var pdfBytes = await System.IO.File.ReadAllBytesAsync(pdfPath);
             var fileName = book.GetPdfFileName();
 
+            await _service.IncrementDownloadCountAsync(book.Id);
             return File(pdfBytes, "application/pdf", fileName);
         }
     }

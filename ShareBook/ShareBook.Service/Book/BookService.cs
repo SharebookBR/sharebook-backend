@@ -522,6 +522,16 @@ namespace ShareBook.Service
             return status;
         }
 
+        public async Task IncrementDownloadCountAsync(Guid bookId)
+        {
+            var book = await _repository.FindAsync(bookId);
+            if (book == null)
+                throw new ShareBookException(ShareBookException.Error.NotFound);
+
+            book.DownloadCount++;
+            await _repository.UpdateAsync(book);
+        }
+
         #endregion Private
     }
 }

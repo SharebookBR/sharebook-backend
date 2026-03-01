@@ -123,6 +123,11 @@ namespace ShareBook.Infra.Data.Migrations
                     b.Property<DateTime?>("CreationDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("DownloadCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
                     b.Property<string>("EBookPdfPath")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
