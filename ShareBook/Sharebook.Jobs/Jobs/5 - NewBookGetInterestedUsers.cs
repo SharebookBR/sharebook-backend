@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using ShareBook.Domain;
@@ -8,45 +9,42 @@ using ShareBook.Service;
 using ShareBook.Service.AwsSqs;
 using ShareBook.Service.AwsSqs.Dto;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Sharebook.Jobs;
 
 public class NewBookGetInterestedUsers : GenericJob, IJob
 {
-    private readonly NewBookQueue _newBookQueue;
     private readonly MailSenderLowPriorityQueue _mailSenderLowPriorityQueue;
-    private readonly IBookService _bookService;
+    private readonly IBookRepository _bookRepository;
     private readonly IUserService _userService;
     private readonly IConfiguration _configuration;
     private readonly IEmailTemplate _emailTemplate;
 
     public NewBookGetInterestedUsers(
         IJobHistoryRepository jobHistoryRepo,
-        NewBookQueue newBookQueue,
         MailSenderLowPriorityQueue mailSenderLowPriorityQueue,
         IUserService userService,
         IConfiguration configuration,
         IEmailTemplate emailTemplate,
         ILoggerFactory loggerFactory,
-        IBookService bookService) : base(jobHistoryRepo, loggerFactory)
+        IBookRepository bookRepository) : base(jobHistoryRepo, loggerFactory)
     {
-
         JobName = "NewBookGetInterestedUsers";
-        Description = @"Temos um fluxo em que notificamos novos livros para possíveis interessados. Dentro desse 
-                        fluxo, essa peça tem a responsailidade de ler uma fila de LIVROS DOADOS, buscar possíveis 
-                        interessados e alimentar a fila do MAIL SENDER (baixa prioridade).";
-        Interval = Interval.Hourly;
+        Description = @"Digest diário de livros físicos aprovados nas últimas 24h. Agrupa por usuário
+                        interessado na categoria e envia UM único email com todos os livros relevantes.";
+        Interval = Interval.Dayly;
         Active = true;
-        BestTimeToExecute = null;
+        BestTimeToExecute = new TimeSpan(8, 0, 0);
 
-        _newBookQueue = newBookQueue;
         _mailSenderLowPriorityQueue = mailSenderLowPriorityQueue;
         _userService = userService;
         _configuration = configuration;
         _emailTemplate = emailTemplate;
-        _bookService = bookService;
+        _bookRepository = bookRepository;
     }
 
     public override async Task<JobHistory> WorkAsync()
@@ -54,85 +52,101 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
         var awsSqsEnabled = bool.Parse(_configuration["AwsSqsSettings:IsActive"]);
         if (!awsSqsEnabled) throw new AwsSqsDisabledException("Serviço aws sqs está desabilitado no appsettings.");
 
-        int totalDestinations = 0;
-        int sendEmailMaxDestinationsPerQueueMessage = GetEmailMaxDestinationsPerQueueMessage();
+        var since = DateTime.Today.AddDays(-1);
 
-        // 1 - lê a fila de origem
-        var newBookMessage = await _newBookQueue.GetMessageAsync();
+        var newBooks = await _bookRepository.Get()
+            .Where(b => b.Type == BookType.Printed
+                     && b.Status == BookStatus.Available
+                     && b.CreationDate >= since)
+            .ToListAsync();
 
-        // fila vazia, não faz nada
-        if (newBookMessage == null)
+        if (!newBooks.Any())
         {
             return new JobHistory()
             {
                 JobName = JobName,
                 IsSuccess = true,
-                Details = "A fila de origem estava vazia. Não fiz nada."
+                Details = "Nenhum livro físico aprovado nas últimas 24h. Não fiz nada."
             };
         }
 
-        // Obtem usuários interessados
-        var newBook = newBookMessage.Body;
-        var interestedUsers = await _userService.GetBySolicitedBookCategoryAsync(newBook.CategoryId);
-        totalDestinations = interestedUsers.Count;
-        var template = await GetEmailTemplateAsync(newBook.BookId);
+        // agrupa por usuário: um usuário pode ter interesse em múltiplas categorias
+        var userBooks = new Dictionary<Guid, (User User, List<Book> Books)>();
 
-        // Alimenta a fila de destino - baixa prioridade do Mail Sender
-        int maxMessages = interestedUsers.Count % sendEmailMaxDestinationsPerQueueMessage == 0 ? interestedUsers.Count / sendEmailMaxDestinationsPerQueueMessage : interestedUsers.Count / sendEmailMaxDestinationsPerQueueMessage + 1;
-
-        for (int i = 1; i <= maxMessages; i++)
+        foreach (var book in newBooks)
         {
-            var destinations = interestedUsers.OrderBy(i => i.Id).Skip((i - 1) * sendEmailMaxDestinationsPerQueueMessage).Take(sendEmailMaxDestinationsPerQueueMessage).Select(u => new Destination { Name = u.Name, Email = u.Email });
+            var interestedUsers = await _userService.GetBySolicitedBookCategoryAsync(book.CategoryId);
 
-            var mailSenderbody = new MailSenderbody
+            foreach (var user in interestedUsers)
             {
-                Subject = $"Chegou o livro '{newBook.BookTitle}'",
-                BodyHTML = template,
-                Destinations = destinations.ToList()
-            };
+                if (!userBooks.ContainsKey(user.Id))
+                    userBooks[user.Id] = (user, new List<Book>());
 
-            await _mailSenderLowPriorityQueue.SendMessageAsync(mailSenderbody);
+                userBooks[user.Id].Books.Add(book);
+            }
         }
 
-        // remove a mensagem da fila de origem
-        await _newBookQueue.DeleteMessageAsync(newBookMessage.ReceiptHandle);
+        if (!userBooks.Any())
+        {
+            return new JobHistory()
+            {
+                JobName = JobName,
+                IsSuccess = true,
+                Details = $"{newBooks.Count} livro(s) encontrado(s), mas nenhum usuário interessado nas categorias."
+            };
+        }
 
-        // finaliza com sucesso
+        var frontendUrl = _configuration["ServerSettings:FrontendUrl"];
+        var totalEmailsQueued = 0;
+
+        foreach (var (userId, entry) in userBooks)
+        {
+            var bookListHtml = BuildBookListHtml(entry.Books, frontendUrl);
+
+            var vm = new
+            {
+                Name = "{name}", // o MailSender substitui pelo nome do destinatário
+                BookListHtml = bookListHtml,
+                FrontendUrl = frontendUrl
+            };
+
+            var bodyHtml = await _emailTemplate.GenerateHtmlFromTemplateAsync("PrintedBooksDigestTemplate", vm);
+
+            var mailBody = new MailSenderbody
+            {
+                Subject = "Novos livros físicos para você hoje",
+                BodyHTML = bodyHtml,
+                Destinations = new List<Destination>
+                {
+                    new Destination { Name = entry.User.Name, Email = entry.User.Email }
+                }
+            };
+
+            await _mailSenderLowPriorityQueue.SendMessageAsync(mailBody);
+            totalEmailsQueued++;
+        }
+
         return new JobHistory()
         {
             JobName = JobName,
             IsSuccess = true,
-            Details = $"{totalDestinations} usuários encontrados quem podem ter interesse no livro '{newBook?.BookTitle}'."
+            Details = $"{newBooks.Count} livro(s) físico(s) novo(s). {totalEmailsQueued} digest(s) enfileirado(s)."
         };
     }
 
-    private int GetEmailMaxDestinationsPerQueueMessage()
+    private static string BuildBookListHtml(List<Book> books, string frontendUrl)
     {
-        // O MailSender é invocado 10x a cada hora.
-        var mailSenderInvocationsPerHour = 10;
-
-        // Queremos que o MailSender processe 3 mensagens sqs pra fazer seu trabalho
-        var totalSqsMessagensPerWork = 3;
-
-        var maxEmailsPerHour = int.Parse(_configuration["EmailSettings:MaxEmailsPerHour"]);
-        return (maxEmailsPerHour / mailSenderInvocationsPerHour) / totalSqsMessagensPerWork;
-    }
-
-    private async Task<string> GetEmailTemplateAsync(Guid bookId)
-    {
-        var book = await _bookService.FindAsync(bookId);
-
-        var vm = new
+        var sb = new StringBuilder();
+        foreach (var book in books)
         {
-            BookTitle = book.Title,
-            BookSlug = book.Slug,
-            BookImageSlug = book.ImageSlug,
-            BackendUrl = _configuration["ServerSettings:BackendUrl"],
-            FrontendUrl = _configuration["ServerSettings:FrontendUrl"],
-            Name = "{Name}"// o MailSender vai trocar pelo nome do usuário.
-        };
-
-        return await _emailTemplate.GenerateHtmlFromTemplateAsync("NewBookNotifyTemplate", vm);
+            sb.Append($@"<li style=""margin-bottom:10px;"">
+                <a href=""{frontendUrl}/livros/{book.Slug}"" style=""color:#009FC7;font-weight:bold;text-decoration:none;"">
+                    {book.Title}
+                </a>
+                <span style=""color:#757575;""> — {book.Author}</span>
+            </li>");
+        }
+        return sb.ToString();
     }
 }
 
