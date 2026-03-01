@@ -56,6 +56,7 @@ namespace ShareBook.Service
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
             book.Status = BookStatus.Available;
+            book.ApprovedAt = DateTime.UtcNow;
             book.ChooseDate = book.IsEbook()
                 ? null
                 : chooseDate?.Date ?? DateTime.Today.AddDays(daysInShowcase);

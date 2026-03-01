@@ -170,6 +170,7 @@ namespace ShareBook.Repository
                     Status = BookStatus.Available,
                     Category = adv,
                     CreationDate = DateTime.UtcNow.AddDays(-1),
+                    ApprovedAt = DateTime.UtcNow.AddDays(-1),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
@@ -186,6 +187,7 @@ namespace ShareBook.Repository
                     Status = BookStatus.Available,
                     Category = dir,
                     CreationDate = DateTime.UtcNow.AddDays(-2),
+                    ApprovedAt = DateTime.UtcNow.AddDays(-2),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
@@ -201,6 +203,7 @@ namespace ShareBook.Repository
                     Status = BookStatus.Available,
                     Category = adv,
                     CreationDate = DateTime.UtcNow.AddDays(-2),
+                    ApprovedAt = DateTime.UtcNow.AddDays(-2),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
@@ -216,6 +219,7 @@ namespace ShareBook.Repository
                     Status = BookStatus.Available,
                     Category = adv,
                     CreationDate = DateTime.UtcNow.AddDays(-2),
+                    ApprovedAt = DateTime.UtcNow.AddDays(-2),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
@@ -231,6 +235,7 @@ namespace ShareBook.Repository
                     Status = BookStatus.Available,
                     Category = adv,
                     CreationDate = DateTime.UtcNow.AddDays(-2),
+                    ApprovedAt = DateTime.UtcNow.AddDays(-2),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
@@ -246,6 +251,7 @@ namespace ShareBook.Repository
                     Status = BookStatus.Available,
                     Category = inf,
                     CreationDate = DateTime.UtcNow.AddDays(-1),
+                    ApprovedAt = DateTime.UtcNow.AddDays(-1),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
@@ -261,6 +267,7 @@ namespace ShareBook.Repository
                     Status = BookStatus.Available,
                     Category = adv,
                     CreationDate = DateTime.UtcNow.AddDays(-5),
+                    ApprovedAt = DateTime.UtcNow.AddDays(-5),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
@@ -276,6 +283,7 @@ namespace ShareBook.Repository
                     Status = BookStatus.Available,
                     Category = adv,
                     CreationDate = DateTime.UtcNow.AddDays(-6),
+                    ApprovedAt = DateTime.UtcNow.AddDays(-6),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
@@ -291,6 +299,7 @@ namespace ShareBook.Repository
                     Status = BookStatus.Available,
                     Category = adv,
                     CreationDate = DateTime.UtcNow.AddDays(-8),
+                    ApprovedAt = DateTime.UtcNow.AddDays(-8),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
@@ -307,6 +316,7 @@ namespace ShareBook.Repository
                     Status = BookStatus.Available,
                     Category = inf,
                     CreationDate = DateTime.UtcNow.AddDays(-5),
+                    ApprovedAt = DateTime.UtcNow.AddDays(-5),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
@@ -322,6 +332,7 @@ namespace ShareBook.Repository
                     Status = BookStatus.Available,
                     Category = inf,
                     CreationDate = DateTime.UtcNow.AddDays(-10),
+                    ApprovedAt = DateTime.UtcNow.AddDays(-10),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
@@ -337,6 +348,7 @@ namespace ShareBook.Repository
                     Status = BookStatus.Available,
                     Category = adv,
                     CreationDate = DateTime.UtcNow.AddDays(-2),
+                    ApprovedAt = DateTime.UtcNow.AddDays(-2),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
@@ -352,6 +364,7 @@ namespace ShareBook.Repository
                     Status = BookStatus.Available,
                     Category = adv,
                     CreationDate = DateTime.UtcNow.AddDays(-9),
+                    ApprovedAt = DateTime.UtcNow.AddDays(-9),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
@@ -367,6 +380,7 @@ namespace ShareBook.Repository
                     Status = BookStatus.Available,
                     Category = adv,
                     CreationDate = DateTime.UtcNow.AddDays(-1),
+                    ApprovedAt = DateTime.UtcNow.AddDays(-1),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
@@ -382,6 +396,7 @@ namespace ShareBook.Repository
                     Status = BookStatus.Available,
                     Category = adv,
                     CreationDate = DateTime.UtcNow.AddDays(-2),
+                    ApprovedAt = DateTime.UtcNow.AddDays(-2),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
@@ -397,6 +412,7 @@ namespace ShareBook.Repository
                     Status = BookStatus.Available,
                     Category = adv,
                     CreationDate = DateTime.UtcNow.AddDays(-3),
+                    ApprovedAt = DateTime.UtcNow.AddDays(-3),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
@@ -412,6 +428,7 @@ namespace ShareBook.Repository
                     Status = BookStatus.Available,
                     Category = adv,
                     CreationDate = DateTime.UtcNow.AddDays(-1),
+                    ApprovedAt = DateTime.UtcNow.AddDays(-1),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
@@ -442,6 +459,7 @@ namespace ShareBook.Repository
                     Status = BookStatus.Available,
                     Category = adv,
                     CreationDate = DateTime.UtcNow.AddDays(-4),
+                    ApprovedAt = DateTime.UtcNow.AddDays(-4),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
@@ -457,6 +475,7 @@ namespace ShareBook.Repository
                     Status = BookStatus.Available,
                     Category = adv,
                     CreationDate = DateTime.UtcNow.AddDays(-5),
+                    ApprovedAt = DateTime.UtcNow.AddDays(-5),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
@@ -472,6 +491,7 @@ namespace ShareBook.Repository
                     Status = BookStatus.Available,
                     Category = psico,
                     CreationDate = DateTime.UtcNow.AddDays(-2),
+                    ApprovedAt = DateTime.UtcNow.AddDays(-2),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
@@ -488,6 +508,7 @@ namespace ShareBook.Repository
                     Status = BookStatus.Available,
                     Category = adv,
                     CreationDate = DateTime.UtcNow.AddDays(-4),
+                    ApprovedAt = DateTime.UtcNow.AddDays(-4),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
@@ -503,6 +524,7 @@ namespace ShareBook.Repository
                     Status = BookStatus.Available,
                     Category = adv,
                     CreationDate = DateTime.UtcNow.AddDays(-2),
+                    ApprovedAt = DateTime.UtcNow.AddDays(-2),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
                     UserFacilitator = facilitator
                 };
@@ -520,6 +542,7 @@ namespace ShareBook.Repository
                     Type = BookType.Eletronic,
                     EBookPdfPath = "dom-casmurro.pdf",
                     CreationDate = DateTime.UtcNow.AddDays(-3),
+                    ApprovedAt = DateTime.UtcNow.AddDays(-3),
                     ChooseDate = null,
                     UserFacilitator = facilitator
                 };
@@ -536,6 +559,7 @@ namespace ShareBook.Repository
                     Type = BookType.Eletronic,
                     EBookPdfPath = "memorias-postumas-de-bras-cubas.pdf",
                     CreationDate = DateTime.UtcNow.AddDays(-2),
+                    ApprovedAt = DateTime.UtcNow.AddDays(-2),
                     ChooseDate = null,
                     UserFacilitator = facilitator
                 };
@@ -552,6 +576,7 @@ namespace ShareBook.Repository
                     Type = BookType.Eletronic,
                     EBookPdfPath = "quincas-borba.pdf",
                     CreationDate = DateTime.UtcNow.AddDays(-1),
+                    ApprovedAt = DateTime.UtcNow.AddDays(-1),
                     ChooseDate = null,
                     UserFacilitator = facilitator
                 };

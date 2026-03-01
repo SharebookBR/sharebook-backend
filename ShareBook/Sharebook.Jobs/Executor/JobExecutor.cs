@@ -29,7 +29,8 @@ public class JobExecutor : IJobExecutor
                         MeetupSearch job4,
                         NewBookGetInterestedUsers job5,
                         MailSupressListUpdate job6,
-                        MailSender job7) // MailSender precisa ser o último!
+                        MailSender job7, // MailSender precisa ser o último!
+                        NewEbookWeeklyDigest job8)
     {
         _jobHistoryRepo = jobHistoryRepo;
         _logger = logger;
@@ -44,7 +45,8 @@ public class JobExecutor : IJobExecutor
             job4,
             job5,
             job6,
-            job7
+            job7,
+            job8
         };
 
     }
