@@ -53,12 +53,15 @@ public class NewEbookWeeklyDigest : GenericJob, IJob
         if (!awsSqsEnabled) throw new AwsSqsDisabledException("Serviço aws sqs está desabilitado no appsettings.");
 
         var since = DateTime.Today.AddDays(-7);
+        Logger.LogInformation("{Job} iniciando. Buscando ebooks aprovados desde {Since:yyyy-MM-dd}.", JobName, since);
 
         var newEbooks = await _bookRepository.Get()
             .Where(b => b.Type == BookType.Eletronic
                      && b.Status == BookStatus.Available
                      && b.ApprovedAt >= since)
             .ToListAsync();
+
+        Logger.LogInformation("{Job} encontrou {Count} ebook(s) aprovado(s) nos últimos 7 dias.", JobName, newEbooks.Count);
 
         if (!newEbooks.Any())
         {
@@ -67,20 +70,6 @@ public class NewEbookWeeklyDigest : GenericJob, IJob
                 JobName = JobName,
                 IsSuccess = true,
                 Details = "Nenhum ebook aprovado nos últimos 7 dias. Não fiz nada."
-            };
-        }
-
-        var recipients = await _userRepository.Get()
-            .Where(u => u.AllowSendingEmail)
-            .ToListAsync();
-
-        if (!recipients.Any())
-        {
-            return new JobHistory()
-            {
-                JobName = JobName,
-                IsSuccess = true,
-                Details = $"{newEbooks.Count} ebook(s) encontrado(s), mas nenhum usuário com AllowSendingEmail ativo."
             };
         }
 
@@ -96,17 +85,29 @@ public class NewEbookWeeklyDigest : GenericJob, IJob
 
         var bodyHtml = await _emailTemplate.GenerateHtmlFromTemplateAsync("EbooksWeeklyDigestTemplate", vm);
 
-        var destinations = recipients
-            .Select(u => new Destination { Name = u.Name, Email = u.Email })
-            .ToList();
-
-        // divide em lotes para não estourar o tamanho da mensagem SQS (256KB)
+        // Pagina direto no banco — nunca carrega todos os usuários em memória de uma vez
         const int batchSize = 50;
-        var totalBatches = (int)Math.Ceiling(destinations.Count / (double)batchSize);
+        var page = 0;
+        var totalRecipients = 0;
+        var totalBatches = 0;
 
-        for (int i = 0; i < totalBatches; i++)
+        while (true)
         {
-            var batch = destinations.Skip(i * batchSize).Take(batchSize).ToList();
+            var batch = await _userRepository.Get()
+                .Where(u => u.AllowSendingEmail)
+                .OrderBy(u => u.Id)
+                .Select(u => new Destination { Name = u.Name, Email = u.Email })
+                .Skip(page * batchSize)
+                .Take(batchSize)
+                .ToListAsync();
+
+            if (!batch.Any())
+            {
+                Logger.LogInformation("{Job} sem mais destinatários. Encerrando paginação na página {Page}.", JobName, page);
+                break;
+            }
+
+            Logger.LogInformation("{Job} página {Page}: {BatchCount} destinatário(s). Enfileirando mensagem SQS.", JobName, page, batch.Count);
 
             var mailBody = new MailSenderbody
             {
@@ -116,13 +117,31 @@ public class NewEbookWeeklyDigest : GenericJob, IJob
             };
 
             await _mailSenderLowPriorityQueue.SendMessageAsync(mailBody);
+
+            totalRecipients += batch.Count;
+            totalBatches++;
+            page++;
         }
+
+        if (totalRecipients == 0)
+        {
+            Logger.LogWarning("{Job} nenhum usuário com AllowSendingEmail ativo encontrado.", JobName);
+            return new JobHistory()
+            {
+                JobName = JobName,
+                IsSuccess = true,
+                Details = $"{newEbooks.Count} ebook(s) encontrado(s), mas nenhum usuário com AllowSendingEmail ativo."
+            };
+        }
+
+        var details = $"{newEbooks.Count} ebook(s) novo(s). {totalRecipients} destinatário(s) em {totalBatches} lote(s) enfileirado(s).";
+        Logger.LogInformation("{Job} concluído. {Details}", JobName, details);
 
         return new JobHistory()
         {
             JobName = JobName,
             IsSuccess = true,
-            Details = $"{newEbooks.Count} ebook(s) novo(s). {destinations.Count} destinatário(s) em {totalBatches} lote(s) enfileirado(s)."
+            Details = details
         };
     }
 
