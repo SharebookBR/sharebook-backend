@@ -533,6 +533,8 @@ namespace ShareBook.Api.Controllers
             if (string.IsNullOrEmpty(book.EBookPdfPath))
                 return NotFound(new { message = "PDF do e-book não disponível." });
 
+            await _service.IncrementDownloadCountAsync(book.Id);
+
             var downloadUrl = await _ebookService.GetPdfDownloadUrlAsync(book);
             if (!string.IsNullOrEmpty(downloadUrl))
                 return Redirect(downloadUrl);
@@ -554,8 +556,6 @@ namespace ShareBook.Api.Controllers
 
             var pdfBytes = await System.IO.File.ReadAllBytesAsync(pdfPath);
             var fileName = book.GetPdfFileName();
-
-            await _service.IncrementDownloadCountAsync(book.Id);
             return File(pdfBytes, "application/pdf", fileName);
         }
     }

@@ -6,6 +6,7 @@ namespace ShareBook.Api.ViewModels
         public Guid Id { get; set; }
         public string Title { get; set; }
         public string Author { get; set; }
+        public int DownloadCount { get; set; }
         public string Winner { get; set; }
         public string Donor { get; set; }
         public Guid? UserIdFacilitator { get; set; }
