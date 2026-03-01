@@ -106,6 +106,9 @@ namespace ShareBook.Infra.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Author")
                         .IsRequired()
                         .HasMaxLength(200)

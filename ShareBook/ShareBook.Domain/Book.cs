@@ -52,6 +52,8 @@ namespace ShareBook.Domain
 
         public BookStatus Status { get; set; }
 
+        public DateTime? ApprovedAt { get; set; }
+
         public BookType Type { get; set; } = BookType.Printed;
 
         public string EBookPdfPath { get; set; }

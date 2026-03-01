@@ -57,7 +57,7 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
         var newBooks = await _bookRepository.Get()
             .Where(b => b.Type == BookType.Printed
                      && b.Status == BookStatus.Available
-                     && b.CreationDate >= since)
+                     && b.ApprovedAt >= since)
             .ToListAsync();
 
         if (!newBooks.Any())

@@ -57,7 +57,7 @@ public class NewEbookWeeklyDigest : GenericJob, IJob
         var newEbooks = await _bookRepository.Get()
             .Where(b => b.Type == BookType.Eletronic
                      && b.Status == BookStatus.Available
-                     && b.CreationDate >= since)
+                     && b.ApprovedAt >= since)
             .ToListAsync();
 
         if (!newEbooks.Any())
