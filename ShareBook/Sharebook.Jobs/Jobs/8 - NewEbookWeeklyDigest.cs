@@ -37,7 +37,7 @@ public class NewEbookWeeklyDigest : GenericJob, IJob
         Description = @"Digest semanal de ebooks aprovados nos últimos 7 dias. Envia UM único email
                         para todos os usuários com AllowSendingEmail = true listando os ebooks disponíveis.";
         Interval = Interval.Weekly;
-        Active = true;
+        Active = false;
         BestTimeToExecute = new TimeSpan(9, 0, 0);
 
         _mailSenderLowPriorityQueue = mailSenderLowPriorityQueue;
