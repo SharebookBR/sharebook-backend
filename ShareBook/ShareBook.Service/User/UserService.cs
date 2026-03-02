@@ -16,6 +16,8 @@ using ShareBook.Service.Recaptcha;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -363,6 +365,28 @@ namespace ShareBook.Service
 
         public async Task<IList<User>> GetBySolicitedBookCategoryAsync(Guid bookCategoryId) =>
             await _userRepository.Get().Where(u => u.AllowSendingEmail && u.BookUsers.Any(bu => bu.Book.CategoryId == bookCategoryId)).ToListAsync();
+
+        public string GenerateUnsubscribeToken(Guid userId)
+        {
+            var secret = _config["ServerSettings:UnsubscribeSecret"] ?? "dev-unsubscribe-secret";
+            using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
+            var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(userId.ToString()));
+            return Convert.ToHexString(hash).ToLowerInvariant();
+        }
+
+        public async Task<bool> UnsubscribeAsync(Guid userId, string token)
+        {
+            var expectedToken = GenerateUnsubscribeToken(userId);
+            if (!string.Equals(token, expectedToken, StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            var user = await _repository.FindAsync(userId);
+            if (user == null) return false;
+
+            user.AllowSendingEmail = false;
+            await _repository.UpdateAsync(user);
+            return true;
+        }
 
         public async Task<UserStatsDTO> GetStatsAsync(Guid? userId)
         {

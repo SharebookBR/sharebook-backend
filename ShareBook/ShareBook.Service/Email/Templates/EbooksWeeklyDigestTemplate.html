@@ -25,7 +25,7 @@
         }
 
         .main-content {
-            padding: 27px 18px 63px;
+            padding: 27px 18px 32px;
         }
 
         h2 {
@@ -41,27 +41,6 @@
             margin-bottom: 20px;
         }
 
-        .book-list {
-            list-style: none;
-            padding: 0;
-            margin: 24px 0;
-            border-left: 4px solid #009FC7;
-            padding-left: 16px;
-        }
-
-        .button {
-            display: block;
-            background-color: #009FC7;
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 18px;
-            padding: 18px;
-            text-align: center;
-            border-radius: 3px;
-            margin: 30px 0;
-        }
-
         .footer {
             background-color: #333;
             color: white;
@@ -69,19 +48,13 @@
             text-align: center;
         }
 
-        .social-links {
-            margin-bottom: 30px;
+        .unsubscribe {
+            font-size: 12px;
+            margin-bottom: 20px;
         }
 
-        .social-links a {
-            display: inline-block;
-            margin: 0 10px;
-        }
-
-        .social-links img {
-            width: 24px;
-            height: 24px;
-            border: none;
+        .unsubscribe a {
+            color: #aaa;
         }
 
         .divider {
@@ -95,9 +68,13 @@
             color: white;
         }
 
+        .copyright a {
+            color: white;
+        }
+
         @media only screen and (max-width: 600px) {
             .main-content {
-                padding: 20px 15px 40px;
+                padding: 20px 15px 24px;
             }
 
             h2 {
@@ -106,11 +83,6 @@
 
             .message {
                 font-size: 16px;
-            }
-
-            .button {
-                font-size: 16px;
-                padding: 15px;
             }
         }
     </style>
@@ -122,40 +94,23 @@
 
             <div class="message">
                 Olá, {Name}!<br><br>
-                Aqui é o Sharebot do Sharebook. Tudo bem?<br>
-                Essa semana chegaram livros digitais novos. Você pode receber agora mesmo, sem esperar. Confira:
+                Chegaram {EbookCount} livros digitais esta semana que eu acho que você vai gostar!
             </div>
 
-            <ul class="book-list">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 24px 0;">
                 {EbookListHtml}
-            </ul>
-
-            <a href="{FrontendUrl}/categorias" class="button" target="_blank">
-                Ver todos os livros digitais
-            </a>
-
-            <p style="font-size:16px;color:#757575;">
-                Tem alguma dúvida ou sugestão? Basta responder esse email que a gente responde de volta. :-)
-            </p>
+            </table>
         </div>
 
         <div class="footer">
-            <div class="social-links">
-                <a href="https://www.linkedin.com/company/sharebook-br" target="_blank">
-                    <img src="https://cdn-images.mailchimp.com/icons/social-block-v2/outline-light-linkedin-48.png" alt="LinkedIn">
-                </a>
-                <a href="https://www.instagram.com/sharebook.com.br/" target="_blank">
-                    <img src="https://cdn-images.mailchimp.com/icons/social-block-v2/outline-light-instagram-48.png" alt="Instagram">
-                </a>
-                <a href="https://www.facebook.com/sharebookbr" target="_blank">
-                    <img src="https://cdn-images.mailchimp.com/icons/social-block-v2/outline-light-facebook-48.png" alt="Facebook">
-                </a>
+            <div class="unsubscribe">
+                <a href="{UnsubscribeUrl}">Cancelar inscrição</a>
             </div>
 
             <div class="divider"></div>
 
             <div class="copyright">
-                Sharebook é open source e gratuito · MIT License
+                <a href="{FrontendUrl}">sharebook.com.br</a>
             </div>
         </div>
     </div>
