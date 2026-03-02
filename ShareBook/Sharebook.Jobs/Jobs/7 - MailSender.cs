@@ -37,7 +37,7 @@ public class MailSender : GenericJob, IJob
         Description = @"Esse worker é o responsável por enviar emails. Por ter alta coesão e baixo acoplamento, 
                         a gente consegue implementar rate limit global da nossa aplicação.";
         Interval = Interval.Each5Minutes;
-        Active = true;
+        Active = false;
         BestTimeToExecute = null;
 
         _emailService = emailService;
