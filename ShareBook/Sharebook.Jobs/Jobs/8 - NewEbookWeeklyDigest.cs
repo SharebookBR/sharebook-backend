@@ -56,6 +56,7 @@ public class NewEbookWeeklyDigest : GenericJob, IJob
         Logger.LogInformation("{Job} iniciando. Buscando ebooks aprovados desde {Since:yyyy-MM-dd}.", JobName, since);
 
         var newEbooks = await _bookRepository.Get()
+            .Include(b => b.Category)
             .Where(b => b.Type == BookType.Eletronic
                      && b.Status == BookStatus.Available
                      && b.ApprovedAt >= since)
@@ -74,10 +75,36 @@ public class NewEbookWeeklyDigest : GenericJob, IJob
         }
 
         var userEbooks = new Dictionary<Guid, (User User, List<Book> Ebooks)>();
+        var usersByCategory = new Dictionary<Guid, IList<User>>();
+        var categoryAudienceCount = new Dictionary<Guid, int>();
+
+        var distinctCategoryIds = newEbooks
+            .Select(e => e.CategoryId)
+            .Distinct()
+            .ToList();
+
+        foreach (var categoryId in distinctCategoryIds)
+        {
+            var interestedUsers = await _userService.GetBySolicitedBookCategoryAsync(categoryId);
+            usersByCategory[categoryId] = interestedUsers;
+            categoryAudienceCount[categoryId] = interestedUsers.Count;
+        }
+
+        var ebooksWithoutAudience = 0;
+        var totalAudienceLinks = 0;
 
         foreach (var ebook in newEbooks)
         {
-            var interestedUsers = await _userService.GetBySolicitedBookCategoryAsync(ebook.CategoryId);
+            usersByCategory.TryGetValue(ebook.CategoryId, out var interestedUsers);
+            interestedUsers ??= Array.Empty<User>();
+
+            if (!interestedUsers.Any())
+            {
+                ebooksWithoutAudience++;
+                continue;
+            }
+
+            totalAudienceLinks += interestedUsers.Count;
 
             foreach (var user in interestedUsers)
             {
@@ -129,7 +156,37 @@ public class NewEbookWeeklyDigest : GenericJob, IJob
             totalRecipients++;
         }
 
-        var details = $"{newEbooks.Count} ebook(s) novo(s). {totalRecipients} digest(s) enfileirado(s).";
+        var ebooksWithAudience = newEbooks.Count - ebooksWithoutAudience;
+        var averageEbooksPerDigest = totalRecipients > 0
+            ? Math.Round(userEbooks.Values.Average(x => x.Ebooks.Count), 2)
+            : 0;
+
+        var topCategories = newEbooks
+            .GroupBy(e => e.CategoryId)
+            .Select(g => new
+            {
+                CategoryName = g.First().Category?.Name ?? "Sem categoria",
+                EbooksCount = g.Count(),
+                Audience = categoryAudienceCount.TryGetValue(g.Key, out var audience) ? audience : 0
+            })
+            .OrderByDescending(x => x.Audience)
+            .ThenByDescending(x => x.EbooksCount)
+            .Take(5)
+            .Select(x => $"{x.CategoryName}: {x.EbooksCount} ebook(s), audiencia={x.Audience}")
+            .ToList();
+
+        var details = string.Join("\n", new[]
+        {
+            $"Janela: desde {since:yyyy-MM-dd}.",
+            $"Ebooks novos: {newEbooks.Count}.",
+            $"Categorias distintas: {distinctCategoryIds.Count}.",
+            $"Ebooks com audiencia: {ebooksWithAudience}.",
+            $"Ebooks sem audiencia: {ebooksWithoutAudience}.",
+            $"Vinculos ebook->usuario por categoria: {totalAudienceLinks}.",
+            $"Digests enfileirados: {totalRecipients}.",
+            $"Media de ebooks por digest: {averageEbooksPerDigest}.",
+            $"Top categorias (max 5): {string.Join(" | ", topCategories)}."
+        });
         Logger.LogInformation("{Job} concluido. {Details}", JobName, details);
 
         return new JobHistory()
