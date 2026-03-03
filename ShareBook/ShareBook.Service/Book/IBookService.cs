@@ -2,7 +2,6 @@
 using ShareBook.Domain.Common;
 using ShareBook.Domain.DTOs;
 using ShareBook.Domain.Enums;
-using ShareBook.Service.AwsSqs.Dto;
 using ShareBook.Service.Generic;
 using System;
 using System.Collections.Generic;
@@ -14,7 +13,7 @@ namespace ShareBook.Service
     {
         Task ApproveAsync(Guid bookId, DateTime? chooseDate);
 
-        Task Promote(NewBookBody newBook);
+        Task MarkAsDeliveredAsync(Guid bookId);
 
         Task ReceivedAsync(Guid bookId, Guid winnerUserId);
         Task UpdateBookStatusAsync(Guid bookId, BookStatus bookStatus);

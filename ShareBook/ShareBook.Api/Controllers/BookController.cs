@@ -91,21 +91,22 @@ namespace ShareBook.Api.Controllers
         }
 
         [Authorize("Bearer")]
-        [HttpPost("promote")]
-        [AuthorizationFilter(Permissions.Permission.ApproveBook)]
-        public async Task<Result> Promote([FromBody] NewBookBody newBook)
-        {
-            await _service.Promote(newBook);
-            return new Result("Livro promovido com sucesso.");
-        }
-
-        [Authorize("Bearer")]
         [HttpPost("Received/{bookId}")]
         public async Task<Result> ReceivedAsync(string bookId)
         {
             Guid winnerUserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             await _service.ReceivedAsync(new Guid(bookId), winnerUserId);
             return new Result("Livro Recebido com sucesso.");
+        }
+
+        [Authorize("Bearer")]
+        [HttpPost("MarkAsDelivered/{bookId}")]
+        public async Task<IActionResult> MarkAsDeliveredAsync(Guid bookId)
+        {
+            if (!await _IsBookOwnerAsync(bookId)) return Unauthorized();
+
+            await _service.MarkAsDeliveredAsync(bookId);
+            return Ok();
         }
 
         [Authorize("Bearer")]
