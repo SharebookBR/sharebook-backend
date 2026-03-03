@@ -20,6 +20,9 @@ jobs:
         run: dotnet restore  ./ShareBook/ShareBook.sln
       - name: Build
         run: dotnet build  ./ShareBook/ShareBook.sln --no-restore
-      - name: Test
+      - name: Unit tests
         run: dotnet test ./ShareBook/ShareBook.Test.Unit/ShareBook.Test.Unit.csproj --no-build --verbosity normal
+        if: success()
+      - name: Integration tests
+        run: dotnet test ./ShareBook/ShareBook.Test.Integration/ShareBook.Test.Integration.csproj --no-build --verbosity normal
         if: success()

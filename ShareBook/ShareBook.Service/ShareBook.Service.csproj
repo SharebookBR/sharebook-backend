@@ -7,9 +7,9 @@
 
   <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="4.0.18.7" />
-    <PackageReference Include="AWSSDK.SQS" Version="4.0.2.9" />
+    <PackageReference Include="AWSSDK.SQS" Version="4.0.2.15" />
     <PackageReference Include="Flurl.Http" Version="4.0.2" />
-    <PackageReference Include="MailKit" Version="4.14.1" />
+    <PackageReference Include="MailKit" Version="4.15.0" />
     <PackageReference Include="Polly" Version="8.6.5" />
   </ItemGroup>
 

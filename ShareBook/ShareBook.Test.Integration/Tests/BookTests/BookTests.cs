@@ -1,6 +1,7 @@
 using System.Net;
 using Newtonsoft.Json;
 using ShareBook.Api.ViewModels;
+using ShareBook.Domain.Enums;
 
 namespace ShareBook.Test.Integration.Tests.BookTests;
 
@@ -25,7 +26,8 @@ public class BookTests
         responseAsString.Should().NotBeNullOrWhiteSpace();
         IList<BookVM>? books = JsonConvert.DeserializeObject<IList<BookVM>>(responseAsString);
         books.Should().NotBeNullOrEmpty();
-        books!.Count.Should().Be(22);
+        var expectedAvailableBooks = _fixture.ApplicationDbContext.Books.Count(b => b.Status == BookStatus.Available);
+        books!.Count.Should().Be(expectedAvailableBooks);
 
         books!.All(i =>
             !string.IsNullOrWhiteSpace(i.Title)

@@ -5,8 +5,12 @@ WORKDIR /app
 # Copy source code
 COPY ShareBook/ ./ShareBook/
 
-# Restore and build in one step to avoid cache issues
-RUN dotnet publish ShareBook/ShareBook.Api/ShareBook.Api.csproj -c Release -o /app/publish --verbosity normal
+# Restore, build, and enforce test gates before publish
+RUN dotnet restore ShareBook/ShareBook.sln \
+    && dotnet build ShareBook/ShareBook.sln -c Release --no-restore \
+    && dotnet test ShareBook/ShareBook.Test.Unit/ShareBook.Test.Unit.csproj -c Release --no-build --verbosity normal \
+    && dotnet test ShareBook/ShareBook.Test.Integration/ShareBook.Test.Integration.csproj -c Release --no-build --verbosity normal \
+    && dotnet publish ShareBook/ShareBook.Api/ShareBook.Api.csproj -c Release --no-build -o /app/publish --verbosity normal
 
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
