@@ -157,7 +157,7 @@ namespace ShareBook.Service
              );
         }
 
-        public async Task<IList<Book>> Random15EBooksAsync()
+        public async Task<IList<Book>> GetNewest15EBooksAsync()
         {
             return SetImageUrl(
                 await _repository.Get()
@@ -165,7 +165,7 @@ namespace ShareBook.Service
                     .ThenInclude(u => u.Address)
                     .Include(b => b.Category)
                     .Where(b => b.Status == BookStatus.Available && b.Type == BookType.Eletronic)
-                    .OrderBy(x => Guid.NewGuid()) // ordem aleatória
+                    .OrderByDescending(x => x.CreationDate) // os mais novos primeiro
                     .Take(15) // apenas 15 registros
                     .ToListAsync()
              );

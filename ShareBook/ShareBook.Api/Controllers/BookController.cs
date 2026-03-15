@@ -191,10 +191,10 @@ namespace ShareBook.Api.Controllers
             return _mapper.Map<List<BookVM>>(books);
         }
 
-        [HttpGet("Random15EBooks")]
-        public async Task<IList<BookVM>> Random15EBooksAsync()
+        [HttpGet("Newest15EBooks")]
+        public async Task<IList<BookVM>> Newest15EBooksAsync()
         {
-            var books = await _service.Random15EBooksAsync();
+            var books = await _service.GetNewest15EBooksAsync();
             return _mapper.Map<List<BookVM>>(books);
         }
 
