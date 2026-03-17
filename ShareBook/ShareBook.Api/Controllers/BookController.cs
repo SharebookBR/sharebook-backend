@@ -243,10 +243,10 @@ namespace ShareBook.Api.Controllers
         {
             User user = await GetUserAsync();
             if (await _IsDonatorAsync(requestBookVM.BookId, user) && !_IsAdmin(user)) //Permitido solicitar o próprio livro somente para Admin
-                throw new ShareBookException("Não é possivel solicitar esse livro pois você é o doador.");
+                throw new ShareBookException("Não é possível solicitar este livro porque você é o doador.");
 
             await _bookUserService.InsertAsync(requestBookVM.BookId, requestBookVM.Reason);
-            return Ok(new Result { SuccessMessage = "Pedido realizado com sucesso!" });
+            return Ok(new Result { SuccessMessage = "Solicitação realizada com sucesso!" });
         }
 
         [HttpPost("CancelRequest/{requestId}")]
@@ -525,13 +525,13 @@ namespace ShareBook.Api.Controllers
                 return NotFound(new { message = "Livro não encontrado." });
 
             if (!book.IsEbook())
-                return BadRequest(new { message = "Este livro não é um e-book." });
+                return BadRequest(new { message = "Este livro não é um livro digital." });
 
             if (book.Status == BookStatus.Canceled)
-                return StatusCode(410, new { message = "Este e-book não está mais disponível." });
+                return StatusCode(410, new { message = "Este livro digital não está mais disponível." });
 
             if (string.IsNullOrEmpty(book.EBookPdfPath))
-                return NotFound(new { message = "PDF do e-book não disponível." });
+                return NotFound(new { message = "PDF do livro digital não disponível." });
 
             var downloadUrl = await _ebookService.GetPdfDownloadUrlAsync(book);
             if (!string.IsNullOrEmpty(downloadUrl))
