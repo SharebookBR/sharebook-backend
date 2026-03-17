@@ -24,7 +24,7 @@ namespace ShareBook.Service
         private const string BookCanceledTitle = "Doação cancelada";
         private const string BookTrackingNumberNoticeWinnerTitle = "Seu livro foi postado - Sharebook";
         private const string BookNoticeInterestedTemplate = "BookNoticeInterestedTemplate";
-        private const string BookNoticeInterestedTitle = "Sharebook - Você solicitou um livro";
+        private const string BookNoticeInterestedTitle = "Sharebook - Sua solicitação foi registrada";
 
         private readonly IUserService _userService;
         private readonly IEmailService _emailService;
@@ -106,7 +106,7 @@ namespace ShareBook.Service
                 // push notification
                 await _notificationService.SendNotificationByEmailAsync(
                     bookRequested.User.Email,
-                    $"Seu livro foi solicitado", $" O Interessado é {vm.RequestingUser.NickName}"
+                    $"Seu livro recebeu uma nova solicitação", $"Pessoa interessada: {vm.RequestingUser.NickName}"
                 );
 
                 var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookNoticeDonorTemplate, vm);
@@ -121,7 +121,7 @@ namespace ShareBook.Service
         private string GenerateInterestedListHtml(Book bookRequested)
         {
             var html = "<table border=1 cellpadding=3 cellspacing=0>";
-            html += "<tr><td bgcolor = '#ffff00'><b> APELIDO </b></td><td bgcolor = '#ffff00'><b> PEDIDO </b></td></tr>";
+            html += "<tr><td bgcolor = '#ffff00'><b> APELIDO </b></td><td bgcolor = '#ffff00'><b> SOLICITAÇÃO </b></td></tr>";
 
             var threeHoursAgo = DateTime.UtcNow.AddMinutes(-180);
             var requests = bookRequested.BookUsers.Where(r => r.CreationDate >= threeHoursAgo).OrderByDescending(r => r.CreationDate);
@@ -174,7 +174,7 @@ namespace ShareBook.Service
                 };
 
                 // push notification
-                await _notificationService.SendNotificationByEmailAsync(bookUser.User.Email, $"Você solicitou o livro {vm.NameBook}", $"Aguarde até o dia {vm.ChooseDate} que será anunciado o ganhador. Boa sorte!");
+                await _notificationService.SendNotificationByEmailAsync(bookUser.User.Email, $"Sua solicitação para o livro {vm.NameBook} foi registrada", $"Aguarde até {vm.ChooseDate}, data em que o(a) ganhador(a) será anunciado(a).");
 
                 var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookNoticeInterestedTemplate, vm);
                 await _emailService.SendAsync(bookUser.User.Email, bookUser.User.Name, html, BookNoticeInterestedTitle);
@@ -274,8 +274,8 @@ namespace ShareBook.Service
 
         public async Task SendEmailMaxRequestsAsync(Book bookRequested)
         {
-            var subject = "Limite de pedidos";
-            var body = $"Prezados adms, o livro <b>{bookRequested.Title}</b> atingiu o limite de pedidos e foi removido automaticamente da vitrine. A data de decisão foi configurada pra amanhã. Obrigado.";
+            var subject = "Limite de solicitações";
+            var body = $"Prezados adms, o livro <b>{bookRequested.Title}</b> atingiu o limite de solicitações e foi removido automaticamente da vitrine. A data de decisão foi configurada pra amanhã. Obrigado.";
             await _emailService.SendToAdminsAsync(body, subject);
         }
     }
