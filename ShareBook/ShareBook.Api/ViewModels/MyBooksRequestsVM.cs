@@ -10,7 +10,7 @@ namespace ShareBook.Api.ViewModels
 
         public string Author { get; set; }
 
-        // status do pedido. (ex: aguardando decisão, negado, doado)
+        // status da solicitação. (ex.: aguardando decisão, negado, doado)
         // apenas pra saber se ganhou ou não.
         public string Status { get; set; }
 

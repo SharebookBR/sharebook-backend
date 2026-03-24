@@ -123,7 +123,7 @@ namespace ShareBook.Api.Controllers
                 if (registerUserDto.Age > 12)
                     return Ok(_signManager.GenerateTokenAndSetIdentity(result.Value, signingConfigurations, tokenConfigurations));
                 else
-                    return Ok(new Result(SuccessMessage: "Seu cadastro foi realizado com sucesso. Foi enviado um email para os pais solicitando o consentimento. Vamos te avisar por email quando seu acesso for liberado. Obrigado. =)"));
+                    return Ok(new Result(SuccessMessage: "Seu cadastro foi realizado com sucesso. Foi enviado um e-mail para os pais solicitando o consentimento. Vamos avisar por e-mail quando seu acesso for liberado. Obrigado."));
             }
                 
 
@@ -146,7 +146,7 @@ namespace ShareBook.Api.Controllers
 
             // mensagem amigável para usuários mobile antigos
             if (!IsValidClientVersion(client, clientVersion))
-                throw new ShareBookException("Não é possível fazer login porque seu app está desatualizado. Por favor atualize seu app na loja do Google Play.");
+                throw new ShareBookException("Não é possível entrar porque seu aplicativo está desatualizado. Atualize o aplicativo na Google Play para continuar.");
 
             var user = _mapper.Map<User>(loginUserVM);
             var result = await _userService.AuthenticationByEmailAndPasswordAsync(user);
