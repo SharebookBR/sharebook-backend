@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 using ShareBook.Api;
 
 namespace ShareBook.Test.Integration.Setup;
@@ -11,6 +12,12 @@ public class ShareBookWebAppFactory : WebApplicationFactory<Program>
     protected override IHostBuilder? CreateHostBuilder()
     {
         return Host.CreateDefaultBuilder()
+            .UseSerilog((ctx, lc) =>
+            {
+                lc.ReadFrom.Configuration(ctx.Configuration)
+                  .Enrich.FromLogContext()
+                  .WriteTo.Console();
+            })
             .ConfigureAppConfiguration((context, config) =>
             {
                 // Add test configuration values

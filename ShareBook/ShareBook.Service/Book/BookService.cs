@@ -76,9 +76,14 @@ namespace ShareBook.Service
 
         }
 
-        public async Task Promote(NewBookBody newBook)
+        public async Task MarkAsDeliveredAsync(Guid bookId)
         {
-            await _newBookQueue.SendMessageAsync(newBook);
+            var book = await _repository.FindAsync(bookId);
+            if (book == null)
+                throw new ShareBookException(ShareBookException.Error.NotFound);
+
+            book.Status = BookStatus.Received;
+            await _repository.UpdateAsync(book);
         }
 
         public async Task ReceivedAsync(Guid bookId, Guid winnerUserId)
@@ -152,7 +157,7 @@ namespace ShareBook.Service
              );
         }
 
-        public async Task<IList<Book>> Random15EBooksAsync()
+        public async Task<IList<Book>> GetNewest15EBooksAsync()
         {
             return SetImageUrl(
                 await _repository.Get()
@@ -160,7 +165,7 @@ namespace ShareBook.Service
                     .ThenInclude(u => u.Address)
                     .Include(b => b.Category)
                     .Where(b => b.Status == BookStatus.Available && b.Type == BookType.Eletronic)
-                    .OrderBy(x => Guid.NewGuid()) // ordem aleatória
+                    .OrderByDescending(x => x.CreationDate) // os mais novos primeiro
                     .Take(15) // apenas 15 registros
                     .ToListAsync()
              );
@@ -520,6 +525,16 @@ namespace ShareBook.Service
                 .Sum(g => g.Total);
 
             return status;
+        }
+
+        public async Task IncrementDownloadCountAsync(Guid bookId)
+        {
+            var book = await _repository.FindAsync(bookId);
+            if (book == null)
+                throw new ShareBookException(ShareBookException.Error.NotFound);
+
+            book.DownloadCount++;
+            await _repository.UpdateAsync(book);
         }
 
         #endregion Private

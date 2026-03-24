@@ -81,6 +81,13 @@ namespace ShareBook.Api.Controllers
             return Ok(facilitatorsClean);
         }
 
+        [HttpGet("Unsubscribe")]
+        public async Task<IActionResult> UnsubscribeAsync([FromQuery] Guid userId, [FromQuery] string token)
+        {
+            var success = await _userService.UnsubscribeAsync(userId, token);
+            return Ok(new { success });
+        }
+
         [Authorize("Bearer")]
         [HttpGet("WhoAccessed/{userId:Guid}")]
         [ProducesResponseType(typeof(AccessHistoryVM), StatusCodes.Status200OK)]

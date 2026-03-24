@@ -102,19 +102,23 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
         foreach (var (userId, entry) in userBooks)
         {
             var bookListHtml = BuildBookListHtml(entry.Books, frontendUrl);
+            var unsubscribeToken = _userService.GenerateUnsubscribeToken(entry.User.Id);
+            var unsubscribeUrl = $"{frontendUrl}/descadastrar?userId={entry.User.Id}&token={unsubscribeToken}";
 
             var vm = new
             {
                 Name = "{name}", // o MailSender substitui pelo nome do destinatário
+                BookCount = entry.Books.Count,
                 BookListHtml = bookListHtml,
-                FrontendUrl = frontendUrl
+                FrontendUrl = frontendUrl,
+                UnsubscribeUrl = unsubscribeUrl
             };
 
             var bodyHtml = await _emailTemplate.GenerateHtmlFromTemplateAsync("PrintedBooksDigestTemplate", vm);
 
             var mailBody = new MailSenderbody
             {
-                Subject = "Novos livros físicos para você hoje",
+                Subject = "Novos livros para você hoje",
                 BodyHTML = bodyHtml,
                 Destinations = new List<Destination>
                 {
@@ -137,14 +141,19 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
     private static string BuildBookListHtml(List<Book> books, string frontendUrl)
     {
         var sb = new StringBuilder();
-        foreach (var book in books)
+        for (int i = 0; i < books.Count; i++)
         {
-            sb.Append($@"<li style=""margin-bottom:10px;"">
-                <a href=""{frontendUrl}/livros/{book.Slug}"" style=""color:#009FC7;font-weight:bold;text-decoration:none;"">
-                    {book.Title}
-                </a>
-                <span style=""color:#757575;""> — {book.Author}</span>
-            </li>");
+            var book = books[i];
+            var borderBottom = i < books.Count - 1 ? "border-bottom:1px solid #f0f0f0;" : "";
+            sb.Append($@"<tr style=""{borderBottom}"">
+                <td style=""padding:14px 0;vertical-align:middle;"">
+                    <a href=""{frontendUrl}/livros/{book.Slug}"" style=""color:#009FC7;font-weight:bold;text-decoration:none;font-size:16px;"">{book.Title}</a><br>
+                    <span style=""color:#aaa;font-size:14px;"">{book.Author}</span>
+                </td>
+                <td style=""padding:14px 0;vertical-align:middle;text-align:right;white-space:nowrap;"">
+                    <a href=""{frontendUrl}/livros/{book.Slug}"" style=""background-color:#009FC7;color:white;text-decoration:none;font-size:14px;font-weight:bold;padding:8px 16px;border-radius:3px;display:inline-block;"">Tenho interesse</a>
+                </td>
+            </tr>");
         }
         return sb.ToString();
     }

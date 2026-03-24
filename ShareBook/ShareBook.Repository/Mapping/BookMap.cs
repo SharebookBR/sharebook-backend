@@ -46,6 +46,9 @@ namespace ShareBook.Repository.Mapping
             entityBuilder.Property(t => t.EBookPdfPath)
                 .HasMaxLength(500);
 
+            entityBuilder.Property(t => t.DownloadCount)
+                .HasDefaultValue(0);
+
             entityBuilder.Property(t => t.Type)
                 .HasConversion<int>();
 

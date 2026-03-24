@@ -168,3 +168,6 @@ docker run -d -p 8000:8080 -e ASPNETCORE_ENVIRONMENT=Development --name shareboo
 # cria sua migration
 Add-Migration MigrationInicialPostgres
 ```
+# Deployment trigger note
+
+Minor README update to trigger CI/CD redeploy.

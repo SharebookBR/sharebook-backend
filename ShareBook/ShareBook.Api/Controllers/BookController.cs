@@ -91,21 +91,22 @@ namespace ShareBook.Api.Controllers
         }
 
         [Authorize("Bearer")]
-        [HttpPost("promote")]
-        [AuthorizationFilter(Permissions.Permission.ApproveBook)]
-        public async Task<Result> Promote([FromBody] NewBookBody newBook)
-        {
-            await _service.Promote(newBook);
-            return new Result("Livro promovido com sucesso.");
-        }
-
-        [Authorize("Bearer")]
         [HttpPost("Received/{bookId}")]
         public async Task<Result> ReceivedAsync(string bookId)
         {
             Guid winnerUserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
             await _service.ReceivedAsync(new Guid(bookId), winnerUserId);
             return new Result("Livro Recebido com sucesso.");
+        }
+
+        [Authorize("Bearer")]
+        [HttpPost("MarkAsDelivered/{bookId}")]
+        public async Task<IActionResult> MarkAsDeliveredAsync(Guid bookId)
+        {
+            if (!await _IsBookOwnerAsync(bookId)) return Unauthorized();
+
+            await _service.MarkAsDeliveredAsync(bookId);
+            return Ok();
         }
 
         [Authorize("Bearer")]
@@ -190,10 +191,10 @@ namespace ShareBook.Api.Controllers
             return _mapper.Map<List<BookVM>>(books);
         }
 
-        [HttpGet("Random15EBooks")]
-        public async Task<IList<BookVM>> Random15EBooksAsync()
+        [HttpGet("Newest15EBooks")]
+        public async Task<IList<BookVM>> Newest15EBooksAsync()
         {
-            var books = await _service.Random15EBooksAsync();
+            var books = await _service.GetNewest15EBooksAsync();
             return _mapper.Map<List<BookVM>>(books);
         }
 
@@ -533,6 +534,8 @@ namespace ShareBook.Api.Controllers
             if (string.IsNullOrEmpty(book.EBookPdfPath))
                 return NotFound(new { message = "PDF do livro digital não disponível." });
 
+            await _service.IncrementDownloadCountAsync(book.Id);
+
             var downloadUrl = await _ebookService.GetPdfDownloadUrlAsync(book);
             if (!string.IsNullOrEmpty(downloadUrl))
                 return Redirect(downloadUrl);
@@ -554,7 +557,6 @@ namespace ShareBook.Api.Controllers
 
             var pdfBytes = await System.IO.File.ReadAllBytesAsync(pdfPath);
             var fileName = book.GetPdfFileName();
-
             return File(pdfBytes, "application/pdf", fileName);
         }
     }

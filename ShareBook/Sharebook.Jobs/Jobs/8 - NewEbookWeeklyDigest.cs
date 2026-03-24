@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using ShareBook.Domain;
@@ -20,7 +20,7 @@ public class NewEbookWeeklyDigest : GenericJob, IJob
 {
     private readonly MailSenderLowPriorityQueue _mailSenderLowPriorityQueue;
     private readonly IBookRepository _bookRepository;
-    private readonly IUserRepository _userRepository;
+    private readonly IUserService _userService;
     private readonly IConfiguration _configuration;
     private readonly IEmailTemplate _emailTemplate;
 
@@ -28,21 +28,21 @@ public class NewEbookWeeklyDigest : GenericJob, IJob
         IJobHistoryRepository jobHistoryRepo,
         MailSenderLowPriorityQueue mailSenderLowPriorityQueue,
         IBookRepository bookRepository,
-        IUserRepository userRepository,
+        IUserService userService,
         IConfiguration configuration,
         IEmailTemplate emailTemplate,
         ILoggerFactory loggerFactory) : base(jobHistoryRepo, loggerFactory)
     {
         JobName = "NewEbookWeeklyDigest";
-        Description = @"Digest semanal de ebooks aprovados nos últimos 7 dias. Envia UM único email
-                        para todos os usuários com AllowSendingEmail = true listando os ebooks disponíveis.";
+        Description = @"Digest semanal de ebooks aprovados nos ultimos 7 dias. Envia UM unico email
+                        por usuario interessado nas categorias dos ebooks novos.";
         Interval = Interval.Weekly;
         Active = true;
         BestTimeToExecute = new TimeSpan(9, 0, 0);
 
         _mailSenderLowPriorityQueue = mailSenderLowPriorityQueue;
         _bookRepository = bookRepository;
-        _userRepository = userRepository;
+        _userService = userService;
         _configuration = configuration;
         _emailTemplate = emailTemplate;
     }
@@ -50,18 +50,19 @@ public class NewEbookWeeklyDigest : GenericJob, IJob
     public override async Task<JobHistory> WorkAsync()
     {
         var awsSqsEnabled = bool.Parse(_configuration["AwsSqsSettings:IsActive"]);
-        if (!awsSqsEnabled) throw new AwsSqsDisabledException("Serviço aws sqs está desabilitado no appsettings.");
+        if (!awsSqsEnabled) throw new AwsSqsDisabledException("Servico aws sqs esta desabilitado no appsettings.");
 
         var since = DateTime.Today.AddDays(-7);
         Logger.LogInformation("{Job} iniciando. Buscando ebooks aprovados desde {Since:yyyy-MM-dd}.", JobName, since);
 
         var newEbooks = await _bookRepository.Get()
+            .Include(b => b.Category)
             .Where(b => b.Type == BookType.Eletronic
                      && b.Status == BookStatus.Available
                      && b.ApprovedAt >= since)
             .ToListAsync();
 
-        Logger.LogInformation("{Job} encontrou {Count} ebook(s) aprovado(s) nos últimos 7 dias.", JobName, newEbooks.Count);
+        Logger.LogInformation("{Job} encontrou {Count} ebook(s) aprovado(s) nos ultimos 7 dias.", JobName, newEbooks.Count);
 
         if (!newEbooks.Any())
         {
@@ -69,73 +70,128 @@ public class NewEbookWeeklyDigest : GenericJob, IJob
             {
                 JobName = JobName,
                 IsSuccess = true,
-                Details = "Nenhum ebook aprovado nos últimos 7 dias. Não fiz nada."
+                Details = "Nenhum ebook aprovado nos ultimos 7 dias. Nao fiz nada."
+            };
+        }
+
+        var userEbooks = new Dictionary<Guid, (User User, List<Book> Ebooks)>();
+        var usersByCategory = new Dictionary<Guid, IList<User>>();
+        var categoryAudienceCount = new Dictionary<Guid, int>();
+
+        var distinctCategoryIds = newEbooks
+            .Select(e => e.CategoryId)
+            .Distinct()
+            .ToList();
+
+        foreach (var categoryId in distinctCategoryIds)
+        {
+            var interestedUsers = await _userService.GetBySolicitedBookCategoryAsync(categoryId);
+            usersByCategory[categoryId] = interestedUsers;
+            categoryAudienceCount[categoryId] = interestedUsers.Count;
+        }
+
+        var ebooksWithoutAudience = 0;
+        var totalAudienceLinks = 0;
+
+        foreach (var ebook in newEbooks)
+        {
+            usersByCategory.TryGetValue(ebook.CategoryId, out var interestedUsers);
+            interestedUsers ??= Array.Empty<User>();
+
+            if (!interestedUsers.Any())
+            {
+                ebooksWithoutAudience++;
+                continue;
+            }
+
+            totalAudienceLinks += interestedUsers.Count;
+
+            foreach (var user in interestedUsers)
+            {
+                if (!userEbooks.ContainsKey(user.Id))
+                    userEbooks[user.Id] = (user, new List<Book>());
+
+                userEbooks[user.Id].Ebooks.Add(ebook);
+            }
+        }
+
+        if (!userEbooks.Any())
+        {
+            Logger.LogWarning("{Job} nenhum usuario interessado nas categorias dos ebooks novos.", JobName);
+            return new JobHistory()
+            {
+                JobName = JobName,
+                IsSuccess = true,
+                Details = $"{newEbooks.Count} ebook(s) encontrado(s), mas nenhum usuario interessado nas categorias."
             };
         }
 
         var frontendUrl = _configuration["ServerSettings:FrontendUrl"];
-        var ebookListHtml = BuildEbookListHtml(newEbooks, frontendUrl);
-
-        var vm = new
-        {
-            Name = "{name}", // o MailSender substitui pelo nome do destinatário
-            EbookListHtml = ebookListHtml,
-            FrontendUrl = frontendUrl
-        };
-
-        var bodyHtml = await _emailTemplate.GenerateHtmlFromTemplateAsync("EbooksWeeklyDigestTemplate", vm);
-
-        // Pagina direto no banco — nunca carrega todos os usuários em memória de uma vez
-        const int batchSize = 50;
-        var page = 0;
         var totalRecipients = 0;
-        var totalBatches = 0;
 
-        while (true)
+        foreach (var (_, entry) in userEbooks)
         {
-            var batch = await _userRepository.Get()
-                .Where(u => u.AllowSendingEmail)
-                .OrderBy(u => u.Id)
-                .Select(u => new Destination { Name = u.Name, Email = u.Email })
-                .Skip(page * batchSize)
-                .Take(batchSize)
-                .ToListAsync();
+            var ebookListHtml = BuildEbookListHtml(entry.Ebooks, frontendUrl);
+            var unsubscribeToken = _userService.GenerateUnsubscribeToken(entry.User.Id);
+            var unsubscribeUrl = $"{frontendUrl}/descadastrar?userId={entry.User.Id}&token={unsubscribeToken}";
 
-            if (!batch.Any())
+            var vm = new
             {
-                Logger.LogInformation("{Job} sem mais destinatários. Encerrando paginação na página {Page}.", JobName, page);
-                break;
-            }
+                Name = "{name}",
+                EbookCount = entry.Ebooks.Count,
+                EbookListHtml = ebookListHtml,
+                FrontendUrl = frontendUrl,
+                UnsubscribeUrl = unsubscribeUrl
+            };
 
-            Logger.LogInformation("{Job} página {Page}: {BatchCount} destinatário(s). Enfileirando mensagem SQS.", JobName, page, batch.Count);
+            var bodyHtml = await _emailTemplate.GenerateHtmlFromTemplateAsync("EbooksWeeklyDigestTemplate", vm);
 
             var mailBody = new MailSenderbody
             {
                 Subject = "Novos livros digitais esta semana",
                 BodyHTML = bodyHtml,
-                Destinations = batch
+                Destinations = new List<Destination>
+                {
+                    new Destination { Name = entry.User.Name, Email = entry.User.Email }
+                }
             };
 
             await _mailSenderLowPriorityQueue.SendMessageAsync(mailBody);
-
-            totalRecipients += batch.Count;
-            totalBatches++;
-            page++;
+            totalRecipients++;
         }
 
-        if (totalRecipients == 0)
-        {
-            Logger.LogWarning("{Job} nenhum usuário com AllowSendingEmail ativo encontrado.", JobName);
-            return new JobHistory()
+        var ebooksWithAudience = newEbooks.Count - ebooksWithoutAudience;
+        var averageEbooksPerDigest = totalRecipients > 0
+            ? Math.Round(userEbooks.Values.Average(x => x.Ebooks.Count), 2)
+            : 0;
+
+        var topCategories = newEbooks
+            .GroupBy(e => e.CategoryId)
+            .Select(g => new
             {
-                JobName = JobName,
-                IsSuccess = true,
-                Details = $"{newEbooks.Count} ebook(s) encontrado(s), mas nenhum usuário com AllowSendingEmail ativo."
-            };
-        }
+                CategoryName = g.First().Category?.Name ?? "Sem categoria",
+                EbooksCount = g.Count(),
+                Audience = categoryAudienceCount.TryGetValue(g.Key, out var audience) ? audience : 0
+            })
+            .OrderByDescending(x => x.Audience)
+            .ThenByDescending(x => x.EbooksCount)
+            .Take(5)
+            .Select(x => $"{x.CategoryName}: {x.EbooksCount} ebook(s), audiencia={x.Audience}")
+            .ToList();
 
-        var details = $"{newEbooks.Count} ebook(s) novo(s). {totalRecipients} destinatário(s) em {totalBatches} lote(s) enfileirado(s).";
-        Logger.LogInformation("{Job} concluído. {Details}", JobName, details);
+        var details = string.Join("\n", new[]
+        {
+            $"Janela: desde {since:yyyy-MM-dd}.",
+            $"Ebooks novos: {newEbooks.Count}.",
+            $"Categorias distintas: {distinctCategoryIds.Count}.",
+            $"Ebooks com audiencia: {ebooksWithAudience}.",
+            $"Ebooks sem audiencia: {ebooksWithoutAudience}.",
+            $"Vinculos ebook->usuario por categoria: {totalAudienceLinks}.",
+            $"Digests enfileirados: {totalRecipients}.",
+            $"Media de ebooks por digest: {averageEbooksPerDigest}.",
+            $"Top categorias (max 5): {string.Join(" | ", topCategories)}."
+        });
+        Logger.LogInformation("{Job} concluido. {Details}", JobName, details);
 
         return new JobHistory()
         {
@@ -148,14 +204,19 @@ public class NewEbookWeeklyDigest : GenericJob, IJob
     private static string BuildEbookListHtml(List<Book> ebooks, string frontendUrl)
     {
         var sb = new StringBuilder();
-        foreach (var ebook in ebooks)
+        for (int i = 0; i < ebooks.Count; i++)
         {
-            sb.Append($@"<li style=""margin-bottom:10px;"">
-                <a href=""{frontendUrl}/livros/{ebook.Slug}"" style=""color:#009FC7;font-weight:bold;text-decoration:none;"">
-                    {ebook.Title}
-                </a>
-                <span style=""color:#757575;""> — {ebook.Author}</span>
-            </li>");
+            var ebook = ebooks[i];
+            var borderBottom = i < ebooks.Count - 1 ? "border-bottom:1px solid #f0f0f0;" : "";
+            sb.Append($@"<tr style=""{borderBottom}"">
+                <td style=""padding:14px 0;vertical-align:middle;"">
+                    <a href=""{frontendUrl}/livros/{ebook.Slug}"" style=""color:#009FC7;font-weight:bold;text-decoration:none;font-size:16px;"">{ebook.Title}</a><br>
+                    <span style=""color:#aaa;font-size:14px;"">{ebook.Author}</span>
+                </td>
+                <td style=""padding:14px 0;vertical-align:middle;text-align:right;white-space:nowrap;"">
+                    <a href=""{frontendUrl}/livros/{ebook.Slug}"" style=""background-color:#009FC7;color:white;text-decoration:none;font-size:14px;font-weight:bold;padding:8px 16px;border-radius:3px;display:inline-block;"">Tenho interesse</a>
+                </td>
+            </tr>");
         }
         return sb.ToString();
     }

@@ -16,6 +16,8 @@ using ShareBook.Service.Recaptcha;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -30,6 +32,7 @@ namespace ShareBook.Service
         private readonly IConfiguration _config;
 
         private readonly IMapper _mapper;
+        private const string DuplicateEmailMessage = "Este e-mail já está cadastrado. Tente entrar ou use \"Esqueci minha senha\" para recuperar o acesso.";
 
 
         #region Public
@@ -110,19 +113,26 @@ namespace ShareBook.Service
                 return result;
 
             // Senha forte não é mais obrigatória.
+            user.Email = user.Email?.Trim().ToLowerInvariant();
 
             if (await _repository.AnyAsync(x => x.Email == user.Email))
-                throw new ShareBookException("Usuário já possui email cadastrado.");
+                throw new ShareBookException(ShareBookException.Error.Conflict, DuplicateEmailMessage);
 
             // LGPD - CONSENTIMENTO DOS PAIS.
             if (userDto.Age < 12)
                 await ParentAprovalStartFlowAsync(userDto, user);
 
-            user.Email = user.Email.ToLowerInvariant();
             if (result.Success)
             {
                 user = GetUserEncryptedPass(user);
-                result.Value = UserCleanup(await _repository.InsertAsync(user));
+                try
+                {
+                    result.Value = UserCleanup(await _repository.InsertAsync(user));
+                }
+                catch (Exception ex) when (IsDuplicateEmailException(ex))
+                {
+                    throw new ShareBookException(ShareBookException.Error.Conflict, DuplicateEmailMessage);
+                }
             }
             return result;
         }
@@ -319,6 +329,26 @@ namespace ShareBook.Service
             return user.Password == Hash.Create(decryptedPass, user.PasswordSalt);
         }
 
+        private static bool IsDuplicateEmailException(Exception ex)
+        {
+            var details = ex?.ToString() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(details))
+                return false;
+
+            var isDuplicateKey =
+                details.Contains("duplicate key value violates unique constraint", StringComparison.OrdinalIgnoreCase) ||
+                details.Contains("Cannot insert duplicate key row", StringComparison.OrdinalIgnoreCase) ||
+                details.Contains("UNIQUE constraint failed", StringComparison.OrdinalIgnoreCase);
+
+            var isUsersEmailConstraint =
+                details.Contains("IX_Users_Email", StringComparison.OrdinalIgnoreCase) ||
+                details.Contains("Users_Email", StringComparison.OrdinalIgnoreCase) ||
+                (details.Contains("Users", StringComparison.OrdinalIgnoreCase) &&
+                 details.Contains("Email", StringComparison.OrdinalIgnoreCase));
+
+            return isDuplicateKey && isUsersEmailConstraint;
+        }
+
         private User GetUserEncryptedPass(User user)
         {
             user.PasswordSalt = Salt.Create();
@@ -335,6 +365,28 @@ namespace ShareBook.Service
 
         public async Task<IList<User>> GetBySolicitedBookCategoryAsync(Guid bookCategoryId) =>
             await _userRepository.Get().Where(u => u.AllowSendingEmail && u.BookUsers.Any(bu => bu.Book.CategoryId == bookCategoryId)).ToListAsync();
+
+        public string GenerateUnsubscribeToken(Guid userId)
+        {
+            var secret = _config["ServerSettings:UnsubscribeSecret"] ?? "dev-unsubscribe-secret";
+            using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
+            var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(userId.ToString()));
+            return Convert.ToHexString(hash).ToLowerInvariant();
+        }
+
+        public async Task<bool> UnsubscribeAsync(Guid userId, string token)
+        {
+            var expectedToken = GenerateUnsubscribeToken(userId);
+            if (!string.Equals(token, expectedToken, StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            var user = await _repository.FindAsync(userId);
+            if (user == null) return false;
+
+            user.AllowSendingEmail = false;
+            await _repository.UpdateAsync(user);
+            return true;
+        }
 
         public async Task<UserStatsDTO> GetStatsAsync(Guid? userId)
         {

@@ -9,7 +9,8 @@ namespace ShareBook.Domain.Exceptions
         {
             { Error.NotAuthorized, "O usuário precisa estar logado para efetuar essa ação." },
             { Error.Forbidden, "Usuário não tem as permissões necessárias para efetuar esta ação." },
-            { Error.NotFound, "Entidade não encontrada. Por favor, verifique." }
+            { Error.NotFound, "Entidade não encontrada. Por favor, verifique." },
+            { Error.Conflict, "Conflito de dados. Por favor, verifique." }
         };
 
         public enum Error
@@ -17,7 +18,8 @@ namespace ShareBook.Domain.Exceptions
             BadRequest = 400,
             NotAuthorized = 401,
             Forbidden = 403,
-            NotFound = 404
+            NotFound = 404,
+            Conflict = 409
         }
 
         public Error ErrorType { get; set; }
