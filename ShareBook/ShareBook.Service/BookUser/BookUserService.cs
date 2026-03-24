@@ -1,6 +1,8 @@
-﻿using FluentValidation;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.DTOs;
@@ -27,6 +29,7 @@ namespace ShareBook.Service
         private readonly IMuambatorService _muambatorService;
         private readonly IBookRepository _bookRepository;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<BookUserService> _logger;
 
         public BookUserService(
             IBookUserRepository bookUserRepository,
@@ -35,7 +38,7 @@ namespace ShareBook.Service
             IMuambatorService muambatorService,
             IBookRepository bookRepository,
             IUnitOfWork unitOfWork,
-            IValidator<BookUser> validator, IConfiguration configuration)
+            IValidator<BookUser> validator, IConfiguration configuration, ILogger<BookUserService> logger = null)
             : base(bookUserRepository, unitOfWork, validator)
         {
             _bookUserRepository = bookUserRepository;
@@ -44,6 +47,7 @@ namespace ShareBook.Service
             _muambatorService = muambatorService;
             _bookRepository = bookRepository;
             _configuration = configuration;
+            _logger = logger ?? NullLogger<BookUserService>.Instance;
         }
 
         public async Task<IList<User>> GetGranteeUsersByBookIdAsync(Guid bookId) =>
@@ -246,7 +250,16 @@ namespace ShareBook.Service
                 throw new ShareBookException("Vencedor ainda não foi escolhido");
 
             if (MuambatorConfigurator.IsActive)
-                await _muambatorService.AddPackageToTrackerAsync(book, winnerBookUser.User, trackingNumber);
+            {
+                try
+                {
+                    await _muambatorService.AddPackageToTrackerAsync(book, winnerBookUser.User, trackingNumber);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Falha ao enviar rastreio para o Muambator. Livro: {BookId}, Rastreio: {TrackingNumber}", bookId, trackingNumber);
+                }
+            }
 
             book.Status = BookStatus.Sent;
             book.TrackingNumber = trackingNumber;
