@@ -157,7 +157,9 @@ public class OperationsController : Controller
                 Description = NormalizeSingleLine(job.Description),
                 Interval = job.Interval.ToString(),
                 Active = job.Active,
+                BestDayOfWeek = job.BestDayOfWeek?.ToString(),
                 BestTimeToExecute = job.BestTimeToExecute?.ToString(@"hh\:mm"),
+                NextExecutionAt = job.GetNextExecutionAtUtc(),
                 LastExecutionAt = lastHistory?.CreationDate,
                 LastExecutionDurationSeconds = lastHistory?.TimeSpentSeconds,
                 LastExecutionDetails = lastHistory?.Details

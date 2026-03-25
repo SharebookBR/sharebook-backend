@@ -94,9 +94,6 @@ public class JobExecutor : IJobExecutor
                             messages.Add(string.Format("Job {0}: não foi executado porque o serviço MEETUP ESTÁ DESATIVADO.", job.JobName));
                             continue;
                     }
-
-                    // executa apenas um job por ciclo.
-                    break;
                 }
                 else
                 {
@@ -137,4 +134,3 @@ public class JobExecutor : IJobExecutor
     }
 
 }
-

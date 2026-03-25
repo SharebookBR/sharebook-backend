@@ -17,6 +17,7 @@ namespace Sharebook.Jobs
         public string Description { get; set; }
         public Interval Interval { get; set; }
         public bool Active { get; set; }
+        public DayOfWeek? BestDayOfWeek { get; set; }
         public TimeSpan? BestTimeToExecute { get; set; }
 
         protected readonly IJobHistoryRepository _jobHistoryRepo;
@@ -32,23 +33,43 @@ namespace Sharebook.Jobs
 
         public bool HasWork()
         {
-            if(BestTimeToExecute != null)
+            var lastExpectedExecutionAtUtc = GetLastExpectedExecutionAtUtc();
+
+            if (lastExpectedExecutionAtUtc.HasValue)
             {
-                var timeNow = DateTimeHelper.GetTimeNowSaoPaulo();
-                if (timeNow < BestTimeToExecute) return false;
+                var lastSuccessfulExecutionAtUtc = _jobHistoryRepo.Get()
+                    .Where(x => x.JobName == JobName && x.IsSuccess)
+                    .OrderByDescending(x => x.CreationDate)
+                    .Select(x => x.CreationDate)
+                    .FirstOrDefault();
+
+                return !lastSuccessfulExecutionAtUtc.HasValue || lastSuccessfulExecutionAtUtc.Value < lastExpectedExecutionAtUtc.Value;
             }
 
-            var DateLimit = GetDateLimitByInterval(Interval);
+            var dateLimit = GetDateLimitByInterval(Interval);
 
-            var hasHistory =
-            _jobHistoryRepo.Get()
+            var hasHistory = _jobHistoryRepo.Get()
                 .Where(
-                    x => x.CreationDate > DateLimit &&
+                    x => x.CreationDate > dateLimit &&
                     x.JobName == JobName &&
                     x.IsSuccess)
                 .Any();
 
             return !hasHistory;
+        }
+
+        public DateTime? GetNextExecutionAtUtc()
+        {
+            var nowSp = DateTimeHelper.GetDateTimeNowSaoPaulo();
+
+            return Interval switch
+            {
+                Interval.Dayly when BestTimeToExecute.HasValue
+                    => DateTimeHelper.ConvertDateTimeToUtcFromSaoPaulo(GetNextDailyOccurrence(nowSp)),
+                Interval.Weekly when BestTimeToExecute.HasValue && BestDayOfWeek.HasValue
+                    => DateTimeHelper.ConvertDateTimeToUtcFromSaoPaulo(GetNextWeeklyOccurrence(nowSp)),
+                _ => null
+            };
         }
 
         public DateTime GetDateLimitByInterval(Interval i)
@@ -88,6 +109,46 @@ namespace Sharebook.Jobs
             // pode precisar para completar em sua última execução.
             result = result.AddMinutes(+1);
             return result;
+        }
+
+        private DateTime? GetLastExpectedExecutionAtUtc()
+        {
+            var nowSp = DateTimeHelper.GetDateTimeNowSaoPaulo();
+
+            return Interval switch
+            {
+                Interval.Dayly when BestTimeToExecute.HasValue
+                    => DateTimeHelper.ConvertDateTimeToUtcFromSaoPaulo(GetLastDailyOccurrence(nowSp)),
+                Interval.Weekly when BestTimeToExecute.HasValue && BestDayOfWeek.HasValue
+                    => DateTimeHelper.ConvertDateTimeToUtcFromSaoPaulo(GetLastWeeklyOccurrence(nowSp)),
+                _ => null
+            };
+        }
+
+        private DateTime GetLastDailyOccurrence(DateTime nowSp)
+        {
+            var todayAtBestTime = nowSp.Date.Add(BestTimeToExecute!.Value);
+            return nowSp >= todayAtBestTime ? todayAtBestTime : todayAtBestTime.AddDays(-1);
+        }
+
+        private DateTime GetNextDailyOccurrence(DateTime nowSp)
+        {
+            var todayAtBestTime = nowSp.Date.Add(BestTimeToExecute!.Value);
+            return nowSp < todayAtBestTime ? todayAtBestTime : todayAtBestTime.AddDays(1);
+        }
+
+        private DateTime GetLastWeeklyOccurrence(DateTime nowSp)
+        {
+            var daysSinceBestDay = ((7 + (int)nowSp.DayOfWeek - (int)BestDayOfWeek!.Value) % 7);
+            var candidate = nowSp.Date.AddDays(-daysSinceBestDay).Add(BestTimeToExecute!.Value);
+            return candidate <= nowSp ? candidate : candidate.AddDays(-7);
+        }
+
+        private DateTime GetNextWeeklyOccurrence(DateTime nowSp)
+        {
+            var daysUntilBestDay = ((7 + (int)BestDayOfWeek!.Value - (int)nowSp.DayOfWeek) % 7);
+            var candidate = nowSp.Date.AddDays(daysUntilBestDay).Add(BestTimeToExecute!.Value);
+            return candidate > nowSp ? candidate : candidate.AddDays(7);
         }
 
         public async Task<JobResult> ExecuteAsync()

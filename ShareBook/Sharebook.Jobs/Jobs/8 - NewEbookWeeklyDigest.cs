@@ -38,6 +38,7 @@ public class NewEbookWeeklyDigest : GenericJob, IJob
                         por usuario interessado nas categorias dos ebooks novos.";
         Interval = Interval.Weekly;
         Active = true;
+        BestDayOfWeek = DayOfWeek.Monday;
         BestTimeToExecute = new TimeSpan(9, 0, 0);
 
         _mailSenderLowPriorityQueue = mailSenderLowPriorityQueue;
