@@ -16,7 +16,13 @@ namespace ShareBook.Repository
 
         }
 
-        public override async Task<PagedList<Meetup>> GetAsync<TKey>(Expression<Func<Meetup, bool>> filter, Expression<Func<Meetup, TKey>> order, int page, int itemsPerPage, IncludeList<Meetup> includes)
+        public override async Task<PagedList<Meetup>> GetAsync<TKey>(
+            Expression<Func<Meetup, bool>> filter,
+            Expression<Func<Meetup, TKey>> order,
+            int page,
+            int itemsPerPage,
+            IncludeList<Meetup> includes,
+            bool descending = false)
         {
             var skip = (page - 1) * itemsPerPage;
             var query = _dbSet.AsQueryable();

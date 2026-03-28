@@ -69,7 +69,13 @@ namespace ShareBook.Api.Controllers
         {
             // TODO: parar de usar esse get complicado e fazer uma query linq/ef tradicional usando
             // ThenInclude(). fonte: https://stackoverflow.com/questions/10822656/entity-framework-include-multiple-levels-of-properties
-            var books = await _service.GetAsync(x => x.Title, page, items, new IncludeList<Book>(x => x.User, x => x.BookUsers, x => x.UserFacilitator));
+            var books = await _service.GetAsync(
+                x => x.CreationDate,
+                page,
+                items,
+                new IncludeList<Book>(x => x.User, x => x.BookUsers, x => x.UserFacilitator),
+                descending: true
+            );
             var responseVM = _mapper.Map<List<BookVMAdm>>(books.Items);
 
             return new PagedList<BookVMAdm>()

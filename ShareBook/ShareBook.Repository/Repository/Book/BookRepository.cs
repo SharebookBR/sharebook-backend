@@ -31,13 +31,21 @@ namespace ShareBook.Repository
             return entity;
         }
 
-        public override async Task<PagedList<Book>> GetAsync<TKey>(Expression<Func<Book, bool>> filter, Expression<Func<Book, TKey>> order, int page, int itemsPerPage)
+        public override async Task<PagedList<Book>> GetAsync<TKey>(
+            Expression<Func<Book, bool>> filter,
+            Expression<Func<Book, TKey>> order,
+            int page,
+            int itemsPerPage,
+            bool descending = false)
         {
             var skip = (page - 1) * itemsPerPage;
             var query = _dbSet.Where(filter);
             var total = await query.CountAsync();
-            var result = await query.Include(x => x.BookUsers).Include(x => x.User)
-                .OrderBy(order)
+            var orderedQuery = descending
+                ? query.Include(x => x.BookUsers).Include(x => x.User).OrderByDescending(order)
+                : query.Include(x => x.BookUsers).Include(x => x.User).OrderBy(order);
+
+            var result = await orderedQuery
                 .Skip(skip)
                 .Take(itemsPerPage)
                 .ToListAsync();

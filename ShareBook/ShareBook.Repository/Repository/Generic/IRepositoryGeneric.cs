@@ -41,7 +41,7 @@ namespace ShareBook.Repository
         /// </exception>
         Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> filter);
 
-        Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage);
+        Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, bool descending = false);
 
         /// <summary>
         /// Get ALL the entities based on the filter passed, on the specified order, without child objects.
@@ -61,14 +61,14 @@ namespace ShareBook.Repository
         /// specified child objects.
         /// </summary>
         /// <param name="page">First Page = 1</param>
-        Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes);
+        Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes, bool descending = false);
 
         /// <summary>
         /// Get a paged list of the entity, based on the filter passed, on the specified order, with
         /// the specified child objects.
         /// </summary>
         /// <param name="page">First Page = 1</param>
-        Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes);
+        Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes, bool descending = false);
 
         IQueryable<TEntity> FromSql(string query, object[] parameters);
     }

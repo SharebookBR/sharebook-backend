@@ -333,8 +333,13 @@ namespace ShareBook.Service
                     x.BookUsers.Any(y => y.UserId == userId));
         }
 
-        public override async Task<PagedList<Book>> GetAsync<TKey>(Expression<Func<Book, bool>> filter, Expression<Func<Book, TKey>> order, int page, int itemsPerPage)
-            => await base.GetAsync(filter, order, page, itemsPerPage);
+        public override async Task<PagedList<Book>> GetAsync<TKey>(
+            Expression<Func<Book, bool>> filter,
+            Expression<Func<Book, TKey>> order,
+            int page,
+            int itemsPerPage,
+            bool descending = false)
+            => await base.GetAsync(filter, order, page, itemsPerPage, descending);
 
         public async Task<IList<Book>> GetUserDonationsAsync(Guid userId)
         {

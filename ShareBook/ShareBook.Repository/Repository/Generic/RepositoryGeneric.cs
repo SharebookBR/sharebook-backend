@@ -59,9 +59,10 @@ namespace ShareBook.Repository
            Expression<Func<TEntity, bool>> filter,
            Expression<Func<TEntity, TKey>> order,
            int page,
-           int itemsPerPage)
+           int itemsPerPage,
+           bool descending = false)
         {
-            return await GetAsync(filter, order, page, itemsPerPage, null);
+            return await GetAsync(filter, order, page, itemsPerPage, null, descending);
         }
 
         public virtual async Task<PagedList<TEntity>> GetAsync<TKey>(
@@ -69,7 +70,8 @@ namespace ShareBook.Repository
             Expression<Func<TEntity, TKey>> order,
             int page,
             int itemsPerPage,
-            IncludeList<TEntity> includes)
+            IncludeList<TEntity> includes,
+            bool descending = false)
         {
             var skip = (page - 1) * itemsPerPage;
             var query = _dbSet.AsQueryable();
@@ -80,8 +82,11 @@ namespace ShareBook.Repository
 
             query = query.Where(filter);
             var total = await query.CountAsync();
-            var result = await query
-                .OrderBy(order)
+            var orderedQuery = descending
+                ? query.OrderByDescending(order)
+                : query.OrderBy(order);
+
+            var result = await orderedQuery
                 .Skip(skip)
                 .Take(itemsPerPage)
                 .ToListAsync();
@@ -168,8 +173,8 @@ namespace ShareBook.Repository
         public async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, IncludeList<TEntity> includes)
            => await GetAsync(filter, order, 1, int.MaxValue, includes);
 
-        public async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes)
-            => await GetAsync(x => true, order, page, itemsPerPage, includes);
+        public async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes, bool descending = false)
+            => await GetAsync(x => true, order, page, itemsPerPage, includes, descending);
 
         #endregion Synchronous
     }
