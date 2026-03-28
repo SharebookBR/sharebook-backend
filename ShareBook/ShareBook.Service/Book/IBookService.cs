@@ -26,6 +26,8 @@ namespace ShareBook.Service
 
         Task<IList<Book>> GetNewest15EBooksAsync();
 
+        Task<int> GetAvailableEBooksCountAsync();
+
         Task<PagedList<Book>> FullSearchAsync(string criteria, int page, int itemsPerPage, bool isAdmin = false);
 
         Task<PagedList<Book>> ByCategoryIdAsync(Guid categoryId, int page, int items);

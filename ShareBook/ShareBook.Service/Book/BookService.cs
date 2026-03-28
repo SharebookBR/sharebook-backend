@@ -171,6 +171,13 @@ namespace ShareBook.Service
              );
         }
 
+        public async Task<int> GetAvailableEBooksCountAsync()
+        {
+            return await _repository.Get()
+                .Where(b => b.Status == BookStatus.Available && b.Type == BookType.Eletronic)
+                .CountAsync();
+        }
+
         private IList<Book> SetImageUrl(IList<Book> books)
         {
             return books.Select(b => { b.ImageUrl = _uploadService.GetImageUrl(b.ImageSlug, "Books"); return b; }).ToList();
