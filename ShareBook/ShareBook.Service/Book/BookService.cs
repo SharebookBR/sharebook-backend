@@ -285,6 +285,9 @@ namespace ShareBook.Service
 
             savedBook.Synopsis = entity.Synopsis;
             savedBook.TrackingNumber = entity.TrackingNumber;
+            savedBook.ChooseDate = savedBook.IsEbook()
+                ? null
+                : entity.ChooseDate?.Date;
 
             if (entity.UserIdFacilitator.HasValue && entity.UserIdFacilitator != Guid.Empty)
                 savedBook.UserIdFacilitator = entity.UserIdFacilitator;

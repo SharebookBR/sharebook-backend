@@ -23,6 +23,8 @@ namespace ShareBook.Api.ViewModels
 
         public string Synopsis { get; set; }
 
+        public DateTime? ChooseDate { get; set; }
+
         public FreightOption? FreightOption { get; set; }
 
         public string Type { get; set; } = "Printed";
