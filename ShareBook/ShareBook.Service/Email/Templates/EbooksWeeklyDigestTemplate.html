@@ -94,12 +94,14 @@
 
             <div class="message">
                 Olá, {Name}!<br><br>
-                Chegaram {EbookCount} livros digitais esta semana que eu acho que você vai gostar!
+                Separei {EbookCount} livros digitais desta semana para você.
             </div>
 
             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 24px 0;">
                 {EbookListHtml}
-            </ul>
+            </table>
+
+            {AdditionalEbooksMessage}
 
             <a href="{FrontendUrl}/categorias" class="button" target="_blank">
                 Ver todos os livros digitais

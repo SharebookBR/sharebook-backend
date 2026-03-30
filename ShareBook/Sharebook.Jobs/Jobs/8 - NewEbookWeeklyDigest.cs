@@ -18,6 +18,7 @@ namespace Sharebook.Jobs;
 
 public class NewEbookWeeklyDigest : GenericJob, IJob
 {
+    private const int MaxEbooksPerDigest = 5;
     private readonly MailSenderLowPriorityQueue _mailSenderLowPriorityQueue;
     private readonly IBookRepository _bookRepository;
     private readonly IUserService _userService;
@@ -138,15 +139,22 @@ public class NewEbookWeeklyDigest : GenericJob, IJob
                 continue;
             }
 
-            var ebookListHtml = BuildEbookListHtml(entry.Ebooks, frontendUrl);
+            var selectedEbooks = SelectEbooksForDigest(entry.Ebooks);
+            var additionalEbooksCount = Math.Max(0, entry.Ebooks.Count - selectedEbooks.Count);
+            var additionalEbooksMessage = additionalEbooksCount > 0
+                ? $@"<p style=""font-size:16px;color:#757575;margin:24px 0 0;"">Além destes, chegaram mais {additionalEbooksCount} livros digitais esta semana. <a href=""{frontendUrl}/categorias"" target=""_blank"" style=""color:#009FC7;font-weight:bold;text-decoration:none;"">Ver todos no site.</a></p>"
+                : string.Empty;
+
+            var ebookListHtml = BuildEbookListHtml(selectedEbooks, frontendUrl);
             var unsubscribeToken = _userService.GenerateUnsubscribeToken(entry.User.Id);
             var unsubscribeUrl = $"{frontendUrl}/descadastrar?userId={entry.User.Id}&token={unsubscribeToken}";
 
             var vm = new
             {
                 Name = "{name}",
-                EbookCount = entry.Ebooks.Count,
+                EbookCount = selectedEbooks.Count,
                 EbookListHtml = ebookListHtml,
+                AdditionalEbooksMessage = additionalEbooksMessage,
                 FrontendUrl = frontendUrl,
                 UnsubscribeUrl = unsubscribeUrl
             };
@@ -206,6 +214,43 @@ public class NewEbookWeeklyDigest : GenericJob, IJob
             IsSuccess = true,
             Details = details
         };
+    }
+
+    private static List<Book> SelectEbooksForDigest(List<Book> ebooks)
+    {
+        if (ebooks.Count <= MaxEbooksPerDigest)
+            return ebooks
+                .OrderByDescending(x => x.ApprovedAt ?? DateTime.MinValue)
+                .ThenBy(x => x.Title)
+                .ToList();
+
+        var selected = new List<Book>(MaxEbooksPerDigest);
+        var categoryQueues = ebooks
+            .GroupBy(x => x.CategoryId)
+            .OrderByDescending(x => x.Count())
+            .ThenBy(x => x.First().Category?.Name ?? string.Empty)
+            .Select(x => new Queue<Book>(x
+                .OrderByDescending(book => book.ApprovedAt ?? DateTime.MinValue)
+                .ThenBy(book => book.Title)))
+            .ToList();
+
+        while (selected.Count < MaxEbooksPerDigest && categoryQueues.Any())
+        {
+            for (int i = 0; i < categoryQueues.Count && selected.Count < MaxEbooksPerDigest; i++)
+            {
+                var queue = categoryQueues[i];
+                if (!queue.Any())
+                    continue;
+
+                selected.Add(queue.Dequeue());
+            }
+
+            categoryQueues = categoryQueues
+                .Where(x => x.Any())
+                .ToList();
+        }
+
+        return selected;
     }
 
     private static string BuildEbookListHtml(List<Book> ebooks, string frontendUrl)
