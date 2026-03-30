@@ -89,6 +89,13 @@ public class MailSender : GenericJob, IJob
         foreach (var destination in destinations)
         {
             try {
+                if (!EmailAddressValidator.IsValid(destination.Email))
+                {
+                    Logger.LogWarning("Ignorando destinatário com email inválido: {Email}", destination.Email);
+                    _log.Add($"Não enviei email para {destination.Email} porque o endereço é inválido.");
+                    continue;
+                }
+
                 if (await _emailService.IsBounceAsync(destination.Email))
                 {
                     _log.Add($"Não enviei email para {destination.Email} porque está em estado de BOUNCE.");

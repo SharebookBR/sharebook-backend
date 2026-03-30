@@ -69,6 +69,12 @@ public class EmailService : IEmailService
             return;
         }
 
+        if (!EmailAddressValidator.IsValid(emailRecipient))
+        {
+            _logger.LogWarning("Email inválido. Não vou enviar nem enfileirar mensagem para {Email}", emailRecipient);
+            return;
+        }
+
         var sqsEnabled = bool.Parse(_configuration["AwsSqsSettings:IsActive"]);
 
         if (!sqsEnabled)
@@ -101,6 +107,12 @@ public class EmailService : IEmailService
 
     public async Task SendSmtpAsync(string emailRecipient, string nameRecipient, string messageText, string subject, bool copyAdmins)
     {
+        if (!EmailAddressValidator.IsValid(emailRecipient))
+        {
+            _logger.LogWarning("Email inválido. Não vou tentar envio SMTP para {Email}", emailRecipient);
+            return;
+        }
+
         var message = await FormatEmailAsync(emailRecipient, nameRecipient, messageText, subject, copyAdmins);
 
         var retryPipeline = new ResiliencePipelineBuilder()

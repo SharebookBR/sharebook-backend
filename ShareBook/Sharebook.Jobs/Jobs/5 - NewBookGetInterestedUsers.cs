@@ -101,6 +101,12 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
 
         foreach (var (userId, entry) in userBooks)
         {
+            if (!EmailAddressValidator.IsValid(entry.User.Email))
+            {
+                Logger.LogWarning("{Job} ignorou usuário {UserId} por email inválido: {Email}", JobName, entry.User.Id, entry.User.Email);
+                continue;
+            }
+
             var bookListHtml = BuildBookListHtml(entry.Books, frontendUrl);
             var unsubscribeToken = _userService.GenerateUnsubscribeToken(entry.User.Id);
             var unsubscribeUrl = $"{frontendUrl}/descadastrar?userId={entry.User.Id}&token={unsubscribeToken}";
@@ -158,4 +164,3 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
         return sb.ToString();
     }
 }
-

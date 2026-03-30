@@ -132,6 +132,12 @@ public class NewEbookWeeklyDigest : GenericJob, IJob
 
         foreach (var (_, entry) in userEbooks)
         {
+            if (!EmailAddressValidator.IsValid(entry.User.Email))
+            {
+                Logger.LogWarning("{Job} ignorou usuário {UserId} por email inválido: {Email}", JobName, entry.User.Id, entry.User.Email);
+                continue;
+            }
+
             var ebookListHtml = BuildEbookListHtml(entry.Ebooks, frontendUrl);
             var unsubscribeToken = _userService.GenerateUnsubscribeToken(entry.User.Id);
             var unsubscribeUrl = $"{frontendUrl}/descadastrar?userId={entry.User.Id}&token={unsubscribeToken}";
