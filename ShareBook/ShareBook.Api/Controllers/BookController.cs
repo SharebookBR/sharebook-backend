@@ -204,6 +204,21 @@ namespace ShareBook.Api.Controllers
             return _mapper.Map<List<BookVM>>(books);
         }
 
+        [HttpGet("RecentEBooks/{page}/{items}")]
+        public async Task<PagedList<BookVM>> RecentEBooksAsync(int page, int items, [FromQuery] int days = 7)
+        {
+            var booksPaged = await _service.RecentEBooksAsync(page, items, days);
+            var booksVM = _mapper.Map<List<BookVM>>(booksPaged.Items);
+
+            return new PagedList<BookVM>()
+            {
+                Page = page,
+                ItemsPerPage = items,
+                TotalItems = booksPaged.TotalItems,
+                Items = booksVM
+            };
+        }
+
         [HttpGet("AvailableEBooksCount")]
         public async Task<IActionResult> AvailableEBooksCountAsync()
         {

@@ -171,6 +171,20 @@ namespace ShareBook.Service
              );
         }
 
+        public async Task<PagedList<Book>> RecentEBooksAsync(int page, int itemsPerPage, int days = 7)
+        {
+            var since = DateTime.UtcNow.AddDays(-days);
+
+            return await SearchBooksAsync(
+                x => x.Status == BookStatus.Available
+                    && x.Type == BookType.Eletronic
+                    && x.ApprovedAt.HasValue
+                    && x.ApprovedAt.Value >= since,
+                page,
+                itemsPerPage,
+                x => x.ApprovedAt ?? x.CreationDate);
+        }
+
         public async Task<int> GetAvailableEBooksCountAsync()
         {
             return await _repository.Get()

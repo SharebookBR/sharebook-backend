@@ -142,7 +142,7 @@ public class NewEbookWeeklyDigest : GenericJob, IJob
             var selectedEbooks = SelectEbooksForDigest(entry.Ebooks);
             var additionalEbooksCount = Math.Max(0, entry.Ebooks.Count - selectedEbooks.Count);
             var additionalEbooksMessage = additionalEbooksCount > 0
-                ? $@"<p style=""font-size:16px;color:#757575;margin:24px 0 0;"">Além destes, chegaram mais {additionalEbooksCount} livros digitais esta semana. <a href=""{frontendUrl}/categorias"" target=""_blank"" style=""color:#009FC7;font-weight:bold;text-decoration:none;"">Ver todos no site.</a></p>"
+                ? $@"<p style=""font-size:16px;color:#757575;margin:24px 0 0;"">Além destes, chegaram mais {additionalEbooksCount} livros digitais esta semana. <a href=""{frontendUrl}/livros-digitais/novidades"" target=""_blank"" style=""color:#009FC7;font-weight:bold;text-decoration:none;"">Ver todos no site.</a></p>"
                 : string.Empty;
 
             var ebookListHtml = BuildEbookListHtml(selectedEbooks, frontendUrl);
