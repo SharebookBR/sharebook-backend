@@ -30,6 +30,8 @@ namespace ShareBook.Service
 
         Task<PagedList<Book>> ByCategoryIdAsync(Guid categoryId, int page, int items);
 
+        Task<PagedList<Book>> ByCategoryTreeIdAsync(Guid categoryId, int page, int items);
+
         Task<IList<Book>> GetAllAsync(int page, int items);
 
         Task<Book> BySlugAsync(string slug);

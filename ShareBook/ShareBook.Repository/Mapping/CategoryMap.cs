@@ -15,6 +15,11 @@ namespace ShareBook.Repository.Mapping
                 .HasMaxLength(100)
                 .IsRequired();
 
+            entityBuilder.HasOne(t => t.ParentCategory)
+                .WithMany(t => t.Children)
+                .HasForeignKey(t => t.ParentCategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
         }
     }
 }

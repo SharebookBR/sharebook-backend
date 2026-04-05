@@ -12,6 +12,13 @@ namespace ShareBook.Api.AutoMapper
 
         protected DomainToViewModelMappingProfile(string profileName) : base(profileName)
         {
+            CreateMap<Category, CategoryVM>()
+                .ForMember(dest => dest.ParentCategoryName, opt => opt.MapFrom(src => src.ParentCategory != null ? src.ParentCategory.Name : null))
+                .ForMember(dest => dest.Children, opt => opt.MapFrom(src => src.Children));
+
+            CreateMap<Category, BookCategoryVM>()
+                .ForMember(dest => dest.ParentCategoryName, opt => opt.MapFrom(src => src.ParentCategory != null ? src.ParentCategory.Name : null));
+
             #region [ Book ]
 
             CreateMap<Book, BookVMAdm>()
@@ -31,6 +38,7 @@ namespace ShareBook.Api.AutoMapper
                  .ForMember(dest => dest.Winner, opt => opt.MapFrom(src => src.WinnerName()))
                  .ForMember(dest => dest.TrackingNumber, opt => opt.MapFrom(src => src.TrackingNumber))
                  .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.Name))
+                 .ForMember(dest => dest.CategoryInfo, opt => opt.MapFrom(src => src.Category))
                  .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()));
 
             CreateMap<Book, BookVM>()
@@ -40,6 +48,7 @@ namespace ShareBook.Api.AutoMapper
                  .ForMember(dest => dest.FreightOption, opt => opt.MapFrom(src => src.FreightOption.HasValue ? src.FreightOption.ToString() : null))
                  .ForMember(dest => dest.CreationDate, opt => opt.MapFrom(src => src.CreationDate))
                  .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.Name))
+                 .ForMember(dest => dest.CategoryInfo, opt => opt.MapFrom(src => src.Category))
                  .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()));
 
             CreateMap<BookUser, MyBookRequestVM>()

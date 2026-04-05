@@ -17,10 +17,9 @@ namespace ShareBook.Infra.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.1")
+                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
+                .HasAnnotation("ProductVersion", "10.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
-
-            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("ShareBook.Domain.AccessHistory", b =>
                 {
@@ -97,7 +96,7 @@ namespace ShareBook.Infra.Data.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("Addresses");
+                    b.ToTable("Addresses", (string)null);
                 });
 
             modelBuilder.Entity("ShareBook.Domain.Book", b =>
@@ -105,9 +104,6 @@ namespace ShareBook.Infra.Data.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("ApprovedAt")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Author")
                         .IsRequired()
@@ -180,7 +176,7 @@ namespace ShareBook.Infra.Data.Migrations
 
                     b.HasIndex("UserIdFacilitator");
 
-                    b.ToTable("Books");
+                    b.ToTable("Books", (string)null);
                 });
 
             modelBuilder.Entity("ShareBook.Domain.BookUser", b =>
@@ -218,7 +214,7 @@ namespace ShareBook.Infra.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("BookUser");
+                    b.ToTable("BookUser", (string)null);
                 });
 
             modelBuilder.Entity("ShareBook.Domain.Category", b =>
@@ -235,9 +231,14 @@ namespace ShareBook.Infra.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<Guid?>("ParentCategoryId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.HasIndex("ParentCategoryId");
+
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("ShareBook.Domain.JobHistory", b =>
@@ -270,7 +271,7 @@ namespace ShareBook.Infra.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("JobHistories");
+                    b.ToTable("JobHistories", (string)null);
                 });
 
             modelBuilder.Entity("ShareBook.Domain.LogEntry", b =>
@@ -305,7 +306,7 @@ namespace ShareBook.Infra.Data.Migrations
 
                     b.HasIndex("EntityName", "EntityId");
 
-                    b.ToTable("LogEntries");
+                    b.ToTable("LogEntries", (string)null);
                 });
 
             modelBuilder.Entity("ShareBook.Domain.MailBounce", b =>
@@ -339,7 +340,7 @@ namespace ShareBook.Infra.Data.Migrations
 
                     b.HasIndex("Email");
 
-                    b.ToTable("MailBounces");
+                    b.ToTable("MailBounces", (string)null);
                 });
 
             modelBuilder.Entity("ShareBook.Domain.Meetup", b =>
@@ -380,7 +381,7 @@ namespace ShareBook.Infra.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Meetups");
+                    b.ToTable("Meetups", (string)null);
                 });
 
             modelBuilder.Entity("ShareBook.Domain.MeetupParticipant", b =>
@@ -408,7 +409,7 @@ namespace ShareBook.Infra.Data.Migrations
 
                     b.HasIndex("MeetupId");
 
-                    b.ToTable("MeetupParticipants");
+                    b.ToTable("MeetupParticipants", (string)null);
                 });
 
             modelBuilder.Entity("ShareBook.Domain.User", b =>
@@ -487,7 +488,7 @@ namespace ShareBook.Infra.Data.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("ShareBook.Domain.AccessHistory", b =>
@@ -550,6 +551,16 @@ namespace ShareBook.Infra.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ShareBook.Domain.Category", b =>
+                {
+                    b.HasOne("ShareBook.Domain.Category", "ParentCategory")
+                        .WithMany("Children")
+                        .HasForeignKey("ParentCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ParentCategory");
+                });
+
             modelBuilder.Entity("ShareBook.Domain.MeetupParticipant", b =>
                 {
                     b.HasOne("ShareBook.Domain.Meetup", "Meetup")
@@ -562,6 +573,11 @@ namespace ShareBook.Infra.Data.Migrations
             modelBuilder.Entity("ShareBook.Domain.Book", b =>
                 {
                     b.Navigation("BookUsers");
+                });
+
+            modelBuilder.Entity("ShareBook.Domain.Category", b =>
+                {
+                    b.Navigation("Children");
                 });
 
             modelBuilder.Entity("ShareBook.Domain.Meetup", b =>
