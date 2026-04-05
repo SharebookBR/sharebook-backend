@@ -150,14 +150,26 @@ namespace ShareBook.Repository
                 var dir = new Category() { Name = "Direito", CreationDate = DateTime.UtcNow };
                 var psico = new Category() { Name = "Psicologia", CreationDate = DateTime.UtcNow };
                 var adm = new Category() { Name = "Administração", CreationDate = DateTime.UtcNow };
-                var adv = new Category() { Name = "Aventura" };
+                var ficcao = new Category() { Name = "Ficção", CreationDate = DateTime.UtcNow };
+                var ficcaoTerror = new Category() { Name = "Terror", CreationDate = DateTime.UtcNow, ParentCategory = ficcao };
+                var ficcaoFantasia = new Category() { Name = "Fantasia", CreationDate = DateTime.UtcNow, ParentCategory = ficcao };
+                var ficcaoCientifica = new Category() { Name = "Ficção científica", CreationDate = DateTime.UtcNow, ParentCategory = ficcao };
+                var ficcaoMisterio = new Category() { Name = "Mistério / Suspense", CreationDate = DateTime.UtcNow, ParentCategory = ficcao };
+                var ficcaoAventura = new Category() { Name = "Aventura", CreationDate = DateTime.UtcNow, ParentCategory = ficcao };
+                var ficcaoDrama = new Category() { Name = "Drama", CreationDate = DateTime.UtcNow, ParentCategory = ficcao };
                 var eng = new Category() { Name = "Engenharia", CreationDate = DateTime.UtcNow };
                 var cien = new Category() { Name = "Ciências Biógicas", CreationDate = DateTime.UtcNow };
                 var geo_his = new Category() { Name = "Geografia e História", CreationDate = DateTime.UtcNow };
                 var art = new Category() { Name = "Artes", CreationDate = DateTime.UtcNow };
                 var med = new Category() { Name = "Medicina", CreationDate = DateTime.UtcNow };
                 var eco = new Category() { Name = "Economia", CreationDate = DateTime.UtcNow };
-                var inf = new Category() { Name = "Informática", CreationDate = DateTime.UtcNow };
+                var tecnologia = new Category() { Name = "Tecnologia", CreationDate = DateTime.UtcNow };
+                var tecnologiaBackend = new Category() { Name = "Backend", CreationDate = DateTime.UtcNow, ParentCategory = tecnologia };
+                var tecnologiaFrontend = new Category() { Name = "Frontend", CreationDate = DateTime.UtcNow, ParentCategory = tecnologia };
+                var tecnologiaCloud = new Category() { Name = "Cloud", CreationDate = DateTime.UtcNow, ParentCategory = tecnologia };
+                var tecnologiaDados = new Category() { Name = "Dados", CreationDate = DateTime.UtcNow, ParentCategory = tecnologia };
+                var tecnologiaIa = new Category() { Name = "IA", CreationDate = DateTime.UtcNow, ParentCategory = tecnologia };
+                var tecnologiaDevOps = new Category() { Name = "DevOps", CreationDate = DateTime.UtcNow, ParentCategory = tecnologia };
 
                 var book1 = new Book()
                 {
@@ -168,7 +180,7 @@ namespace ShareBook.Repository
                     Slug = "volta-ao-mundo-em-80-dias",
                     User = donor,
                     Status = BookStatus.Available,
-                    Category = adv,
+                    Category = ficcaoAventura,
                     CreationDate = DateTime.UtcNow.AddDays(-1),
                     ApprovedAt = DateTime.UtcNow.AddDays(-1),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
@@ -201,7 +213,7 @@ namespace ShareBook.Repository
                     Slug = "the-book-of-jonah",
                     User = donor,
                     Status = BookStatus.Available,
-                    Category = adv,
+                    Category = ficcaoFantasia,
                     CreationDate = DateTime.UtcNow.AddDays(-2),
                     ApprovedAt = DateTime.UtcNow.AddDays(-2),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
@@ -217,7 +229,7 @@ namespace ShareBook.Repository
                     Slug = "the-hobbit",
                     User = donor,
                     Status = BookStatus.Available,
-                    Category = adv,
+                    Category = ficcaoFantasia,
                     CreationDate = DateTime.UtcNow.AddDays(-2),
                     ApprovedAt = DateTime.UtcNow.AddDays(-2),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
@@ -233,7 +245,7 @@ namespace ShareBook.Repository
                     Slug = "the-hobbit-there-and-back-again",
                     User = donor,
                     Status = BookStatus.Available,
-                    Category = adv,
+                    Category = ficcaoFantasia,
                     CreationDate = DateTime.UtcNow.AddDays(-2),
                     ApprovedAt = DateTime.UtcNow.AddDays(-2),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
@@ -249,7 +261,7 @@ namespace ShareBook.Repository
                     Slug = "programando-o-android",
                     User = donor,
                     Status = BookStatus.Available,
-                    Category = inf,
+                    Category = tecnologiaFrontend,
                     CreationDate = DateTime.UtcNow.AddDays(-1),
                     ApprovedAt = DateTime.UtcNow.AddDays(-1),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
@@ -265,7 +277,7 @@ namespace ShareBook.Repository
                     Slug = "senhor-dos-aneis",
                     User = donor,
                     Status = BookStatus.Available,
-                    Category = adv,
+                    Category = ficcaoFantasia,
                     CreationDate = DateTime.UtcNow.AddDays(-5),
                     ApprovedAt = DateTime.UtcNow.AddDays(-5),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
@@ -281,7 +293,7 @@ namespace ShareBook.Repository
                     Slug = "se-venden-gorras",
                     User = donor,
                     Status = BookStatus.Available,
-                    Category = adv,
+                    Category = ficcaoAventura,
                     CreationDate = DateTime.UtcNow.AddDays(-6),
                     ApprovedAt = DateTime.UtcNow.AddDays(-6),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
@@ -297,7 +309,7 @@ namespace ShareBook.Repository
                     Slug = "star-wars",
                     User = donor,
                     Status = BookStatus.Available,
-                    Category = adv,
+                    Category = ficcaoCientifica,
                     CreationDate = DateTime.UtcNow.AddDays(-8),
                     ApprovedAt = DateTime.UtcNow.AddDays(-8),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
@@ -314,7 +326,7 @@ namespace ShareBook.Repository
                     Slug = "programacao-de-redes-com-python",
                     User = donor,
                     Status = BookStatus.Available,
-                    Category = inf,
+                    Category = tecnologiaBackend,
                     CreationDate = DateTime.UtcNow.AddDays(-5),
                     ApprovedAt = DateTime.UtcNow.AddDays(-5),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
@@ -330,7 +342,7 @@ namespace ShareBook.Repository
                     Slug = "programacao-de-jogo-android",
                     User = donor,
                     Status = BookStatus.Available,
-                    Category = inf,
+                    Category = tecnologiaFrontend,
                     CreationDate = DateTime.UtcNow.AddDays(-10),
                     ApprovedAt = DateTime.UtcNow.AddDays(-10),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
@@ -346,7 +358,7 @@ namespace ShareBook.Repository
                     Slug = "percy-jackson-e-os-olimpianos",
                     User = donor,
                     Status = BookStatus.Available,
-                    Category = adv,
+                    Category = ficcaoFantasia,
                     CreationDate = DateTime.UtcNow.AddDays(-2),
                     ApprovedAt = DateTime.UtcNow.AddDays(-2),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
@@ -362,7 +374,7 @@ namespace ShareBook.Repository
                     Slug = "os-vingadores",
                     User = donor,
                     Status = BookStatus.Available,
-                    Category = adv,
+                    Category = ficcaoCientifica,
                     CreationDate = DateTime.UtcNow.AddDays(-9),
                     ApprovedAt = DateTime.UtcNow.AddDays(-9),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
@@ -378,7 +390,7 @@ namespace ShareBook.Repository
                     Slug = "os-sete",
                     User = donor,
                     Status = BookStatus.Available,
-                    Category = adv,
+                    Category = ficcaoTerror,
                     CreationDate = DateTime.UtcNow.AddDays(-1),
                     ApprovedAt = DateTime.UtcNow.AddDays(-1),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
@@ -394,7 +406,7 @@ namespace ShareBook.Repository
                     Slug = "o-segredo-das-sombras",
                     User = donor,
                     Status = BookStatus.Available,
-                    Category = adv,
+                    Category = ficcaoMisterio,
                     CreationDate = DateTime.UtcNow.AddDays(-2),
                     ApprovedAt = DateTime.UtcNow.AddDays(-2),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
@@ -410,7 +422,7 @@ namespace ShareBook.Repository
                     Slug = "orgulho-e-preconceito",
                     User = donor,
                     Status = BookStatus.Available,
-                    Category = adv,
+                    Category = ficcaoDrama,
                     CreationDate = DateTime.UtcNow.AddDays(-3),
                     ApprovedAt = DateTime.UtcNow.AddDays(-3),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
@@ -426,7 +438,7 @@ namespace ShareBook.Repository
                     Slug = "o-retorno-do-rei",
                     User = donor,
                     Status = BookStatus.Available,
-                    Category = adv,
+                    Category = ficcaoFantasia,
                     CreationDate = DateTime.UtcNow.AddDays(-1),
                     ApprovedAt = DateTime.UtcNow.AddDays(-1),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
@@ -442,7 +454,7 @@ namespace ShareBook.Repository
                     Slug = "o-pequeno-principe",
                     User = donor,
                     Status = BookStatus.AwaitingDonorDecision,
-                    Category = adv,
+                    Category = ficcaoAventura,
                     CreationDate = DateTime.UtcNow.AddDays(-15),
                     ChooseDate = DateTime.UtcNow.AddDays(-1),
                     UserFacilitator = facilitator
@@ -457,7 +469,7 @@ namespace ShareBook.Repository
                     Slug = "o-cortico",
                     User = donor,
                     Status = BookStatus.Available,
-                    Category = adv,
+                    Category = ficcaoDrama,
                     CreationDate = DateTime.UtcNow.AddDays(-4),
                     ApprovedAt = DateTime.UtcNow.AddDays(-4),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
@@ -473,7 +485,7 @@ namespace ShareBook.Repository
                     Slug = "nunca-jamais",
                     User = donor,
                     Status = BookStatus.Available,
-                    Category = adv,
+                    Category = ficcaoDrama,
                     CreationDate = DateTime.UtcNow.AddDays(-5),
                     ApprovedAt = DateTime.UtcNow.AddDays(-5),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
@@ -506,7 +518,7 @@ namespace ShareBook.Repository
                     Slug = "a-furia-dos-reis",
                     User = donor,
                     Status = BookStatus.Available,
-                    Category = adv,
+                    Category = ficcaoFantasia,
                     CreationDate = DateTime.UtcNow.AddDays(-4),
                     ApprovedAt = DateTime.UtcNow.AddDays(-4),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
@@ -522,7 +534,7 @@ namespace ShareBook.Repository
                     Slug = "a-menina-que-roubava-livros",
                     User = donor,
                     Status = BookStatus.Available,
-                    Category = adv,
+                    Category = ficcaoDrama,
                     CreationDate = DateTime.UtcNow.AddDays(-2),
                     ApprovedAt = DateTime.UtcNow.AddDays(-2),
                     ChooseDate = DateTime.UtcNow.AddDays(5),
@@ -719,7 +731,11 @@ namespace ShareBook.Repository
                     SymplaEventUrl = "https://www.sympla.com.br/java-spring-boot---criando-uma-api-crud-do-zero---2-de-2__1706178"
                 };
 
-                _context.Categories.AddRange(adm, dir, psico, med, eng, geo_his, cien, art);
+                _context.Categories.AddRange(
+                    adm, dir, psico, med, eng, geo_his, cien, art, eco,
+                    ficcao, ficcaoTerror, ficcaoFantasia, ficcaoCientifica, ficcaoMisterio, ficcaoAventura, ficcaoDrama,
+                    tecnologia, tecnologiaBackend, tecnologiaFrontend, tecnologiaCloud, tecnologiaDados, tecnologiaIa, tecnologiaDevOps
+                );
                 _context.Users.AddRange(grantee, @operator, raffa);
                 _context.Books.AddRange(book1, book2, book3, book4, book5, book6, book7,
                     book8, book9, book10, book11, book12, book13, book14, book15, book16,

@@ -8,8 +8,10 @@ namespace ShareBook.Test.Integration.Setup;
 public class ShareBookTestsFixtureCollection : ICollectionFixture<ShareBookTestsFixture>
 { }
 
-public class ShareBookTestsFixture
+public class ShareBookTestsFixture : IDisposable
 {
+    private readonly IServiceScope _scope;
+
     public ShareBookWebAppFactory ShareBookWebAppFactory { get; } = new ShareBookWebAppFactory();
     public HttpClient ShareBookApiClient { get; init; }
     public ApplicationDbContext ApplicationDbContext { get; init; }
@@ -17,10 +19,19 @@ public class ShareBookTestsFixture
     public ShareBookTestsFixture()
     {
         ShareBookApiClient = ShareBookWebAppFactory.CreateClient();
-        ApplicationDbContext = ShareBookWebAppFactory.Services.GetRequiredService<ApplicationDbContext>();
+        _scope = ShareBookWebAppFactory.Services.CreateScope();
+        ApplicationDbContext = _scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
         // Seed data
         var sharebookSeeder = new ShareBookSeeder(ApplicationDbContext);
         sharebookSeeder.Seed();
+    }
+
+    public void Dispose()
+    {
+        ApplicationDbContext.Dispose();
+        _scope.Dispose();
+        ShareBookApiClient.Dispose();
+        ShareBookWebAppFactory.Dispose();
     }
 }

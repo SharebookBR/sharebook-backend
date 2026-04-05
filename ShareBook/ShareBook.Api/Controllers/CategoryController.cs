@@ -19,11 +19,17 @@ namespace ShareBook.Api.Controllers
             SetDefault(x => x.Name);
         }
 
+        [NonAction]
+        public override Task<PagedList<Category>> GetAllAsync() => base.GetAllAsync();
+
+        [NonAction]
+        public override Task<PagedList<Category>> PagedAsync(int page, int items) => base.PagedAsync(page, items);
+
         [HttpGet]
-        public new async Task<PagedList<CategoryVM>> GetAllAsync() => await PagedAsync(1, 200);
+        public async Task<PagedList<CategoryVM>> GetTreeAsync() => await GetTreePagedAsync(1, 50);
 
         [HttpGet("{page}/{items}")]
-        public new async Task<PagedList<CategoryVM>> PagedAsync(int page, int items)
+        public async Task<PagedList<CategoryVM>> GetTreePagedAsync(int page, int items)
         {
             var pagedCategories = await ((ICategoryService)_service).GetRootCategoriesAsync(page, items);
             var categories = _mapper.Map<List<CategoryVM>>(pagedCategories.Items);
