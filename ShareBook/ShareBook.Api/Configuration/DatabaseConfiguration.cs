@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ShareBook.Repository;
@@ -42,7 +43,8 @@ public static class DatabaseConfiguration
             switch (dbProvider)
             {
                 case "postgres":
-                    options.UseNpgsql(config.GetConnectionString("PostgresConnection"));
+                    options.UseNpgsql(config.GetConnectionString("PostgresConnection"))
+                        .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
                     break;
 
                 case "sqlite":
@@ -54,7 +56,8 @@ public static class DatabaseConfiguration
                     break;
 
                 default:
-                    options.UseSqlServer(config.GetConnectionString("DefaultConnection"));
+                    options.UseSqlServer(config.GetConnectionString("DefaultConnection"))
+                        .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
                     break;
             }
         });
