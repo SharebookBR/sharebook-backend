@@ -17,9 +17,10 @@ namespace ShareBook.Infra.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
                 .HasAnnotation("ProductVersion", "10.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
+
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("ShareBook.Domain.AccessHistory", b =>
                 {
@@ -96,7 +97,7 @@ namespace ShareBook.Infra.Data.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("Addresses", (string)null);
+                    b.ToTable("Addresses");
                 });
 
             modelBuilder.Entity("ShareBook.Domain.Book", b =>
@@ -104,6 +105,9 @@ namespace ShareBook.Infra.Data.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Author")
                         .IsRequired()
@@ -176,7 +180,7 @@ namespace ShareBook.Infra.Data.Migrations
 
                     b.HasIndex("UserIdFacilitator");
 
-                    b.ToTable("Books", (string)null);
+                    b.ToTable("Books");
                 });
 
             modelBuilder.Entity("ShareBook.Domain.BookUser", b =>
@@ -214,7 +218,7 @@ namespace ShareBook.Infra.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("BookUser", (string)null);
+                    b.ToTable("BookUser");
                 });
 
             modelBuilder.Entity("ShareBook.Domain.Category", b =>
@@ -238,7 +242,7 @@ namespace ShareBook.Infra.Data.Migrations
 
                     b.HasIndex("ParentCategoryId");
 
-                    b.ToTable("Categories", (string)null);
+                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("ShareBook.Domain.JobHistory", b =>
@@ -271,7 +275,7 @@ namespace ShareBook.Infra.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("JobHistories", (string)null);
+                    b.ToTable("JobHistories");
                 });
 
             modelBuilder.Entity("ShareBook.Domain.LogEntry", b =>
@@ -306,7 +310,7 @@ namespace ShareBook.Infra.Data.Migrations
 
                     b.HasIndex("EntityName", "EntityId");
 
-                    b.ToTable("LogEntries", (string)null);
+                    b.ToTable("LogEntries");
                 });
 
             modelBuilder.Entity("ShareBook.Domain.MailBounce", b =>
@@ -340,7 +344,7 @@ namespace ShareBook.Infra.Data.Migrations
 
                     b.HasIndex("Email");
 
-                    b.ToTable("MailBounces", (string)null);
+                    b.ToTable("MailBounces");
                 });
 
             modelBuilder.Entity("ShareBook.Domain.Meetup", b =>
@@ -381,7 +385,7 @@ namespace ShareBook.Infra.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Meetups", (string)null);
+                    b.ToTable("Meetups");
                 });
 
             modelBuilder.Entity("ShareBook.Domain.MeetupParticipant", b =>
@@ -409,7 +413,7 @@ namespace ShareBook.Infra.Data.Migrations
 
                     b.HasIndex("MeetupId");
 
-                    b.ToTable("MeetupParticipants", (string)null);
+                    b.ToTable("MeetupParticipants");
                 });
 
             modelBuilder.Entity("ShareBook.Domain.User", b =>
@@ -488,7 +492,7 @@ namespace ShareBook.Infra.Data.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("ShareBook.Domain.AccessHistory", b =>
