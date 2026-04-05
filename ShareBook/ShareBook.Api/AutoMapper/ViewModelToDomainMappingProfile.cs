@@ -17,6 +17,8 @@ namespace ShareBook.Api.AutoMapper
 
         protected ViewModelToDomainMappingProfile(string profileName) : base(profileName)
         {
+            CreateMap<CategoryVM, Category>();
+
             #region [ Book ]
 
             CreateMap<CreateBookVM, Book>()
