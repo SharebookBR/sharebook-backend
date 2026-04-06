@@ -2,6 +2,7 @@
 using ShareBook.Api.ViewModels;
 using ShareBook.Domain;
 using System;
+using System.Globalization;
 using System.Linq;
 
 namespace ShareBook.Api.AutoMapper
@@ -104,7 +105,7 @@ namespace ShareBook.Api.AutoMapper
 
             return new BookDonorVM
             {
-                DisplayName = AbbreviateName(user.Name),
+                DisplayName = ToTitleCase(AbbreviateName(user.Name)),
                 Linkedin = NormalizeLinkedinUrl(user.Linkedin)
             };
         }
@@ -136,6 +137,30 @@ namespace ShareBook.Api.AutoMapper
                 .ToArray();
 
             return $"{parts[0]} {string.Join(" ", abbreviatedTail)}";
+        }
+
+        private static string ToTitleCase(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return null;
+            }
+
+            var textInfo = CultureInfo.GetCultureInfo("pt-BR").TextInfo;
+
+            var normalizedParts = value
+                .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(part =>
+                {
+                    if (part.EndsWith(".") && part.Length <= 2)
+                    {
+                        return char.ToUpperInvariant(part[0]) + ".";
+                    }
+
+                    return textInfo.ToTitleCase(part.ToLower());
+                });
+
+            return string.Join(" ", normalizedParts);
         }
 
         private static string NormalizeLinkedinUrl(string linkedin)
