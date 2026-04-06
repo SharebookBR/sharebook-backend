@@ -30,6 +30,14 @@ namespace ShareBook.Service
 
         Task<int> GetAvailableEBooksCountAsync();
 
+        Task<AdminBooksResultDTO> GetAdminBooksAsync(
+            int page,
+            int itemsPerPage,
+            string search = null,
+            string status = null,
+            string bucket = null,
+            string type = null);
+
         Task<PagedList<Book>> FullSearchAsync(string criteria, int page, int itemsPerPage, bool isAdmin = false);
 
         Task<PagedList<Book>> ByCategoryIdAsync(Guid categoryId, int page, int items);

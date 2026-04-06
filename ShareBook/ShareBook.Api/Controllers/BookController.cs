@@ -87,6 +87,38 @@ namespace ShareBook.Api.Controllers
             };
         }
 
+        [HttpGet("Admin")]
+        [Authorize("Bearer")]
+        [AuthorizationFilter(Permissions.Permission.DonateBook)]
+        public async Task<AdminBooksPagedVM> GetAdminBooksAsync(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 24,
+            [FromQuery] string search = null,
+            [FromQuery] string status = null,
+            [FromQuery] string bucket = null,
+            [FromQuery] string type = null)
+        {
+            var books = await _service.GetAdminBooksAsync(page, pageSize, search, status, bucket, type);
+
+            return new AdminBooksPagedVM
+            {
+                Page = books.Page,
+                ItemsPerPage = books.ItemsPerPage,
+                TotalItems = books.TotalItems,
+                Summary = new AdminBooksSummaryVM
+                {
+                    All = books.Summary?.All ?? 0,
+                    NeedsAction = books.Summary?.NeedsAction ?? 0,
+                    Shipping = books.Summary?.Shipping ?? 0,
+                    Physical = books.Summary?.Physical ?? 0,
+                    Ebooks = books.Summary?.Ebooks ?? 0,
+                    Finished = books.Summary?.Finished ?? 0,
+                    Available = books.Summary?.Available ?? 0
+                },
+                Items = _mapper.Map<List<BookVMAdm>>(books.Items)
+            };
+        }
+
         [Authorize("Bearer")]
         [HttpPost("Approve/{id}")]
         [AuthorizationFilter(Permissions.Permission.ApproveBook)]

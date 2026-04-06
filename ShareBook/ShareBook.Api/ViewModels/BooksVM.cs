@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 namespace ShareBook.Api.ViewModels
 {
     public class BookCategoryVM
@@ -41,6 +42,26 @@ namespace ShareBook.Api.ViewModels
         public Guid? UserId { get; set; }
         public string Type { get; set; }
         public string EBookPdfPath { get; set; }
+    }
+
+    public class AdminBooksSummaryVM
+    {
+        public int All { get; set; }
+        public int NeedsAction { get; set; }
+        public int Shipping { get; set; }
+        public int Physical { get; set; }
+        public int Ebooks { get; set; }
+        public int Finished { get; set; }
+        public int Available { get; set; }
+    }
+
+    public class AdminBooksPagedVM
+    {
+        public int Page { get; set; }
+        public int ItemsPerPage { get; set; }
+        public int TotalItems { get; set; }
+        public AdminBooksSummaryVM Summary { get; set; }
+        public IList<BookVMAdm> Items { get; set; }
     }
 
     public class BookVM
