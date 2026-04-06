@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using ShareBook.Api.ViewModels;
 using ShareBook.Domain;
+using System;
+using System.Linq;
 
 namespace ShareBook.Api.AutoMapper
 {
@@ -49,6 +51,7 @@ namespace ShareBook.Api.AutoMapper
                  .ForMember(dest => dest.CreationDate, opt => opt.MapFrom(src => src.CreationDate))
                  .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.Name))
                  .ForMember(dest => dest.CategoryInfo, opt => opt.MapFrom(src => src.Category))
+                 .ForMember(dest => dest.Donor, opt => opt.MapFrom(src => BuildPublicDonor(src.User)))
                  .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()));
 
             CreateMap<BookUser, MyBookRequestVM>()
@@ -90,6 +93,65 @@ namespace ShareBook.Api.AutoMapper
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
 
             #endregion [ BookUser ]
+        }
+
+        private static BookDonorVM BuildPublicDonor(User user)
+        {
+            if (user == null)
+            {
+                return null;
+            }
+
+            return new BookDonorVM
+            {
+                DisplayName = AbbreviateName(user.Name),
+                Linkedin = NormalizeLinkedinUrl(user.Linkedin)
+            };
+        }
+
+        private static string AbbreviateName(string fullName)
+        {
+            if (string.IsNullOrWhiteSpace(fullName))
+            {
+                return null;
+            }
+
+            var parts = fullName
+                .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                .ToArray();
+
+            if (parts.Length == 0)
+            {
+                return null;
+            }
+
+            if (parts.Length == 1)
+            {
+                return parts[0];
+            }
+
+            var abbreviatedTail = parts
+                .Skip(1)
+                .Select(part => $"{part[0]}.")
+                .ToArray();
+
+            return $"{parts[0]} {string.Join(" ", abbreviatedTail)}";
+        }
+
+        private static string NormalizeLinkedinUrl(string linkedin)
+        {
+            if (string.IsNullOrWhiteSpace(linkedin))
+            {
+                return null;
+            }
+
+            if (linkedin.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+                || linkedin.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                return linkedin;
+            }
+
+            return $"https://{linkedin.TrimStart('/')}";
         }
     }
 }

@@ -63,5 +63,12 @@ namespace ShareBook.Api.ViewModels
         public string Slug { get; set; }
         public string Type { get; set; }
         public string EBookPdfPath { get; set; }
+        public BookDonorVM Donor { get; set; }
+    }
+
+    public class BookDonorVM
+    {
+        public string DisplayName { get; set; }
+        public string Linkedin { get; set; }
     }
 }
