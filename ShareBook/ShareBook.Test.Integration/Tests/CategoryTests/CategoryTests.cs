@@ -1,5 +1,5 @@
 using Newtonsoft.Json;
-using ShareBook.Domain;
+using ShareBook.Api.ViewModels;
 using ShareBook.Domain.Common;
 using System.Net;
 
@@ -24,10 +24,10 @@ public class CategoryTests
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         string responseAsString = await response.Content.ReadAsStringAsync();
         responseAsString.Should().NotBeNullOrWhiteSpace();
-        PagedList<Category>? categories = JsonConvert.DeserializeObject<PagedList<Category>>(responseAsString);
+        PagedList<CategoryVM>? categories = JsonConvert.DeserializeObject<PagedList<CategoryVM>>(responseAsString);
         categories.Should().NotBeNull();
         categories!.Items.Should().NotBeNull();
-        categories.Items.Count.Should().Be(10);
+        categories.Items.Count.Should().Be(11);
         categories.ItemsPerPage.Should().Be(50);
         categories.Page.Should().Be(1);
 
@@ -35,5 +35,7 @@ public class CategoryTests
             !string.IsNullOrWhiteSpace(i.Name)
             && i.Id != default
         ).Should().BeTrue();
+        categories.Items.Any(i => i.Name == "Tecnologia" && i.Children.Count == 6).Should().BeTrue();
+        categories.Items.Any(i => i.Name == "Ficção" && i.Children.Count == 6).Should().BeTrue();
     }
 }

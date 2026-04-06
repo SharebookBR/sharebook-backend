@@ -17,7 +17,7 @@ namespace ShareBook.Infra.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.1")
+                .HasAnnotation("ProductVersion", "10.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -235,7 +235,12 @@ namespace ShareBook.Infra.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<Guid?>("ParentCategoryId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("ParentCategoryId");
 
                     b.ToTable("Categories");
                 });
@@ -550,6 +555,16 @@ namespace ShareBook.Infra.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ShareBook.Domain.Category", b =>
+                {
+                    b.HasOne("ShareBook.Domain.Category", "ParentCategory")
+                        .WithMany("Children")
+                        .HasForeignKey("ParentCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ParentCategory");
+                });
+
             modelBuilder.Entity("ShareBook.Domain.MeetupParticipant", b =>
                 {
                     b.HasOne("ShareBook.Domain.Meetup", "Meetup")
@@ -562,6 +577,11 @@ namespace ShareBook.Infra.Data.Migrations
             modelBuilder.Entity("ShareBook.Domain.Book", b =>
                 {
                     b.Navigation("BookUsers");
+                });
+
+            modelBuilder.Entity("ShareBook.Domain.Category", b =>
+                {
+                    b.Navigation("Children");
                 });
 
             modelBuilder.Entity("ShareBook.Domain.Meetup", b =>

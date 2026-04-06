@@ -137,6 +137,7 @@ namespace ShareBook.Service
                     .Include(b => b.User)
                     .ThenInclude(u => u.Address)
                     .Include(b => b.Category)
+                    .ThenInclude(c => c.ParentCategory)
                     .Where(b => b.Status == BookStatus.Available)
                     .OrderByDescending(b => b.CreationDate)
                     .ToListAsync()
@@ -150,6 +151,7 @@ namespace ShareBook.Service
                     .Include(b => b.User)
                     .ThenInclude(u => u.Address)
                     .Include(b => b.Category)
+                    .ThenInclude(c => c.ParentCategory)
                     .Where(b => b.Status == BookStatus.Available)
                     .OrderBy(x => Guid.NewGuid()) // ordem aleatória
                     .Take(15) // apenas 15 registros
@@ -164,6 +166,7 @@ namespace ShareBook.Service
                     .Include(b => b.User)
                     .ThenInclude(u => u.Address)
                     .Include(b => b.Category)
+                    .ThenInclude(c => c.ParentCategory)
                     .Where(b => b.Status == BookStatus.Available && b.Type == BookType.Eletronic)
                     .OrderByDescending(x => x.CreationDate) // os mais novos primeiro
                     .Take(15) // apenas 15 registros
@@ -343,6 +346,13 @@ namespace ShareBook.Service
         public async Task<PagedList<Book>> ByCategoryIdAsync(Guid categoryId, int page, int itemsPerPage)
             => await SearchBooksAsync(x => x.Status == BookStatus.Available && x.CategoryId == categoryId, page, itemsPerPage);
 
+        public async Task<PagedList<Book>> ByCategoryTreeIdAsync(Guid categoryId, int page, int itemsPerPage)
+            => await SearchBooksAsync(
+                x => x.Status == BookStatus.Available
+                    && (x.CategoryId == categoryId || x.Category.ParentCategoryId == categoryId),
+                page,
+                itemsPerPage);
+
         public async Task<Book> BySlugAsync(string slug)
         {
             var pagedBook = await SearchBooksAsync(x => (x.Slug.Equals(slug)), 1, 1);
@@ -512,7 +522,19 @@ namespace ShareBook.Service
                         }
                     },
                     CategoryId = u.CategoryId,
-                    Category = u.Category,
+                    Category = new Category()
+                    {
+                        Id = u.Category.Id,
+                        Name = u.Category.Name,
+                        ParentCategoryId = u.Category.ParentCategoryId,
+                        ParentCategory = u.Category.ParentCategory == null
+                            ? null
+                            : new Category()
+                            {
+                                Id = u.Category.ParentCategory.Id,
+                                Name = u.Category.ParentCategory.Name
+                            }
+                    },
                     Type = u.Type,
                     EBookPdfPath = u.EBookPdfPath
                 });

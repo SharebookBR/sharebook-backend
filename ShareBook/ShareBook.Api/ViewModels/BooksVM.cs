@@ -1,6 +1,14 @@
 ﻿using System;
 namespace ShareBook.Api.ViewModels
 {
+    public class BookCategoryVM
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; }
+        public Guid? ParentCategoryId { get; set; }
+        public string ParentCategoryName { get; set; }
+    }
+
     public class BookVMAdm
     {
         public Guid Id { get; set; }
@@ -23,6 +31,7 @@ namespace ShareBook.Api.ViewModels
         public string FreightOption { get; set; }
         public Guid CategoryId { get; set; }
         public string Category { get; set; }
+        public BookCategoryVM CategoryInfo { get; set; }
         public string ImageSlug { get; set; }
         public string ImageUrl { get; set; }
         public string City { get; set; }
@@ -45,6 +54,7 @@ namespace ShareBook.Api.ViewModels
         public string FreightOption { get; set; }
         public Guid CategoryId { get; set; }
         public string Category { get; set; }
+        public BookCategoryVM CategoryInfo { get; set; }
         public string ImageSlug { get; set; }
         public string ImageUrl { get; set; }
         public string City { get; set; }
@@ -53,5 +63,12 @@ namespace ShareBook.Api.ViewModels
         public string Slug { get; set; }
         public string Type { get; set; }
         public string EBookPdfPath { get; set; }
+        public BookDonorVM Donor { get; set; }
+    }
+
+    public class BookDonorVM
+    {
+        public string DisplayName { get; set; }
+        public string Linkedin { get; set; }
     }
 }

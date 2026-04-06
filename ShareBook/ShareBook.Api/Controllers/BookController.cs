@@ -265,6 +265,22 @@ namespace ShareBook.Api.Controllers
             };
         }
 
+        [HttpGet("CategoryTree/{categoryId}/{page}/{items}")]
+        public async Task<PagedList<BookVM>> ByCategoryTreeIdAsync(Guid categoryId, int page, int items)
+        {
+            var booksPaged = await _service.ByCategoryTreeIdAsync(categoryId, page, items);
+            var books = booksPaged.Items;
+            var booksVM = _mapper.Map<List<BookVM>>(books);
+
+            return new PagedList<BookVM>()
+            {
+                Page = page,
+                ItemsPerPage = items,
+                TotalItems = booksPaged.TotalItems,
+                Items = booksVM
+            };
+        }
+
         [Authorize("Bearer")]
         [HttpPost("Request")]
         [ProducesResponseType(typeof(Result), 200)]
