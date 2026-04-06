@@ -435,6 +435,33 @@ namespace ShareBook.Api.Controllers
         }
 
         [Authorize("Bearer")]
+        [HttpGet("MyDonationsPaged")]
+        public async Task<UserDonationsPagedVM> MyDonationsPagedAsync(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 24,
+            [FromQuery] string search = null,
+            [FromQuery] string bucket = null)
+        {
+            Guid userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+            var donations = await _service.GetUserDonationsAsync(userId, page, pageSize, search, bucket);
+
+            return new UserDonationsPagedVM
+            {
+                Page = donations.Page,
+                ItemsPerPage = donations.ItemsPerPage,
+                TotalItems = donations.TotalItems,
+                Summary = new UserDonationsSummaryVM
+                {
+                    WaitingDecision = donations.Summary?.WaitingDecision ?? 0,
+                    WaitingSend = donations.Summary?.WaitingSend ?? 0,
+                    Finished = donations.Summary?.Finished ?? 0,
+                    EbookDownloadsTotal = donations.Summary?.EbookDownloadsTotal ?? 0
+                },
+                Items = _mapper.Map<List<BookVMAdm>>(donations.Items)
+            };
+        }
+
+        [Authorize("Bearer")]
         [ProducesResponseType(typeof(Result), 200)]
         [HttpPost("InformTrackingNumber/{bookId}")]
         public async Task<IActionResult> InformTrackingNumberAsync(Guid bookId, [FromBody] TrackinNumberBookVM trackingNumberBookVM)

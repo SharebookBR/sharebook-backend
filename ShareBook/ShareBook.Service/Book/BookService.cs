@@ -360,6 +360,64 @@ namespace ShareBook.Service
             }
         }
 
+        private async Task<UserDonationsSummaryDTO> BuildUserDonationsSummaryAsync(IQueryable<Book> query)
+        {
+            var statusCounts = await query
+                .GroupBy(x => x.Status)
+                .Select(x => new { Status = x.Key, Count = x.Count() })
+                .ToListAsync();
+            var ebookDownloadsTotal = await query
+                .Where(x => x.Type == BookType.Eletronic)
+                .SumAsync(x => (int?)x.DownloadCount) ?? 0;
+
+            int GetStatusCount(BookStatus status) => statusCounts.FirstOrDefault(x => x.Status == status)?.Count ?? 0;
+
+            return new UserDonationsSummaryDTO
+            {
+                WaitingDecision = GetStatusCount(BookStatus.AwaitingDonorDecision),
+                WaitingSend = GetStatusCount(BookStatus.WaitingSend),
+                Finished = GetStatusCount(BookStatus.Received) + GetStatusCount(BookStatus.Canceled),
+                EbookDownloadsTotal = ebookDownloadsTotal
+            };
+        }
+
+        private IQueryable<Book> ApplyUserDonationsFilters(IQueryable<Book> query, string search, string bucket)
+        {
+            if (!string.IsNullOrWhiteSpace(bucket))
+            {
+                switch (bucket.Trim().ToLower())
+                {
+                    case "needsaction":
+                        query = query.Where(x => x.Status == BookStatus.AwaitingDonorDecision || x.Status == BookStatus.WaitingSend);
+                        break;
+                    case "physical":
+                        query = query.Where(x => x.Type == BookType.Printed);
+                        break;
+                    case "digital":
+                        query = query.Where(x => x.Type == BookType.Eletronic);
+                        break;
+                    case "finished":
+                        query = query.Where(x => x.Status == BookStatus.Received || x.Status == BookStatus.Canceled);
+                        break;
+                }
+            }
+
+            var normalizedSearch = (search ?? string.Empty).Trim().ToLower();
+            if (!string.IsNullOrWhiteSpace(normalizedSearch))
+            {
+                query = query.Where(x =>
+                    (x.Title != null && x.Title.ToLower().Contains(normalizedSearch))
+                    || (x.Author != null && x.Author.ToLower().Contains(normalizedSearch))
+                    || x.Status.ToString().ToLower().Contains(normalizedSearch)
+                    || (normalizedSearch.Contains("digital") && x.Type == BookType.Eletronic)
+                    || (normalizedSearch.Contains("fisico") && x.Type == BookType.Printed)
+                    || (normalizedSearch.Contains("físico") && x.Type == BookType.Printed)
+                );
+            }
+
+            return query;
+        }
+
 
         public async Task<IList<Book>> GetAllAsync(int page, int items)
             => await _repository.Get()
@@ -542,6 +600,47 @@ namespace ShareBook.Service
                 .Where(b => b.UserId == userId)
                 .OrderByDescending(b => b.CreationDate)
                 .ToListAsync();
+        }
+
+        public async Task<UserDonationsResultDTO> GetUserDonationsAsync(
+            Guid userId,
+            int page,
+            int itemsPerPage,
+            string search = null,
+            string bucket = null)
+        {
+            var normalizedPage = page <= 0 ? 1 : page;
+            var normalizedItemsPerPage = itemsPerPage <= 0 ? 24 : Math.Min(itemsPerPage, 100);
+
+            var baseQuery = _repository.Get()
+                .Include(b => b.BookUsers)
+                    .ThenInclude(bu => bu.User)
+                .Include(b => b.Category)
+                    .ThenInclude(c => c.ParentCategory)
+                .Where(b => b.UserId == userId);
+
+            var summary = await BuildUserDonationsSummaryAsync(baseQuery);
+            var filteredQuery = ApplyUserDonationsFilters(baseQuery, search, bucket);
+            var totalItems = await filteredQuery.CountAsync();
+            var totalPages = Math.Max((int)Math.Ceiling(totalItems / (double)normalizedItemsPerPage), 1);
+            var effectivePage = Math.Min(normalizedPage, totalPages);
+            var skip = (effectivePage - 1) * normalizedItemsPerPage;
+
+            var items = await filteredQuery
+                .OrderByDescending(x => x.CreationDate)
+                .ThenByDescending(x => x.Id)
+                .Skip(skip)
+                .Take(normalizedItemsPerPage)
+                .ToListAsync();
+
+            return new UserDonationsResultDTO
+            {
+                Page = effectivePage,
+                ItemsPerPage = normalizedItemsPerPage,
+                TotalItems = totalItems,
+                Summary = summary,
+                Items = SetImageUrl(items)
+            };
         }
 
         public async Task<IList<Book>> GetBooksChooseDateIsTodayAsync()

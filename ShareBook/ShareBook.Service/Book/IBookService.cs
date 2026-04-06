@@ -51,6 +51,12 @@ namespace ShareBook.Service
         Task<bool> UserRequestedBookAsync(Guid bookId);
 
         Task<IList<Book>> GetUserDonationsAsync(Guid userId);
+        Task<UserDonationsResultDTO> GetUserDonationsAsync(
+            Guid userId,
+            int page,
+            int itemsPerPage,
+            string search = null,
+            string bucket = null);
 
         Task<IList<Book>> GetBooksChooseDateIsTodayAsync();
 

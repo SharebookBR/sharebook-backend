@@ -64,6 +64,23 @@ namespace ShareBook.Api.ViewModels
         public IList<BookVMAdm> Items { get; set; }
     }
 
+    public class UserDonationsSummaryVM
+    {
+        public int WaitingDecision { get; set; }
+        public int WaitingSend { get; set; }
+        public int Finished { get; set; }
+        public int EbookDownloadsTotal { get; set; }
+    }
+
+    public class UserDonationsPagedVM
+    {
+        public int Page { get; set; }
+        public int ItemsPerPage { get; set; }
+        public int TotalItems { get; set; }
+        public UserDonationsSummaryVM Summary { get; set; }
+        public IList<BookVMAdm> Items { get; set; }
+    }
+
     public class BookVM
     {
         public Guid Id { get; set; }
