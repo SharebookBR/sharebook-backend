@@ -105,7 +105,7 @@ namespace ShareBook.Service.Generic
             return result;
         }
 
-        public async Task<Result> DeleteAsync(params object[] keyValues)
+        public virtual async Task<Result> DeleteAsync(params object[] keyValues)
         {
             await _repository.DeleteAsync(keyValues);
             return new Result();

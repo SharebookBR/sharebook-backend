@@ -22,6 +22,12 @@ namespace ShareBook.Service.EBook
         Task<string> GetPdfDownloadUrlAsync(Book book);
 
         /// <summary>
+        /// Remove o PDF associado ao e-book, quando existir.
+        /// </summary>
+        /// <param name="book">Livro</param>
+        Task DeletePdfAsync(Book book);
+
+        /// <summary>
         /// Valida se o e-book possui os dados necessários
         /// </summary>
         /// <param name="book">Livro</param>

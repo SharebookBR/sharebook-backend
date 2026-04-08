@@ -215,5 +215,68 @@ namespace ShareBook.Test.Unit.Services
             Assert.NotNull(result);
             Assert.True(result.Success);
         }
+        [Fact]
+        public async Task DeleteEBook_ShouldTryDeleteAssetsAndDeleteDbRecord()
+        {
+            var bookId = Guid.NewGuid();
+            var savedBook = new Book
+            {
+                Id = bookId,
+                Title = "Cloud",
+                Author = "Sharebook",
+                Type = BookType.Eletronic,
+                ImageSlug = "cloud.jpg",
+                EBookPdfPath = "ebooks/cloud.pdf",
+                CategoryId = Guid.NewGuid(),
+                Synopsis = "x"
+            };
+
+            bookRepositoryMock.Setup(repo => repo.FindAsync(It.IsAny<object[]>())).ReturnsAsync(savedBook);
+            bookRepositoryMock.Setup(repo => repo.DeleteAsync(It.IsAny<object[]>())).Returns(Task.CompletedTask).Verifiable();
+            uploadServiceMock.Setup(service => service.DeleteFileIfExistsAsync("cloud.jpg", "Books")).Returns(Task.CompletedTask).Verifiable();
+            ebookServiceMock.Setup(service => service.DeletePdfAsync(savedBook)).Returns(Task.CompletedTask).Verifiable();
+
+            var service = new BookService(bookRepositoryMock.Object,
+                unitOfWorkMock.Object, new BookValidator(),
+                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object);
+
+            var result = await service.DeleteAsync(bookId);
+
+            Assert.NotNull(result);
+            bookRepositoryMock.Verify(repo => repo.DeleteAsync(It.IsAny<object[]>()), Times.Once);
+            uploadServiceMock.Verify(service => service.DeleteFileIfExistsAsync("cloud.jpg", "Books"), Times.Once);
+            ebookServiceMock.Verify(service => service.DeletePdfAsync(savedBook), Times.Once);
+        }
+
+        [Fact]
+        public async Task DeleteBook_ShouldDeleteDbRecordEvenWhenAssetCleanupFails()
+        {
+            var bookId = Guid.NewGuid();
+            var savedBook = new Book
+            {
+                Id = bookId,
+                Title = "Cloud",
+                Author = "Sharebook",
+                Type = BookType.Eletronic,
+                ImageSlug = "cloud.jpg",
+                EBookPdfPath = "ebooks/cloud.pdf",
+                CategoryId = Guid.NewGuid(),
+                Synopsis = "x"
+            };
+
+            bookRepositoryMock.Setup(repo => repo.FindAsync(It.IsAny<object[]>())).ReturnsAsync(savedBook);
+            bookRepositoryMock.Setup(repo => repo.DeleteAsync(It.IsAny<object[]>())).Returns(Task.CompletedTask).Verifiable();
+            uploadServiceMock.Setup(service => service.DeleteFileIfExistsAsync(It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(new Exception("img error"));
+            ebookServiceMock.Setup(service => service.DeletePdfAsync(It.IsAny<Book>())).ThrowsAsync(new Exception("pdf error"));
+
+            var service = new BookService(bookRepositoryMock.Object,
+                unitOfWorkMock.Object, new BookValidator(),
+                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object);
+
+            var result = await service.DeleteAsync(bookId);
+
+            Assert.NotNull(result);
+            bookRepositoryMock.Verify(repo => repo.DeleteAsync(It.IsAny<object[]>()), Times.Once);
+        }
     }
 }

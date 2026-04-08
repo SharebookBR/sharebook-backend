@@ -76,6 +76,33 @@ namespace ShareBook.Service.EBook
             return await _s3Service.GeneratePreSignedDownloadUrlAsync(s3Key, book.GetPdfFileName());
         }
 
+        public async Task DeletePdfAsync(Book book)
+        {
+            if (book == null || string.IsNullOrWhiteSpace(book.EBookPdfPath))
+                return;
+
+            // Registros legados com URL absoluta: não apagar automaticamente.
+            if (book.EBookPdfPath.StartsWith("https://") || book.EBookPdfPath.StartsWith("http://"))
+                return;
+
+            if (!_storageSettings.IsActive)
+            {
+                var basePath = Path.GetFullPath(Path.Combine(
+                    AppDomain.CurrentDomain.BaseDirectory,
+                    _imageSettings.EBookPdfPath
+                ));
+
+                var pdfPath = Path.GetFullPath(Path.Combine(basePath, book.EBookPdfPath));
+                if (pdfPath.StartsWith(basePath) && File.Exists(pdfPath))
+                    File.Delete(pdfPath);
+
+                return;
+            }
+
+            var s3Key = NormalizeS3Key(book.EBookPdfPath);
+            await _s3Service.DeleteAsync(s3Key);
+        }
+
         private string NormalizeS3Key(string eBookPdfPath)
         {
             var key = eBookPdfPath.Trim();
