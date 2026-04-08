@@ -44,6 +44,21 @@ namespace ShareBook.Service.Upload
 
         }
 
+        public Task DeleteFileIfExistsAsync(string fileName, string lastDirectory)
+        {
+            if (string.IsNullOrWhiteSpace(fileName) || string.IsNullOrWhiteSpace(lastDirectory))
+                return Task.CompletedTask;
+
+            var dynamicDirectory = Path.Combine(_imageSettings.ImagePath, lastDirectory);
+            var directoryBase = AppDomain.CurrentDomain.BaseDirectory + dynamicDirectory;
+            var filePath = Path.Combine(directoryBase, fileName);
+
+            if (File.Exists(filePath))
+                File.Delete(filePath);
+
+            return Task.CompletedTask;
+        }
+
         private static async Task UploadFileAsync(byte[] imageBytes, string imageName, string dinamicDirectory)
         {
             var directoryBase = AppDomain.CurrentDomain.BaseDirectory + dinamicDirectory;

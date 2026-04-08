@@ -64,6 +64,18 @@ namespace ShareBook.Service.EBook
             return Task.FromResult(preSignedUrl);
         }
 
+        public async Task DeleteAsync(string key)
+        {
+            using var client = CreateClient();
+            var request = new DeleteObjectRequest
+            {
+                BucketName = _settings.S3BucketName,
+                Key = key,
+            };
+
+            await client.DeleteObjectAsync(request);
+        }
+
         private AmazonS3Client CreateClient()
         {
             var region = RegionEndpoint.GetBySystemName(_settings.S3Region);

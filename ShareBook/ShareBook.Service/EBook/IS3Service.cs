@@ -21,5 +21,11 @@ namespace ShareBook.Service.EBook
         /// <param name="fileName">Nome sugerido para download no navegador.</param>
         /// <returns>URL assinada temporária.</returns>
         Task<string> GeneratePreSignedDownloadUrlAsync(string key, string fileName);
+
+        /// <summary>
+        /// Remove um objeto do bucket S3.
+        /// </summary>
+        /// <param name="key">Chave (caminho) do objeto no bucket.</param>
+        Task DeleteAsync(string key);
     }
 }

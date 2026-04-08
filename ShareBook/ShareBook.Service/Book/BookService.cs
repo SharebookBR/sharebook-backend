@@ -249,6 +249,39 @@ namespace ShareBook.Service
             return result;
         }
 
+        public override async Task<Result> DeleteAsync(params object[] keyValues)
+        {
+            var book = await _repository.FindAsync(keyValues);
+            if (book == null)
+                throw new ShareBookException(ShareBookException.Error.NotFound);
+
+            if (!string.IsNullOrWhiteSpace(book.ImageSlug))
+            {
+                try
+                {
+                    await _uploadService.DeleteFileIfExistsAsync(book.ImageSlug, "Books");
+                }
+                catch
+                {
+                    // limpeza de arquivo não deve bloquear remoção do registro no banco
+                }
+            }
+
+            if (book.IsEbook() && !string.IsNullOrWhiteSpace(book.EBookPdfPath))
+            {
+                try
+                {
+                    await _ebookService.DeletePdfAsync(book);
+                }
+                catch
+                {
+                    // limpeza de arquivo não deve bloquear remoção do registro no banco
+                }
+            }
+
+            return await base.DeleteAsync(keyValues);
+        }
+
         public override async Task<Result<Book>> UpdateAsync(Book entity)
         {
             Result<Book> result = Validate(entity, x =>
