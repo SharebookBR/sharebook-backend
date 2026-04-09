@@ -31,13 +31,14 @@ namespace ShareBook.Service
         private readonly IBooksEmailService _booksEmailService;
         private readonly IConfiguration _configuration;
         private readonly IEBookService _ebookService;
+        private readonly ICategoryRepository _categoryRepository;
 
         private readonly NewBookQueue _newBookQueue;
 
         public BookService(IBookRepository bookRepository,
                     IUnitOfWork unitOfWork, IValidator<Book> validator,
                     IUploadService uploadService, IBooksEmailService booksEmailService, IConfiguration configuration,
-                    NewBookQueue newBookQueue, IEBookService ebookService)
+                    NewBookQueue newBookQueue, IEBookService ebookService, ICategoryRepository categoryRepository)
                     : base(bookRepository, unitOfWork, validator)
         {
             _uploadService = uploadService;
@@ -45,6 +46,7 @@ namespace ShareBook.Service
             _configuration = configuration;
             _newBookQueue = newBookQueue;
             _ebookService = ebookService;
+            _categoryRepository = categoryRepository;
         }
 
         public async Task ApproveAsync(Guid bookId, DateTime? chooseDate = null)
@@ -179,6 +181,15 @@ namespace ShareBook.Service
             return books.Select(b => { b.ImageUrl = _uploadService.GetImageUrl(b.ImageSlug, "Books"); return b; }).ToList();
         }
 
+        private bool IsLeafCategory(Guid categoryId)
+        {
+            var hasChildren = _categoryRepository
+                .Get()
+                .Any(c => c.ParentCategoryId == categoryId);
+
+            return !hasChildren;
+        }
+
 
         public async Task<IList<Book>> GetAllAsync(int page, int items)
             => await _repository.Get()
@@ -214,6 +225,16 @@ namespace ShareBook.Service
                 entity.ChooseDate = null;
 
             var result = await ValidateAsync(entity);
+            if (result.Success)
+            {
+                var isLeafCategory = IsLeafCategory(entity.CategoryId);
+                if (!isLeafCategory)
+                {
+                    result.Messages.Add("Selecione uma subcategoria final (categoria folha). Categorias-pai não são permitidas para cadastro.");
+                    return result;
+                }
+            }
+
             if (result.Success && entity.IsEbook())
             {
                 var isDuplicate = await _repository.AnyAsync(b =>
@@ -292,6 +313,13 @@ namespace ShareBook.Service
             var bookId = entity.Id;
 
             if (!result.Success) return result;
+
+            var isLeafCategory = IsLeafCategory(entity.CategoryId);
+            if (!isLeafCategory)
+            {
+                result.Messages.Add("Selecione uma subcategoria final (categoria folha). Categorias-pai não são permitidas para cadastro.");
+                return result;
+            }
 
             //buscar o book no banco para obter um objeto para ser re-hidratado
             var savedBook = await this._repository.FindAsync(bookId);

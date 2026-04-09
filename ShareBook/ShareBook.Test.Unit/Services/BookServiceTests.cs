@@ -12,6 +12,7 @@ using ShareBook.Service.EBook;
 using ShareBook.Service.Upload;
 using ShareBook.Test.Unit.Mocks;
 using System;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,6 +26,7 @@ namespace ShareBook.Test.Unit.Services
         readonly Mock<IUploadService> uploadServiceMock;
         readonly Mock<IEBookService> ebookServiceMock;
         readonly Mock<IBookRepository> bookRepositoryMock;
+        readonly Mock<ICategoryRepository> categoryRepositoryMock;
         readonly Mock<IBooksEmailService> bookEmailService;
         readonly Mock<IUnitOfWork> unitOfWorkMock;
         readonly Mock<IBookUserService> bookUserServiceMock;
@@ -40,6 +42,7 @@ namespace ShareBook.Test.Unit.Services
             ebookServiceMock = new Mock<IEBookService>();
             unitOfWorkMock = new Mock<IUnitOfWork>();
             bookRepositoryMock = new Mock<IBookRepository>();
+            categoryRepositoryMock = new Mock<ICategoryRepository>();
             bookEmailService = new Mock<IBooksEmailService>();
             bookUserServiceMock = new Mock<IBookUserService>();
             configurationMock = new Mock<IConfiguration>();
@@ -51,6 +54,7 @@ namespace ShareBook.Test.Unit.Services
             });
             uploadServiceMock.Setup(service => service.UploadImageAsync(It.IsAny<byte[]>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync("Ok Mocked");
             ebookServiceMock.Setup(service => service.UploadPdfAsync(It.IsAny<Book>())).ReturnsAsync("EBooks/test-book.pdf");
+            categoryRepositoryMock.Setup(repo => repo.Get()).Returns(new[] { new Category { Id = Guid.NewGuid(), Name = "Leaf" } }.AsQueryable());
             bookServiceMock.Setup(service => service.InsertAsync(It.IsAny<Book>())).ReturnsAsync(() => new Result<Book>(new Book())).Verifiable();
         }
 
@@ -60,7 +64,7 @@ namespace ShareBook.Test.Unit.Services
             Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
             var service = new BookService(bookRepositoryMock.Object,
                 unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object);
+                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
             Result<Book> result = await service.InsertAsync(new Book()
             {
                 Title = "Lord of the Rings",
@@ -81,7 +85,7 @@ namespace ShareBook.Test.Unit.Services
             Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
             var service = new BookService(bookRepositoryMock.Object,
                 unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object);
+                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
             Result<Book> result = await service.InsertAsync(new Book()
             {
                 Title = "Clean Code",
@@ -102,7 +106,7 @@ namespace ShareBook.Test.Unit.Services
             Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
             var service = new BookService(bookRepositoryMock.Object,
                 unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object);
+                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
             Result<Book> result = await service.InsertAsync(new Book()
             {
                 Title = "Clean Code",
@@ -122,7 +126,7 @@ namespace ShareBook.Test.Unit.Services
             Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
             var service = new BookService(bookRepositoryMock.Object,
                 unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object);
+                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
             Result<Book> result = await service.InsertAsync(new Book()
             {
                 Title = "Lord of the Rings",
@@ -142,7 +146,7 @@ namespace ShareBook.Test.Unit.Services
             Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
             var service = new BookService(bookRepositoryMock.Object,
                 unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object);
+                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
             Result<Book> result = await service.InsertAsync(new Book()
             {
                 Title = "Clean Code",
@@ -169,7 +173,7 @@ namespace ShareBook.Test.Unit.Services
 
             var service = new BookService(bookRepositoryMock.Object,
                 unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object);
+                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
 
             Result<Book> result = await service.InsertAsync(new Book()
             {
@@ -194,12 +198,12 @@ namespace ShareBook.Test.Unit.Services
 
             // AnyAsync nunca deve ser chamado para livros físicos
             bookRepositoryMock
-                .Setup(repo => repo.AnyAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Book, bool>>>()))
+                .Setup(repo => repo.AnyAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Book, bool>>>() ))
                 .ReturnsAsync(true);
 
             var service = new BookService(bookRepositoryMock.Object,
                 unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object);
+                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
 
             Result<Book> result = await service.InsertAsync(new Book()
             {
@@ -214,6 +218,76 @@ namespace ShareBook.Test.Unit.Services
 
             Assert.NotNull(result);
             Assert.True(result.Success);
+        }
+
+        [Fact]
+        public async Task InsertBook_WithParentCategory_ShouldFail()
+        {
+            Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
+            var parentCategoryId = Guid.NewGuid();
+
+            categoryRepositoryMock
+                .Setup(repo => repo.Get())
+                .Returns(new[] { new Category { Id = Guid.NewGuid(), ParentCategoryId = parentCategoryId } }.AsQueryable());
+
+            var service = new BookService(bookRepositoryMock.Object,
+                unitOfWorkMock.Object, new BookValidator(),
+                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
+
+            Result<Book> result = await service.InsertAsync(new Book()
+            {
+                Title = "Livro Teste",
+                Author = "Autor Teste",
+                ImageName = "teste.png",
+                ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
+                CategoryId = parentCategoryId,
+                FreightOption = FreightOption.City,
+                Type = BookType.Printed
+            });
+
+            Assert.NotNull(result);
+            Assert.False(result.Success);
+            Assert.Contains("Selecione uma subcategoria final", result.Messages[0]);
+        }
+
+        [Fact]
+        public async Task UpdateBook_WithParentCategory_ShouldFail()
+        {
+            var parentCategoryId = Guid.NewGuid();
+            var bookId = Guid.NewGuid();
+            var savedBook = new Book
+            {
+                Id = bookId,
+                Title = "Livro Original",
+                Author = "Autor",
+                CategoryId = Guid.NewGuid(),
+                Synopsis = "x",
+                Slug = "livro-original"
+            };
+
+            categoryRepositoryMock
+                .Setup(repo => repo.Get())
+                .Returns(new[] { new Category { Id = Guid.NewGuid(), ParentCategoryId = parentCategoryId } }.AsQueryable());
+
+            bookRepositoryMock.Setup(repo => repo.FindAsync(bookId)).ReturnsAsync(savedBook);
+
+            var service = new BookService(bookRepositoryMock.Object,
+                unitOfWorkMock.Object, new BookValidator(),
+                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
+
+            var result = await service.UpdateAsync(new Book
+            {
+                Id = bookId,
+                Title = "Livro Original",
+                Author = "Autor",
+                CategoryId = parentCategoryId,
+                Synopsis = "x"
+            });
+
+            Assert.NotNull(result);
+            Assert.False(result.Success);
+            Assert.Contains("Selecione uma subcategoria final", result.Messages[0]);
+            bookRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<Book>()), Times.Never);
         }
         [Fact]
         public async Task DeleteEBook_ShouldTryDeleteAssetsAndDeleteDbRecord()
@@ -238,7 +312,7 @@ namespace ShareBook.Test.Unit.Services
 
             var service = new BookService(bookRepositoryMock.Object,
                 unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object);
+                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
 
             var result = await service.DeleteAsync(bookId);
 
@@ -271,7 +345,7 @@ namespace ShareBook.Test.Unit.Services
 
             var service = new BookService(bookRepositoryMock.Object,
                 unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object);
+                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
 
             var result = await service.DeleteAsync(bookId);
 
