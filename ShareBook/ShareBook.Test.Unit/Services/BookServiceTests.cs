@@ -290,6 +290,66 @@ namespace ShareBook.Test.Unit.Services
             bookRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<Book>()), Times.Never);
         }
         [Fact]
+        public async Task UpdateBook_WhenCoverExtensionChanges_ShouldUploadUsingNewSlugAndDeleteOldFile()
+        {
+            var bookId = Guid.NewGuid();
+            var categoryId = Guid.NewGuid();
+
+            var savedBook = new Book
+            {
+                Id = bookId,
+                Title = "Livro Original",
+                Author = "Autor",
+                CategoryId = categoryId,
+                Synopsis = "x",
+                Slug = "livro-original",
+                ImageSlug = "livro-original.jpg"
+            };
+
+            categoryRepositoryMock
+                .Setup(repo => repo.Get())
+                .Returns(new[] { new Category { Id = categoryId, Name = "Leaf" } }.AsQueryable());
+
+            bookRepositoryMock.Setup(repo => repo.FindAsync(bookId)).ReturnsAsync(savedBook);
+            bookRepositoryMock.Setup(repo => repo.UpdateAsync(It.IsAny<Book>())).ReturnsAsync((Book b) => b);
+
+            uploadServiceMock
+                .Setup(service => service.UploadImageAsync(It.IsAny<byte[]>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync("Ok Mocked");
+
+            uploadServiceMock
+                .Setup(service => service.DeleteFileIfExistsAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(Task.CompletedTask);
+
+            var service = new BookService(bookRepositoryMock.Object,
+                unitOfWorkMock.Object, new BookValidator(),
+                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
+
+            var result = await service.UpdateAsync(new Book
+            {
+                Id = bookId,
+                Title = "Livro Original",
+                Author = "Autor",
+                CategoryId = categoryId,
+                Synopsis = "x",
+                ImageName = "nova-capa.png",
+                ImageBytes = Encoding.UTF8.GetBytes("PNG_BYTES")
+            });
+
+            Assert.NotNull(result);
+            Assert.True(result.Success);
+
+            uploadServiceMock.Verify(service => service.UploadImageAsync(
+                It.IsAny<byte[]>(),
+                "livro-original.png",
+                "Books"), Times.Once);
+
+            uploadServiceMock.Verify(service => service.DeleteFileIfExistsAsync(
+                "livro-original.jpg",
+                "Books"), Times.Once);
+        }
+
+        [Fact]
         public async Task DeleteEBook_ShouldTryDeleteAssetsAndDeleteDbRecord()
         {
             var bookId = Guid.NewGuid();

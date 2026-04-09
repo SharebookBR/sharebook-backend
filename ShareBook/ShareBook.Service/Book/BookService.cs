@@ -570,7 +570,14 @@ namespace ShareBook.Service
             if (!string.IsNullOrEmpty(entity.ImageName) && entity.ImageBytes.Length > 0)
             {
                 entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, savedBook.Slug);
-                await _uploadService.UploadImageAsync(entity.ImageBytes, savedBook.ImageSlug, "Books");
+
+                await _uploadService.UploadImageAsync(entity.ImageBytes, entity.ImageSlug, "Books");
+
+                if (!string.IsNullOrWhiteSpace(savedBook.ImageSlug)
+                    && !savedBook.ImageSlug.Equals(entity.ImageSlug, StringComparison.OrdinalIgnoreCase))
+                {
+                    await _uploadService.DeleteFileIfExistsAsync(savedBook.ImageSlug, "Books");
+                }
             }
 
             //preparar o book para atualização
