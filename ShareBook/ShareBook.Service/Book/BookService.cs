@@ -826,6 +826,7 @@ namespace ShareBook.Service
                     Title = u.Title,
                     Author = u.Author,
                     Status = u.Status,
+                    DownloadCount = u.DownloadCount,
                     FreightOption = u.FreightOption,
                     ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
                     Slug = u.Slug,
