@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -614,6 +615,53 @@ namespace ShareBook.Api.Controllers
         {
             await _service.ReportCopyrightAsync(slug);
             return Ok(new Result("Report enviado. Obrigado pela colaboração."));
+        }
+
+        [HttpGet("/share/livros/{slug}")]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(ContentResult), 200)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> ShareLandingAsync(string slug)
+        {
+            var book = await _service.BySlugAsync(slug);
+            if (book == null) return NotFound("Livro não encontrado.");
+
+            var pageUrl = $"https://www.sharebook.com.br/livros/{book.Slug}";
+            var shareUrl = $"https://api.sharebook.com.br/share/livros/{book.Slug}";
+            var title = WebUtility.HtmlEncode($"{book.Title} | ShareBook");
+            var description = WebUtility.HtmlEncode(string.IsNullOrWhiteSpace(book.Synopsis)
+                ? $"Encontrei este livro grátis no ShareBook: {book.Title}."
+                : book.Synopsis.Length > 220 ? book.Synopsis.Substring(0, 220) + "..." : book.Synopsis);
+            var image = string.IsNullOrWhiteSpace(book.ImageUrl)
+                ? "https://www.sharebook.com.br/assets/img/sharebook-share.png"
+                : book.ImageUrl;
+
+            var html = $@"<!doctype html>
+<html lang='pt-BR'>
+<head>
+  <meta charset='utf-8' />
+  <meta name='viewport' content='width=device-width, initial-scale=1' />
+  <title>{title}</title>
+  <meta name='description' content='{description}' />
+  <meta property='og:type' content='article' />
+  <meta property='og:site_name' content='ShareBook' />
+  <meta property='og:title' content='{title}' />
+  <meta property='og:description' content='{description}' />
+  <meta property='og:image' content='{WebUtility.HtmlEncode(image)}' />
+  <meta property='og:url' content='{WebUtility.HtmlEncode(shareUrl)}' />
+  <meta name='twitter:card' content='summary_large_image' />
+  <meta name='twitter:title' content='{title}' />
+  <meta name='twitter:description' content='{description}' />
+  <meta name='twitter:image' content='{WebUtility.HtmlEncode(image)}' />
+  <meta http-equiv='refresh' content='0; url={WebUtility.HtmlEncode(pageUrl)}' />
+</head>
+<body>
+  <p>Redirecionando para o livro no ShareBook...</p>
+  <script>window.location.replace('{WebUtility.HtmlEncode(pageUrl)}');</script>
+</body>
+</html>";
+
+            return Content(html, "text/html; charset=utf-8");
         }
 
         [HttpGet("DownloadEBook/{slug}")]
