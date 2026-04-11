@@ -620,6 +620,7 @@ namespace ShareBook.Api.Controllers
         [HttpGet("/share/livros/{slug}")]
         [AllowAnonymous]
         [ProducesResponseType(typeof(ContentResult), 200)]
+        [ProducesResponseType(302)]
         [ProducesResponseType(404)]
         public async Task<IActionResult> ShareLandingAsync(string slug)
         {
@@ -627,7 +628,20 @@ namespace ShareBook.Api.Controllers
             if (book == null) return NotFound("Livro não encontrado.");
 
             var pageUrl = $"https://www.sharebook.com.br/livros/{book.Slug}";
-            var shareUrl = $"https://api.sharebook.com.br/share/livros/{book.Slug}";
+            var userAgent = Request?.Headers["User-Agent"].ToString() ?? string.Empty;
+            var isSocialCrawler = userAgent.Contains("facebookexternalhit", StringComparison.OrdinalIgnoreCase)
+                || userAgent.Contains("Facebot", StringComparison.OrdinalIgnoreCase)
+                || userAgent.Contains("WhatsApp", StringComparison.OrdinalIgnoreCase)
+                || userAgent.Contains("LinkedInBot", StringComparison.OrdinalIgnoreCase)
+                || userAgent.Contains("Twitterbot", StringComparison.OrdinalIgnoreCase)
+                || userAgent.Contains("Slackbot", StringComparison.OrdinalIgnoreCase)
+                || userAgent.Contains("Discordbot", StringComparison.OrdinalIgnoreCase);
+
+            if (!isSocialCrawler)
+            {
+                return Redirect(pageUrl);
+            }
+
             var title = WebUtility.HtmlEncode($"{book.Title} | ShareBook");
             var description = WebUtility.HtmlEncode(string.IsNullOrWhiteSpace(book.Synopsis)
                 ? $"Encontrei este livro grátis no ShareBook: {book.Title}."
@@ -648,16 +662,17 @@ namespace ShareBook.Api.Controllers
   <meta property='og:title' content='{title}' />
   <meta property='og:description' content='{description}' />
   <meta property='og:image' content='{WebUtility.HtmlEncode(image)}' />
-  <meta property='og:url' content='{WebUtility.HtmlEncode(shareUrl)}' />
+  <meta property='og:url' content='{WebUtility.HtmlEncode(pageUrl)}' />
+  <meta property='og:image:secure_url' content='{WebUtility.HtmlEncode(image)}' />
   <meta name='twitter:card' content='summary_large_image' />
   <meta name='twitter:title' content='{title}' />
   <meta name='twitter:description' content='{description}' />
   <meta name='twitter:image' content='{WebUtility.HtmlEncode(image)}' />
-  <meta http-equiv='refresh' content='0; url={WebUtility.HtmlEncode(pageUrl)}' />
+  <link rel='canonical' href='{WebUtility.HtmlEncode(pageUrl)}' />
 </head>
 <body>
-  <p>Redirecionando para o livro no ShareBook...</p>
-  <script>window.location.replace('{WebUtility.HtmlEncode(pageUrl)}');</script>
+  <p>ShareBook</p>
+  <a href='{WebUtility.HtmlEncode(pageUrl)}'>Abrir livro</a>
 </body>
 </html>";
 
