@@ -51,6 +51,8 @@ https://trello.com/invite/sharebook6/928f21ef82592b5edafde06f171d338b
 
 ## **---> ❤️ MISSÃO CUMPRIDA. VOCÊ AJUDOU O PROJETO. ❤️ <---**
 
+> Teste técnico de autenticação GitHub via token classic em 2026-04-10.
+
 </br>
 
 ## **6 - Rodar o app pela primeira vez?**
