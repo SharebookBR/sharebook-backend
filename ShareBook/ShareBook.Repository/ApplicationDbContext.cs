@@ -23,6 +23,7 @@ namespace ShareBook.Repository
         public DbSet<MeetupParticipant> MeetupParticipants { get; set; }
 
         public DbSet<MailBounce> MailBounces { get; set; }
+        public DbSet<BookDownload> BookDownloads { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

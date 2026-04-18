@@ -35,6 +35,7 @@ namespace ShareBook.Api.Controllers
         private readonly IUserService _userService;
         private readonly IAccessHistoryService _accessHistoryService;
         private readonly IEBookService _ebookService;
+        private readonly IBookDownloadService _bookDownloadService;
         private Expression<Func<Book, object>> _defaultOrder = x => x.Id;
         private readonly IMapper _mapper;
 
@@ -43,7 +44,8 @@ namespace ShareBook.Api.Controllers
                               IUserService userService,
                               IMapper mapper,
                               IAccessHistoryService accessHistoryService,
-                              IEBookService ebookService)
+                              IEBookService ebookService,
+                              IBookDownloadService bookDownloadService)
         {
             _service = bookService;
             _bookUserService = bookUserService;
@@ -51,6 +53,7 @@ namespace ShareBook.Api.Controllers
             _mapper = mapper;
             _accessHistoryService = accessHistoryService;
             _ebookService = ebookService;
+            _bookDownloadService = bookDownloadService;
         }
 
         protected void SetDefault(Expression<Func<Book, object>> defaultOrder)
@@ -701,6 +704,14 @@ namespace ShareBook.Api.Controllers
                 return NotFound(new { message = "PDF do livro digital não disponível." });
 
             await _service.IncrementDownloadCountAsync(book.Id);
+
+            // Registrar download individual
+            var userId = User?.Identity?.IsAuthenticated == true
+                ? new Guid(User.Identity.Name)
+                : (Guid?)null;
+            var userAgent = Request.Headers["User-Agent"].ToString();
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            await _bookDownloadService.RegisterDownloadAsync(book.Id, userId, userAgent, ipAddress);
 
             var downloadUrl = await _ebookService.GetPdfDownloadUrlAsync(book);
             if (!string.IsNullOrEmpty(downloadUrl))
