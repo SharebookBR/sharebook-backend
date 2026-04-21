@@ -350,6 +350,7 @@ namespace ShareBook.Api.Controllers
 
         [HttpPost]
         [Authorize("Bearer")]
+        [RequestSizeLimit(52428800)]
         public async Task<IActionResult> CreateAsync([FromBody] CreateBookVM createBookVM)
         {
             var book = _mapper.Map<Book>(createBookVM);
@@ -364,6 +365,7 @@ namespace ShareBook.Api.Controllers
         [HttpPut("{id}")]
         [Authorize("Bearer")]
         [AuthorizationFilter(Permissions.Permission.ApproveBook)]
+        [RequestSizeLimit(52428800)]
         public async Task<IActionResult> UpdateAsync(Guid Id, [FromBody] UpdateBookVM updateBookVM)
         {
             updateBookVM.Id = Id;
