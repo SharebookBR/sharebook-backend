@@ -56,12 +56,13 @@ next_items AS (
     ORDER BY source_id, position ASC
 ),
 global_last_run AS (
-    SELECT DISTINCT ON (1)
+    SELECT
         started_at,
         status,
         message
     FROM importer.runs
     ORDER BY started_at DESC, id DESC
+    LIMIT 1
 ),
 source_last_runs AS (
     SELECT DISTINCT ON (qi.source_id)
