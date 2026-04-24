@@ -13,11 +13,13 @@ using ShareBook.Helper.Extensions;
 using ShareBook.Repository;
 using ShareBook.Service;
 using ShareBook.Service.Authorization;
+using ShareBook.Service.Importer;
 using ShareBook.Service.Server;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ShareBook.Api.Controllers;
@@ -35,6 +37,7 @@ public class OperationsController : Controller
     private readonly IMeetupService _meetupService;
     private readonly IConfiguration _config;
     private readonly IJobHistoryRepository _jobHistoryRepo;
+    private readonly IImporterDashboardService _importerDashboardService;
     private readonly IList<IJob> _jobs;
 
     public OperationsController(
@@ -46,6 +49,7 @@ public class OperationsController : Controller
         IMeetupService meetupService,
         IConfiguration config,
         IJobHistoryRepository jobHistoryRepo,
+        IImporterDashboardService importerDashboardService,
         CancelAbandonedDonations job0,
         ChooseDateReminder job1,
         LateDonationNotification job2,
@@ -64,6 +68,7 @@ public class OperationsController : Controller
         _meetupService = meetupService;
         _config = config;
         _jobHistoryRepo = jobHistoryRepo;
+        _importerDashboardService = importerDashboardService;
         _jobs = new List<IJob> { job0, job1, job2, job3, job4, job5, job6, job7, job8 };
     }
 
@@ -125,6 +130,15 @@ public class OperationsController : Controller
     {
         var logs = await _emailService.ProcessBounceMessagesAsync();
         return Ok(logs);
+    }
+
+    [HttpGet("ImporterDashboard")]
+    [Authorize("Bearer")]
+    [AuthorizationFilter(Permissions.Permission.ApproveBook)] // adm
+    public async Task<IActionResult> ImporterDashboardAsync(CancellationToken cancellationToken)
+    {
+        var dashboard = await _importerDashboardService.GetDashboardAsync(cancellationToken);
+        return Ok(dashboard);
     }
 
     [HttpGet("Jobs")]

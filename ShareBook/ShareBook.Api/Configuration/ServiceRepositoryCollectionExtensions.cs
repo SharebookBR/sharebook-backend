@@ -10,6 +10,7 @@ using ShareBook.Repository.UoW;
 using ShareBook.Service;
 using ShareBook.Service.AwsSqs;
 using ShareBook.Service.EBook;
+using ShareBook.Service.Importer;
 using ShareBook.Service.Lgpd;
 using ShareBook.Service.Muambator;
 using ShareBook.Service.Notification;
@@ -38,6 +39,7 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<ILgpdService, LgpdService>();
             services.AddScoped<IMeetupService, MeetupService>();
             services.AddScoped<IRecaptchaService, RecaptchaService>();
+            services.AddScoped<IImporterDashboardService, ImporterDashboardService>();
 
             //repositories
             services.AddScoped<IBookRepository, BookRepository>();
