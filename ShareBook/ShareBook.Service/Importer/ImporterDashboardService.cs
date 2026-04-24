@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
@@ -10,6 +11,20 @@ namespace ShareBook.Service.Importer;
 public class ImporterDashboardService : IImporterDashboardService
 {
     private readonly IConfiguration _configuration;
+    private static readonly ISet<string> ValidStatuses = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        "waiting_triage",
+        "triaging",
+        "waiting_editor",
+        "editing",
+        "waiting_process",
+        "processing",
+        "done",
+        "retry_later",
+        "source_blocked",
+        "duplicate",
+        "error"
+    };
 
     public ImporterDashboardService(IConfiguration configuration)
     {
@@ -158,5 +173,124 @@ ORDER BY ss.source_id;
         }
 
         return result;
+    }
+
+    public async Task<ImporterQueueItemsPageDTO> GetItemsAsync(int? sourceId, string status, int page, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var connectionString = _configuration.GetConnectionString("ImporterPostgresConnection");
+        if (string.IsNullOrWhiteSpace(connectionString))
+            throw new InvalidOperationException("ConnectionStrings:ImporterPostgresConnection não configurada.");
+
+        var normalizedStatus = string.IsNullOrWhiteSpace(status) ? null : status.Trim().ToLowerInvariant();
+        if (normalizedStatus is not null && !ValidStatuses.Contains(normalizedStatus))
+            throw new ArgumentException("Status inválido para fila do importador.", nameof(status));
+
+        var safePage = Math.Max(page, 1);
+        var safePageSize = Math.Min(Math.Max(pageSize, 1), 200);
+        var offset = (safePage - 1) * safePageSize;
+        var where = new List<string>();
+
+        if (sourceId.HasValue)
+            where.Add("q.source_id = @source_id");
+
+        if (normalizedStatus is not null)
+            where.Add("q.status = @status");
+
+        var whereSql = where.Count > 0 ? $"WHERE {string.Join(" AND ", where)}" : string.Empty;
+
+        var countSql = $@"
+SELECT COUNT(*)
+FROM importer.queue_items q
+JOIN importer.sources s ON s.id = q.source_id
+{whereSql};
+";
+
+        var itemsSql = $@"
+SELECT
+    q.id,
+    q.source_id,
+    s.name AS source_name,
+    q.position,
+    q.title,
+    q.author,
+    q.source_url,
+    q.status,
+    q.planned_title,
+    q.planned_author,
+    q.planned_category_id,
+    q.attempts,
+    q.last_error,
+    q.sharebook_book_id,
+    q.created_at,
+    q.updated_at
+FROM importer.queue_items q
+JOIN importer.sources s ON s.id = q.source_id
+{whereSql}
+ORDER BY q.position ASC, q.id ASC
+LIMIT @limit OFFSET @offset;
+";
+
+        var result = new ImporterQueueItemsPageDTO
+        {
+            Page = safePage,
+            ItemsPerPage = safePageSize
+        };
+
+        await using var conn = new NpgsqlConnection(connectionString);
+        await conn.OpenAsync(cancellationToken);
+
+        await using (var countCmd = new NpgsqlCommand(countSql, conn))
+        {
+            AddItemFilterParameters(countCmd, sourceId, normalizedStatus);
+            result.TotalItems = Convert.ToInt32(await countCmd.ExecuteScalarAsync(cancellationToken));
+        }
+
+        await using (var itemsCmd = new NpgsqlCommand(itemsSql, conn))
+        {
+            AddItemFilterParameters(itemsCmd, sourceId, normalizedStatus);
+            itemsCmd.Parameters.AddWithValue("limit", safePageSize);
+            itemsCmd.Parameters.AddWithValue("offset", offset);
+
+            await using var reader = await itemsCmd.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                result.Items.Add(new ImporterQueueItemDTO
+                {
+                    Id = reader.GetInt32(reader.GetOrdinal("id")),
+                    SourceId = reader.GetInt32(reader.GetOrdinal("source_id")),
+                    SourceName = reader.GetString(reader.GetOrdinal("source_name")),
+                    Position = reader.GetInt32(reader.GetOrdinal("position")),
+                    Title = reader.GetString(reader.GetOrdinal("title")),
+                    Author = GetNullableString(reader, "author"),
+                    SourceUrl = reader.GetString(reader.GetOrdinal("source_url")),
+                    Status = reader.GetString(reader.GetOrdinal("status")),
+                    PlannedTitle = GetNullableString(reader, "planned_title"),
+                    PlannedAuthor = GetNullableString(reader, "planned_author"),
+                    PlannedCategoryId = GetNullableString(reader, "planned_category_id"),
+                    Attempts = reader.GetInt32(reader.GetOrdinal("attempts")),
+                    LastError = GetNullableString(reader, "last_error"),
+                    SharebookBookId = GetNullableString(reader, "sharebook_book_id"),
+                    CreatedAt = reader.GetDateTime(reader.GetOrdinal("created_at")),
+                    UpdatedAt = reader.GetDateTime(reader.GetOrdinal("updated_at")),
+                });
+            }
+        }
+
+        return result;
+    }
+
+    private static void AddItemFilterParameters(NpgsqlCommand command, int? sourceId, string status)
+    {
+        if (sourceId.HasValue)
+            command.Parameters.AddWithValue("source_id", sourceId.Value);
+
+        if (status is not null)
+            command.Parameters.AddWithValue("status", status);
+    }
+
+    private static string GetNullableString(NpgsqlDataReader reader, string columnName)
+    {
+        var ordinal = reader.GetOrdinal(columnName);
+        return reader.IsDBNull(ordinal) ? null : reader.GetString(ordinal);
     }
 }
