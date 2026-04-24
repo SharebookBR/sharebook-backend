@@ -7,6 +7,9 @@ public class ImporterDashboardDTO
 {
     public DateTime GeneratedAtUtc { get; set; }
     public int TotalItems { get; set; }
+    public DateTime? LastRunAt { get; set; }
+    public string LastRunStatus { get; set; }
+    public string LastRunMessage { get; set; }
     public IList<ImporterSourceStatusDTO> Sources { get; set; } = new List<ImporterSourceStatusDTO>();
 }
 

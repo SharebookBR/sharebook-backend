@@ -55,13 +55,24 @@ next_items AS (
     WHERE status IN ('waiting_triage', 'triaging', 'waiting_editor', 'editing', 'waiting_process', 'processing', 'retry_later', 'error')
     ORDER BY source_id, position ASC
 ),
-last_runs AS (
+global_last_run AS (
     SELECT DISTINCT ON (1)
         started_at,
         status,
         message
     FROM importer.runs
-    ORDER BY started_at DESC
+    ORDER BY started_at DESC, id DESC
+),
+source_last_runs AS (
+    SELECT DISTINCT ON (qi.source_id)
+        qi.source_id,
+        r.started_at,
+        r.status,
+        r.message
+    FROM importer.runs r
+    JOIN importer.queue_items qi ON qi.id = r.processed_item_id
+    WHERE qi.source_id IS NOT NULL
+    ORDER BY qi.source_id, r.started_at DESC, r.id DESC
 )
 SELECT
     ss.source_id,
@@ -83,12 +94,16 @@ SELECT
     ni.position AS next_item_position,
     ni.title AS next_item_title,
     ni.status AS next_item_status,
-    lr.started_at AS last_run_at,
-    lr.status AS last_run_status,
-    lr.message AS last_run_message
+    slr.started_at AS last_run_at,
+    slr.status AS last_run_status,
+    slr.message AS last_run_message,
+    glr.started_at AS global_last_run_at,
+    glr.status AS global_last_run_status,
+    glr.message AS global_last_run_message
 FROM source_status ss
 LEFT JOIN next_items ni ON ni.source_id = ss.source_id
-LEFT JOIN last_runs lr ON TRUE
+LEFT JOIN source_last_runs slr ON slr.source_id = ss.source_id
+LEFT JOIN global_last_run glr ON TRUE
 ORDER BY ss.source_id;
 ";
 
@@ -104,6 +119,13 @@ ORDER BY ss.source_id;
 
         while (await reader.ReadAsync(cancellationToken))
         {
+            if (result.LastRunAt is null)
+            {
+                result.LastRunAt = reader.IsDBNull(reader.GetOrdinal("global_last_run_at")) ? null : reader.GetDateTime(reader.GetOrdinal("global_last_run_at"));
+                result.LastRunStatus = reader.IsDBNull(reader.GetOrdinal("global_last_run_status")) ? null : reader.GetString(reader.GetOrdinal("global_last_run_status"));
+                result.LastRunMessage = reader.IsDBNull(reader.GetOrdinal("global_last_run_message")) ? null : reader.GetString(reader.GetOrdinal("global_last_run_message"));
+            }
+
             var item = new ImporterSourceStatusDTO
             {
                 SourceId = reader.GetInt32(reader.GetOrdinal("source_id")),
