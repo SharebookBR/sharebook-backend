@@ -231,7 +231,7 @@ SELECT
 FROM importer.queue_items q
 JOIN importer.sources s ON s.id = q.source_id
 {whereSql}
-ORDER BY q.position ASC, q.id ASC
+ORDER BY q.updated_at DESC, q.id DESC
 LIMIT @limit OFFSET @offset;
 ";
 
