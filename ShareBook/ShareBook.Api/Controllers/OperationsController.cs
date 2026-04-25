@@ -144,9 +144,9 @@ public class OperationsController : Controller
     [HttpGet("ImporterItems")]
     [Authorize("Bearer")]
     [AuthorizationFilter(Permissions.Permission.ApproveBook)] // adm
-    public async Task<IActionResult> ImporterItemsAsync([FromQuery] int? sourceId, [FromQuery] string status, [FromQuery] int page = 1, [FromQuery] int pageSize = 50, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> ImporterItemsAsync([FromQuery] int? sourceId, [FromQuery] string status, [FromQuery] int? position, [FromQuery] int page = 1, [FromQuery] int pageSize = 50, CancellationToken cancellationToken = default)
     {
-        var items = await _importerDashboardService.GetItemsAsync(sourceId, status, page, pageSize, cancellationToken);
+        var items = await _importerDashboardService.GetItemsAsync(sourceId, status, position, page, pageSize, cancellationToken);
         return Ok(items);
     }
 

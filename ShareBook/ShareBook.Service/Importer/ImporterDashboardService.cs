@@ -179,7 +179,7 @@ ORDER BY ss.source_id;
         return result;
     }
 
-    public async Task<ImporterQueueItemsPageDTO> GetItemsAsync(int? sourceId, string status, int page, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<ImporterQueueItemsPageDTO> GetItemsAsync(int? sourceId, string status, int? position, int page, int pageSize, CancellationToken cancellationToken = default)
     {
         var connectionString = _configuration.GetConnectionString("ImporterPostgresConnection");
         if (string.IsNullOrWhiteSpace(connectionString))
@@ -199,6 +199,9 @@ ORDER BY ss.source_id;
 
         if (normalizedStatus is not null)
             where.Add("q.status = @status");
+
+        if (position.HasValue)
+            where.Add("q.position = @position");
 
         var whereSql = where.Count > 0 ? $"WHERE {string.Join(" AND ", where)}" : string.Empty;
 
@@ -246,13 +249,13 @@ LIMIT @limit OFFSET @offset;
 
         await using (var countCmd = new NpgsqlCommand(countSql, conn))
         {
-            AddItemFilterParameters(countCmd, sourceId, normalizedStatus);
+            AddItemFilterParameters(countCmd, sourceId, normalizedStatus, position);
             result.TotalItems = Convert.ToInt32(await countCmd.ExecuteScalarAsync(cancellationToken));
         }
 
         await using (var itemsCmd = new NpgsqlCommand(itemsSql, conn))
         {
-            AddItemFilterParameters(itemsCmd, sourceId, normalizedStatus);
+            AddItemFilterParameters(itemsCmd, sourceId, normalizedStatus, position);
             itemsCmd.Parameters.AddWithValue("limit", safePageSize);
             itemsCmd.Parameters.AddWithValue("offset", offset);
 
@@ -285,13 +288,16 @@ LIMIT @limit OFFSET @offset;
         return result;
     }
 
-    private static void AddItemFilterParameters(NpgsqlCommand command, int? sourceId, string status)
+    private static void AddItemFilterParameters(NpgsqlCommand command, int? sourceId, string status, int? position)
     {
         if (sourceId.HasValue)
             command.Parameters.AddWithValue("source_id", sourceId.Value);
 
         if (status is not null)
             command.Parameters.AddWithValue("status", status);
+
+        if (position.HasValue)
+            command.Parameters.AddWithValue("position", position.Value);
     }
 
     private static string GetNullableString(NpgsqlDataReader reader, string columnName)
