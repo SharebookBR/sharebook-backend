@@ -225,6 +225,7 @@ SELECT
     q.attempts,
     q.last_error,
     q.sharebook_book_id,
+    q.metadata_json,
     q.created_at,
     q.updated_at
 FROM importer.queue_items q
@@ -274,6 +275,7 @@ LIMIT @limit OFFSET @offset;
                     Attempts = reader.GetInt32(reader.GetOrdinal("attempts")),
                     LastError = GetNullableString(reader, "last_error"),
                     SharebookBookId = GetNullableString(reader, "sharebook_book_id"),
+                    MetadataJson = GetNullableString(reader, "metadata_json"),
                     CreatedAt = reader.GetDateTime(reader.GetOrdinal("created_at")),
                     UpdatedAt = reader.GetDateTime(reader.GetOrdinal("updated_at")),
                 });
