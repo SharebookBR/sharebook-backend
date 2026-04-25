@@ -59,6 +59,7 @@ public class ImporterSourceStatusDTO
     public int SourceBlocked { get; set; }
     public int Duplicate { get; set; }
     public int Error { get; set; }
+    public int TriageRejected { get; set; }
     public string NextItemTitle { get; set; }
     public int? NextItemPosition { get; set; }
     public string NextItemStatus { get; set; }
