@@ -311,16 +311,17 @@ LIMIT @limit OFFSET @offset;
 
         if (!bookIds.Any()) return;
 
-        var pagedResult = await _bookRepository.GetAsync(x => bookIds.Contains(x.Id), x => x.Id);
-        var slugMap = pagedResult.Items.ToDictionary(x => x.Id, x => x.Slug);
+        var books = await _bookRepository.GetAsync(x => bookIds.Contains(x.Id), x => x.Id);
+        var bookMap = books.Items.ToDictionary(x => x.Id, x => new { x.Slug, x.ImageName });
 
         foreach (var item in items)
         {
             if (!string.IsNullOrWhiteSpace(item.SharebookBookId) &&
                 Guid.TryParse(item.SharebookBookId, out var bookId) &&
-                slugMap.TryGetValue(bookId, out var slug))
+                bookMap.TryGetValue(bookId, out var bookData))
             {
-                item.BookSlug = slug;
+                item.BookSlug = bookData.Slug;
+                item.BookImageName = bookData.ImageName;
             }
         }
     }
