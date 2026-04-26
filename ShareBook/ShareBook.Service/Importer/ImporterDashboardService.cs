@@ -311,8 +311,8 @@ LIMIT @limit OFFSET @offset;
 
         if (!bookIds.Any()) return;
 
-        var books = await _bookRepository.GetAsync(x => bookIds.Contains(x.Id));
-        var slugMap = books.ToDictionary(x => x.Id, x => x.Slug);
+        var pagedResult = await _bookRepository.GetAsync(x => bookIds.Contains(x.Id), x => x.Id);
+        var slugMap = pagedResult.Items.ToDictionary(x => x.Id, x => x.Slug);
 
         foreach (var item in items)
         {
