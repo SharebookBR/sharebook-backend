@@ -38,7 +38,7 @@ public class ImporterQueueItemDTO
     public string LastError { get; set; }
     public string SharebookBookId { get; set; }
     public string BookSlug { get; set; }
-    public string BookImageName { get; set; }
+    public string BookImageUrl { get; set; }
     public string MetadataJson { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
