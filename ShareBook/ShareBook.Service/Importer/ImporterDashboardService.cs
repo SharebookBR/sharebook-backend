@@ -234,11 +234,13 @@ SELECT
     q.attempts,
     q.last_error,
     q.sharebook_book_id,
+    b.""Slug"" AS book_slug,
     q.metadata_json,
     q.created_at,
     q.updated_at
 FROM importer.queue_items q
 JOIN importer.sources s ON s.id = q.source_id
+LEFT JOIN public.""Books"" b ON b.""Id"" = q.sharebook_book_id
 {whereSql}
 {orderBySql}
 LIMIT @limit OFFSET @offset;
@@ -284,6 +286,7 @@ LIMIT @limit OFFSET @offset;
                     Attempts = reader.GetInt32(reader.GetOrdinal("attempts")),
                     LastError = GetUniversalString(reader, "last_error"),
                     SharebookBookId = GetUniversalString(reader, "sharebook_book_id"),
+                    BookSlug = GetUniversalString(reader, "book_slug"),
                     MetadataJson = GetUniversalString(reader, "metadata_json"),
                     CreatedAt = reader.GetDateTime(reader.GetOrdinal("created_at")),
                     UpdatedAt = reader.GetDateTime(reader.GetOrdinal("updated_at")),
