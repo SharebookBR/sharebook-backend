@@ -312,7 +312,7 @@ LIMIT @limit OFFSET @offset;
         if (!bookIds.Any()) return;
 
         var books = await _bookRepository.GetAsync(x => bookIds.Contains(x.Id), x => x.Id);
-        var bookMap = books.Items.ToDictionary(x => x.Id, x => new { x.Slug, x.ImageUrl });
+        var bookMap = books.Items.ToDictionary(x => x.Id, x => new { x.Slug, x.ImageSlug });
 
         foreach (var item in items)
         {
@@ -321,7 +321,7 @@ LIMIT @limit OFFSET @offset;
                 bookMap.TryGetValue(bookId, out var bookData))
             {
                 item.BookSlug = bookData.Slug;
-                item.BookImageUrl = bookData.ImageUrl;
+                item.BookImageSlug = bookData.ImageSlug;
             }
         }
     }
