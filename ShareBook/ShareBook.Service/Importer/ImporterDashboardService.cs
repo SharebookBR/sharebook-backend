@@ -275,16 +275,16 @@ LIMIT @limit OFFSET @offset;
                     SourceName = reader.GetString(reader.GetOrdinal("source_name")),
                     Position = reader.GetInt32(reader.GetOrdinal("position")),
                     Title = reader.GetString(reader.GetOrdinal("title")),
-                    Author = GetNullableString(reader, "author"),
+                    Author = GetUniversalString(reader, "author"),
                     SourceUrl = reader.GetString(reader.GetOrdinal("source_url")),
                     Status = reader.GetString(reader.GetOrdinal("status")),
-                    PlannedTitle = GetNullableString(reader, "planned_title"),
-                    PlannedAuthor = GetNullableString(reader, "planned_author"),
-                    PlannedCategoryId = GetNullableGuidAsString(reader, "planned_category_id"),
+                    PlannedTitle = GetUniversalString(reader, "planned_title"),
+                    PlannedAuthor = GetUniversalString(reader, "planned_author"),
+                    PlannedCategoryId = GetUniversalString(reader, "planned_category_id"),
                     Attempts = reader.GetInt32(reader.GetOrdinal("attempts")),
-                    LastError = GetNullableString(reader, "last_error"),
-                    SharebookBookId = GetNullableGuidAsString(reader, "sharebook_book_id"),
-                    MetadataJson = GetNullableString(reader, "metadata_json"),
+                    LastError = GetUniversalString(reader, "last_error"),
+                    SharebookBookId = GetUniversalString(reader, "sharebook_book_id"),
+                    MetadataJson = GetUniversalString(reader, "metadata_json"),
                     CreatedAt = reader.GetDateTime(reader.GetOrdinal("created_at")),
                     UpdatedAt = reader.GetDateTime(reader.GetOrdinal("updated_at")),
                 });
@@ -306,15 +306,17 @@ LIMIT @limit OFFSET @offset;
             command.Parameters.AddWithValue("position", position.Value);
     }
 
-    private static string GetNullableString(NpgsqlDataReader reader, string columnName)
+    private static string GetUniversalString(NpgsqlDataReader reader, string columnName)
     {
         var ordinal = reader.GetOrdinal(columnName);
-        return reader.IsDBNull(ordinal) ? null : reader.GetString(ordinal);
+        if (reader.IsDBNull(ordinal)) return null;
+
+        var value = reader.GetValue(ordinal);
+        return value?.ToString();
     }
 
-    private static string GetNullableGuidAsString(NpgsqlDataReader reader, string columnName)
+    private static string GetNullableString(NpgsqlDataReader reader, string columnName)
     {
-        var ordinal = reader.GetOrdinal(columnName);
-        return reader.IsDBNull(ordinal) ? null : reader.GetGuid(ordinal).ToString();
+        return GetUniversalString(reader, columnName);
     }
 }
