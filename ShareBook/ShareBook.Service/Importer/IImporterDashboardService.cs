@@ -7,5 +7,5 @@ namespace ShareBook.Service.Importer;
 public interface IImporterDashboardService
 {
     Task<ImporterDashboardDTO> GetDashboardAsync(CancellationToken cancellationToken = default);
-    Task<ImporterQueueItemsPageDTO> GetItemsAsync(int? sourceId, string status, int? position, int page, int pageSize, CancellationToken cancellationToken = default);
+    Task<ImporterQueueItemsPageDTO> GetItemsAsync(int? sourceId, string status, int? position, string sort, int page, int pageSize, CancellationToken cancellationToken = default);
 }

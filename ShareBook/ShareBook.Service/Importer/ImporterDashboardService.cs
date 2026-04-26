@@ -179,7 +179,7 @@ ORDER BY ss.source_id;
         return result;
     }
 
-    public async Task<ImporterQueueItemsPageDTO> GetItemsAsync(int? sourceId, string status, int? position, int page, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<ImporterQueueItemsPageDTO> GetItemsAsync(int? sourceId, string status, int? position, string sort, int page, int pageSize, CancellationToken cancellationToken = default)
     {
         var connectionString = _configuration.GetConnectionString("ImporterPostgresConnection");
         if (string.IsNullOrWhiteSpace(connectionString))
@@ -188,6 +188,12 @@ ORDER BY ss.source_id;
         var normalizedStatus = string.IsNullOrWhiteSpace(status) ? null : status.Trim().ToLowerInvariant();
         if (normalizedStatus is not null && !ValidStatuses.Contains(normalizedStatus))
             throw new ArgumentException("Status inválido para fila do importador.", nameof(status));
+
+        var orderBySql = sort?.ToLowerInvariant() switch
+        {
+            "position_asc" => "ORDER BY q.position ASC, q.id ASC",
+            _ => "ORDER BY q.updated_at DESC, q.id DESC"
+        };
 
         var safePage = Math.Max(page, 1);
         var safePageSize = Math.Min(Math.Max(pageSize, 1), 200);
@@ -234,7 +240,7 @@ SELECT
 FROM importer.queue_items q
 JOIN importer.sources s ON s.id = q.source_id
 {whereSql}
-ORDER BY q.updated_at DESC, q.id DESC
+{orderBySql}
 LIMIT @limit OFFSET @offset;
 ";
 
