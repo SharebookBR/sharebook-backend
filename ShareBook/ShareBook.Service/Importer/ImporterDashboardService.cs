@@ -1,16 +1,20 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 using ShareBook.Domain.DTOs;
+using ShareBook.Repository;
 
 namespace ShareBook.Service.Importer;
 
 public class ImporterDashboardService : IImporterDashboardService
 {
     private readonly IConfiguration _configuration;
+    private readonly IBookRepository _bookRepository;
+
     private static readonly ISet<string> ValidStatuses = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
         "waiting_triage",
@@ -27,9 +31,10 @@ public class ImporterDashboardService : IImporterDashboardService
         "error"
     };
 
-    public ImporterDashboardService(IConfiguration configuration)
+    public ImporterDashboardService(IConfiguration configuration, IBookRepository bookRepository)
     {
         _configuration = configuration;
+        _bookRepository = bookRepository;
     }
 
     public async Task<ImporterDashboardDTO> GetDashboardAsync(CancellationToken cancellationToken = default)
@@ -234,13 +239,11 @@ SELECT
     q.attempts,
     q.last_error,
     q.sharebook_book_id,
-    b.""Slug"" AS book_slug,
     q.metadata_json,
     q.created_at,
     q.updated_at
 FROM importer.queue_items q
 JOIN importer.sources s ON s.id = q.source_id
-LEFT JOIN public.""Books"" b ON b.""Id"" = q.sharebook_book_id
 {whereSql}
 {orderBySql}
 LIMIT @limit OFFSET @offset;
@@ -286,7 +289,6 @@ LIMIT @limit OFFSET @offset;
                     Attempts = reader.GetInt32(reader.GetOrdinal("attempts")),
                     LastError = GetUniversalString(reader, "last_error"),
                     SharebookBookId = GetUniversalString(reader, "sharebook_book_id"),
-                    BookSlug = GetUniversalString(reader, "book_slug"),
                     MetadataJson = GetUniversalString(reader, "metadata_json"),
                     CreatedAt = reader.GetDateTime(reader.GetOrdinal("created_at")),
                     UpdatedAt = reader.GetDateTime(reader.GetOrdinal("updated_at")),
@@ -294,7 +296,33 @@ LIMIT @limit OFFSET @offset;
             }
         }
 
+        await EnrichWithBookSlugsAsync(result.Items);
+
         return result;
+    }
+
+    private async Task EnrichWithBookSlugsAsync(IList<ImporterQueueItemDTO> items)
+    {
+        var bookIds = items
+            .Where(x => !string.IsNullOrWhiteSpace(x.SharebookBookId))
+            .Select(x => Guid.Parse(x.SharebookBookId))
+            .Distinct()
+            .ToList();
+
+        if (!bookIds.Any()) return;
+
+        var books = await _bookRepository.GetAsync(x => bookIds.Contains(x.Id));
+        var slugMap = books.ToDictionary(x => x.Id, x => x.Slug);
+
+        foreach (var item in items)
+        {
+            if (!string.IsNullOrWhiteSpace(item.SharebookBookId) &&
+                Guid.TryParse(item.SharebookBookId, out var bookId) &&
+                slugMap.TryGetValue(bookId, out var slug))
+            {
+                item.BookSlug = slug;
+            }
+        }
     }
 
     private static void AddItemFilterParameters(NpgsqlCommand command, int? sourceId, string status, int? position)
