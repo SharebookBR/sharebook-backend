@@ -99,6 +99,20 @@ namespace ShareBook.Test.Unit.Services
         }
 
         [Fact]
+        public async Task VerifyEmailEbookWaitingApprovalParse()
+        {
+            book.Type = global::ShareBook.Domain.Enums.BookType.Eletronic;
+
+            var result = await emailTemplate.GenerateHtmlFromTemplateAsync("EbookWaitingApprovalTemplate", book);
+
+            Assert.Contains("<title>Aguarde aprovação do livro digital - Sharebook</title>", result);
+            Assert.Contains("Nossa equipe já está revisando o livro digital Lord of the Rings", result);
+            Assert.Contains("Assim que ele for aprovado, sua obra ficará disponível no Sharebook.", result);
+            Assert.DoesNotContain("vitrine", result);
+            Assert.DoesNotContain("outras pessoas possam visualizar", result);
+        }
+
+        [Fact]
         public async Task VerifyEmailContactUsNotificationParse()
         {
 

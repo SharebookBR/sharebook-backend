@@ -13,6 +13,7 @@ namespace ShareBook.Service
         private const string NewBookInsertedTemplate = "NewBookInsertedTemplate";
         private const string NewBookInsertedTitle = "Novo livro incluído - Sharebook";
         private const string WaitingApprovalTemplate = "WaitingApprovalTemplate";
+        private const string EbookWaitingApprovalTemplate = "EbookWaitingApprovalTemplate";
         private const string WaitingApprovalTitle = "Aguarde aprovação do livro - Sharebook";
         private const string BookApprovedTemplate = "BookApprovedTemplate";
         private const string EbookApprovedTemplate = "EbookApprovedTemplate";
@@ -104,7 +105,8 @@ namespace ShareBook.Service
         {
             if (book.User.AllowSendingEmail)
             {
-                var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(WaitingApprovalTemplate, book);
+                var templateName = book.IsEbook() ? EbookWaitingApprovalTemplate : WaitingApprovalTemplate;
+                var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(templateName, book);
 
                 await _emailService.SendAsync(book.User.Email, book.User.Name, html, WaitingApprovalTitle, copyAdmins: false, highPriority: true);
             }
