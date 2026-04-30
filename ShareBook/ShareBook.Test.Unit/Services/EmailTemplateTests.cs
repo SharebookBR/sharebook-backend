@@ -77,6 +77,28 @@ namespace ShareBook.Test.Unit.Services
         }
 
         [Fact]
+        public async Task VerifyEmailEbookApprovedParse()
+        {
+            book.Type = global::ShareBook.Domain.Enums.BookType.Eletronic;
+
+            var vm = new
+            {
+                Book = book,
+                book.User,
+                ChooseDate = book.ChooseDate?.ToString("dd/MM/yyyy")
+            };
+
+            var result = await emailTemplate.GenerateHtmlFromTemplateAsync("EbookApprovedTemplate", vm);
+
+            Assert.Contains("<title>Livro digital aprovado - Sharebook</title>", result);
+            Assert.Contains("Olá Rodrigo", result);
+            Assert.Contains("O livro digital Lord of the Rings foi aprovado e já está disponível no Sharebook.", result);
+            Assert.Contains("Agora os leitores já podem acessar e baixar sua obra pela plataforma.", result);
+            Assert.DoesNotContain("ganhador", result);
+            Assert.DoesNotContain("vitrine para doação", result);
+        }
+
+        [Fact]
         public async Task VerifyEmailContactUsNotificationParse()
         {
 
