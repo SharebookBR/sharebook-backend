@@ -30,6 +30,8 @@ namespace ShareBook.Service
 
         Task<int> GetAvailableEBooksCountAsync();
 
+        Task<int> GetRecentEBooksCountAsync(int days = 7);
+
         Task<AdminBooksResultDTO> GetAdminBooksAsync(
             int page,
             int itemsPerPage,

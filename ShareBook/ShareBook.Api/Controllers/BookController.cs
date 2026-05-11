@@ -259,6 +259,13 @@ namespace ShareBook.Api.Controllers
             return Ok(new { total });
         }
 
+        [HttpGet("RecentEBooksCount")]
+        public async Task<IActionResult> RecentEBooksCountAsync([FromQuery] int days = 7)
+        {
+            var total = await _service.GetRecentEBooksCountAsync(days);
+            return Ok(new { total });
+        }
+
         [HttpGet("FullSearch/{criteria}/{page}/{items}")]
         public async Task<PagedList<BookVM>> FullSearchAsync(string criteria, int page, int items)
         {
