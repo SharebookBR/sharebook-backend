@@ -149,10 +149,16 @@ public class NewEbookWeeklyDigest : GenericJob, IJob
             var unsubscribeToken = _userService.GenerateUnsubscribeToken(entry.User.Id);
             var unsubscribeUrl = $"{frontendUrl}/descadastrar?userId={entry.User.Id}&token={unsubscribeToken}";
 
+            var ebookCount = selectedEbooks.Count;
+            var ebookCountMsg = ebookCount == 1
+                ? "Separei 1 livro digital esta semana para você."
+                : $"Separei {ebookCount} livros digitais esta semana para você.";
+
             var vm = new
             {
                 Name = "{name}",
-                EbookCount = selectedEbooks.Count,
+                EbookCount = ebookCount,
+                EbookCountMessage = ebookCountMsg,
                 EbookListHtml = ebookListHtml,
                 AdditionalEbooksMessage = additionalEbooksMessage,
                 FrontendUrl = frontendUrl,
