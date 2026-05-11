@@ -54,5 +54,12 @@ namespace ShareBook.Api.Controllers
 
             return Ok(_mapper.Map<CategoryVM>(category));
         }
+
+        [HttpGet("Counts")]
+        public async Task<IActionResult> GetCategoriesWithCountsAsync()
+        {
+            var categories = await ((ICategoryService)_service).GetCategoriesWithCountsAsync();
+            return Ok(_mapper.Map<IEnumerable<CategoryVM>>(categories));
+        }
     }
 }

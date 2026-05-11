@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ShareBook.Domain
 {
@@ -14,5 +15,8 @@ namespace ShareBook.Domain
         public Category ParentCategory { get; set; }
 
         public ICollection<Category> Children { get; set; } = new List<Category>();
+
+        [NotMapped]
+        public int TotalBooks { get; set; }
     }
 }

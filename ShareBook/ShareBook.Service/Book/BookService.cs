@@ -629,15 +629,45 @@ namespace ShareBook.Service
             return await SearchBooksAsync(filter, page, itemsPerPage);
         }
 
-        public async Task<PagedList<Book>> ByCategoryIdAsync(Guid categoryId, int page, int itemsPerPage)
-            => await SearchBooksAsync(x => x.Status == BookStatus.Available && x.CategoryId == categoryId, page, itemsPerPage);
+        public async Task<CategoryBooksResultDTO> ByCategoryIdAsync(Guid categoryId, int page, int itemsPerPage)
+        {
+            var query = _repository.Get()
+                .Where(x => x.Status == BookStatus.Available && x.CategoryId == categoryId);
 
-        public async Task<PagedList<Book>> ByCategoryTreeIdAsync(Guid categoryId, int page, int itemsPerPage)
-            => await SearchBooksAsync(
-                x => x.Status == BookStatus.Available
-                    && (x.CategoryId == categoryId || x.Category.ParentCategoryId == categoryId),
-                page,
-                itemsPerPage);
+            return await FormatCategoryBooksResultAsync(query, page, itemsPerPage);
+        }
+
+        public async Task<CategoryBooksResultDTO> ByCategoryTreeIdAsync(Guid categoryId, int page, int itemsPerPage)
+        {
+            var query = _repository.Get()
+                .Where(x => x.Status == BookStatus.Available
+                    && (x.CategoryId == categoryId || x.Category.ParentCategoryId == categoryId));
+
+            return await FormatCategoryBooksResultAsync(query, page, itemsPerPage);
+        }
+
+        private async Task<CategoryBooksResultDTO> FormatCategoryBooksResultAsync(IQueryable<Book> query, int page, int itemsPerPage)
+        {
+            var totalItems = await query.CountAsync();
+            var physicalCount = await query.CountAsync(x => x.Type == BookType.Printed);
+            var ebooksCount = await query.CountAsync(x => x.Type == BookType.Eletronic);
+
+            var items = await query
+                .OrderByDescending(x => x.CreationDate)
+                .Skip((page - 1) * itemsPerPage)
+                .Take(itemsPerPage)
+                .ToListAsync();
+
+            return new CategoryBooksResultDTO
+            {
+                Page = page,
+                ItemsPerPage = itemsPerPage,
+                TotalItems = totalItems,
+                PhysicalBooksCount = physicalCount,
+                EbooksCount = ebooksCount,
+                Items = SetImageUrl(items)
+            };
+        }
 
         public async Task<Book> BySlugAsync(string slug)
         {

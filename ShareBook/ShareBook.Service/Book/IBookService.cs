@@ -40,9 +40,9 @@ namespace ShareBook.Service
 
         Task<PagedList<Book>> FullSearchAsync(string criteria, int page, int itemsPerPage, bool isAdmin = false);
 
-        Task<PagedList<Book>> ByCategoryIdAsync(Guid categoryId, int page, int items);
+        Task<CategoryBooksResultDTO> ByCategoryIdAsync(Guid categoryId, int page, int items);
 
-        Task<PagedList<Book>> ByCategoryTreeIdAsync(Guid categoryId, int page, int items);
+        Task<CategoryBooksResultDTO> ByCategoryTreeIdAsync(Guid categoryId, int page, int items);
 
         Task<IList<Book>> GetAllAsync(int page, int items);
 

@@ -10,6 +10,7 @@ namespace ShareBook.Api.ViewModels
         public string Name { get; set; }
         public Guid? ParentCategoryId { get; set; }
         public string ParentCategoryName { get; set; }
+        public int TotalBooks { get; set; }
         public IList<CategoryVM> Children { get; set; } = new List<CategoryVM>();
     }
 }

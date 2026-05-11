@@ -283,33 +283,35 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpGet("Category/{categoryId}/{page}/{items}")]
-        public async Task<PagedList<BookVM>> ByCategoryIdAsync(Guid categoryId, int page, int items)
+        public async Task<CategoryBooksVM> ByCategoryIdAsync(Guid categoryId, int page, int items)
         {
-            var booksPaged = await _service.ByCategoryIdAsync(categoryId, page, items);
-            var books = booksPaged.Items;
-            var booksVM = _mapper.Map<List<BookVM>>(books);
+            var result = await _service.ByCategoryIdAsync(categoryId, page, items);
+            var booksVM = _mapper.Map<List<BookVM>>(result.Items);
 
-            return new PagedList<BookVM>()
+            return new CategoryBooksVM()
             {
                 Page = page,
                 ItemsPerPage = items,
-                TotalItems = booksPaged.TotalItems,
+                TotalItems = result.TotalItems,
+                PhysicalBooksCount = result.PhysicalBooksCount,
+                EbooksCount = result.EbooksCount,
                 Items = booksVM
             };
         }
 
         [HttpGet("CategoryTree/{categoryId}/{page}/{items}")]
-        public async Task<PagedList<BookVM>> ByCategoryTreeIdAsync(Guid categoryId, int page, int items)
+        public async Task<CategoryBooksVM> ByCategoryTreeIdAsync(Guid categoryId, int page, int items)
         {
-            var booksPaged = await _service.ByCategoryTreeIdAsync(categoryId, page, items);
-            var books = booksPaged.Items;
-            var booksVM = _mapper.Map<List<BookVM>>(books);
+            var result = await _service.ByCategoryTreeIdAsync(categoryId, page, items);
+            var booksVM = _mapper.Map<List<BookVM>>(result.Items);
 
-            return new PagedList<BookVM>()
+            return new CategoryBooksVM()
             {
                 Page = page,
                 ItemsPerPage = items,
-                TotalItems = booksPaged.TotalItems,
+                TotalItems = result.TotalItems,
+                PhysicalBooksCount = result.PhysicalBooksCount,
+                EbooksCount = result.EbooksCount,
                 Items = booksVM
             };
         }
