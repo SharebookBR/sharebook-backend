@@ -39,6 +39,11 @@ public class ImporterQueueItemDTO
     public string BookSlug { get; set; }
     public string BookImageSlug { get; set; }
     public string MetadataJson { get; set; }
+    public string PlannedSynopsis { get; set; }
+    public string PlannedCoverMode { get; set; }
+    public string PlannedCoverUrl { get; set; }
+    public string PlannedBy { get; set; }
+    public DateTime? PlannedAt { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

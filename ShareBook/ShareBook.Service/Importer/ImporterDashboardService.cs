@@ -239,6 +239,11 @@ SELECT
     q.last_error,
     q.sharebook_book_id,
     q.metadata_json,
+    q.planned_synopsis,
+    q.planned_cover_mode,
+    q.planned_cover_url,
+    q.planned_by,
+    q.planned_at,
     q.created_at,
     q.updated_at
 FROM importer.queue_items q
@@ -288,6 +293,11 @@ LIMIT @limit OFFSET @offset;
                     LastError = GetUniversalString(reader, "last_error"),
                     SharebookBookId = GetUniversalString(reader, "sharebook_book_id"),
                     MetadataJson = GetUniversalString(reader, "metadata_json"),
+                    PlannedSynopsis = GetUniversalString(reader, "planned_synopsis"),
+                    PlannedCoverMode = GetUniversalString(reader, "planned_cover_mode"),
+                    PlannedCoverUrl = GetUniversalString(reader, "planned_cover_url"),
+                    PlannedBy = GetUniversalString(reader, "planned_by"),
+                    PlannedAt = reader.IsDBNull(reader.GetOrdinal("planned_at")) ? null : reader.GetDateTime(reader.GetOrdinal("planned_at")),
                     CreatedAt = reader.GetDateTime(reader.GetOrdinal("created_at")),
                     UpdatedAt = reader.GetDateTime(reader.GetOrdinal("updated_at")),
                 });
