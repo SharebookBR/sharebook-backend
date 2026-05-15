@@ -181,7 +181,7 @@ ORDER BY ss.source_id;
         return result;
     }
 
-    public async Task<ImporterQueueItemsPageDTO> GetItemsAsync(int? sourceId, string status, string sort, int page, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<ImporterQueueItemsPageDTO> GetItemsAsync(int? sourceId, string status, int? id, string title, string sort, int page, int pageSize, CancellationToken cancellationToken = default)
     {
         var connectionString = _configuration.GetConnectionString("ImporterPostgresConnection");
         if (string.IsNullOrWhiteSpace(connectionString))
@@ -207,6 +207,12 @@ ORDER BY ss.source_id;
 
         if (normalizedStatus is not null)
             where.Add("q.status = @status");
+
+        if (id.HasValue)
+            where.Add("q.id = @id");
+
+        if (!string.IsNullOrWhiteSpace(title))
+            where.Add("q.title ILIKE @title");
 
         var whereSql = where.Count > 0 ? $"WHERE {string.Join(" AND ", where)}" : string.Empty;
 
@@ -253,13 +259,13 @@ LIMIT @limit OFFSET @offset;
 
         await using (var countCmd = new NpgsqlCommand(countSql, conn))
         {
-            AddItemFilterParameters(countCmd, sourceId, normalizedStatus);
+            AddItemFilterParameters(countCmd, sourceId, normalizedStatus, id, title);
             result.TotalItems = Convert.ToInt32(await countCmd.ExecuteScalarAsync(cancellationToken));
         }
 
         await using (var itemsCmd = new NpgsqlCommand(itemsSql, conn))
         {
-            AddItemFilterParameters(itemsCmd, sourceId, normalizedStatus);
+            AddItemFilterParameters(itemsCmd, sourceId, normalizedStatus, id, title);
             itemsCmd.Parameters.AddWithValue("limit", safePageSize);
             itemsCmd.Parameters.AddWithValue("offset", offset);
 
@@ -318,13 +324,19 @@ LIMIT @limit OFFSET @offset;
         }
     }
 
-    private static void AddItemFilterParameters(NpgsqlCommand command, int? sourceId, string status)
+    private static void AddItemFilterParameters(NpgsqlCommand command, int? sourceId, string status, int? id, string title)
     {
         if (sourceId.HasValue)
             command.Parameters.AddWithValue("source_id", sourceId.Value);
 
         if (status is not null)
             command.Parameters.AddWithValue("status", status);
+
+        if (id.HasValue)
+            command.Parameters.AddWithValue("id", id.Value);
+
+        if (!string.IsNullOrWhiteSpace(title))
+            command.Parameters.AddWithValue("title", $"%{title.Trim()}%");
     }
 
     private static string GetUniversalString(NpgsqlDataReader reader, string columnName)
