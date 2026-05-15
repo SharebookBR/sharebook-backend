@@ -26,7 +26,6 @@ public class ImporterQueueItemDTO
     public int Id { get; set; }
     public int SourceId { get; set; }
     public string SourceName { get; set; }
-    public int Position { get; set; }
     public string Title { get; set; }
     public string Author { get; set; }
     public string SourceUrl { get; set; }
@@ -64,7 +63,6 @@ public class ImporterSourceStatusDTO
     public int Error { get; set; }
     public int TriageRejected { get; set; }
     public string NextItemTitle { get; set; }
-    public int? NextItemPosition { get; set; }
     public string NextItemStatus { get; set; }
     public DateTime? LastRunAt { get; set; }
     public string LastRunStatus { get; set; }

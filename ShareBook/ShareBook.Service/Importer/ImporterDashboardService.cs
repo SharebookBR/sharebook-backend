@@ -70,12 +70,11 @@ WITH source_status AS (
 next_items AS (
     SELECT DISTINCT ON (source_id)
         source_id,
-        position,
         title,
         status
     FROM importer.queue_items
     WHERE status IN ('waiting_triage', 'triaging', 'waiting_editor', 'editing', 'waiting_process', 'processing', 'retry_later', 'error')
-    ORDER BY source_id, position ASC
+    ORDER BY source_id, id ASC
 ),
 global_last_run AS (
     SELECT
@@ -115,7 +114,6 @@ SELECT
     ss.source_blocked,
     ss.duplicate,
     ss.error,
-    ni.position AS next_item_position,
     ni.title AS next_item_title,
     ni.status AS next_item_status,
     slr.started_at AS last_run_at,
@@ -169,7 +167,6 @@ ORDER BY ss.source_id;
                 SourceBlocked = reader.GetInt32(reader.GetOrdinal("source_blocked")),
                 Duplicate = reader.GetInt32(reader.GetOrdinal("duplicate")),
                 Error = reader.GetInt32(reader.GetOrdinal("error")),
-                NextItemPosition = reader.IsDBNull(reader.GetOrdinal("next_item_position")) ? null : reader.GetInt32(reader.GetOrdinal("next_item_position")),
                 NextItemTitle = reader.IsDBNull(reader.GetOrdinal("next_item_title")) ? null : reader.GetString(reader.GetOrdinal("next_item_title")),
                 NextItemStatus = reader.IsDBNull(reader.GetOrdinal("next_item_status")) ? null : reader.GetString(reader.GetOrdinal("next_item_status")),
                 LastRunAt = reader.IsDBNull(reader.GetOrdinal("last_run_at")) ? null : reader.GetDateTime(reader.GetOrdinal("last_run_at")),
@@ -184,7 +181,7 @@ ORDER BY ss.source_id;
         return result;
     }
 
-    public async Task<ImporterQueueItemsPageDTO> GetItemsAsync(int? sourceId, string status, int? position, string sort, int page, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<ImporterQueueItemsPageDTO> GetItemsAsync(int? sourceId, string status, string sort, int page, int pageSize, CancellationToken cancellationToken = default)
     {
         var connectionString = _configuration.GetConnectionString("ImporterPostgresConnection");
         if (string.IsNullOrWhiteSpace(connectionString))
@@ -196,7 +193,7 @@ ORDER BY ss.source_id;
 
         var orderBySql = sort?.ToLowerInvariant() switch
         {
-            "position_asc" => "ORDER BY q.position ASC, q.id ASC",
+            "id_asc" => "ORDER BY q.id ASC",
             _ => "ORDER BY q.updated_at DESC, q.id DESC"
         };
 
@@ -210,9 +207,6 @@ ORDER BY ss.source_id;
 
         if (normalizedStatus is not null)
             where.Add("q.status = @status");
-
-        if (position.HasValue)
-            where.Add("q.position = @position");
 
         var whereSql = where.Count > 0 ? $"WHERE {string.Join(" AND ", where)}" : string.Empty;
 
@@ -228,7 +222,6 @@ SELECT
     q.id,
     q.source_id,
     s.name AS source_name,
-    q.position,
     q.title,
     q.author,
     q.source_url,
@@ -260,13 +253,13 @@ LIMIT @limit OFFSET @offset;
 
         await using (var countCmd = new NpgsqlCommand(countSql, conn))
         {
-            AddItemFilterParameters(countCmd, sourceId, normalizedStatus, position);
+            AddItemFilterParameters(countCmd, sourceId, normalizedStatus);
             result.TotalItems = Convert.ToInt32(await countCmd.ExecuteScalarAsync(cancellationToken));
         }
 
         await using (var itemsCmd = new NpgsqlCommand(itemsSql, conn))
         {
-            AddItemFilterParameters(itemsCmd, sourceId, normalizedStatus, position);
+            AddItemFilterParameters(itemsCmd, sourceId, normalizedStatus);
             itemsCmd.Parameters.AddWithValue("limit", safePageSize);
             itemsCmd.Parameters.AddWithValue("offset", offset);
 
@@ -278,7 +271,6 @@ LIMIT @limit OFFSET @offset;
                     Id = reader.GetInt32(reader.GetOrdinal("id")),
                     SourceId = reader.GetInt32(reader.GetOrdinal("source_id")),
                     SourceName = reader.GetString(reader.GetOrdinal("source_name")),
-                    Position = reader.GetInt32(reader.GetOrdinal("position")),
                     Title = reader.GetString(reader.GetOrdinal("title")),
                     Author = GetUniversalString(reader, "author"),
                     SourceUrl = reader.GetString(reader.GetOrdinal("source_url")),
@@ -326,16 +318,13 @@ LIMIT @limit OFFSET @offset;
         }
     }
 
-    private static void AddItemFilterParameters(NpgsqlCommand command, int? sourceId, string status, int? position)
+    private static void AddItemFilterParameters(NpgsqlCommand command, int? sourceId, string status)
     {
         if (sourceId.HasValue)
             command.Parameters.AddWithValue("source_id", sourceId.Value);
 
         if (status is not null)
             command.Parameters.AddWithValue("status", status);
-
-        if (position.HasValue)
-            command.Parameters.AddWithValue("position", position.Value);
     }
 
     private static string GetUniversalString(NpgsqlDataReader reader, string columnName)
