@@ -358,6 +358,28 @@ LIMIT @limit OFFSET @offset;
         return value?.ToString();
     }
 
+    public async Task<string> GetEditorialPromptAsync(string sourceName, CancellationToken cancellationToken = default)
+    {
+        var connectionString = _configuration.GetConnectionString("ImporterPostgresConnection");
+        await using var conn = new NpgsqlConnection(connectionString);
+        await conn.OpenAsync(cancellationToken);
+        await using var cmd = new NpgsqlCommand("SELECT editorial_prompt FROM importer.sources WHERE name = @name", conn);
+        cmd.Parameters.AddWithValue("name", sourceName);
+        var result = await cmd.ExecuteScalarAsync(cancellationToken);
+        return result is DBNull ? null : result?.ToString();
+    }
+
+    public async Task UpdateEditorialPromptAsync(string sourceName, string prompt, CancellationToken cancellationToken = default)
+    {
+        var connectionString = _configuration.GetConnectionString("ImporterPostgresConnection");
+        await using var conn = new NpgsqlConnection(connectionString);
+        await conn.OpenAsync(cancellationToken);
+        await using var cmd = new NpgsqlCommand("UPDATE importer.sources SET editorial_prompt = @prompt WHERE name = @name", conn);
+        cmd.Parameters.AddWithValue("name", sourceName);
+        cmd.Parameters.AddWithValue("prompt", (object)prompt ?? DBNull.Value);
+        await cmd.ExecuteNonQueryAsync(cancellationToken);
+    }
+
     private static string GetNullableString(NpgsqlDataReader reader, string columnName)
     {
         return GetUniversalString(reader, columnName);

@@ -141,6 +141,30 @@ public class OperationsController : Controller
         return Ok(dashboard);
     }
 
+    [HttpGet("ImporterEditorialPrompt")]
+    [Authorize("Bearer")]
+    [AuthorizationFilter(Permissions.Permission.ApproveBook)] // adm
+    public async Task<IActionResult> GetImporterEditorialPromptAsync([FromQuery] string sourceName, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(sourceName))
+            return BadRequest("sourceName é obrigatório.");
+
+        var prompt = await _importerDashboardService.GetEditorialPromptAsync(sourceName, cancellationToken);
+        return Ok(new { sourceName, prompt });
+    }
+
+    [HttpPut("ImporterEditorialPrompt")]
+    [Authorize("Bearer")]
+    [AuthorizationFilter(Permissions.Permission.ApproveBook)] // adm
+    public async Task<IActionResult> UpdateImporterEditorialPromptAsync([FromBody] UpdateEditorialPromptVM vm, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(vm?.SourceName))
+            return BadRequest("sourceName é obrigatório.");
+
+        await _importerDashboardService.UpdateEditorialPromptAsync(vm.SourceName, vm.Prompt, cancellationToken);
+        return Ok();
+    }
+
     [HttpGet("ImporterItems")]
     [Authorize("Bearer")]
     [AuthorizationFilter(Permissions.Permission.ApproveBook)] // adm
