@@ -33,6 +33,8 @@ public class ImporterQueueItemDTO
     public string PlannedTitle { get; set; }
     public string PlannedAuthor { get; set; }
     public string PlannedCategoryId { get; set; }
+    public string PlannedCategoryName { get; set; }
+    public string PlannedCategoryParentName { get; set; }
     public int Attempts { get; set; }
     public string LastError { get; set; }
     public string SharebookBookId { get; set; }

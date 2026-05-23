@@ -5,8 +5,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
+using ShareBook.Domain;
 using ShareBook.Domain.DTOs;
 using ShareBook.Repository;
+using ShareBook.Repository.Repository;
 
 namespace ShareBook.Service.Importer;
 
@@ -14,6 +16,7 @@ public class ImporterDashboardService : IImporterDashboardService
 {
     private readonly IConfiguration _configuration;
     private readonly IBookRepository _bookRepository;
+    private readonly ICategoryRepository _categoryRepository;
 
     private static readonly ISet<string> ValidStatuses = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
@@ -31,10 +34,11 @@ public class ImporterDashboardService : IImporterDashboardService
         "error"
     };
 
-    public ImporterDashboardService(IConfiguration configuration, IBookRepository bookRepository)
+    public ImporterDashboardService(IConfiguration configuration, IBookRepository bookRepository, ICategoryRepository categoryRepository)
     {
         _configuration = configuration;
         _bookRepository = bookRepository;
+        _categoryRepository = categoryRepository;
     }
 
     public async Task<ImporterDashboardDTO> GetDashboardAsync(CancellationToken cancellationToken = default)
@@ -305,8 +309,41 @@ LIMIT @limit OFFSET @offset;
         }
 
         await EnrichWithBookSlugsAsync(result.Items);
+        await EnrichWithCategoryNamesAsync(result.Items);
 
         return result;
+    }
+
+    private async Task EnrichWithCategoryNamesAsync(IList<ImporterQueueItemDTO> items)
+    {
+        var categoryIds = items
+            .Where(x => !string.IsNullOrWhiteSpace(x.PlannedCategoryId))
+            .Select(x => Guid.Parse(x.PlannedCategoryId))
+            .Distinct()
+            .ToList();
+
+        if (!categoryIds.Any()) return;
+
+        // Busca as categorias filho com o pai carregado via Include
+        var categories = await _categoryRepository.GetAsync(
+            x => categoryIds.Contains(x.Id),
+            x => x.Id,
+            new IncludeList<Category>(x => x.ParentCategory));
+
+        var categoryMap = categories.Items.ToDictionary(
+            x => x.Id,
+            x => new { x.Name, ParentName = x.ParentCategory?.Name });
+
+        foreach (var item in items)
+        {
+            if (!string.IsNullOrWhiteSpace(item.PlannedCategoryId) &&
+                Guid.TryParse(item.PlannedCategoryId, out var catId) &&
+                categoryMap.TryGetValue(catId, out var catData))
+            {
+                item.PlannedCategoryName = catData.Name;
+                item.PlannedCategoryParentName = catData.ParentName;
+            }
+        }
     }
 
     private async Task EnrichWithBookSlugsAsync(IList<ImporterQueueItemDTO> items)
