@@ -628,68 +628,6 @@ namespace ShareBook.Api.Controllers
             return Ok(new Result("Report enviado. Obrigado pela colaboração."));
         }
 
-        [HttpGet("/share/livros/{slug}")]
-        [AllowAnonymous]
-        [ProducesResponseType(typeof(ContentResult), 200)]
-        [ProducesResponseType(302)]
-        [ProducesResponseType(404)]
-        public async Task<IActionResult> ShareLandingAsync(string slug)
-        {
-            var book = await _service.BySlugAsync(slug);
-            if (book == null) return NotFound("Livro não encontrado.");
-
-            var pageUrl = $"https://www.sharebook.com.br/livros/{book.Slug}";
-            var userAgent = Request?.Headers["User-Agent"].ToString() ?? string.Empty;
-            var isSocialCrawler = userAgent.Contains("facebookexternalhit", StringComparison.OrdinalIgnoreCase)
-                || userAgent.Contains("Facebot", StringComparison.OrdinalIgnoreCase)
-                || userAgent.Contains("WhatsApp", StringComparison.OrdinalIgnoreCase)
-                || userAgent.Contains("LinkedInBot", StringComparison.OrdinalIgnoreCase)
-                || userAgent.Contains("Twitterbot", StringComparison.OrdinalIgnoreCase)
-                || userAgent.Contains("Slackbot", StringComparison.OrdinalIgnoreCase)
-                || userAgent.Contains("Discordbot", StringComparison.OrdinalIgnoreCase);
-
-            if (!isSocialCrawler)
-            {
-                return Redirect(pageUrl);
-            }
-
-            var title = WebUtility.HtmlEncode($"{book.Title} | ShareBook");
-            var description = WebUtility.HtmlEncode(string.IsNullOrWhiteSpace(book.Synopsis)
-                ? $"Encontrei este livro grátis no ShareBook: {book.Title}."
-                : book.Synopsis.Length > 220 ? book.Synopsis.Substring(0, 220) + "..." : book.Synopsis);
-            var image = string.IsNullOrWhiteSpace(book.ImageUrl)
-                ? "https://www.sharebook.com.br/assets/img/sharebook-share.png"
-                : book.ImageUrl;
-
-            var html = $@"<!doctype html>
-<html lang='pt-BR'>
-<head>
-  <meta charset='utf-8' />
-  <meta name='viewport' content='width=device-width, initial-scale=1' />
-  <title>{title}</title>
-  <meta name='description' content='{description}' />
-  <meta property='og:type' content='article' />
-  <meta property='og:site_name' content='ShareBook' />
-  <meta property='og:title' content='{title}' />
-  <meta property='og:description' content='{description}' />
-  <meta property='og:image' content='{WebUtility.HtmlEncode(image)}' />
-  <meta property='og:url' content='{WebUtility.HtmlEncode(pageUrl)}' />
-  <meta property='og:image:secure_url' content='{WebUtility.HtmlEncode(image)}' />
-  <meta name='twitter:card' content='summary_large_image' />
-  <meta name='twitter:title' content='{title}' />
-  <meta name='twitter:description' content='{description}' />
-  <meta name='twitter:image' content='{WebUtility.HtmlEncode(image)}' />
-  <link rel='canonical' href='{WebUtility.HtmlEncode(pageUrl)}' />
-</head>
-<body>
-  <p>ShareBook</p>
-  <a href='{WebUtility.HtmlEncode(pageUrl)}'>Abrir livro</a>
-</body>
-</html>";
-
-            return Content(html, "text/html; charset=utf-8");
-        }
-
         [HttpGet("DownloadEBook/{slug}")]
         [AllowAnonymous]
         [ProducesResponseType(typeof(FileContentResult), 200)]
