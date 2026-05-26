@@ -106,7 +106,7 @@ public class GenericQueue<T> : IAwsSqsQueue<T>
         var deleteMessageRequest = new DeleteMessageRequest();
 
         deleteMessageRequest.QueueUrl = _queueUrl;
-        deleteMessageRequest.ReceiptHandle = receiptHandle + "aaa";
+        deleteMessageRequest.ReceiptHandle = receiptHandle;
 
         await _amazonSQSClient.DeleteMessageAsync(deleteMessageRequest);
     }
