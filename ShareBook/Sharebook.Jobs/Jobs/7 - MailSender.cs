@@ -70,7 +70,9 @@ public class MailSender : GenericJob, IJob
             return new JobHistory { JobName = JobName, IsSuccess = true, Details = String.Join("\n", _log) };
         }
 
-        _log.Add("SMTP liberado. Iniciando processamento normal.");
+        var highCount = await _sqsHighPriority.GetApproximateMessageCountAsync();
+        var lowCount = await _sqsLowPriority.GetApproximateMessageCountAsync();
+        _log.Add($"SMTP liberado. Mensagens na fila: {highCount + lowCount} (alta prioridade: {highCount}, baixa prioridade: {lowCount}).");
 
         var maxEmailsToSend = GetMaxEmailsToSend();
         var totalEmailsSent = 0;

@@ -10,5 +10,7 @@ namespace ShareBook.Service.AwsSqs
         Task<SharebookMessage<T>> GetMessageAsync();
 
         Task DeleteMessageAsync(string receiptHandle);
+
+        Task<int> GetApproximateMessageCountAsync();
     }
 }
