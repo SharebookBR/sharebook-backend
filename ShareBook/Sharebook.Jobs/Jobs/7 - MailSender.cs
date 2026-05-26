@@ -64,11 +64,13 @@ public class MailSender : GenericJob, IJob
 
         if (_cache.TryGetValue(RateLimitCacheKey, out int backoffCount))
         {
-            var msg = $"SMTP em backoff por rate limit (ciclo {backoffCount}/{MaxBackoffCycles}). Pulando ciclo.";
+            var msg = $"SMTP em backoff por rate limit (ciclo {backoffCount}/{MaxBackoffCycles}). Próxima tentativa após expirar o TTL. Pulando ciclo.";
             _log.Add(msg);
             Logger.LogWarning(msg);
             return new JobHistory { JobName = JobName, IsSuccess = true, Details = String.Join("\n", _log) };
         }
+
+        _log.Add("SMTP liberado. Iniciando processamento normal.");
 
         var maxEmailsToSend = GetMaxEmailsToSend();
         var totalEmailsSent = 0;
@@ -89,8 +91,9 @@ public class MailSender : GenericJob, IJob
             {
                 var newCount = Math.Min(backoffCount + 1, MaxBackoffCycles);
                 var ttl = TimeSpan.FromMinutes(CycleMinutes * newCount);
+                var retryAt = DateTime.Now.Add(ttl).ToString("HH:mm:ss");
                 _cache.Set(RateLimitCacheKey, newCount, ttl);
-                var msg = $"Rate limit SMTP detectado. Backoff ativado: {newCount} ciclo(s) ({ttl.TotalMinutes} min).";
+                var msg = $"Rate limit SMTP detectado. Backoff ativado: {newCount} ciclo(s) ({ttl.TotalMinutes} min). Próxima tentativa por volta de {retryAt}.";
                 _log.Add(msg);
                 Logger.LogWarning(msg);
                 break;
