@@ -151,6 +151,12 @@ public class EmailService : IEmailService
                 await client.DisconnectAsync(true, cts.Token);
             });
         }
+        catch (SmtpCommandException ex) when (ex.Message.Contains("Ratelimit"))
+        {
+            // Rate limit é um erro transitório e self-healing — não alarmamos aqui.
+            _logger.LogInformation("Rate limit SMTP ao tentar enviar para {Email}.", emailRecipient);
+            throw;
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Falha ao enviar e-mail para {Email} após 3 tentativas", emailRecipient);
