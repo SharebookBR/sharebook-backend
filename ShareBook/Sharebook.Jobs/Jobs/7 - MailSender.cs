@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using MailKit.Net.Smtp;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using ShareBook.Domain;
 using ShareBook.Domain.Enums;
@@ -17,10 +19,15 @@ namespace Sharebook.Jobs;
 
 public class MailSender : GenericJob, IJob
 {
+    private const string RateLimitCacheKey = "MailSender:SmtpRateLimit";
+    private const int CycleMinutes = 5;
+    private const int MaxBackoffCycles = 5;
+
     private readonly IEmailService _emailService;
     private readonly MailSenderHighPriorityQueue _sqsHighPriority;
     private readonly MailSenderLowPriorityQueue _sqsLowPriority;
-    private readonly  IConfiguration _configuration;
+    private readonly IConfiguration _configuration;
+    private readonly IMemoryCache _cache;
     private string _lastQueue;
     private IList<string> _log;
 
@@ -30,7 +37,8 @@ public class MailSender : GenericJob, IJob
         IEmailService emailService,
         MailSenderLowPriorityQueue sqsLowPriority,
         MailSenderHighPriorityQueue sqsHighPriority,
-        IConfiguration configuration) : base(jobHistoryRepo, loggerFactory)
+        IConfiguration configuration,
+        IMemoryCache cache) : base(jobHistoryRepo, loggerFactory)
     {
 
         JobName = "MailSender";
@@ -44,31 +52,55 @@ public class MailSender : GenericJob, IJob
         _sqsLowPriority = sqsLowPriority;
         _sqsHighPriority = sqsHighPriority;
         _configuration = configuration;
-        _log = new List<string>();       
+        _cache = cache;
+        _log = new List<string>();
     }
 
     public override async Task<JobHistory> WorkAsync()
     {
         AwsSqsEnabledValidation();
-        
+
+        _log = new List<string>();
+
+        if (_cache.TryGetValue(RateLimitCacheKey, out int backoffCount))
+        {
+            var msg = $"SMTP em backoff por rate limit (ciclo {backoffCount}/{MaxBackoffCycles}). Pulando ciclo.";
+            _log.Add(msg);
+            Logger.LogWarning(msg);
+            return new JobHistory { JobName = JobName, IsSuccess = true, Details = String.Join("\n", _log) };
+        }
+
         var maxEmailsToSend = GetMaxEmailsToSend();
         var totalEmailsSent = 0;
-        
-        _log = new List<string>() { $"Iniciando o MailSender. maxEmailsToSend = {maxEmailsToSend}" };
+        var rateLimitHit = false;
 
-        while(totalEmailsSent < maxEmailsToSend) {
+        _log.Add($"Iniciando o MailSender. maxEmailsToSend = {maxEmailsToSend}");
+
+        while (totalEmailsSent < maxEmailsToSend)
+        {
             var sqsMessage = await GetSqsMessageAsync();
 
-            // não tem mais emails pra enviar
-            if(sqsMessage == null) break;
+            if (sqsMessage == null) break;
 
-            totalEmailsSent += await SendEmailAsync(sqsMessage);
-            
+            (var sent, rateLimitHit) = await SendEmailAsync(sqsMessage);
+            totalEmailsSent += sent;
+
+            if (rateLimitHit)
+            {
+                var newCount = Math.Min(backoffCount + 1, MaxBackoffCycles);
+                var ttl = TimeSpan.FromMinutes(CycleMinutes * newCount);
+                _cache.Set(RateLimitCacheKey, newCount, ttl);
+                var msg = $"Rate limit SMTP detectado. Backoff ativado: {newCount} ciclo(s) ({ttl.TotalMinutes} min).";
+                _log.Add(msg);
+                Logger.LogWarning(msg);
+                break;
+            }
+
             await DeleteSqsMessageAsync(sqsMessage);
         }
 
         _log.Add($"Finalizando o MailSender. totalEmailsSent = {totalEmailsSent}");
-        
+
         return new JobHistory()
         {
             JobName = JobName,
@@ -77,38 +109,41 @@ public class MailSender : GenericJob, IJob
         };
     }
 
-    private async Task<int> SendEmailAsync(SharebookMessage<MailSenderbody> sqsMessage)
+    private async Task<(int sent, bool rateLimitHit)> SendEmailAsync(SharebookMessage<MailSenderbody> sqsMessage)
     {
         var destinations = sqsMessage.Body.Destinations;
         var subject = sqsMessage.Body.Subject;
         var bodyHtml = sqsMessage.Body.BodyHTML;
         var copyAdmins = sqsMessage.Body.CopyAdmins;
 
-        var emails = destinations.Select(x => x.Email).ToList();
-
         foreach (var destination in destinations)
         {
-            try {
-                if (!EmailAddressValidator.IsValid(destination.Email))
-                {
-                    Logger.LogWarning("Ignorando destinatário com email inválido: {Email}", destination.Email);
-                    _log.Add($"Não enviei email para {destination.Email} porque o endereço é inválido.");
-                    continue;
-                }
+            if (!EmailAddressValidator.IsValid(destination.Email))
+            {
+                Logger.LogWarning("Ignorando destinatário com email inválido: {Email}", destination.Email);
+                _log.Add($"Não enviei email para {destination.Email} porque o endereço é inválido.");
+                continue;
+            }
 
-                if (await _emailService.IsBounceAsync(destination.Email))
-                {
-                    _log.Add($"Não enviei email para {destination.Email} porque está em estado de BOUNCE.");
-                    continue;
-                }
+            if (await _emailService.IsBounceAsync(destination.Email))
+            {
+                _log.Add($"Não enviei email para {destination.Email} porque está em estado de BOUNCE.");
+                continue;
+            }
 
+            try
+            {
                 string firstName = GetFirstName(destination.Name);
                 var bodyHtml2 = bodyHtml.Replace("{name}", firstName, StringComparison.OrdinalIgnoreCase);
                 await _emailService.SendSmtpAsync(destination.Email, destination.Name, bodyHtml2, subject, copyAdmins);
-
                 _log.Add($"Enviei um email com SUCESSO para {destination.Email}.");
             }
-            catch(Exception ex) {
+            catch (SmtpCommandException ex) when (ex.Message.Contains("Ratelimit"))
+            {
+                return (0, true);
+            }
+            catch (Exception ex)
+            {
                 Logger.LogError(ex, "Erro ao enviar email para {Email}", destination.Email);
                 _log.Add($"Ocorreu um ERRO ao enviar email para {destination.Email}. Erro: {ex.Message}");
             }
@@ -116,8 +151,8 @@ public class MailSender : GenericJob, IJob
             // freio lógico
             Thread.Sleep(100);
         }
-        
-        return destinations.Count;
+
+        return (destinations.Count, false);
     }
 
     private static string GetFirstName(string fullName)

@@ -121,7 +121,8 @@ public class EmailService : IEmailService
                 MaxRetryAttempts = 2,
                 Delay = TimeSpan.FromSeconds(2),
                 BackoffType = DelayBackoffType.Exponential,
-                ShouldHandle = new PredicateBuilder().Handle<Exception>(),
+                ShouldHandle = new PredicateBuilder().Handle<Exception>(ex =>
+                    ex is not SmtpCommandException smtp || !smtp.Message.Contains("Ratelimit")),
                 OnRetry = args =>
                 {
                     _logger.LogWarning(args.Outcome.Exception,
