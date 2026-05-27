@@ -46,6 +46,7 @@ public class ImporterQueueItemDTO
     public string PlannedCoverUrl { get; set; }
     public string PlannedBy { get; set; }
     public DateTime? PlannedAt { get; set; }
+    public string AdminNotes { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

@@ -248,6 +248,7 @@ SELECT
     q.planned_cover_url,
     q.planned_by,
     q.planned_at,
+    q.admin_notes,
     q.created_at,
     q.updated_at
 FROM importer.queue_items q
@@ -302,6 +303,7 @@ LIMIT @limit OFFSET @offset;
                     PlannedCoverUrl = GetUniversalString(reader, "planned_cover_url"),
                     PlannedBy = GetUniversalString(reader, "planned_by"),
                     PlannedAt = reader.IsDBNull(reader.GetOrdinal("planned_at")) ? null : reader.GetDateTime(reader.GetOrdinal("planned_at")),
+                    AdminNotes = GetUniversalString(reader, "admin_notes"),
                     CreatedAt = reader.GetDateTime(reader.GetOrdinal("created_at")),
                     UpdatedAt = reader.GetDateTime(reader.GetOrdinal("updated_at")),
                 });
@@ -414,6 +416,17 @@ LIMIT @limit OFFSET @offset;
         await using var cmd = new NpgsqlCommand("UPDATE importer.sources SET editorial_prompt = @prompt WHERE name = @name", conn);
         cmd.Parameters.AddWithValue("name", sourceName);
         cmd.Parameters.AddWithValue("prompt", (object)prompt ?? DBNull.Value);
+        await cmd.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    public async Task UpdateAdminNotesAsync(int id, string notes, CancellationToken cancellationToken = default)
+    {
+        var connectionString = _configuration.GetConnectionString("ImporterPostgresConnection");
+        await using var conn = new NpgsqlConnection(connectionString);
+        await conn.OpenAsync(cancellationToken);
+        await using var cmd = new NpgsqlCommand("UPDATE importer.queue_items SET admin_notes = @notes WHERE id = @id", conn);
+        cmd.Parameters.AddWithValue("id", id);
+        cmd.Parameters.AddWithValue("notes", string.IsNullOrWhiteSpace(notes) ? (object)DBNull.Value : notes.Trim());
         await cmd.ExecuteNonQueryAsync(cancellationToken);
     }
 

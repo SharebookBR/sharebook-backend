@@ -165,6 +165,15 @@ public class OperationsController : Controller
         return Ok();
     }
 
+    [HttpPatch("ImporterItems/{id}/AdminNotes")]
+    [Authorize("Bearer")]
+    [AuthorizationFilter(Permissions.Permission.ApproveBook)] // adm
+    public async Task<IActionResult> UpdateImporterItemAdminNotesAsync(int id, [FromBody] UpdateImporterItemNotesVM vm, CancellationToken cancellationToken)
+    {
+        await _importerDashboardService.UpdateAdminNotesAsync(id, vm?.Notes, cancellationToken);
+        return Ok();
+    }
+
     [HttpGet("ImporterItems")]
     [Authorize("Bearer")]
     [AuthorizationFilter(Permissions.Permission.ApproveBook)] // adm
