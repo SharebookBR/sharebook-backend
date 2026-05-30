@@ -48,7 +48,38 @@ public class ImporterDashboardService : IImporterDashboardService
             throw new InvalidOperationException("ConnectionStrings:ImporterPostgresConnection não configurada.");
 
         const string sql = @"
-WITH source_status AS (
+WITH today_start AS (
+    SELECT date_trunc('day', NOW() AT TIME ZONE 'America/Sao_Paulo')
+             AT TIME ZONE 'America/Sao_Paulo' AS ts
+),
+yesterday_status AS (
+    SELECT DISTINCT ON (h.queue_item_id)
+        h.queue_item_id,
+        h.source_id,
+        h.to_status
+    FROM importer.queue_item_history h, today_start
+    WHERE h.changed_at < today_start.ts
+    ORDER BY h.queue_item_id, h.changed_at DESC
+),
+yesterday_counts AS (
+    SELECT
+        source_id,
+        COUNT(*) FILTER (WHERE to_status = 'done')            AS done_d1,
+        COUNT(*) FILTER (WHERE to_status = 'waiting_triage')  AS waiting_triage_d1,
+        COUNT(*) FILTER (WHERE to_status = 'triaging')        AS triaging_d1,
+        COUNT(*) FILTER (WHERE to_status = 'triage_rejected') AS triage_rejected_d1,
+        COUNT(*) FILTER (WHERE to_status = 'waiting_editor')  AS waiting_editor_d1,
+        COUNT(*) FILTER (WHERE to_status = 'editing')         AS editing_d1,
+        COUNT(*) FILTER (WHERE to_status = 'waiting_process') AS waiting_process_d1,
+        COUNT(*) FILTER (WHERE to_status = 'processing')      AS processing_d1,
+        COUNT(*) FILTER (WHERE to_status = 'retry_later')     AS retry_later_d1,
+        COUNT(*) FILTER (WHERE to_status = 'source_blocked')  AS source_blocked_d1,
+        COUNT(*) FILTER (WHERE to_status = 'duplicate')       AS duplicate_d1,
+        COUNT(*) FILTER (WHERE to_status = 'error')           AS error_d1
+    FROM yesterday_status
+    GROUP BY source_id
+),
+source_status AS (
     SELECT
         s.id AS source_id,
         s.name AS source_name,
@@ -125,11 +156,24 @@ SELECT
     slr.message AS last_run_message,
     glr.started_at AS global_last_run_at,
     glr.status AS global_last_run_status,
-    glr.message AS global_last_run_message
+    glr.message AS global_last_run_message,
+    yc.done_d1,
+    yc.waiting_triage_d1,
+    yc.triaging_d1,
+    yc.triage_rejected_d1,
+    yc.waiting_editor_d1,
+    yc.editing_d1,
+    yc.waiting_process_d1,
+    yc.processing_d1,
+    yc.retry_later_d1,
+    yc.source_blocked_d1,
+    yc.duplicate_d1,
+    yc.error_d1
 FROM source_status ss
 LEFT JOIN next_items ni ON ni.source_id = ss.source_id
 LEFT JOIN source_last_runs slr ON slr.source_id = ss.source_id
 LEFT JOIN global_last_run glr ON TRUE
+LEFT JOIN yesterday_counts yc ON yc.source_id = ss.source_id
 ORDER BY ss.source_id;
 ";
 
@@ -176,6 +220,18 @@ ORDER BY ss.source_id;
                 LastRunAt = reader.IsDBNull(reader.GetOrdinal("last_run_at")) ? null : reader.GetDateTime(reader.GetOrdinal("last_run_at")),
                 LastRunStatus = reader.IsDBNull(reader.GetOrdinal("last_run_status")) ? null : reader.GetString(reader.GetOrdinal("last_run_status")),
                 LastRunMessage = reader.IsDBNull(reader.GetOrdinal("last_run_message")) ? null : reader.GetString(reader.GetOrdinal("last_run_message")),
+                DoneD1 = reader.IsDBNull(reader.GetOrdinal("done_d1")) ? null : reader.GetInt32(reader.GetOrdinal("done_d1")),
+                WaitingTriageD1 = reader.IsDBNull(reader.GetOrdinal("waiting_triage_d1")) ? null : reader.GetInt32(reader.GetOrdinal("waiting_triage_d1")),
+                TriagingD1 = reader.IsDBNull(reader.GetOrdinal("triaging_d1")) ? null : reader.GetInt32(reader.GetOrdinal("triaging_d1")),
+                TriageRejectedD1 = reader.IsDBNull(reader.GetOrdinal("triage_rejected_d1")) ? null : reader.GetInt32(reader.GetOrdinal("triage_rejected_d1")),
+                WaitingEditorD1 = reader.IsDBNull(reader.GetOrdinal("waiting_editor_d1")) ? null : reader.GetInt32(reader.GetOrdinal("waiting_editor_d1")),
+                EditingD1 = reader.IsDBNull(reader.GetOrdinal("editing_d1")) ? null : reader.GetInt32(reader.GetOrdinal("editing_d1")),
+                WaitingProcessD1 = reader.IsDBNull(reader.GetOrdinal("waiting_process_d1")) ? null : reader.GetInt32(reader.GetOrdinal("waiting_process_d1")),
+                ProcessingD1 = reader.IsDBNull(reader.GetOrdinal("processing_d1")) ? null : reader.GetInt32(reader.GetOrdinal("processing_d1")),
+                RetryLaterD1 = reader.IsDBNull(reader.GetOrdinal("retry_later_d1")) ? null : reader.GetInt32(reader.GetOrdinal("retry_later_d1")),
+                SourceBlockedD1 = reader.IsDBNull(reader.GetOrdinal("source_blocked_d1")) ? null : reader.GetInt32(reader.GetOrdinal("source_blocked_d1")),
+                DuplicateD1 = reader.IsDBNull(reader.GetOrdinal("duplicate_d1")) ? null : reader.GetInt32(reader.GetOrdinal("duplicate_d1")),
+                ErrorD1 = reader.IsDBNull(reader.GetOrdinal("error_d1")) ? null : reader.GetInt32(reader.GetOrdinal("error_d1")),
             };
 
             result.TotalItems += item.TotalItems;

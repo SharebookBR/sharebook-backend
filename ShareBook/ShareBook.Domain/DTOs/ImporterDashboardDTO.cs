@@ -75,4 +75,17 @@ public class ImporterSourceStatusDTO
     public DateTime? LastRunAt { get; set; }
     public string LastRunStatus { get; set; }
     public string LastRunMessage { get; set; }
+    // D-1 counts (null = sem histórico ainda)
+    public int? DoneD1 { get; set; }
+    public int? WaitingTriageD1 { get; set; }
+    public int? TriagingD1 { get; set; }
+    public int? WaitingEditorD1 { get; set; }
+    public int? EditingD1 { get; set; }
+    public int? WaitingProcessD1 { get; set; }
+    public int? ProcessingD1 { get; set; }
+    public int? RetryLaterD1 { get; set; }
+    public int? SourceBlockedD1 { get; set; }
+    public int? DuplicateD1 { get; set; }
+    public int? ErrorD1 { get; set; }
+    public int? TriageRejectedD1 { get; set; }
 }
