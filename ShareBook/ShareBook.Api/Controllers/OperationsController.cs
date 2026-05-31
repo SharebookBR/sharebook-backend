@@ -174,6 +174,15 @@ public class OperationsController : Controller
         return Ok();
     }
 
+    [HttpGet("ImporterItems/{id}/History")]
+    [Authorize("Bearer")]
+    [AuthorizationFilter(Permissions.Permission.ApproveBook)] // adm
+    public async Task<IActionResult> GetImporterItemHistoryAsync(int id, CancellationToken cancellationToken)
+    {
+        var history = await _importerDashboardService.GetItemHistoryAsync(id, cancellationToken);
+        return Ok(history);
+    }
+
     [HttpGet("ImporterItems")]
     [Authorize("Bearer")]
     [AuthorizationFilter(Permissions.Permission.ApproveBook)] // adm

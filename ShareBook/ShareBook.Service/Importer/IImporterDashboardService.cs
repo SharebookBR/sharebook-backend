@@ -11,4 +11,5 @@ public interface IImporterDashboardService
     Task<string> GetEditorialPromptAsync(string sourceName, CancellationToken cancellationToken = default);
     Task UpdateEditorialPromptAsync(string sourceName, string prompt, CancellationToken cancellationToken = default);
     Task UpdateAdminNotesAsync(int id, string notes, CancellationToken cancellationToken = default);
+    Task<IList<ImporterQueueItemHistoryEntryDTO>> GetItemHistoryAsync(int itemId, CancellationToken cancellationToken = default);
 }

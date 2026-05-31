@@ -51,6 +51,13 @@ public class ImporterQueueItemDTO
     public DateTime UpdatedAt { get; set; }
 }
 
+public class ImporterQueueItemHistoryEntryDTO
+{
+    public DateTime ChangedAt { get; set; }
+    public string FromStatus { get; set; }
+    public string ToStatus { get; set; }
+}
+
 public class ImporterSourceStatusDTO
 {
     public int SourceId { get; set; }

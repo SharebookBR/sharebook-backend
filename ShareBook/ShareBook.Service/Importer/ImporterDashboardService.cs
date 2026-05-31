@@ -490,4 +490,33 @@ LIMIT @limit OFFSET @offset;
     {
         return GetUniversalString(reader, columnName);
     }
+
+    public async Task<IList<ImporterQueueItemHistoryEntryDTO>> GetItemHistoryAsync(int itemId, CancellationToken cancellationToken = default)
+    {
+        var connectionString = _configuration.GetConnectionString("ImporterPostgresConnection");
+        await using var conn = new NpgsqlConnection(connectionString);
+        await conn.OpenAsync(cancellationToken);
+
+        const string sql = @"
+SELECT changed_at, from_status, to_status
+FROM importer.queue_item_history
+WHERE queue_item_id = @item_id
+ORDER BY changed_at DESC";
+
+        await using var cmd = new NpgsqlCommand(sql, conn);
+        cmd.Parameters.AddWithValue("item_id", itemId);
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+
+        var result = new List<ImporterQueueItemHistoryEntryDTO>();
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            result.Add(new ImporterQueueItemHistoryEntryDTO
+            {
+                ChangedAt = reader.GetDateTime(reader.GetOrdinal("changed_at")),
+                FromStatus = reader.IsDBNull(reader.GetOrdinal("from_status")) ? null : reader.GetString(reader.GetOrdinal("from_status")),
+                ToStatus = reader.GetString(reader.GetOrdinal("to_status")),
+            });
+        }
+        return result;
+    }
 }
