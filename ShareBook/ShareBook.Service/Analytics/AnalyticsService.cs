@@ -61,6 +61,8 @@ public class AnalyticsService : IAnalyticsService
         var totalSignups = await FetchEventTotalAsync(client, property, dateRange, "sign_up");
         var topViews = await FetchTopBooksAsync(client, property, dateRange, byDownload: false);
         var topDownloads = await FetchTopBooksAsync(client, property, dateRange, byDownload: true);
+        var topViewsPerWeek = await FetchTopBooksWeeklyAsync(client, property, dateRange, byDownload: false);
+        var topDownloadsPerWeek = await FetchTopBooksWeeklyAsync(client, property, dateRange, byDownload: true);
 
         return new AnalyticsDashboardDto
         {
@@ -70,7 +72,9 @@ public class AnalyticsService : IAnalyticsService
             TotalLogins = totalLogins,
             TotalSignups = totalSignups,
             TopBooksByViews = topViews,
-            TopBooksByDownloads = topDownloads
+            TopBooksByDownloads = topDownloads,
+            TopBooksByViewsPerWeek = topViewsPerWeek,
+            TopBooksByDownloadsPerWeek = topDownloadsPerWeek
         };
     }
 
@@ -210,5 +214,64 @@ public class AnalyticsService : IAnalyticsService
                 Count = int.Parse(row.MetricValues[0].Value)
             };
         }).ToList();
+    }
+
+    private async Task<Dictionary<string, List<BookMetric>>> FetchTopBooksWeeklyAsync(
+        BetaAnalyticsDataClient client, string property, DateRange dateRange, bool byDownload)
+    {
+        var request = new RunReportRequest
+        {
+            Property = property,
+            DateRanges = { dateRange },
+            Dimensions =
+            {
+                new Dimension { Name = "year" },
+                new Dimension { Name = "week" },
+                new Dimension { Name = "pagePath" }
+            },
+            Metrics = { new Metric { Name = byDownload ? "eventCount" : "screenPageViews" } },
+            DimensionFilter = new FilterExpression
+            {
+                Filter = new Filter
+                {
+                    FieldName = byDownload ? "eventName" : "pagePath",
+                    StringFilter = new Filter.Types.StringFilter
+                    {
+                        Value = byDownload ? "ebook_download" : "/livros/",
+                        MatchType = byDownload
+                            ? Filter.Types.StringFilter.Types.MatchType.Exact
+                            : Filter.Types.StringFilter.Types.MatchType.BeginsWith
+                    }
+                }
+            },
+            Limit = 500
+        };
+
+        var response = await client.RunReportAsync(request);
+
+        var grouped = new Dictionary<string, List<BookMetric>>();
+
+        foreach (var row in response.Rows)
+        {
+            var year = row.DimensionValues[0].Value;
+            var week = row.DimensionValues[1].Value.PadLeft(2, '0');
+            var weekKey = $"{year}-W{week}";
+            var path = row.DimensionValues[2].Value;
+            var slug = path.TrimEnd('/').Split('/').Last();
+            var title = string.IsNullOrEmpty(slug)
+                ? path
+                : System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(slug.Replace("-", " "));
+            var count = int.Parse(row.MetricValues[0].Value);
+
+            if (!grouped.ContainsKey(weekKey))
+                grouped[weekKey] = new List<BookMetric>();
+
+            grouped[weekKey].Add(new BookMetric { Path = path, Title = title, Count = count });
+        }
+
+        foreach (var key in grouped.Keys.ToList())
+            grouped[key] = grouped[key].OrderByDescending(b => b.Count).Take(10).ToList();
+
+        return grouped;
     }
 }

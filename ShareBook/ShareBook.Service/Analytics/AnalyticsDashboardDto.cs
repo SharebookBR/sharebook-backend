@@ -11,6 +11,8 @@ public class AnalyticsDashboardDto
     public int TotalSignups { get; set; }
     public List<BookMetric> TopBooksByViews { get; set; } = [];
     public List<BookMetric> TopBooksByDownloads { get; set; } = [];
+    public Dictionary<string, List<BookMetric>> TopBooksByViewsPerWeek { get; set; } = new();
+    public Dictionary<string, List<BookMetric>> TopBooksByDownloadsPerWeek { get; set; } = new();
 }
 
 public class WeeklyPoint
