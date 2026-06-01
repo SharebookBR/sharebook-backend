@@ -59,6 +59,8 @@ public class AnalyticsService : IAnalyticsService
         var totalDownloads = await FetchEventTotalAsync(client, property, dateRange, "ebook_download");
         var totalLogins = await FetchEventTotalAsync(client, property, dateRange, "login");
         var totalSignups = await FetchEventTotalAsync(client, property, dateRange, "sign_up");
+        var loginsByWeek = await FetchWeeklyEventAsync(client, property, dateRange, "login");
+        var signupsByWeek = await FetchWeeklyEventAsync(client, property, dateRange, "sign_up");
         var topViews = await FetchTopBooksAsync(client, property, dateRange, byDownload: false);
         var topDownloads = await FetchTopBooksAsync(client, property, dateRange, byDownload: true);
         var topViewsPerWeek = await FetchTopBooksWeeklyAsync(client, property, dateRange, byDownload: false);
@@ -71,6 +73,8 @@ public class AnalyticsService : IAnalyticsService
             TotalDownloads = totalDownloads,
             TotalLogins = totalLogins,
             TotalSignups = totalSignups,
+            Logins = loginsByWeek,
+            Signups = signupsByWeek,
             TopBooksByViews = topViews,
             TopBooksByDownloads = topDownloads,
             TopBooksByViewsPerWeek = topViewsPerWeek,

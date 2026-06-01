@@ -9,6 +9,8 @@ public class AnalyticsDashboardDto
     public int TotalDownloads { get; set; }
     public int TotalLogins { get; set; }
     public int TotalSignups { get; set; }
+    public List<WeeklyPoint> Logins { get; set; } = [];
+    public List<WeeklyPoint> Signups { get; set; } = [];
     public List<BookMetric> TopBooksByViews { get; set; } = [];
     public List<BookMetric> TopBooksByDownloads { get; set; } = [];
     public Dictionary<string, List<BookMetric>> TopBooksByViewsPerWeek { get; set; } = new();
