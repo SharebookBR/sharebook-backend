@@ -15,6 +15,7 @@ using ShareBook.Api.Filters;
 using ShareBook.Api.Middleware;
 using ShareBook.Repository;
 using ShareBook.Service;
+using ShareBook.Service.Analytics;
 using ShareBook.Service.AwsSqs;
 using ShareBook.Service.EBook;
 using ShareBook.Service.Muambator;
@@ -87,6 +88,8 @@ namespace ShareBook.Api
             });
 
             services.Configure<MeetupSettings>(options => Configuration.GetSection("MeetupSettings").Bind(options));
+
+            services.Configure<GA4Settings>(options => Configuration.GetSection("GA4").Bind(options));
 
             services.AddHttpContextAccessor();
 

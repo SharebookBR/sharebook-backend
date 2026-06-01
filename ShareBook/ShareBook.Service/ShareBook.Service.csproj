@@ -10,6 +10,7 @@
     <PackageReference Include="AWSSDK.SQS" Version="4.0.2.15" />
     <PackageReference Include="Flurl.Http" Version="4.0.2" />
     <PackageReference Include="MailKit" Version="4.15.0" />
+    <PackageReference Include="Google.Analytics.Data.V1Beta" Version="2.0.0-beta10" />
     <PackageReference Include="Polly" Version="8.6.5" />
   </ItemGroup>
 
