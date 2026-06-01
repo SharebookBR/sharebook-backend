@@ -7,7 +7,7 @@ using ShareBook.Service.Authorization;
 
 namespace ShareBook.Api.Controllers;
 
-[Route("api/v1/[controller]")]
+[Route("api/[controller]")]
 public class AnalyticsController : ControllerBase
 {
     private readonly IAnalyticsService _analyticsService;
