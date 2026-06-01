@@ -52,31 +52,44 @@ WITH today_start AS (
     SELECT date_trunc('day', NOW() AT TIME ZONE 'America/Sao_Paulo')
              AT TIME ZONE 'America/Sao_Paulo' AS ts
 ),
-yesterday_status AS (
+first_today_transition AS (
     SELECT DISTINCT ON (h.queue_item_id)
         h.queue_item_id,
         h.source_id,
-        h.to_status
+        h.from_status AS midnight_status
     FROM importer.queue_item_history h, today_start
-    WHERE h.changed_at < today_start.ts
-    ORDER BY h.queue_item_id, h.changed_at DESC
+    WHERE h.changed_at >= today_start.ts
+    ORDER BY h.queue_item_id, h.changed_at ASC
+),
+unchanged_today AS (
+    SELECT q.id AS queue_item_id, q.source_id, q.status AS midnight_status
+    FROM importer.queue_items q, today_start
+    WHERE NOT EXISTS (
+        SELECT 1 FROM importer.queue_item_history h
+        WHERE h.queue_item_id = q.id AND h.changed_at >= today_start.ts
+    )
+),
+pre_midnight AS (
+    SELECT * FROM first_today_transition
+    UNION ALL
+    SELECT * FROM unchanged_today
 ),
 yesterday_counts AS (
     SELECT
         source_id,
-        COUNT(*) FILTER (WHERE to_status = 'done')            AS done_d1,
-        COUNT(*) FILTER (WHERE to_status = 'waiting_triage')  AS waiting_triage_d1,
-        COUNT(*) FILTER (WHERE to_status = 'triaging')        AS triaging_d1,
-        COUNT(*) FILTER (WHERE to_status = 'triage_rejected') AS triage_rejected_d1,
-        COUNT(*) FILTER (WHERE to_status = 'waiting_editor')  AS waiting_editor_d1,
-        COUNT(*) FILTER (WHERE to_status = 'editing')         AS editing_d1,
-        COUNT(*) FILTER (WHERE to_status = 'waiting_process') AS waiting_process_d1,
-        COUNT(*) FILTER (WHERE to_status = 'processing')      AS processing_d1,
-        COUNT(*) FILTER (WHERE to_status = 'retry_later')     AS retry_later_d1,
-        COUNT(*) FILTER (WHERE to_status = 'source_blocked')  AS source_blocked_d1,
-        COUNT(*) FILTER (WHERE to_status = 'duplicate')       AS duplicate_d1,
-        COUNT(*) FILTER (WHERE to_status = 'error')           AS error_d1
-    FROM yesterday_status
+        COUNT(*) FILTER (WHERE midnight_status = 'done')            AS done_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'waiting_triage')  AS waiting_triage_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'triaging')        AS triaging_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'triage_rejected') AS triage_rejected_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'waiting_editor')  AS waiting_editor_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'editing')         AS editing_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'waiting_process') AS waiting_process_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'processing')      AS processing_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'retry_later')     AS retry_later_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'source_blocked')  AS source_blocked_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'duplicate')       AS duplicate_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'error')           AS error_d1
+    FROM pre_midnight
     GROUP BY source_id
 ),
 source_status AS (
