@@ -65,6 +65,8 @@ public class AnalyticsService : IAnalyticsService
         var topDownloads = await FetchTopBooksAsync(client, property, dateRange, byDownload: true);
         var topViewsPerWeek = await FetchTopBooksWeeklyAsync(client, property, dateRange, byDownload: false);
         var topDownloadsPerWeek = await FetchTopBooksWeeklyAsync(client, property, dateRange, byDownload: true);
+        var eventSummary = await FetchEventSummaryAsync(client, property, dateRange);
+        var eventSummaryPerWeek = await FetchEventSummaryWeeklyAsync(client, property, dateRange);
 
         return new AnalyticsDashboardDto
         {
@@ -78,7 +80,9 @@ public class AnalyticsService : IAnalyticsService
             TopBooksByViews = topViews,
             TopBooksByDownloads = topDownloads,
             TopBooksByViewsPerWeek = topViewsPerWeek,
-            TopBooksByDownloadsPerWeek = topDownloadsPerWeek
+            TopBooksByDownloadsPerWeek = topDownloadsPerWeek,
+            EventSummary = eventSummary,
+            EventSummaryPerWeek = eventSummaryPerWeek
         };
     }
 
@@ -277,5 +281,90 @@ public class AnalyticsService : IAnalyticsService
             grouped[key] = grouped[key].OrderByDescending(b => b.Count).Take(10).ToList();
 
         return grouped;
+    }
+
+    private static readonly List<string> TrackedEvents =
+    [
+        "ebook_download", "amazon_click", "share_modal_open",
+        "social_share", "search", "login", "sign_up"
+    ];
+
+    private async Task<List<EventMetric>> FetchEventSummaryAsync(
+        BetaAnalyticsDataClient client, string property, DateRange dateRange)
+    {
+        var response = await client.RunReportAsync(new RunReportRequest
+        {
+            Property = property,
+            DateRanges = { dateRange },
+            Dimensions = { new Dimension { Name = "eventName" } },
+            Metrics = { new Metric { Name = "eventCount" }, new Metric { Name = "totalUsers" } },
+            DimensionFilter = new FilterExpression
+            {
+                Filter = new Filter
+                {
+                    FieldName = "eventName",
+                    InListFilter = new Filter.Types.InListFilter { Values = { TrackedEvents } }
+                }
+            }
+        });
+
+        var dict = response.Rows.ToDictionary(
+            r => r.DimensionValues[0].Value,
+            r => new EventMetric
+            {
+                EventName = r.DimensionValues[0].Value,
+                Count = int.Parse(r.MetricValues[0].Value),
+                Users = int.Parse(r.MetricValues[1].Value)
+            });
+
+        return TrackedEvents.Select(e => dict.TryGetValue(e, out var m) ? m : new EventMetric { EventName = e }).ToList();
+    }
+
+    private async Task<Dictionary<string, List<EventMetric>>> FetchEventSummaryWeeklyAsync(
+        BetaAnalyticsDataClient client, string property, DateRange dateRange)
+    {
+        var response = await client.RunReportAsync(new RunReportRequest
+        {
+            Property = property,
+            DateRanges = { dateRange },
+            Dimensions =
+            {
+                new Dimension { Name = "year" },
+                new Dimension { Name = "week" },
+                new Dimension { Name = "eventName" }
+            },
+            Metrics = { new Metric { Name = "eventCount" }, new Metric { Name = "totalUsers" } },
+            DimensionFilter = new FilterExpression
+            {
+                Filter = new Filter
+                {
+                    FieldName = "eventName",
+                    InListFilter = new Filter.Types.InListFilter { Values = { TrackedEvents } }
+                }
+            }
+        });
+
+        var grouped = new Dictionary<string, Dictionary<string, EventMetric>>();
+
+        foreach (var row in response.Rows)
+        {
+            var weekKey = $"{row.DimensionValues[0].Value}-W{row.DimensionValues[1].Value.PadLeft(2, '0')}";
+            var eventName = row.DimensionValues[2].Value;
+
+            if (!grouped.ContainsKey(weekKey))
+                grouped[weekKey] = new Dictionary<string, EventMetric>();
+
+            grouped[weekKey][eventName] = new EventMetric
+            {
+                EventName = eventName,
+                Count = int.Parse(row.MetricValues[0].Value),
+                Users = int.Parse(row.MetricValues[1].Value)
+            };
+        }
+
+        return grouped.ToDictionary(
+            kv => kv.Key,
+            kv => TrackedEvents.Select(e => kv.Value.TryGetValue(e, out var m) ? m : new EventMetric { EventName = e }).ToList()
+        );
     }
 }

@@ -15,6 +15,8 @@ public class AnalyticsDashboardDto
     public List<BookMetric> TopBooksByDownloads { get; set; } = [];
     public Dictionary<string, List<BookMetric>> TopBooksByViewsPerWeek { get; set; } = new();
     public Dictionary<string, List<BookMetric>> TopBooksByDownloadsPerWeek { get; set; } = new();
+    public List<EventMetric> EventSummary { get; set; } = [];
+    public Dictionary<string, List<EventMetric>> EventSummaryPerWeek { get; set; } = new();
 }
 
 public class WeeklyPoint
@@ -28,4 +30,11 @@ public class BookMetric
     public string Path { get; set; }
     public string Title { get; set; }
     public int Count { get; set; }
+}
+
+public class EventMetric
+{
+    public string EventName { get; set; }
+    public int Count { get; set; }
+    public int Users { get; set; }
 }
