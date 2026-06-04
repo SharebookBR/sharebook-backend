@@ -286,7 +286,8 @@ public class AnalyticsService : IAnalyticsService
     private static readonly List<string> TrackedEvents =
     [
         "ebook_download", "amazon_click", "share_modal_open",
-        "social_share", "search", "login", "sign_up"
+        "social_share", "search", "login", "sign_up",
+        "book_request_modal_open", "book_request_success", "book_request_error"
     ];
 
     private async Task<List<EventMetric>> FetchEventSummaryAsync(
