@@ -33,7 +33,7 @@ public class AnalyticsService : IAnalyticsService
         var client = BuildClient();
         var dto = await FetchAsync(client);
 
-        _cache.Set(CacheKey, dto, TimeSpan.FromHours(24));
+        _cache.Set(CacheKey, dto, TimeSpan.FromHours(12));
         return dto;
     }
 
