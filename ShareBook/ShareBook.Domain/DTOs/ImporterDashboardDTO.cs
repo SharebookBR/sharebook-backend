@@ -35,7 +35,8 @@ public class ImporterQueueItemDTO
     public string PlannedCategoryId { get; set; }
     public string PlannedCategoryName { get; set; }
     public string PlannedCategoryParentName { get; set; }
-    public int Attempts { get; set; }
+    public int TriageAttempts { get; set; }
+    public int PublishAttempts { get; set; }
     public string LastError { get; set; }
     public string SharebookBookId { get; set; }
     public string BookSlug { get; set; }
