@@ -68,11 +68,12 @@ public class ImporterSourceStatusDTO
     public int Done { get; set; }
     public int WaitingTriage { get; set; }
     public int Triaging { get; set; }
-    public int WaitingEditor { get; set; }
+    public int WaitingEditorial { get; set; }
     public int Editing { get; set; }
-    public int WaitingProcess { get; set; }
-    public int Processing { get; set; }
-    public int RetryLater { get; set; }
+    public int WaitingPublish { get; set; }
+    public int Publishing { get; set; }
+    public int TriageRetry { get; set; }
+    public int PublishRetry { get; set; }
     public int SourceBlocked { get; set; }
     public int Duplicate { get; set; }
     public int Error { get; set; }
@@ -86,11 +87,12 @@ public class ImporterSourceStatusDTO
     public int? DoneD1 { get; set; }
     public int? WaitingTriageD1 { get; set; }
     public int? TriagingD1 { get; set; }
-    public int? WaitingEditorD1 { get; set; }
+    public int? WaitingEditorialD1 { get; set; }
     public int? EditingD1 { get; set; }
-    public int? WaitingProcessD1 { get; set; }
-    public int? ProcessingD1 { get; set; }
-    public int? RetryLaterD1 { get; set; }
+    public int? WaitingPublishD1 { get; set; }
+    public int? PublishingD1 { get; set; }
+    public int? TriageRetryD1 { get; set; }
+    public int? PublishRetryD1 { get; set; }
     public int? SourceBlockedD1 { get; set; }
     public int? DuplicateD1 { get; set; }
     public int? ErrorD1 { get; set; }
