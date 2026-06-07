@@ -14,6 +14,9 @@ namespace ShareBook.Service.Importer;
 
 public class ImporterDashboardService : IImporterDashboardService
 {
+    private const string KnownStatusesSql = @"('waiting_triage', 'triaging', 'triage_rejected', 'waiting_editorial', 'editing', 'waiting_publish', 'publishing', 'done', 'editorial_rejected', 'triage_retry', 'publish_retry', 'source_blocked', 'duplicate', 'error')";
+    private const string ActiveStatusesSql = @"('waiting_triage', 'triaging', 'waiting_editorial', 'editing', 'waiting_publish', 'publishing', 'triage_retry', 'publish_retry', 'error')";
+
     private readonly IConfiguration _configuration;
     private readonly IBookRepository _bookRepository;
     private readonly ICategoryRepository _categoryRepository;
@@ -28,6 +31,7 @@ public class ImporterDashboardService : IImporterDashboardService
         "waiting_publish",
         "publishing",
         "done",
+        "editorial_rejected",
         "triage_retry",
         "publish_retry",
         "source_blocked",
@@ -48,7 +52,7 @@ public class ImporterDashboardService : IImporterDashboardService
         if (string.IsNullOrWhiteSpace(connectionString))
             throw new InvalidOperationException("ConnectionStrings:ImporterPostgresConnection não configurada.");
 
-        const string sql = @"
+        var sql = $@"
 WITH today_start AS (
     SELECT date_trunc('day', NOW() AT TIME ZONE 'America/Sao_Paulo')
              AT TIME ZONE 'America/Sao_Paulo' AS ts
@@ -78,19 +82,21 @@ pre_midnight AS (
 yesterday_counts AS (
     SELECT
         source_id,
-        COUNT(*) FILTER (WHERE midnight_status = 'done')            AS done_d1,
-        COUNT(*) FILTER (WHERE midnight_status = 'waiting_triage')  AS waiting_triage_d1,
-        COUNT(*) FILTER (WHERE midnight_status = 'triaging')        AS triaging_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'done') AS done_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'editorial_rejected') AS editorial_rejected_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'waiting_triage') AS waiting_triage_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'triaging') AS triaging_d1,
         COUNT(*) FILTER (WHERE midnight_status = 'triage_rejected') AS triage_rejected_d1,
         COUNT(*) FILTER (WHERE midnight_status = 'waiting_editorial') AS waiting_editorial_d1,
-        COUNT(*) FILTER (WHERE midnight_status = 'editing')          AS editing_d1,
-        COUNT(*) FILTER (WHERE midnight_status = 'waiting_publish')  AS waiting_publish_d1,
-        COUNT(*) FILTER (WHERE midnight_status = 'publishing')       AS publishing_d1,
-        COUNT(*) FILTER (WHERE midnight_status = 'triage_retry')     AS triage_retry_d1,
-        COUNT(*) FILTER (WHERE midnight_status = 'publish_retry')    AS publish_retry_d1,
-        COUNT(*) FILTER (WHERE midnight_status = 'source_blocked')  AS source_blocked_d1,
-        COUNT(*) FILTER (WHERE midnight_status = 'duplicate')       AS duplicate_d1,
-        COUNT(*) FILTER (WHERE midnight_status = 'error')           AS error_d1
+        COUNT(*) FILTER (WHERE midnight_status = 'editing') AS editing_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'waiting_publish') AS waiting_publish_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'publishing') AS publishing_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'triage_retry') AS triage_retry_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'publish_retry') AS publish_retry_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'source_blocked') AS source_blocked_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'duplicate') AS duplicate_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'error') AS error_d1,
+        COUNT(*) FILTER (WHERE midnight_status IS NULL OR midnight_status NOT IN {KnownStatusesSql}) AS unknown_d1
     FROM pre_midnight
     GROUP BY source_id
 ),
@@ -102,6 +108,7 @@ source_status AS (
         s.enabled,
         COUNT(q.id) AS total_items,
         COUNT(*) FILTER (WHERE q.status = 'done') AS done,
+        COUNT(*) FILTER (WHERE q.status = 'editorial_rejected') AS editorial_rejected,
         COUNT(*) FILTER (WHERE q.status = 'waiting_triage') AS waiting_triage,
         COUNT(*) FILTER (WHERE q.status = 'triaging') AS triaging,
         COUNT(*) FILTER (WHERE q.status = 'triage_rejected') AS triage_rejected,
@@ -113,7 +120,8 @@ source_status AS (
         COUNT(*) FILTER (WHERE q.status = 'publish_retry') AS publish_retry,
         COUNT(*) FILTER (WHERE q.status = 'source_blocked') AS source_blocked,
         COUNT(*) FILTER (WHERE q.status = 'duplicate') AS duplicate,
-        COUNT(*) FILTER (WHERE q.status = 'error') AS error
+        COUNT(*) FILTER (WHERE q.status = 'error') AS error,
+        COUNT(*) FILTER (WHERE q.status IS NULL OR q.status NOT IN {KnownStatusesSql}) AS unknown
     FROM importer.sources s
     LEFT JOIN importer.queue_items q ON q.source_id = s.id
     GROUP BY s.id, s.name, s.url, s.enabled
@@ -124,7 +132,7 @@ next_items AS (
         title,
         status
     FROM importer.queue_items
-    WHERE status IN ('waiting_triage', 'triaging', 'waiting_editorial', 'editing', 'waiting_publish', 'publishing', 'triage_retry', 'publish_retry', 'error')
+    WHERE status IN {ActiveStatusesSql}
     ORDER BY source_id, id ASC
 ),
 global_last_run AS (
@@ -154,6 +162,7 @@ SELECT
     ss.enabled,
     ss.total_items,
     ss.done,
+    ss.editorial_rejected,
     ss.waiting_triage,
     ss.triaging,
     ss.triage_rejected,
@@ -166,6 +175,7 @@ SELECT
     ss.source_blocked,
     ss.duplicate,
     ss.error,
+    ss.unknown,
     ni.title AS next_item_title,
     ni.status AS next_item_status,
     slr.started_at AS last_run_at,
@@ -175,6 +185,7 @@ SELECT
     glr.status AS global_last_run_status,
     glr.message AS global_last_run_message,
     yc.done_d1,
+    yc.editorial_rejected_d1,
     yc.waiting_triage_d1,
     yc.triaging_d1,
     yc.triage_rejected_d1,
@@ -186,7 +197,8 @@ SELECT
     yc.publish_retry_d1,
     yc.source_blocked_d1,
     yc.duplicate_d1,
-    yc.error_d1
+    yc.error_d1,
+    yc.unknown_d1
 FROM source_status ss
 LEFT JOIN next_items ni ON ni.source_id = ss.source_id
 LEFT JOIN source_last_runs slr ON slr.source_id = ss.source_id
@@ -222,6 +234,7 @@ ORDER BY ss.source_id;
                 Enabled = reader.GetBoolean(reader.GetOrdinal("enabled")),
                 TotalItems = reader.GetInt32(reader.GetOrdinal("total_items")),
                 Done = reader.GetInt32(reader.GetOrdinal("done")),
+                EditorialRejected = reader.GetInt32(reader.GetOrdinal("editorial_rejected")),
                 WaitingTriage = reader.GetInt32(reader.GetOrdinal("waiting_triage")),
                 Triaging = reader.GetInt32(reader.GetOrdinal("triaging")),
                 TriageRejected = reader.GetInt32(reader.GetOrdinal("triage_rejected")),
@@ -234,12 +247,14 @@ ORDER BY ss.source_id;
                 SourceBlocked = reader.GetInt32(reader.GetOrdinal("source_blocked")),
                 Duplicate = reader.GetInt32(reader.GetOrdinal("duplicate")),
                 Error = reader.GetInt32(reader.GetOrdinal("error")),
+                Unknown = reader.GetInt32(reader.GetOrdinal("unknown")),
                 NextItemTitle = reader.IsDBNull(reader.GetOrdinal("next_item_title")) ? null : reader.GetString(reader.GetOrdinal("next_item_title")),
                 NextItemStatus = reader.IsDBNull(reader.GetOrdinal("next_item_status")) ? null : reader.GetString(reader.GetOrdinal("next_item_status")),
                 LastRunAt = reader.IsDBNull(reader.GetOrdinal("last_run_at")) ? null : reader.GetDateTime(reader.GetOrdinal("last_run_at")),
                 LastRunStatus = reader.IsDBNull(reader.GetOrdinal("last_run_status")) ? null : reader.GetString(reader.GetOrdinal("last_run_status")),
                 LastRunMessage = reader.IsDBNull(reader.GetOrdinal("last_run_message")) ? null : reader.GetString(reader.GetOrdinal("last_run_message")),
                 DoneD1 = reader.IsDBNull(reader.GetOrdinal("done_d1")) ? null : reader.GetInt32(reader.GetOrdinal("done_d1")),
+                EditorialRejectedD1 = reader.IsDBNull(reader.GetOrdinal("editorial_rejected_d1")) ? null : reader.GetInt32(reader.GetOrdinal("editorial_rejected_d1")),
                 WaitingTriageD1 = reader.IsDBNull(reader.GetOrdinal("waiting_triage_d1")) ? null : reader.GetInt32(reader.GetOrdinal("waiting_triage_d1")),
                 TriagingD1 = reader.IsDBNull(reader.GetOrdinal("triaging_d1")) ? null : reader.GetInt32(reader.GetOrdinal("triaging_d1")),
                 TriageRejectedD1 = reader.IsDBNull(reader.GetOrdinal("triage_rejected_d1")) ? null : reader.GetInt32(reader.GetOrdinal("triage_rejected_d1")),
@@ -252,6 +267,7 @@ ORDER BY ss.source_id;
                 SourceBlockedD1 = reader.IsDBNull(reader.GetOrdinal("source_blocked_d1")) ? null : reader.GetInt32(reader.GetOrdinal("source_blocked_d1")),
                 DuplicateD1 = reader.IsDBNull(reader.GetOrdinal("duplicate_d1")) ? null : reader.GetInt32(reader.GetOrdinal("duplicate_d1")),
                 ErrorD1 = reader.IsDBNull(reader.GetOrdinal("error_d1")) ? null : reader.GetInt32(reader.GetOrdinal("error_d1")),
+                UnknownD1 = reader.IsDBNull(reader.GetOrdinal("unknown_d1")) ? null : reader.GetInt32(reader.GetOrdinal("unknown_d1")),
             };
 
             result.TotalItems += item.TotalItems;

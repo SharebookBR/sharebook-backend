@@ -67,6 +67,7 @@ public class ImporterSourceStatusDTO
     public bool Enabled { get; set; }
     public int TotalItems { get; set; }
     public int Done { get; set; }
+    public int EditorialRejected { get; set; }
     public int WaitingTriage { get; set; }
     public int Triaging { get; set; }
     public int WaitingEditorial { get; set; }
@@ -78,6 +79,7 @@ public class ImporterSourceStatusDTO
     public int SourceBlocked { get; set; }
     public int Duplicate { get; set; }
     public int Error { get; set; }
+    public int Unknown { get; set; }
     public int TriageRejected { get; set; }
     public string NextItemTitle { get; set; }
     public string NextItemStatus { get; set; }
@@ -86,6 +88,7 @@ public class ImporterSourceStatusDTO
     public string LastRunMessage { get; set; }
     // D-1 counts (null = sem histórico ainda)
     public int? DoneD1 { get; set; }
+    public int? EditorialRejectedD1 { get; set; }
     public int? WaitingTriageD1 { get; set; }
     public int? TriagingD1 { get; set; }
     public int? WaitingEditorialD1 { get; set; }
@@ -97,5 +100,6 @@ public class ImporterSourceStatusDTO
     public int? SourceBlockedD1 { get; set; }
     public int? DuplicateD1 { get; set; }
     public int? ErrorD1 { get; set; }
+    public int? UnknownD1 { get; set; }
     public int? TriageRejectedD1 { get; set; }
 }
