@@ -33,7 +33,9 @@ namespace ShareBook.Service.Home
         public async Task<List<HomeShowcaseCategoryDTO>> GetCategoriesShowcaseAsync()
         {
             var categoryIds = await _bookRepository.Get()
-                .Where(b => b.Status == BookStatus.Available && b.Category.ParentCategoryId == null)
+                .Where(b => b.Status == BookStatus.Available
+                         && b.Type == BookType.Eletronic
+                         && b.Category.ParentCategoryId == null)
                 .Select(b => b.CategoryId)
                 .Distinct()
                 .OrderBy(x => EF.Functions.Random())
@@ -55,7 +57,9 @@ namespace ShareBook.Service.Home
                     continue;
 
                 var books = await _bookRepository.Get()
-                    .Where(b => b.CategoryId == categoryId && b.Status == BookStatus.Available)
+                    .Where(b => b.CategoryId == categoryId
+                             && b.Status == BookStatus.Available
+                             && b.Type == BookType.Eletronic)
                     .OrderBy(b => EF.Functions.Random())
                     .Take(BooksPerCategory)
                     .ToListAsync();
