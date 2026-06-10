@@ -32,11 +32,21 @@ namespace ShareBook.Service.Home
 
         public async Task<List<HomeShowcaseCategoryDTO>> GetCategoriesShowcaseAsync()
         {
-            var categoryIds = await _bookRepository.Get()
+            // root categories com ebooks diretos
+            var directRootIds = _bookRepository.Get()
                 .Where(b => b.Status == BookStatus.Available
                          && b.Type == BookType.Eletronic
                          && b.Category.ParentCategoryId == null)
-                .Select(b => b.CategoryId)
+                .Select(b => b.CategoryId);
+
+            // root categories com ebooks em subcategorias
+            var subRootIds = _bookRepository.Get()
+                .Where(b => b.Status == BookStatus.Available
+                         && b.Type == BookType.Eletronic
+                         && b.Category.ParentCategoryId != null)
+                .Select(b => b.Category.ParentCategoryId.Value);
+
+            var categoryIds = await directRootIds.Union(subRootIds)
                 .Distinct()
                 .OrderBy(x => EF.Functions.Random())
                 .Take(ShowcaseCategories)
@@ -56,8 +66,9 @@ namespace ShareBook.Service.Home
                 if (!categoryNames.TryGetValue(categoryId, out var name))
                     continue;
 
+                // inclui ebooks diretamente na categoria raiz E em suas subcategorias
                 var books = await _bookRepository.Get()
-                    .Where(b => b.CategoryId == categoryId
+                    .Where(b => (b.CategoryId == categoryId || b.Category.ParentCategoryId == categoryId)
                              && b.Status == BookStatus.Available
                              && b.Type == BookType.Eletronic)
                     .OrderBy(b => EF.Functions.Random())
