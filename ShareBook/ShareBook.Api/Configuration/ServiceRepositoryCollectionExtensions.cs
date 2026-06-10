@@ -16,6 +16,7 @@ using ShareBook.Service.Lgpd;
 using ShareBook.Service.Muambator;
 using ShareBook.Service.Notification;
 using ShareBook.Service.Recaptcha;
+using ShareBook.Service.Home;
 using ShareBook.Service.Upload;
 
 namespace ShareBook.Api.Configuration
@@ -26,6 +27,7 @@ namespace ShareBook.Api.Configuration
            this IServiceCollection services)
         {
             //services
+            services.AddScoped<IHomeService, HomeService>();
             services.AddScoped<IBooksEmailService, BooksEmailService>();
             services.AddScoped<IBookUsersEmailService, BookUserEmailService>();
             services.AddScoped<IBookService, BookService>();
