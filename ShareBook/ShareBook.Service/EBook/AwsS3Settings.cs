@@ -26,7 +26,9 @@ namespace ShareBook.Service.EBook
 
         /// <summary>
         /// Duração, em minutos, da URL assinada de download.
+        /// Mantida curta de propósito: reduz a janela de replay de uma URL vazada,
+        /// limitando o egress S3 que um atacante consegue extrair de um único link.
         /// </summary>
-        public int DownloadUrlExpirationMinutes { get; set; } = 5;
+        public int DownloadUrlExpirationMinutes { get; set; } = 1;
     }
 }

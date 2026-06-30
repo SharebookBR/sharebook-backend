@@ -630,6 +630,8 @@ namespace ShareBook.Api.Controllers
 
         [HttpGet("DownloadEBook/{slug}")]
         [AllowAnonymous]
+        [Throttle(Name = "DownloadEBook", Seconds = 5, VaryByIp = false,
+            Message = "Muitos downloads em sequência. Tente novamente em alguns segundos.")]
         [ProducesResponseType(typeof(FileContentResult), 200)]
         [ProducesResponseType(302)]
         [ProducesResponseType(404)]
