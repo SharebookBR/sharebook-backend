@@ -5,6 +5,7 @@ using ShareBook.Repository;
 using ShareBook.Service;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Sharebook.Jobs;
@@ -43,17 +44,34 @@ public class ChooseDateReminder : GenericJob, IJob
 
         if (books.Count == 0) messages.Add("Nenhum livro encontrado.");
 
-        foreach (var book in books)
+        // Agrupa livros por doador para enviar um único e-mail resumido
+        var booksByDonor = books
+            .Where(b => b.BookUsers.Count > 0)
+            .GroupBy(b => b.UserId)
+            .ToList();
+
+        var booksWithoutInterested = books.Where(b => b.BookUsers.Count == 0).ToList();
+
+        foreach (var group in booksByDonor)
         {
-            if (book.BookUsers.Count > 0)
+            var donorBooks = group.ToList();
+
+            if (donorBooks.Count == 1)
             {
-                await SendEmailAsync(book);
-                messages.Add(string.Format("Lembrete amigável enviado para '{0}' referente ao livro '{1}'.", book.User.Name, book.Title));
+                await SendEmailSingleAsync(donorBooks[0]);
             }
             else
             {
-                messages.Add(string.Format("Lembrete amigável NÃO enviado para '{0}' referente ao livro '{1}'. Livro não tem interessados.", book.User.Name, book.Title));
+                await SendEmailMultipleAsync(donorBooks);
             }
+
+            var titles = string.Join(", ", donorBooks.Select(b => $"'{b.Title}'"));
+            messages.Add($"Lembrete amigável enviado para '{donorBooks[0].User.Name}' referente a {donorBooks.Count} livro(s): {titles}.");
+        }
+
+        foreach (var book in booksWithoutInterested)
+        {
+            messages.Add($"Lembrete amigável NÃO enviado para '{book.User.Name}' referente ao livro '{book.Title}'. Livro não tem interessados.");
         }
 
         return new JobHistory()
@@ -67,7 +85,7 @@ public class ChooseDateReminder : GenericJob, IJob
 
     #region métodos privados de apoio
 
-    private async Task SendEmailAsync(Book book)
+    private async Task SendEmailSingleAsync(Book book)
     {
         var EmailSubject = "Hoje é o dia de escolher o ganhador!";
 
@@ -83,6 +101,29 @@ public class ChooseDateReminder : GenericJob, IJob
         var emailBodyHTML = await _emailTemplate.GenerateHtmlFromTemplateAsync("ChooseDateReminderTemplate", vm);
 
         await _emailService.SendAsync(book.User.Email, book.User.Name, emailBodyHTML, EmailSubject, copyAdmins: false, highPriority: true);
+    }
+
+    private async Task SendEmailMultipleAsync(List<Book> books)
+    {
+        var donor = books[0].User;
+        var EmailSubject = "Hoje é o dia de escolher o ganhador!";
+
+        var bookListHtml = "<ul>";
+        foreach (var book in books)
+        {
+            var interestedCount = book.TotalInterested();
+            bookListHtml += $"<li><strong>{book.Title}</strong> — {interestedCount} interessado(s)</li>";
+        }
+        bookListHtml += "</ul>";
+
+        var vm = new
+        {
+            DonorName = donor.Name,
+            BookListHtml = bookListHtml
+        };
+        var emailBodyHTML = await _emailTemplate.GenerateHtmlFromTemplateAsync("ChooseDateReminderMultipleTemplate", vm);
+
+        await _emailService.SendAsync(donor.Email, donor.Name, emailBodyHTML, EmailSubject, copyAdmins: false, highPriority: true);
     }
 
     #endregion

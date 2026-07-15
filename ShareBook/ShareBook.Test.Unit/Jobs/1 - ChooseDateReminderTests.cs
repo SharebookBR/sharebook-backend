@@ -43,7 +43,7 @@ namespace ShareBook.Test.Unit.Jobs
             JobHistory result = await job.WorkAsync();
 
             Assert.True(result.IsSuccess);
-            Assert.Equal("Lembrete amigável enviado para 'TestUser' referente ao livro 'Lord of the Rings'.", result.Details);
+            Assert.Equal("Lembrete amigável enviado para 'TestUser' referente a 1 livro(s): 'Lord of the Rings'.", result.Details);
 
             _mockBookService.Verify(c => c.GetBooksChooseDateIsTodayAsync(), Times.Once);
             _mockEmailTemplate.Verify(c => c.GenerateHtmlFromTemplateAsync(It.Is<string>(v => v.Equals("ChooseDateReminderTemplate")), It.IsAny<object>()), Times.Once);
