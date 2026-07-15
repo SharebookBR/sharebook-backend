@@ -162,14 +162,18 @@ namespace ShareBook.Service
 
             if (bookUser.User.AllowSendingEmail)
             {
+                // Facilitator pode não estar cadastrado (ex.: livro físico sem facilitador definido).
+                // Usa o doador como fallback para os dados de contato.
+                var facilitator = book.UserFacilitator ?? book.User;
+
                 var vm = new
                 {
-                    NameBook = bookUser.Book.Title,
-                    NameFacilitator = book.UserFacilitator.Name,
-                    LinkedinFacilitator = book.UserFacilitator.Linkedin,
-                    PhoneFacilitator = book.UserFacilitator.Phone,
-                    EmailFacilitator = book.UserFacilitator.Email,
-                    ChooseDate = string.Format("{0:dd/MM/yyyy}", book.ChooseDate.Value) ,
+                    NameBook = bookUser.Book.Title ?? book.Title,
+                    NameFacilitator = facilitator.Name,
+                    LinkedinFacilitator = facilitator.Linkedin,
+                    PhoneFacilitator = facilitator.Phone,
+                    EmailFacilitator = facilitator.Email,
+                    ChooseDate = string.Format("{0:dd/MM/yyyy}", book.ChooseDate?.Value ?? DateTime.Today.AddDays(30)),
                     NameInterested = bookUser.User.Name,
                 };
 
