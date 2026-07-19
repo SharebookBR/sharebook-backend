@@ -3,6 +3,7 @@ using Serilog;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -69,6 +70,7 @@ namespace ShareBook.Api
             });
 
             services.AddHttpContextAccessor();
+            services.AddShareBookForwardedHeaders(Configuration);
 
             services.Configure<ImageSettings>(options => Configuration.GetSection("ImageSettings").Bind(options));
 
@@ -116,6 +118,7 @@ namespace ShareBook.Api
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseForwardedHeaders();
             app.UseSerilogRequestLogging();
 
             app.UseHealthChecks("/hc");
