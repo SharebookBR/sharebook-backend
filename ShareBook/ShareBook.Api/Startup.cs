@@ -13,6 +13,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using ShareBook.Api.Configuration;
 using ShareBook.Api.Filters;
+using ShareBook.Api.RateLimiting;
 using ShareBook.Api.Middleware;
 using ShareBook.Repository;
 using ShareBook.Service;
@@ -71,6 +72,16 @@ namespace ShareBook.Api
 
             services.AddHttpContextAccessor();
             services.AddShareBookForwardedHeaders(Configuration);
+            services
+                .AddOptions<EBookDownloadRateLimitOptions>()
+                .Bind(Configuration.GetSection(EBookDownloadRateLimitOptions.SectionName))
+                .Validate(options => options.PermitLimit > 0,
+                    "EBookDownloadRateLimit:PermitLimit deve ser maior que zero.")
+                .Validate(options => options.WindowHours > 0,
+                    "EBookDownloadRateLimit:WindowHours deve ser maior que zero.")
+                .ValidateOnStart();
+            services.AddSingleton(TimeProvider.System);
+            services.AddSingleton<IEBookDownloadRateLimiter, EBookDownloadRateLimiter>();
 
             services.Configure<ImageSettings>(options => Configuration.GetSection("ImageSettings").Bind(options));
 

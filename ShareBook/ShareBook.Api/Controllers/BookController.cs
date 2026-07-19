@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using ShareBook.Api.Filters;
+using ShareBook.Api.RateLimiting;
 using ShareBook.Api.ViewModels;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
@@ -35,6 +36,7 @@ namespace ShareBook.Api.Controllers
         private readonly IUserService _userService;
         private readonly IAccessHistoryService _accessHistoryService;
         private readonly IEBookService _ebookService;
+        private readonly IEBookDownloadRateLimiter _ebookDownloadRateLimiter;
         private Expression<Func<Book, object>> _defaultOrder = x => x.Id;
         private readonly IMapper _mapper;
 
@@ -43,7 +45,8 @@ namespace ShareBook.Api.Controllers
                               IUserService userService,
                               IMapper mapper,
                               IAccessHistoryService accessHistoryService,
-                              IEBookService ebookService)
+                              IEBookService ebookService,
+                              IEBookDownloadRateLimiter ebookDownloadRateLimiter)
         {
             _service = bookService;
             _bookUserService = bookUserService;
@@ -51,6 +54,7 @@ namespace ShareBook.Api.Controllers
             _mapper = mapper;
             _accessHistoryService = accessHistoryService;
             _ebookService = ebookService;
+            _ebookDownloadRateLimiter = ebookDownloadRateLimiter;
         }
 
         protected void SetDefault(Expression<Func<Book, object>> defaultOrder)
@@ -635,6 +639,7 @@ namespace ShareBook.Api.Controllers
         [ProducesResponseType(typeof(FileContentResult), 200)]
         [ProducesResponseType(302)]
         [ProducesResponseType(404)]
+        [ProducesResponseType(429)]
         public async Task<IActionResult> DownloadEBookAsync(string slug)
         {
             var book = await _service.BySlugAsync(slug);
@@ -651,11 +656,18 @@ namespace ShareBook.Api.Controllers
             if (string.IsNullOrEmpty(book.EBookPdfPath))
                 return NotFound(new { message = "PDF do livro digital não disponível." });
 
-            await _service.IncrementDownloadCountAsync(book.Id);
-
             var downloadUrl = await _ebookService.GetPdfDownloadUrlAsync(book);
             if (!string.IsNullOrEmpty(downloadUrl))
+            {
+                var rateLimitResult = _ebookDownloadRateLimiter.TryAcquire(
+                    HttpContext.Connection.RemoteIpAddress);
+
+                if (!rateLimitResult.IsAllowed)
+                    return DailyDownloadLimitExceeded(rateLimitResult);
+
+                await _service.IncrementDownloadCountAsync(book.Id);
                 return Redirect(downloadUrl);
+            }
 
             // Storage local (retrocompatibilidade com livros cadastrados antes da migração)
             var basePath = Path.GetFullPath(Path.Combine(
@@ -672,9 +684,31 @@ namespace ShareBook.Api.Controllers
             if (!System.IO.File.Exists(pdfPath))
                 return NotFound(new { message = "Arquivo PDF não encontrado." });
 
+            var localRateLimitResult = _ebookDownloadRateLimiter.TryAcquire(
+                HttpContext.Connection.RemoteIpAddress);
+
+            if (!localRateLimitResult.IsAllowed)
+                return DailyDownloadLimitExceeded(localRateLimitResult);
+
+            await _service.IncrementDownloadCountAsync(book.Id);
+
             var pdfBytes = await System.IO.File.ReadAllBytesAsync(pdfPath);
             var fileName = book.GetPdfFileName();
             return File(pdfBytes, "application/pdf", fileName);
+        }
+
+        private IActionResult DailyDownloadLimitExceeded(
+            EBookDownloadRateLimitResult rateLimitResult)
+        {
+            Response.Headers["Retry-After"] = rateLimitResult.RetryAfterSeconds.ToString();
+
+            return StatusCode(
+                (int)HttpStatusCode.TooManyRequests,
+                new
+                {
+                    message = "Limite diário de downloads atingido. Tente novamente mais tarde.",
+                    retryAfterSeconds = rateLimitResult.RetryAfterSeconds
+                });
         }
     }
 }
