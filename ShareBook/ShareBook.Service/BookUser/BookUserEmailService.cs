@@ -173,7 +173,7 @@ namespace ShareBook.Service
                     LinkedinFacilitator = facilitator.Linkedin,
                     PhoneFacilitator = facilitator.Phone,
                     EmailFacilitator = facilitator.Email,
-                    ChooseDate = string.Format("{0:dd/MM/yyyy}", book.ChooseDate?.Value ?? DateTime.Today.AddDays(30)),
+                    ChooseDate = string.Format("{0:dd/MM/yyyy}", book.ChooseDate ?? DateTime.Today.AddDays(30)),
                     NameInterested = bookUser.User.Name,
                 };
 
