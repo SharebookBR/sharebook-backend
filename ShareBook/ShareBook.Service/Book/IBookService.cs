@@ -20,8 +20,6 @@ namespace ShareBook.Service
 
         IList<dynamic> FreightOptions();
 
-        Task<IList<Book>> AvailableBooksAsync();
-
         Task<IList<Book>> Random15BooksAsync();
 
         Task<IList<Book>> GetNewest15EBooksAsync();

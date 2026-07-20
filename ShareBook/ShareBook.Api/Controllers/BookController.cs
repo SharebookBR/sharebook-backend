@@ -220,13 +220,6 @@ namespace ShareBook.Api.Controllers
             return bookVM != null ? (IActionResult)Ok(bookVM) : NotFound();
         }
 
-        [HttpGet("AvailableBooks")]
-        public async Task<IList<BookVM>> AvailableBooksAsync()
-        {
-            var books = await _service.AvailableBooksAsync();
-            return _mapper.Map<List<BookVM>>(books);
-        }
-
         [HttpGet("Random15Books")]
         public async Task<IList<BookVM>> Random15BooksAsync()
         {

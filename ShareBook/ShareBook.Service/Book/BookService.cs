@@ -132,20 +132,6 @@ namespace ShareBook.Service
             return enumValues;
         }
 
-        public async Task<IList<Book>> AvailableBooksAsync()
-        {
-            return SetImageUrl(
-                await _repository.Get()
-                    .Include(b => b.User)
-                    .ThenInclude(u => u.Address)
-                    .Include(b => b.Category)
-                    .ThenInclude(c => c.ParentCategory)
-                    .Where(b => b.Status == BookStatus.Available)
-                    .OrderByDescending(b => b.CreationDate)
-                    .ToListAsync()
-            );
-        }
-
         public async Task<IList<Book>> Random15BooksAsync()
         {
             return SetImageUrl(
