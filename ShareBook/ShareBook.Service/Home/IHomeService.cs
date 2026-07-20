@@ -6,6 +6,7 @@ namespace ShareBook.Service.Home
 {
     public interface IHomeService
     {
+        Task<List<HomeShowcaseBookDTO>> GetFeaturedPrintedBooksAsync();
         Task<List<HomeShowcaseCategoryDTO>> GetCategoriesShowcaseAsync();
     }
 }

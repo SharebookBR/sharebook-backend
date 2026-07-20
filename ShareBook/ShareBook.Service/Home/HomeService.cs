@@ -13,6 +13,7 @@ namespace ShareBook.Service.Home
 {
     public class HomeService : IHomeService
     {
+        private const int FeaturedPrintedBooks = 15;
         private const int ShowcaseCategories = 3;
         private const int BooksPerCategory = 10;
 
@@ -28,6 +29,18 @@ namespace ShareBook.Service.Home
             _bookRepository = bookRepository;
             _categoryRepository = categoryRepository;
             _uploadService = uploadService;
+        }
+
+        public async Task<List<HomeShowcaseBookDTO>> GetFeaturedPrintedBooksAsync()
+        {
+            var books = await _bookRepository.Get()
+                .Where(b => b.Status == BookStatus.Available
+                         && b.Type == BookType.Printed)
+                .OrderByDescending(b => b.CreationDate)
+                .Take(FeaturedPrintedBooks)
+                .ToListAsync();
+
+            return books.Select(ToShowcaseBook).ToList();
         }
 
         public async Task<List<HomeShowcaseCategoryDTO>> GetCategoriesShowcaseAsync()
@@ -79,19 +92,24 @@ namespace ShareBook.Service.Home
                 {
                     Id = categoryId,
                     Name = name,
-                    Books = books.Select(b => new HomeShowcaseBookDTO
-                    {
-                        Id = b.Id,
-                        Title = b.Title,
-                        Author = b.Author,
-                        Slug = b.Slug,
-                        ImageUrl = _uploadService.GetImageUrl(b.ImageSlug, "Books"),
-                        Type = b.Type.ToString()
-                    }).ToList()
+                    Books = books.Select(ToShowcaseBook).ToList()
                 });
             }
 
             return result;
+        }
+
+        private HomeShowcaseBookDTO ToShowcaseBook(Book book)
+        {
+            return new HomeShowcaseBookDTO
+            {
+                Id = book.Id,
+                Title = book.Title,
+                Author = book.Author,
+                Slug = book.Slug,
+                ImageUrl = _uploadService.GetImageUrl(book.ImageSlug, "Books"),
+                Type = book.Type.ToString()
+            };
         }
     }
 }

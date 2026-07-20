@@ -14,6 +14,13 @@ namespace ShareBook.Api.Controllers
             _homeService = homeService;
         }
 
+        [HttpGet("featured-printed-books")]
+        public async Task<IActionResult> GetFeaturedPrintedBooksAsync()
+        {
+            var result = await _homeService.GetFeaturedPrintedBooksAsync();
+            return Ok(result);
+        }
+
         [HttpGet("categories-showcase")]
         public async Task<IActionResult> GetCategoriesShowcaseAsync()
         {

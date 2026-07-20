@@ -141,6 +141,11 @@ namespace ShareBook.Api
                 {
                     // Enable cors
                     context.Context.Response.Headers["Access-Control-Allow-Origin"] = "*";
+
+                    if (context.Context.Request.Path.StartsWithSegments("/Images/Books"))
+                    {
+                        context.Context.Response.Headers["Cache-Control"] = "public,max-age=86400";
+                    }
                 }
             };
 

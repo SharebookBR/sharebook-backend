@@ -76,8 +76,7 @@ public class EBookDownloadRateLimiterTests
         CreateLimiter()
     {
         var cache = new MemoryCache(new MemoryCacheOptions());
-        var timeProvider = new ManualTimeProvider(
-            new DateTimeOffset(2026, 7, 19, 12, 0, 0, TimeSpan.Zero));
+        var timeProvider = new ManualTimeProvider(DateTimeOffset.UtcNow);
         var options = Options.Create(new EBookDownloadRateLimitOptions
         {
             PermitLimit = 5,
