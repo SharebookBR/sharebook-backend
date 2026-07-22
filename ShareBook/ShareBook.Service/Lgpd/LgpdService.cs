@@ -105,11 +105,11 @@ namespace ShareBook.Service.Lgpd
 
         private void RemoveLogs(User user)
         {
-            var logsUser = _ctx.LogEntries.Where(log => log.EntityName == "User" && log.EntityId == user.Id).ToArray();
-            _ctx.LogEntries.RemoveRange(logsUser);
+            var logsUser = _ctx.EFLogs.Where(log => log.EntityName == "User" && log.EntityId == user.Id).ToArray();
+            _ctx.EFLogs.RemoveRange(logsUser);
 
-            var logsAddress = _ctx.LogEntries.Where(log => log.EntityName == "Address" && log.EntityId == user.Address.Id).ToArray();
-            _ctx.LogEntries.RemoveRange(logsAddress);
+            var logsAddress = _ctx.EFLogs.Where(log => log.EntityName == "Address" && log.EntityId == user.Address.Id).ToArray();
+            _ctx.EFLogs.RemoveRange(logsAddress);
         }
 
     }

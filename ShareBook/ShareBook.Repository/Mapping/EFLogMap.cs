@@ -1,12 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ShareBook.Domain;
 
 namespace ShareBook.Repository.Mapping
 {
-    public class LogEntryMap : IEntityTypeConfiguration<LogEntry>
+    public class EFLogMap : IEntityTypeConfiguration<EFLog>
     {
-        public void Configure(EntityTypeBuilder<LogEntry> entityBuilder)
+        public void Configure(EntityTypeBuilder<EFLog> entityBuilder)
         {
             entityBuilder.HasKey(t => t.Id);
             entityBuilder.Property(t => t.UserId);

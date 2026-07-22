@@ -13,7 +13,7 @@ namespace ShareBook.Repository
 
         public DbSet<Book> Books { get; set; }
         public DbSet<User> Users { get; set; }
-        public DbSet<LogEntry> LogEntries { get; set; }
+        public DbSet<EFLog> EFLogs { get; set; }
         public DbSet<BookUser> BookUser { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Address> Addresses { get; set; }

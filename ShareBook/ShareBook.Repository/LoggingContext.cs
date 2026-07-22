@@ -57,7 +57,7 @@ namespace ShareBook.Repository
                 {
                     var EntityDiff = JToken.Parse(jsonDiff).ToString(Formatting.None);
 
-                    var logEntry = new LogEntry()
+                    var efLog = new EFLog()
                     {
                         EntityName = item.Entity.GetType().Name,
                         EntityId = new Guid(item.CurrentValues[idColumn].ToString()),
@@ -67,7 +67,7 @@ namespace ShareBook.Repository
                         ValuesChanges = EntityDiff,
                     };
 
-                    context.LogEntries.Add(logEntry);
+                    context.EFLogs.Add(efLog);
                 }
                 
             }
