@@ -8,6 +8,13 @@ namespace ShareBook.Infra.Data.Migrations
     /// <inheritdoc />
     public partial class RenameEFLogs : Migration
     {
+        // Nomes reais em produção têm prefixo "idx_17657_" — herança da migração histórica de
+        // SQL Server para Postgres (ferramenta de port prefixou constraint/index, não a tabela).
+        // Confirmado via pg_indexes/pg_constraint antes de corrigir; convenção do EF não bate
+        // com a realidade física para objetos criados antes desse port.
+        private const string LegacyPrimaryKeyName = "idx_17657_PK_LogEntries";
+        private const string LegacyIndexName = "idx_17657_IX_LogEntries_EntityName_EntityId";
+
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -19,23 +26,23 @@ namespace ShareBook.Infra.Data.Migrations
 
             migrationBuilder.RenameIndex(
                 table: "EFLogs",
-                name: "IX_LogEntries_EntityName_EntityId",
+                name: LegacyIndexName,
                 newName: "IX_EFLogs_EntityName_EntityId");
 
             migrationBuilder.Sql(
-                "ALTER TABLE \"EFLogs\" RENAME CONSTRAINT \"PK_LogEntries\" TO \"PK_EFLogs\";");
+                $"ALTER TABLE \"EFLogs\" RENAME CONSTRAINT \"{LegacyPrimaryKeyName}\" TO \"PK_EFLogs\";");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql(
-                "ALTER TABLE \"EFLogs\" RENAME CONSTRAINT \"PK_EFLogs\" TO \"PK_LogEntries\";");
+                $"ALTER TABLE \"EFLogs\" RENAME CONSTRAINT \"PK_EFLogs\" TO \"{LegacyPrimaryKeyName}\";");
 
             migrationBuilder.RenameIndex(
                 table: "EFLogs",
                 name: "IX_EFLogs_EntityName_EntityId",
-                newName: "IX_LogEntries_EntityName_EntityId");
+                newName: LegacyIndexName);
 
             migrationBuilder.RenameTable(
                 name: "EFLogs",
