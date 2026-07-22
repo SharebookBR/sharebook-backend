@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using ShareBook.Api.RateLimiting;
 using System;
 using System.Net;
 
@@ -14,12 +17,17 @@ namespace ShareBook.Api.Filters
         public string Message { get; set; }
         public bool VaryByIp { get; set; }
 
+        // Só marca no radar da tabela "Logs" quando fizer sentido pro chamador (hoje: download de ebook).
+        // Endpoints genéricos (ex.: JobExecutor) não devem virar ruído nessa tabela.
+        public bool LogBlockedAttempts { get; set; }
+
         private static MemoryCache Cache { get; } = new MemoryCache(new MemoryCacheOptions());
 
         public override void OnActionExecuting(ActionExecutingContext c)
         {
-            var key = VaryByIp 
-            ? string.Concat(Name, "-", c.HttpContext.Request.HttpContext.Connection.RemoteIpAddress)
+            var ip = c.HttpContext.Request.HttpContext.Connection.RemoteIpAddress;
+            var key = VaryByIp
+            ? string.Concat(Name, "-", ip)
             : Name;
 
             if (!Cache.TryGetValue(key, out bool entry))
@@ -37,6 +45,14 @@ namespace ShareBook.Api.Filters
                 c.Result = new ContentResult { Content = Message.Replace("{n}", Seconds.ToString()) };
                 c.HttpContext.Response.StatusCode = (int)HttpStatusCode.TooManyRequests;
                 c.HttpContext.Response.Headers["Retry-After"] = Seconds.ToString();
+
+                if (LogBlockedAttempts)
+                {
+                    var logger = c.HttpContext.RequestServices.GetService<ILogger<ThrottleAttribute>>();
+                    logger?.LogWarning(
+                        "Download bloqueado pelo throttle global: {LogsCategory} {Outcome} {ThrottleName} {Ip}",
+                        RateLimitLogging.EBookDownloadCategory, "BlockedThrottle", Name, ip);
+                }
             }
         }
     }

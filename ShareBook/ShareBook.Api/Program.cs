@@ -1,9 +1,13 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using NpgsqlTypes;
 using Rollbar.PlugIns.Serilog;
 using Serilog;
 using Serilog.Events;
+using Serilog.Sinks.PostgreSQL.ColumnWriters;
+using ShareBook.Api.RateLimiting;
 using System;
+using System.Collections.Generic;
 
 namespace ShareBook.Api
 {
@@ -30,6 +34,31 @@ namespace ShareBook.Api
                             rollbarAccessToken: rollbarToken,
                             rollbarEnvironment: rollbarEnv,
                             restrictedToMinimumLevel: LogEventLevel.Error);
+                    }
+
+                    var dbProvider = ctx.Configuration["DatabaseProvider"]?.ToLower();
+                    var postgresConnection = ctx.Configuration.GetConnectionString("PostgresConnection");
+
+                    if (dbProvider == "postgres" && !string.IsNullOrEmpty(postgresConnection))
+                    {
+                        var logsColumnWriters = new Dictionary<string, ColumnWriterBase>
+                        {
+                            { "Timestamp", new TimestampColumnWriter(NpgsqlDbType.TimestampTz) },
+                            { "Level", new LevelColumnWriter(true, NpgsqlDbType.Varchar) },
+                            { "Message", new RenderedMessageColumnWriter(NpgsqlDbType.Text) },
+                            { "Exception", new ExceptionColumnWriter(NpgsqlDbType.Text) },
+                            { "Properties", new PropertiesColumnWriter(NpgsqlDbType.Jsonb) },
+                        };
+
+                        // Só eventos marcados explicitamente (via RateLimitLogging.CategoryProperty)
+                        // caem na tabela "Logs" — não é espelho do request log geral.
+                        lc.WriteTo.Logger(sub => sub
+                            .Filter.ByIncludingOnly(e => e.Properties.ContainsKey(RateLimitLogging.CategoryProperty))
+                            .WriteTo.PostgreSQL(
+                                connectionString: postgresConnection,
+                                tableName: "Logs",
+                                columnOptions: logsColumnWriters,
+                                needAutoCreateTable: false));
                     }
                 })
                 .ConfigureWebHostDefaults(webBuilder =>

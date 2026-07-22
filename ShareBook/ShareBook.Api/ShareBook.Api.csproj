@@ -22,6 +22,7 @@
     </PackageReference>
     <PackageReference Include="Rollbar.PlugIns.Serilog" Version="5.2.2" />
     <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageReference Include="Serilog.Sinks.Postgresql.Alternative" Version="4.2.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.4" />
   </ItemGroup>
 
@@ -74,7 +75,7 @@
     <Content Update="wwwroot\Images\Books\cronicas-gelo-e-fogo.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Update="wwwroot\Images\Books\direito-e-justiça.jpg">
+    <Content Update="wwwroot\Images\Books\direito-e-justi?a.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Update="wwwroot\Images\Books\direito-penal-rideel.jpg">

@@ -3,6 +3,7 @@ using Flurl.Util;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using ShareBook.Api.Filters;
 using ShareBook.Api.RateLimiting;
 using ShareBook.Api.ViewModels;
@@ -37,6 +38,7 @@ namespace ShareBook.Api.Controllers
         private readonly IAccessHistoryService _accessHistoryService;
         private readonly IEBookService _ebookService;
         private readonly IEBookDownloadRateLimiter _ebookDownloadRateLimiter;
+        private readonly ILogger<BookController> _logger;
         private Expression<Func<Book, object>> _defaultOrder = x => x.Id;
         private readonly IMapper _mapper;
 
@@ -46,7 +48,8 @@ namespace ShareBook.Api.Controllers
                               IMapper mapper,
                               IAccessHistoryService accessHistoryService,
                               IEBookService ebookService,
-                              IEBookDownloadRateLimiter ebookDownloadRateLimiter)
+                              IEBookDownloadRateLimiter ebookDownloadRateLimiter,
+                              ILogger<BookController> logger)
         {
             _service = bookService;
             _bookUserService = bookUserService;
@@ -55,6 +58,7 @@ namespace ShareBook.Api.Controllers
             _accessHistoryService = accessHistoryService;
             _ebookService = ebookService;
             _ebookDownloadRateLimiter = ebookDownloadRateLimiter;
+            _logger = logger;
         }
 
         protected void SetDefault(Expression<Func<Book, object>> defaultOrder)
@@ -627,7 +631,7 @@ namespace ShareBook.Api.Controllers
 
         [HttpGet("DownloadEBook/{slug}")]
         [AllowAnonymous]
-        [Throttle(Name = "DownloadEBook", Seconds = 5, VaryByIp = false,
+        [Throttle(Name = "DownloadEBook", Seconds = 5, VaryByIp = false, LogBlockedAttempts = true,
             Message = "Muitos downloads em sequência. Tente novamente em alguns segundos.")]
         [ProducesResponseType(typeof(FileContentResult), 200)]
         [ProducesResponseType(302)]
@@ -655,6 +659,8 @@ namespace ShareBook.Api.Controllers
                 var rateLimitResult = _ebookDownloadRateLimiter.TryAcquire(
                     HttpContext.Connection.RemoteIpAddress);
 
+                LogRateLimitOutcome(book, slug, rateLimitResult);
+
                 if (!rateLimitResult.IsAllowed)
                     return DailyDownloadLimitExceeded(rateLimitResult);
 
@@ -680,6 +686,8 @@ namespace ShareBook.Api.Controllers
             var localRateLimitResult = _ebookDownloadRateLimiter.TryAcquire(
                 HttpContext.Connection.RemoteIpAddress);
 
+            LogRateLimitOutcome(book, slug, localRateLimitResult);
+
             if (!localRateLimitResult.IsAllowed)
                 return DailyDownloadLimitExceeded(localRateLimitResult);
 
@@ -688,6 +696,16 @@ namespace ShareBook.Api.Controllers
             var pdfBytes = await System.IO.File.ReadAllBytesAsync(pdfPath);
             var fileName = book.GetPdfFileName();
             return File(pdfBytes, "application/pdf", fileName);
+        }
+
+        private void LogRateLimitOutcome(Book book, string slug, EBookDownloadRateLimitResult rateLimitResult)
+        {
+            var outcome = rateLimitResult.IsAllowed ? "Allowed" : "BlockedDailyLimit";
+
+            _logger.LogInformation(
+                "Download de ebook: {LogsCategory} {Outcome} {Ip} {Slug} {BookId} {Remaining} {RetryAfterSeconds}",
+                RateLimitLogging.EBookDownloadCategory, outcome, HttpContext.Connection.RemoteIpAddress,
+                slug, book.Id, rateLimitResult.Remaining, rateLimitResult.RetryAfterSeconds);
         }
 
         private IActionResult DailyDownloadLimitExceeded(
