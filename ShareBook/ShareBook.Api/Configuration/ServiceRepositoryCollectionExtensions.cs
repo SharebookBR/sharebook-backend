@@ -99,6 +99,7 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<MailSupressListUpdate>();
             services.AddScoped<MailSender>();
             services.AddScoped<NewEbookWeeklyDigest>();
+            services.AddScoped<CleanupLogsTable>();
 
             //notification
             services.AddScoped<IPushNotificationService, PushNotificationService>();
