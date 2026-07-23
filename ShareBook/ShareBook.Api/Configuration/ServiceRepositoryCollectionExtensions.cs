@@ -11,6 +11,7 @@ using ShareBook.Service;
 using ShareBook.Service.AwsSqs;
 using ShareBook.Service.EBook;
 using ShareBook.Service.Analytics;
+using ShareBook.Service.DownloadLogs;
 using ShareBook.Service.Importer;
 using ShareBook.Service.Lgpd;
 using ShareBook.Service.Muambator;
@@ -41,6 +42,7 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<IAccessHistoryService, AccessHistoryService>();
             services.AddScoped<ILgpdService, LgpdService>();
             services.AddScoped<IMeetupService, MeetupService>();
+            services.AddScoped<IDownloadLogsService, DownloadLogsService>();
             services.AddScoped<IRecaptchaService, RecaptchaService>();
             services.AddScoped<IImporterDashboardService, ImporterDashboardService>();
             services.AddSingleton<IAnalyticsService, AnalyticsService>();
