@@ -25,6 +25,11 @@ public class DownloadLogsService : IDownloadLogsService
     {
         var (fromUtc, toUtcExclusive) = ToUtcRange(from, to);
 
+        // Npgsql exige Kind explícito em qualquer parâmetro DateTime (mesmo os só usados
+        // como ::date no SQL) — Kind=Unspecified derruba com "only UTC is supported".
+        var fromDateParam = DateTime.SpecifyKind(from.Date, DateTimeKind.Utc);
+        var toDateParam = DateTime.SpecifyKind(to.Date, DateTimeKind.Utc);
+
         const string sql = @"
             SELECT d::date AS ""Day"",
                    COALESCE(a.allowed, 0) AS ""Allowed"",
@@ -44,7 +49,7 @@ public class DownloadLogsService : IDownloadLogsService
             ORDER BY d";
 
         return await _ctx.Database
-            .SqlQueryRaw<DownloadLogsSummaryDto>(sql, from.Date, to.Date, Category, fromUtc, toUtcExclusive)
+            .SqlQueryRaw<DownloadLogsSummaryDto>(sql, fromDateParam, toDateParam, Category, fromUtc, toUtcExclusive)
             .ToListAsync();
     }
 
