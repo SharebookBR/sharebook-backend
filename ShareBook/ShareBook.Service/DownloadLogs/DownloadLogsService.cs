@@ -41,7 +41,7 @@ public class DownloadLogsService : IDownloadLogsService
                   AND ""Timestamp"" >= {3} AND ""Timestamp"" < {4}
                 GROUP BY 1
             ) a ON a.day = d::date
-            ORDER BY d;";
+            ORDER BY d";
 
         return await _ctx.Database
             .SqlQueryRaw<DownloadLogsSummaryDto>(sql, from.Date, to.Date, Category, fromUtc, toUtcExclusive)
@@ -60,7 +60,7 @@ public class DownloadLogsService : IDownloadLogsService
             SELECT count(*) AS ""Value""
             FROM ""Logs""
             WHERE ""Properties""->>'LogsCategory' = {0}
-              AND ""Timestamp"" >= {1} AND ""Timestamp"" < {2};";
+              AND ""Timestamp"" >= {1} AND ""Timestamp"" < {2}";
 
         var totalItems = await _ctx.Database
             .SqlQueryRaw<int>(countSql, Category, fromUtc, toUtcExclusive)
@@ -77,7 +77,7 @@ public class DownloadLogsService : IDownloadLogsService
             WHERE l.""Properties""->>'LogsCategory' = {0}
               AND l.""Timestamp"" >= {1} AND l.""Timestamp"" < {2}
             ORDER BY l.""Timestamp"" DESC
-            LIMIT {3} OFFSET {4};";
+            LIMIT {3} OFFSET {4}";
 
         var items = await _ctx.Database
             .SqlQueryRaw<DownloadLogEventDto>(eventsSql, Category, fromUtc, toUtcExclusive, pageSize, offset)
