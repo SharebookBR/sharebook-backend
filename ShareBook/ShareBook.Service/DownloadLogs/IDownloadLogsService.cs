@@ -7,5 +7,5 @@ namespace ShareBook.Service.DownloadLogs;
 public interface IDownloadLogsService
 {
     Task<IList<DownloadLogsSummaryDto>> GetSummaryAsync(DateTime from, DateTime to);
-    Task<PagedDownloadLogEventsDto> GetEventsAsync(DateTime from, DateTime to, int page, int pageSize);
+    Task<PagedDownloadLogEventsDto> GetEventsAsync(DateTime from, DateTime to, int page, int pageSize, string ip = null, string outcome = null);
 }

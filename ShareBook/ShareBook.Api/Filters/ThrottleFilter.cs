@@ -48,10 +48,16 @@ namespace ShareBook.Api.Filters
 
                 if (LogBlockedAttempts)
                 {
+                    // Slug já foi resolvido pelo model binding antes do filtro rodar — disponível
+                    // mesmo aqui, antes da action em si executar.
+                    var slug = c.ActionArguments.TryGetValue("slug", out var slugValue)
+                        ? slugValue?.ToString()
+                        : null;
+
                     var logger = c.HttpContext.RequestServices.GetService<ILogger<ThrottleAttribute>>();
                     logger?.LogWarning(
-                        "Download bloqueado pelo throttle global: {LogsCategory} {Outcome} {ThrottleName} {Ip}",
-                        RateLimitLogging.EBookDownloadCategory, "BlockedThrottle", Name, ip);
+                        "Download bloqueado pelo throttle global: {LogsCategory} {Outcome} {ThrottleName} {Ip} {Slug}",
+                        RateLimitLogging.EBookDownloadCategory, "BlockedThrottle", Name, ip, slug);
                 }
             }
         }

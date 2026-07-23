@@ -33,10 +33,12 @@ public class DownloadLogsController : ControllerBase
         [FromQuery] DateTime? from,
         [FromQuery] DateTime? to,
         [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 100)
+        [FromQuery] int pageSize = 100,
+        [FromQuery] string ip = null,
+        [FromQuery] string outcome = null)
     {
         var (rangeFrom, rangeTo) = ResolveRange(from, to);
-        var paged = await _downloadLogsService.GetEventsAsync(rangeFrom, rangeTo, page, pageSize);
+        var paged = await _downloadLogsService.GetEventsAsync(rangeFrom, rangeTo, page, pageSize, ip, outcome);
         return Ok(paged);
     }
 

@@ -53,22 +53,29 @@ public class DownloadLogsService : IDownloadLogsService
             .ToListAsync();
     }
 
-    public async Task<PagedDownloadLogEventsDto> GetEventsAsync(DateTime from, DateTime to, int page, int pageSize)
+    public async Task<PagedDownloadLogEventsDto> GetEventsAsync(
+        DateTime from, DateTime to, int page, int pageSize, string ip = null, string outcome = null)
     {
         page = Math.Max(page, 1);
         pageSize = Math.Clamp(pageSize, 1, 1000);
         var offset = (page - 1) * pageSize;
 
         var (fromUtc, toUtcExclusive) = ToUtcRange(from, to);
+        var ipFilter = string.IsNullOrWhiteSpace(ip) ? null : ip;
+        var outcomeFilter = string.IsNullOrWhiteSpace(outcome) ? null : outcome;
 
+        // Filtros opcionais via padrão "{n}::text IS NULL OR coluna = {n}" — mesma forma de SQL
+        // sempre, parâmetro nulo desliga a condição. Evita montar WHERE dinamicamente na mão.
         const string countSql = @"
             SELECT count(*) AS ""Value""
             FROM ""Logs""
             WHERE ""Properties""->>'LogsCategory' = {0}
-              AND ""Timestamp"" >= {1} AND ""Timestamp"" < {2}";
+              AND ""Timestamp"" >= {1} AND ""Timestamp"" < {2}
+              AND ({3}::text IS NULL OR ""Properties""->>'Ip' = {3})
+              AND ({4}::text IS NULL OR ""Properties""->>'Outcome' = {4})";
 
         var totalItems = await _ctx.Database
-            .SqlQueryRaw<int>(countSql, Category, fromUtc, toUtcExclusive)
+            .SqlQueryRaw<int>(countSql, Category, fromUtc, toUtcExclusive, ipFilter, outcomeFilter)
             .SingleAsync();
 
         const string eventsSql = @"
@@ -81,11 +88,13 @@ public class DownloadLogsService : IDownloadLogsService
             LEFT JOIN ""Books"" b ON b.""Slug"" = l.""Properties""->>'Slug'
             WHERE l.""Properties""->>'LogsCategory' = {0}
               AND l.""Timestamp"" >= {1} AND l.""Timestamp"" < {2}
+              AND ({3}::text IS NULL OR l.""Properties""->>'Ip' = {3})
+              AND ({4}::text IS NULL OR l.""Properties""->>'Outcome' = {4})
             ORDER BY l.""Timestamp"" DESC
-            LIMIT {3} OFFSET {4}";
+            LIMIT {5} OFFSET {6}";
 
         var items = await _ctx.Database
-            .SqlQueryRaw<DownloadLogEventDto>(eventsSql, Category, fromUtc, toUtcExclusive, pageSize, offset)
+            .SqlQueryRaw<DownloadLogEventDto>(eventsSql, Category, fromUtc, toUtcExclusive, ipFilter, outcomeFilter, pageSize, offset)
             .ToListAsync();
 
         return new PagedDownloadLogEventsDto
