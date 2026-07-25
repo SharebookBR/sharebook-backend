@@ -195,6 +195,22 @@ namespace ShareBook.Service
                 .CountAsync();
         }
 
+        public async Task<IList<SitemapBookDTO>> GetSitemapBooksAsync()
+        {
+            return await _repository.Get()
+                .AsNoTracking()
+                .Where(b => b.Status != BookStatus.WaitingApproval
+                    && b.Status != BookStatus.Canceled
+                    && !string.IsNullOrWhiteSpace(b.Slug))
+                .OrderBy(b => b.Slug)
+                .Select(b => new SitemapBookDTO
+                {
+                    Slug = b.Slug,
+                    LastModifiedAt = b.ApprovedAt ?? b.CreationDate
+                })
+                .ToListAsync();
+        }
+
         public async Task<AdminBooksResultDTO> GetAdminBooksAsync(
             int page,
             int itemsPerPage,

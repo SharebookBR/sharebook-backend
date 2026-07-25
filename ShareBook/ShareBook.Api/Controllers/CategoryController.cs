@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using ShareBook.Api.ViewModels;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
+using ShareBook.Domain.DTOs;
 using ShareBook.Service;
 using System;
 using System.Collections.Generic;
@@ -60,6 +61,13 @@ namespace ShareBook.Api.Controllers
         {
             var categories = await ((ICategoryService)_service).GetCategoriesWithCountsAsync();
             return Ok(_mapper.Map<IEnumerable<CategoryVM>>(categories));
+        }
+
+        [HttpGet("Sitemap")]
+        [ProducesResponseType(typeof(IList<SitemapCategoryDTO>), 200)]
+        public async Task<IList<SitemapCategoryDTO>> SitemapAsync()
+        {
+            return await ((ICategoryService)_service).GetSitemapCategoriesAsync();
         }
     }
 }

@@ -267,6 +267,13 @@ namespace ShareBook.Api.Controllers
             return Ok(new { total });
         }
 
+        [HttpGet("Sitemap")]
+        [ProducesResponseType(typeof(IList<SitemapBookDTO>), 200)]
+        public async Task<IList<SitemapBookDTO>> SitemapAsync()
+        {
+            return await _service.GetSitemapBooksAsync();
+        }
+
         [HttpGet("FullSearch/{criteria}/{page}/{items}")]
         public async Task<PagedList<BookVM>> FullSearchAsync(string criteria, int page, int items)
         {

@@ -6,6 +6,8 @@ using ShareBook.Service.Generic;
 
 using Microsoft.EntityFrameworkCore;
 using ShareBook.Domain.Common;
+using ShareBook.Domain.DTOs;
+using ShareBook.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -63,6 +65,89 @@ namespace ShareBook.Service
             }
 
             return categories.Where(x => x.ParentCategoryId == null).OrderBy(x => x.Name);
+        }
+
+        public async Task<IList<SitemapCategoryDTO>> GetSitemapCategoriesAsync()
+        {
+            var categories = await _repository.Get()
+                .AsNoTracking()
+                .Select(category => new
+                {
+                    category.Id,
+                    category.Name,
+                    category.ParentCategoryId
+                })
+                .ToListAsync();
+
+            var books = await _bookRepository.Get()
+                .AsNoTracking()
+                .Where(book => book.Status == BookStatus.Available)
+                .Select(book => new
+                {
+                    book.CategoryId,
+                    LastModifiedAt = book.ApprovedAt ?? book.CreationDate
+                })
+                .ToListAsync();
+
+            var categoriesById = categories.ToDictionary(category => category.Id);
+            var childrenByParentId = categories
+                .Where(category => category.ParentCategoryId.HasValue)
+                .GroupBy(category => category.ParentCategoryId.Value)
+                .ToDictionary(group => group.Key, group => group.Select(category => category.Id).ToList());
+            var booksByCategoryId = books
+                .GroupBy(book => book.CategoryId)
+                .ToDictionary(group => group.Key, group => group.ToList());
+            var results = new List<SitemapCategoryDTO>();
+
+            (int Count, DateTime? LastModifiedAt) Aggregate(Guid categoryId)
+            {
+                var directBooks = booksByCategoryId.TryGetValue(categoryId, out var categoryBooks)
+                    ? categoryBooks
+                    : null;
+                var count = directBooks?.Count ?? 0;
+                var lastModifiedAt = directBooks?
+                    .Where(book => book.LastModifiedAt.HasValue)
+                    .Select(book => book.LastModifiedAt)
+                    .Max();
+
+                if (childrenByParentId.TryGetValue(categoryId, out var childIds))
+                {
+                    foreach (var childId in childIds)
+                    {
+                        var childAggregate = Aggregate(childId);
+                        count += childAggregate.Count;
+                        if (childAggregate.LastModifiedAt.HasValue
+                            && (!lastModifiedAt.HasValue
+                                || childAggregate.LastModifiedAt.Value > lastModifiedAt.Value))
+                        {
+                            lastModifiedAt = childAggregate.LastModifiedAt;
+                        }
+                    }
+                }
+
+                return (count, lastModifiedAt);
+            }
+
+            foreach (var category in categories)
+            {
+                var aggregate = Aggregate(category.Id);
+                if (aggregate.Count == 0)
+                {
+                    continue;
+                }
+
+                results.Add(new SitemapCategoryDTO
+                {
+                    Name = category.Name,
+                    ParentCategoryName = category.ParentCategoryId.HasValue
+                        && categoriesById.TryGetValue(category.ParentCategoryId.Value, out var parent)
+                            ? parent.Name
+                            : null,
+                    LastModifiedAt = aggregate.LastModifiedAt
+                });
+            }
+
+            return results.OrderBy(category => category.Name).ToList();
         }
 
         private int CalculateTotalBooks(Category category, List<Category> allCategories, Dictionary<Guid, int> bookCounts)

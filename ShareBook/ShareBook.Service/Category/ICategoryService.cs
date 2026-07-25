@@ -1,6 +1,7 @@
 ﻿using ShareBook.Service.Generic;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
+using ShareBook.Domain.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -14,5 +15,7 @@ namespace ShareBook.Service
         Task<Category> FindWithHierarchyAsync(Guid categoryId);
 
         Task<IEnumerable<Category>> GetCategoriesWithCountsAsync();
+
+        Task<IList<SitemapCategoryDTO>> GetSitemapCategoriesAsync();
     }
 }
