@@ -598,7 +598,12 @@ namespace ShareBook.Service
             savedBook.Author = entity.Author;
             savedBook.FreightOption = entity.FreightOption;
             savedBook.Author = entity.Author;
-            savedBook.ImageSlug = entity.ImageSlug;
+
+            // Imagem é opcional no update e o UpdateBookVM não carrega ImageSlug.
+            // Copiar cegamente apagava a capa de quem só quis editar texto.
+            if (!string.IsNullOrWhiteSpace(entity.ImageSlug))
+                savedBook.ImageSlug = entity.ImageSlug;
+
             savedBook.Title = entity.Title;
             savedBook.CategoryId = entity.CategoryId;
 

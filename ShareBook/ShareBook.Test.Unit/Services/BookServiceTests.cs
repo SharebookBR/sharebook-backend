@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Moq;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
@@ -56,6 +56,39 @@ namespace ShareBook.Test.Unit.Services
             ebookServiceMock.Setup(service => service.UploadPdfAsync(It.IsAny<Book>())).ReturnsAsync("EBooks/test-book.pdf");
             categoryRepositoryMock.Setup(repo => repo.Get()).Returns(new[] { new Category { Id = Guid.NewGuid(), Name = "Leaf" } }.AsQueryable());
             bookServiceMock.Setup(service => service.InsertAsync(It.IsAny<Book>())).ReturnsAsync(() => new Result<Book>(new Book())).Verifiable();
+        }
+
+        // O UpdateBookVM nao carrega ImageSlug, entao um PUT sem imagem nova chega
+        // ao service com ImageSlug nulo. Se o service copiar isso cegamente, o livro
+        // perde a capa. Investigado a partir do incidente de 20/08/2026.
+        [Fact]
+        public async Task UpdateBookWithoutNewImage_ShouldKeepImageSlug()
+        {
+            Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
+            var savedBook = BookMock.GetLordTheRings();
+            savedBook.Id = Guid.NewGuid();
+            savedBook.ImageSlug = "lotr.png";
+
+            bookRepositoryMock.Setup(repo => repo.FindAsync(It.IsAny<object[]>())).ReturnsAsync(savedBook);
+            bookRepositoryMock.Setup(repo => repo.UpdateAsync(It.IsAny<Book>())).ReturnsAsync((Book book) => book);
+
+            var service = new BookService(bookRepositoryMock.Object,
+                unitOfWorkMock.Object, new BookValidator(),
+                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
+
+            Result<Book> result = await service.UpdateAsync(new Book()
+            {
+                Id = savedBook.Id,
+                Title = savedBook.Title,
+                Author = savedBook.Author,
+                CategoryId = savedBook.CategoryId,
+                Synopsis = savedBook.Synopsis,
+                FreightOption = FreightOption.City,
+                ImageName = "",
+                ImageBytes = null
+            });
+
+            Assert.Equal("lotr.png", result.Value.ImageSlug);
         }
 
         [Fact]
