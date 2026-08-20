@@ -85,15 +85,13 @@ namespace Sharebook.Jobs
         {
             var emailSubject = "SHAREBOOK - RENOVAMOS SUA DOAÇÃO.";
 
+            // O template não usa dados do facilitador. Lê-los aqui só criava
+            // NullReferenceException em livro sem facilitador, que é opcional.
             var vm = new
             {
                 DonorName = book.User.Name,
                 BookTitle = book.Title,
-                BookSlug = book.Slug,
-                FacilitatorName = book.UserFacilitator.Name,
-                FacilitatorEmail = book.UserFacilitator.Email,
-                FacilitatorWhatsapp = book.UserFacilitator.Phone,
-                FacilitatorLinkedin = book.UserFacilitator.Linkedin
+                BookSlug = book.Slug
             };
             var emailBodyHTML = await _emailTemplate.GenerateHtmlFromTemplateAsync("ChooseDateRenewTemplate", vm);
 

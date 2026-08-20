@@ -53,5 +53,25 @@ namespace ShareBook.Test.Unit.Jobs
             //_mockEmailService.VerifyNoOtherCalls();
             _mockEmailTemplate.VerifyNoOtherCalls();
         }
+
+        // Regressão do incidente de 20/08/2026: livro sem facilitador derrubava o
+        // job com NullReferenceException, e ele retentava a cada 5 minutos pra sempre.
+        [Fact]
+        public async Task SendReminderWhenBookHasNoFacilitator()
+        {
+            var donor = new User { Id = Guid.NewGuid(), Name = "DonorWithoutFacilitator", Email = "donor@example.com" };
+            var bookWithoutFacilitator = BookMock.GetLordTheRings(donor);
+            _mockBookService.Setup(s => s.GetBooksChooseDateIsTodayAsync()).ReturnsAsync(new List<Book> { bookWithoutFacilitator });
+
+            ChooseDateReminder job = new ChooseDateReminder(_mockJobHistoryRepository.Object, _mockLoggerFactory.Object, _mockBookService.Object, _mockEmailService.Object, _mockEmailTemplate.Object);
+
+            JobHistory result = await job.WorkAsync();
+
+            Assert.True(result.IsSuccess);
+            Assert.Equal("Lembrete amigável enviado para 'DonorWithoutFacilitator' referente a 1 livro(s): 'Lord of the Rings'.", result.Details);
+
+            _mockEmailTemplate.Verify(c => c.GenerateHtmlFromTemplateAsync(It.Is<string>(v => v.Equals("ChooseDateReminderTemplate")), It.IsAny<object>()), Times.Once);
+            _mockEmailService.Verify(c => c.SendAsync(donor.Email, donor.Name, HtmlMock, It.IsAny<string>(), false, true), Times.Once);
+        }
     }
 }

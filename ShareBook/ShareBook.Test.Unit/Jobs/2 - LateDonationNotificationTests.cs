@@ -96,6 +96,35 @@ namespace ShareBook.Test.Unit.Jobs
             _mockEmailService.VerifyNoOtherCalls();
         }
 
+        // Regressão do incidente de 20/08/2026: facilitador é opcional no livro, e
+        // um único livro sem facilitador derrubava o job inteiro.
+        [Fact, Order(4)]
+        public async Task SendEmailsWhenBookHasNoFacilitator()
+        {
+            var donor = new User { Id = Guid.NewGuid(), Name = "DonorWithoutFacilitator", Email = "donor@example.com" };
+            var bookWithoutFacilitator = BookMock.GetLordTheRings(donor);
+            _mockBookService.Setup(s => s.GetBooksChooseDateIsLateAsync()).ReturnsAsync(new List<Book> { bookWithoutFacilitator });
+
+            object adminVm = null;
+            _mockEmailTemplate
+                .Setup(s => s.GenerateHtmlFromTemplateAsync(It.IsAny<string>(), It.IsAny<object>()))
+                .Callback<string, object>((_, vm) => adminVm = vm)
+                .ReturnsAsync(HtmlMock);
+
+            LateDonationNotification job = new LateDonationNotification(_mockJobHistoryRepository.Object, _mockBookService.Object, _mockEmailService.Object, _mockEmailTemplate.Object, _mockLoggerFactory.Object, _mockConfiguration.Object);
+
+            JobHistory result = await job.WorkAsync();
+
+            Assert.True(result.IsSuccess);
+            Assert.Equal($"Encontradas 1 doações em atraso de 1 doadores distintos.E-mail enviado para o usuário: {donor.Name}", result.Details);
+
+            // o admin precisa enxergar o buraco, não receber uma tabela quebrada.
+            var htmlTable = adminVm.GetType().GetProperty("htmlTable").GetValue(adminVm) as string;
+            Assert.Contains(LateDonationNotification.SemFacilitador, htmlTable);
+
+            _mockEmailService.Verify(c => c.SendToAdminsAsync(HtmlMock, LateDonationNotification.EmailAdminsSubject), Times.Once);
+        }
+
         [Fact, Order(3)]
         public async Task NotSendAnyEmail_0BooksLate()
         {

@@ -24,6 +24,7 @@ public class LateDonationNotification : GenericJob, IJob
     public const string EmailDonatorHardSubject = "Doação abandonada no Sharebook. Urgente!";
     public const string EmailDonatorSoftSubject = "Lembrete do Sharebook";
     public const string ConfigMaxLateDonationDaysKey = "SharebookSettings:MaxLateDonationDays";
+    public const string SemFacilitador = "SEM FACILITADOR";
     private readonly int maxLateDonationDays;
 
 
@@ -87,13 +88,17 @@ public class LateDonationNotification : GenericJob, IJob
 
             var whatsappLink = GetWhatsappLink(book.User.Phone);
 
+            // Facilitador é opcional no livro. Sem isso, um único livro sem
+            // facilitador derruba o job inteiro e ele retenta pra sempre.
+            var facilitator = book.UserFacilitator;
+
             htmlTable += string.Format("<TR><TD>{0}<BR>{1}</TD><TD>{2}</TD><TD>{3}</TD><TD>{4}<BR>{5}<BR>{6}<BR>{7}</TD><TD>{8}<BR>{9}<BR>{10}<BR>{11}</TD><TD>{12}</TD></TR>", 
                 book.Title, 
                 book.Status, 
                 book.DaysLate(), 
                 book.TotalInterested(),
                 book.User.Name, book.User.Email, whatsappLink, book.User.Linkedin,
-                book.UserFacilitator.Name, book.UserFacilitator.Email, book.UserFacilitator.Phone, book.UserFacilitator.Linkedin,
+                facilitator?.Name ?? SemFacilitador, facilitator?.Email ?? "", facilitator?.Phone ?? "", facilitator?.Linkedin ?? "",
                 notes);
         }
 
