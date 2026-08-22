@@ -83,7 +83,7 @@ namespace Sharebook.Jobs
 
         private async Task SendEmailAsync(Book book)
         {
-            var emailSubject = "SHAREBOOK - RENOVAMOS SUA DOAÇÃO.";
+            var emailSubject = "A data de escolha do seu livro foi renovada";
 
             // O template não usa dados do facilitador. Lê-los aqui só criava
             // NullReferenceException em livro sem facilitador, que é opcional.

@@ -2,34 +2,29 @@
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8" />
-    <title>Parabéns! Você é o(a) novo(a) ganhador(a) do livro - Sharebook</title>
+    <title>Você foi escolhido(a) para receber um livro</title>
 </head>
 <body>
     <p>
-        Olá, {User.Name}! 🎉<br /><br />
-
-        <strong>Temos uma ótima notícia: você é o(a) novo(a) ganhador(a) do livro "{Book.Title}"!</strong><br /><br />
-
-        O doador leu sua solicitação com atenção e sentiu que esse livro pode fazer a diferença na sua vida neste momento.
-        Estamos muito felizes em fazer parte dessa conexão! 💛<br /><br />
-
-        <strong>Sobre o doador:</strong><br />
-        {Book.User.Name} está enviando este livro especialmente para você.
-        Entre em contato para combinar a entrega e, se possível, agradeça — gestos como esse fortalecem nossa comunidade de leitores.<br /><br />
+        Olá, {User.Name}!
     </p>
 
+    <p>
+        Você é o(a) ganhador(a) do livro <strong>"{Book.Title}"</strong>.
+    </p>
+
+    <p>
+        Entre em contato com o(a) doador(a) usando os dados abaixo.
+        Combinem diretamente o envio ou a entrega em mãos.
+    </p>
+
+    <p><strong>Dados do(a) doador(a):</strong></p>
     <ul>
         <li><strong>Nome: </strong>{Book.User.Name}</li>
         <li><strong>E-mail: </strong>{Book.User.Email}</li>
         <li><strong>Telefone: </strong>{Book.User.Phone}</li>
         <li><strong>LinkedIn: </strong>{Book.User.Linkedin}</li>
     </ul>
-
-    <p>
-        <br />
-        Aproveite cada página! E quando terminar a leitura, que tal devolver esse gesto de generosidade doando outro livro?
-        A corrente do conhecimento continua com você. 📚<br /><br />
-    </p>
 
     <p>
         Se precisar de ajuda, <a href="https://www.sharebook.com.br/contact-us">fale com a gente</a>.

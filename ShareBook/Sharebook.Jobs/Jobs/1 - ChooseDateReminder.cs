@@ -86,7 +86,7 @@ public class ChooseDateReminder : GenericJob, IJob
 
     private async Task SendEmailSingleAsync(Book book)
     {
-        var EmailSubject = "Hoje é o dia de escolher o ganhador!";
+        var EmailSubject = "Hoje é dia de escolher quem vai receber";
 
         // O template não usa dados do facilitador. Lê-los aqui só criava
         // NullReferenceException em livro sem facilitador, que é opcional.
@@ -103,7 +103,7 @@ public class ChooseDateReminder : GenericJob, IJob
     private async Task SendEmailMultipleAsync(List<Book> books)
     {
         var donor = books[0].User;
-        var EmailSubject = "Hoje é o dia de escolher o ganhador!";
+        var EmailSubject = "Hoje é dia de escolher quem vai receber";
 
         var bookListHtml = "<ul>";
         foreach (var book in books)

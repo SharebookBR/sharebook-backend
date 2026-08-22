@@ -101,7 +101,22 @@ namespace ShareBook.Test.Unit.Jobs
             _mockBookService.Verify(c => c.GetStatsAsync(), Times.Once);
 
             _mockEmailService.Verify(c => c.SendToAdminsAsync(HtmlMock, LateDonationNotification.EmailAdminsSubject), Times.Once);
-            _mockEmailService.Verify(c => c.SendAsync(_hardUser.Email, _hardUser.Name, It.IsAny<string>(), LateDonationNotification.EmailDonatorHardSubject, true, true), Times.Once);
+            Assert.Equal("Último aviso sobre sua doação", LateDonationNotification.EmailDonatorHardSubject);
+            _mockEmailService.Verify(c => c.SendAsync(
+                _hardUser.Email,
+                _hardUser.Name,
+                It.Is<string>(html =>
+                    html.Contains($"mais de {_maxLateDonationDays} dias") &&
+                    html.Contains("escolher o(a) ganhador(a) ou cancelar") &&
+                    html.Contains("Resolver minha doação") &&
+                    html.Contains("Este é o último aviso") &&
+                    html.Contains("sua conta será bloqueada") &&
+                    !html.Contains("Pessoas humildes") &&
+                    !html.Contains(" vc ") &&
+                    !html.Contains("Para sua conveniência")),
+                LateDonationNotification.EmailDonatorHardSubject,
+                true,
+                true), Times.Once);
 
 
             _mockConfiguration.VerifyNoOtherCalls();

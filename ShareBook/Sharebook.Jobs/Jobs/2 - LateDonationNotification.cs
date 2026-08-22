@@ -20,8 +20,8 @@ public class LateDonationNotification : GenericJob, IJob
     private readonly IConfiguration _configuration;
 
     public const string EmailTemplateName = "LateDonationNotification";
-    public const string EmailAdminsSubject = "SHAREBOOK - STATUS DO DIA.";
-    public const string EmailDonatorHardSubject = "Doação abandonada no Sharebook. Urgente!";
+    public const string EmailAdminsSubject = "Status diário das doações";
+    public const string EmailDonatorHardSubject = "Último aviso sobre sua doação";
     public const string EmailDonatorSoftSubject = "Só falta escolher quem vai receber";
     public const string ConfigMaxLateDonationDaysKey = "SharebookSettings:MaxLateDonationDays";
     private readonly int maxLateDonationDays;
@@ -142,10 +142,11 @@ public class LateDonationNotification : GenericJob, IJob
 
     private async Task SendEmailDonatorHardAsync(User donator)
     {
-        var html = $"<p>Bom dia. Consta em nosso sistema que você tem uma doação abandonada no sharebook com mais de {maxLateDonationDays} dias de atraso.</p>";
-        html += "<p>Essa é uma situação grave porque temos muitos usuários aguardando sua decisão. Pessoas humildes que desejam e precisam do livro que vc se propôs a doar em nosso app.</p>";
-        html += "<p>Para sua conveniência use esse link para <strong>concluir</strong> ou <strong>cancelar</strong>: <a href='https://www.sharebook.com.br/book/donations' target='_blank'>Minhas doações</a></p>";
-        html += "<p>Esse é nosso último aviso. Caso não responda, vamos considerar que a doação foi abandonada e sua conta será bloqueada em nosso sistema.</p>";
+        var html = "<p>Olá!</p>";
+        html += $"<p>Sua doação está há mais de {maxLateDonationDays} dias aguardando uma decisão.</p>";
+        html += "<p>Entre no Sharebook para escolher o(a) ganhador(a) ou cancelar a doação.</p>";
+        html += "<p><a href='https://www.sharebook.com.br/book/donations' target='_blank'><strong>Resolver minha doação</strong></a></p>";
+        html += "<p>Este é o último aviso. Se não houver uma resposta, a doação será considerada abandonada e sua conta será bloqueada.</p>";
             
         html += "<p>Se precisar de ajuda, <a href='https://www.sharebook.com.br/contact-us' target='_blank'>fale com a gente</a>.</p>";
         html += "<p>Um abraço,<br>Equipe Sharebook<br><small>Compartilhando conhecimento</small></p>";

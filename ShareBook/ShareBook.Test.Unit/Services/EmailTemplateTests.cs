@@ -49,11 +49,10 @@ namespace ShareBook.Test.Unit.Services
             var result = await emailTemplate.GenerateHtmlFromTemplateAsync("NewBookInsertedTemplate", vm);
             //<!DOCTYPE html>\r\n<html lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\">\r\n<head>\r\n    <meta charset=\"utf-8\" />\r\n    <title>Novo livro cadastrado - Sharebook</title>\r\n</head>\r\n<body>\r\n    <p>\r\n        Olá Cussa Mitre,\r\n    </p>\r\n    <p>\r\n        Um novo livro foi cadastrado. Veja mais informações abaixo:\r\n    </p>\r\n\r\n    <ul>\r\n        <li><strong>Livro: </strong>Lord of the Rings</li>\r\n        <li><strong>Autor: </strong>J. R. R. Tolkien</li>\r\n        <li><strong>Usuário: </strong>Rodrigo</li>\r\n    </ul>\r\n\r\n    <p>Sharebook</p>\r\n</body>\r\n</html>
 
-            Assert.Contains("Olá Administrador(a),", result);
+            Assert.Contains("Há um novo livro aguardando revisão.", result);
             Assert.Contains("<li><strong>Livro: </strong>Lord of the Rings</li>", result);
             Assert.Contains("<li><strong>Autor: </strong>J. R. R. Tolkien</li>", result);
-            Assert.Contains("<li><strong>Usuário: </strong>Rodrigo</li>", result);
-            Assert.Contains("<li><strong>Usuário: </strong>Rodrigo</li>", result);
+            Assert.Contains("<li><strong>Pessoa responsável: </strong>Rodrigo</li>", result);
             Assert.Contains("https://www.sharebook.com.br/book/form/d9f5fde8-ee7c-4cf5-aa90-35eca3c170b9", result);
         
         }        
@@ -70,7 +69,7 @@ namespace ShareBook.Test.Unit.Services
 
             var result = await emailTemplate.GenerateHtmlFromTemplateAsync("BookApprovedTemplate", vm);
 
-            Assert.Contains("<title>Livro aprovado - Sharebook</title>", result);
+            Assert.Contains("<title>Seu livro foi aprovado</title>", result);
             Assert.Contains("Olá Rodrigo", result);
             Assert.Contains("O livro Lord of the Rings foi aprovado e já está na nossa vitrine para doação.", result);
             Assert.Contains("<li><strong>Livro: </strong>Lord of the Rings</li>", result);
@@ -91,10 +90,10 @@ namespace ShareBook.Test.Unit.Services
 
             var result = await emailTemplate.GenerateHtmlFromTemplateAsync("EbookApprovedTemplate", vm);
 
-            Assert.Contains("<title>Livro digital aprovado - Sharebook</title>", result);
-            Assert.Contains("Olá Rodrigo", result);
-            Assert.Contains("O livro digital Lord of the Rings foi aprovado e já está disponível no Sharebook.", result);
-            Assert.Contains("Agora os leitores já podem acessar e baixar sua obra pela plataforma.", result);
+            Assert.Contains("<title>Seu livro digital foi aprovado</title>", result);
+            Assert.Contains("Olá, Rodrigo", result);
+            Assert.Contains("Seu livro digital Lord of the Rings foi aprovado e já está disponível no Sharebook.", result);
+            Assert.Contains("Leitores já podem acessar e baixar sua obra.", result);
             Assert.DoesNotContain("ganhador", result);
             Assert.DoesNotContain("vitrine para doação", result);
         }
@@ -106,9 +105,9 @@ namespace ShareBook.Test.Unit.Services
 
             var result = await emailTemplate.GenerateHtmlFromTemplateAsync("EbookWaitingApprovalTemplate", book);
 
-            Assert.Contains("<title>Aguarde aprovação do livro digital - Sharebook</title>", result);
-            Assert.Contains("Nossa equipe já está revisando o livro digital Lord of the Rings", result);
-            Assert.Contains("Assim que ele for aprovado, sua obra ficará disponível no Sharebook.", result);
+            Assert.Contains("<title>Recebemos seu livro digital para revisão</title>", result);
+            Assert.Contains("Recebemos o livro digital Lord of the Rings", result);
+            Assert.Contains("Você receberá outro e-mail quando a revisão terminar.", result);
             Assert.DoesNotContain("vitrine", result);
             Assert.DoesNotContain("outras pessoas possam visualizar", result);
         }
@@ -134,7 +133,7 @@ namespace ShareBook.Test.Unit.Services
         {
             var result = await emailTemplate.GenerateHtmlFromTemplateAsync("ContactUsTemplate", contactUs);
 
-            Assert.Contains("<div class=\"field-label\">👤 Nome</div>", result);
+            Assert.Contains("<div class=\"field-label\">Nome</div>", result);
             Assert.Contains("<div class=\"field-value\">Rafael Rocha</div>", result);
             Assert.Contains("<div class=\"field-value\">rafael@sharebook.com.br</div>", result);
             Assert.Contains("<div class=\"field-value\">(11) 954422-2765</div>", result);
@@ -227,6 +226,14 @@ namespace ShareBook.Test.Unit.Services
             Assert.DoesNotContain("linkedin.com/company/sharebook-br", normalized);
             Assert.DoesNotContain("facebook.com/sharebookbr", normalized);
             Assert.DoesNotContain("mit license", normalized);
+            Assert.DoesNotContain("pessoas humildes", normalized);
+            Assert.DoesNotContain("para sua conveniência", normalized);
+            Assert.DoesNotContain("sharebot", normalized);
+            Assert.DoesNotContain(":-)", normalized);
+            Assert.DoesNotContain("tomar um café", normalized);
+            Assert.DoesNotContain("realmente precisa", normalized);
+            Assert.DoesNotContain("mais precisar", normalized);
+            Assert.DoesNotContain("nossos agradecimentos", normalized);
 
             return html;
         }

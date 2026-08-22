@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Novo Livro Gratuito</title>
+    <title>Novo livro disponível</title>
     <style>
         * {
             margin: 0;
@@ -101,17 +101,16 @@
 <body>
     <div class="container">
         <div class="main-content">
-            <h2>{BookTitle} - Livro grátis.</h2>
+            <h2>Novo livro disponível: {BookTitle}</h2>
 
             <div class="message">
-                Olá, {Name}!<br><br>
-                Aqui é o Sharebot do sharebook. Tudo bem?<br>
-                Chegou um livro novo e eu lembrei de você. Espero que goste. :-)<br><br>
+                Olá, {Name}.<br><br>
+                Um novo livro está disponível para doação no Sharebook.<br><br>
                 <img src="{BackendUrl}/Images/Books/{BookImageSlug}" alt="{BookTitle}" class="book-image">
             </div>
 
             <a href="{FrontendUrl}/livros/{BookSlug}" class="button" target="_blank">
-                Eu quero esse livro!
+                Ver o livro
             </a>
 
         </div>

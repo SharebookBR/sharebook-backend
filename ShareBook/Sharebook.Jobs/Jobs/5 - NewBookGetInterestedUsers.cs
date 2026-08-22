@@ -113,8 +113,8 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
 
             var bookCount = entry.Books.Count;
             var bookCountMsg = bookCount == 1
-                ? "Chegou 1 livro hoje que eu acho que você vai gostar!"
-                : $"Chegaram {bookCount} livros hoje que eu acho que você vai gostar!";
+                ? "Chegou 1 livro novo hoje para você."
+                : $"Chegaram {bookCount} livros novos hoje para você.";
 
             var vm = new
             {

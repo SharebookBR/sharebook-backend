@@ -2,41 +2,41 @@
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8" />
-    <title>Novo livro cadastrado - Sharebook</title>
+    <title>Novo livro para aprovação</title>
 </head>
 <body>
     <p>
-        Olá Administrador(a),
+        Há um novo livro aguardando revisão.
     </p>
-    <p>
-        Um novo livro foi cadastrado. Veja mais informações abaixo:
-    </p>
+
+    <p><strong>Dados do livro</strong></p>
 
     <ul>
         <li><strong>Livro: </strong>{Book.Title}</li>
         <li><strong>Autor: </strong>{Book.Author}</li>
-        <li><strong>Usuário: </strong>{Book.User.Name}</li>
+        <li><strong>Pessoa responsável: </strong>{Book.User.Name}</li>
     </ul>
 
     <p>
-        Informações sobre o usuário:
+        <strong>Histórico da conta</strong>
     </p>
 
     <ul>
-        <li><strong>Data de Cadastro: </strong>{UserStats.CreationDate}</li>
-        <li><strong>Total doações concluídas: </strong>{UserStats.TotalOk}</li>
-        <li><strong>Total doações canceladas: </strong>{UserStats.TotalCanceled}</li>
-        <li><strong>Total doações em atraso: </strong>{UserStats.TotalLate}</li>
-        <li><strong>Total de doações aguardando aprovação: </strong>{UserStats.TotalWaitingApproval}</li>
-        <li><strong>Total doações na vitrine: </strong>{UserStats.TotalAvailable}</li>
+        <li><strong>Data de cadastro: </strong>{UserStats.CreationDate}</li>
+        <li><strong>Doações concluídas: </strong>{UserStats.TotalOk}</li>
+        <li><strong>Doações canceladas: </strong>{UserStats.TotalCanceled}</li>
+        <li><strong>Doações em atraso: </strong>{UserStats.TotalLate}</li>
+        <li><strong>Doações aguardando aprovação: </strong>{UserStats.TotalWaitingApproval}</li>
+        <li><strong>Doações na vitrine: </strong>{UserStats.TotalAvailable}</li>
     </ul>
 
     <p>
-        Use este link para revisar e aprovar: <a href="https://www.sharebook.com.br/book/form/{Book.Id}">https://www.sharebook.com.br/book/form/{Book.Id}</a>
+        Revise o cadastro e, se estiver tudo certo, aprove o livro:
+        <a href="https://www.sharebook.com.br/book/form/{Book.Id}">Revisar livro</a>
     </p>
 
     <p>
-        <strong>Atenção:</strong> em contas novas, recomendamos aprovar inicialmente apenas um livro. Após a primeira doação concluída, avalie liberar os próximos livros.
+        Para contas novas, aprove apenas um livro inicialmente. Depois da primeira doação concluída, avalie os demais.
     </p>
 
     <p>

@@ -11,13 +11,13 @@ namespace ShareBook.Service
     public class BooksEmailService : IBooksEmailService
     {
         private const string NewBookInsertedTemplate = "NewBookInsertedTemplate";
-        private const string NewBookInsertedTitle = "Novo livro incluído - Sharebook";
+        private const string NewBookInsertedTitle = "Novo livro para aprovação";
         private const string WaitingApprovalTemplate = "WaitingApprovalTemplate";
         private const string EbookWaitingApprovalTemplate = "EbookWaitingApprovalTemplate";
-        private const string WaitingApprovalTitle = "Aguarde aprovação do livro - Sharebook";
+        private const string WaitingApprovalTitle = "Recebemos seu livro para revisão";
         private const string BookApprovedTemplate = "BookApprovedTemplate";
         private const string EbookApprovedTemplate = "EbookApprovedTemplate";
-        private const string BookApprovedTitle = "Livro aprovado - Sharebook";
+        private const string BookApprovedTitle = "Seu livro foi aprovado";
         private const string NewBookNotifyTemplate = "NewBookNotifyTemplate";
         private const string BookReceivedTemplate = "BookReceivedTemplate";
 
@@ -72,7 +72,7 @@ namespace ShareBook.Service
                 };
 
                 var htmt = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookReceivedTemplate, vm);
-                await _emailService.SendAsync(book.User.Email, book.User.Name, htmt, BookReceivedTemplate, copyAdmins: true, highPriority: true);
+                await _emailService.SendAsync(book.User.Email, book.User.Name, htmt, $"Doação concluída: {book.Title}", copyAdmins: true, highPriority: true);
             }
         }
 
@@ -114,14 +114,14 @@ namespace ShareBook.Service
 
         public async Task SendEmailCopyrightReportAsync(Book book)
         {
-            var subject = $"[Direitos Autorais] Report de violação — {book.Title}";
-            var body = $@"Um usuário reportou possível violação de direitos autorais no e-book abaixo.
+            var subject = $"[Direitos autorais] Possível violação — {book.Title}";
+            var body = $@"Uma pessoa reportou uma possível violação de direitos autorais no livro digital abaixo.
 <br/><br/>
 <strong>Título:</strong> {book.Title}<br/>
 <strong>Autor:</strong> {book.Author}<br/>
 <strong>Slug:</strong> {book.Slug}<br/>
 <br/>
-Por favor, revise e, se necessário, oculte temporariamente o e-book no painel administrativo.";
+Revise o caso e, se necessário, oculte temporariamente o livro digital no painel administrativo.";
 
             await _emailService.SendToAdminsAsync(body, subject);
         }
