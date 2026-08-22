@@ -210,7 +210,7 @@ public class EmailService : IEmailService
     public async Task TestAsync(string email, string name)
     {
         var subject = "Sharebook - teste de email";
-        var message = $"<p>Olá {name},</p> <p>Esse é um email de teste para verificar se o sharebook consegue fazer contato com você. Por favor avise o facilitador quando esse email chegar. Obrigado.</p>";
+        var message = $"<p>Olá, {name}!</p><p>Este é um e-mail de teste do Sharebook. Se ele chegou, o envio está funcionando.</p><p>Um abraço,<br>Equipe Sharebook<br><small>Compartilhando conhecimento</small></p>";
         await this.SendSmtpAsync(email, name, message, subject, copyAdmins: false);
     }
 

@@ -67,8 +67,9 @@ namespace ShareBook.Test.Unit.Jobs
                 It.Is<string>(html =>
                     html.Contains("Tem gente interessada em receber um livro") &&
                     html.Contains("Escolher ganhador(a)") &&
-                    html.Contains("fale com seu facilitador") &&
+                    html.Contains("fale com a gente") &&
                     html.Contains("Equipe Sharebook") &&
+                    html.Contains("Compartilhando conhecimento") &&
                     !html.Contains("Para sua conveniência") &&
                     !html.Contains("=)")),
                 LateDonationNotification.EmailDonatorSoftSubject,
@@ -131,9 +132,11 @@ namespace ShareBook.Test.Unit.Jobs
             Assert.True(result.IsSuccess);
             Assert.Equal($"Encontradas 1 doações em atraso de 1 doadores distintos.E-mail enviado para o usuário: {donor.Name}", result.Details);
 
-            // o admin precisa enxergar o buraco, não receber uma tabela quebrada.
+            // A aposentadoria do facilitador começou pela experiência visível:
+            // o relatório continua útil sem expor essa função operacional.
             var htmlTable = adminVm.GetType().GetProperty("htmlTable").GetValue(adminVm) as string;
-            Assert.Contains(LateDonationNotification.SemFacilitador, htmlTable);
+            Assert.Contains(donor.Name, htmlTable);
+            Assert.DoesNotContain("FACILITADOR", htmlTable);
 
             _mockEmailService.Verify(c => c.SendToAdminsAsync(HtmlMock, LateDonationNotification.EmailAdminsSubject), Times.Once);
         }

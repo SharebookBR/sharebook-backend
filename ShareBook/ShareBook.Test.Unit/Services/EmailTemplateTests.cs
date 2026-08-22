@@ -1,6 +1,7 @@
 ﻿using ShareBook.Domain;
 using ShareBook.Service;
 using ShareBook.Test.Unit.Mocks;
+using System.IO;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -139,6 +140,101 @@ namespace ShareBook.Test.Unit.Services
             Assert.Contains("<div class=\"field-value\">(11) 954422-2765</div>", result);
             Assert.Contains("<div class=\"field-value\">At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident</div>", result);
 
+        }
+
+        [Fact]
+        public void VerifyCanonicalEmailFooters()
+        {
+            var templatesFolder = Path.Combine(System.AppContext.BaseDirectory, "Email", "Templates");
+
+            var transactionalTemplates = new[]
+            {
+                "BookApprovedTemplate.html",
+                "BookCanceledNoticeUsersTemplate.html",
+                "BookCanceledTemplate.html",
+                "BookDonatedNotifyDonorTemplate.html",
+                "BookDonatedTemplate.html",
+                "BookNoticeDeclinedUsersTemplate.html",
+                "BookNoticeDonorTemplate.html",
+                "BookNoticeInterestedTemplate.html",
+                "BookReceivedTemplate.html",
+                "BookTrackingNumberNoticeWinnerTemplate.html",
+                "ChooseDateReminderMultipleTemplate.html",
+                "ChooseDateReminderTemplate.html",
+                "ChooseDateRenewTemplate.html",
+                "ContactUsNotificationTemplate.html",
+                "EbookApprovedTemplate.html",
+                "EbookWaitingApprovalTemplate.html",
+                "ForgotPasswordTemplate.html",
+                "NewBookNotifyTemplate.html",
+                "ParentAprovedNotifyUser.html",
+                "RequestParentAproval.html",
+                "WaitingApprovalTemplate.html"
+            };
+
+            var newsletterTemplates = new[]
+            {
+                "EbooksWeeklyDigestTemplate.html",
+                "PrintedBooksDigestTemplate.html"
+            };
+
+            var internalTemplates = new[]
+            {
+                "AnonymizeNotifyAdms.html",
+                "ContactUsTemplate.html",
+                "LateDonationNotification.html",
+                "NewBookInsertedTemplate.html"
+            };
+
+            Assert.Equal(
+                transactionalTemplates.Length + newsletterTemplates.Length + internalTemplates.Length,
+                Directory.GetFiles(templatesFolder, "*.html").Length);
+
+            foreach (var template in transactionalTemplates)
+            {
+                var html = ReadTemplate(templatesFolder, template);
+                Assert.Contains("https://www.sharebook.com.br/contact-us", html);
+                Assert.Contains("fale com a gente", html);
+                Assert.Contains("Um abraço", html);
+                AssertCanonicalBranding(html);
+            }
+
+            foreach (var template in newsletterTemplates)
+            {
+                var html = ReadTemplate(templatesFolder, template);
+                Assert.Contains("Um abraço", html);
+                Assert.Contains("Cancelar inscrição", html);
+                Assert.DoesNotContain("fale com a gente", html);
+                AssertCanonicalBranding(html);
+            }
+
+            foreach (var template in internalTemplates)
+            {
+                var html = ReadTemplate(templatesFolder, template);
+                Assert.DoesNotContain("Um abraço", html);
+                Assert.DoesNotContain("fale com a gente", html);
+                AssertCanonicalBranding(html);
+            }
+        }
+
+        private static string ReadTemplate(string templatesFolder, string template)
+        {
+            var html = File.ReadAllText(Path.Combine(templatesFolder, template));
+            var normalized = html.ToLowerInvariant();
+
+            Assert.DoesNotContain("facilitador", normalized);
+            Assert.DoesNotContain("instagram.com", normalized);
+            Assert.DoesNotContain("linkedin.com/company/sharebook-br", normalized);
+            Assert.DoesNotContain("facebook.com/sharebookbr", normalized);
+            Assert.DoesNotContain("mit license", normalized);
+
+            return html;
+        }
+
+        private static void AssertCanonicalBranding(string html)
+        {
+            Assert.Contains("Equipe Sharebook", html);
+            Assert.Contains("Compartilhando conhecimento", html);
         }
     }
 }
