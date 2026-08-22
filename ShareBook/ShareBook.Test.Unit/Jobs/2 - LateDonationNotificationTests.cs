@@ -60,7 +60,20 @@ namespace ShareBook.Test.Unit.Jobs
             _mockBookService.Verify(c => c.GetStatsAsync(), Times.Once);
 
             _mockEmailService.Verify(c => c.SendToAdminsAsync(HtmlMock, LateDonationNotification.EmailAdminsSubject), Times.Once);
-            _mockEmailService.Verify(c => c.SendAsync(_softUser.Email, _softUser.Name, It.IsAny<string>(), LateDonationNotification.EmailDonatorSoftSubject, false, true), Times.Once);
+            Assert.Equal("Só falta escolher quem vai receber", LateDonationNotification.EmailDonatorSoftSubject);
+            _mockEmailService.Verify(c => c.SendAsync(
+                _softUser.Email,
+                _softUser.Name,
+                It.Is<string>(html =>
+                    html.Contains("Tem gente interessada em receber um livro") &&
+                    html.Contains("Escolher ganhador(a)") &&
+                    html.Contains("fale com seu facilitador") &&
+                    html.Contains("Equipe Sharebook") &&
+                    !html.Contains("Para sua conveniência") &&
+                    !html.Contains("=)")),
+                LateDonationNotification.EmailDonatorSoftSubject,
+                false,
+                true), Times.Once);
 
 
             _mockConfiguration.VerifyNoOtherCalls();

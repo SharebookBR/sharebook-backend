@@ -22,7 +22,7 @@ public class LateDonationNotification : GenericJob, IJob
     public const string EmailTemplateName = "LateDonationNotification";
     public const string EmailAdminsSubject = "SHAREBOOK - STATUS DO DIA.";
     public const string EmailDonatorHardSubject = "Doação abandonada no Sharebook. Urgente!";
-    public const string EmailDonatorSoftSubject = "Lembrete do Sharebook";
+    public const string EmailDonatorSoftSubject = "Só falta escolher quem vai receber";
     public const string ConfigMaxLateDonationDaysKey = "SharebookSettings:MaxLateDonationDays";
     public const string SemFacilitador = "SEM FACILITADOR";
     private readonly int maxLateDonationDays;
@@ -162,11 +162,12 @@ public class LateDonationNotification : GenericJob, IJob
 
     private async Task SendEmailDonatorSoftAsync(User donator)
     {
-        var html = "<p>Bom dia! Aqui é o Sharebook. Vim aqui pra te ajudar a concluir a doação do seu livro.</p>";
-        html += "<p>Por favor entre no Sharebook e escolha o ganhador.</p>";
-        html += "<p>Para sua conveniência use esse link: <a href='https://www.sharebook.com.br/book/donations' target='_blank'>Minhas doações</a></p>";
-        html += "<p>Obrigado. Qualquer dúvida pode entrar em contato com o seu facilitador. É um prazer ajudar. =)</p>";
-        html += "<p>Sharebook</p>";
+        var html = "<p>Olá!</p>";
+        html += "<p>Tem gente interessada em receber um livro que você colocou para doação. Agora só falta fazer sua escolha.</p>";
+        html += "<p><a href='https://www.sharebook.com.br/book/donations' target='_blank'><strong>Escolher ganhador(a)</strong></a></p>";
+        html += "<p>Se precisar de ajuda, fale com seu facilitador.</p>";
+        html += "<p>Valeu por fazer os livros seguirem adiante.</p>";
+        html += "<p>Um abraço,<br>Equipe Sharebook</p>";
 
         await _emailService.SendAsync(donator.Email, donator.Name, html, EmailDonatorSoftSubject, copyAdmins: false, highPriority: true);
     }
