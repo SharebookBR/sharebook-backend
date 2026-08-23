@@ -26,10 +26,13 @@ namespace ShareBook.Api.Controllers
         [NonAction]
         public override Task<PagedList<Category>> PagedAsync(int page, int items) => base.PagedAsync(page, items);
 
+        [NonAction]
+        public override Task<Category> GetByIdAsync(string id) => base.GetByIdAsync(id);
+
         [HttpGet]
         public async Task<PagedList<CategoryVM>> GetTreeAsync() => await GetTreePagedAsync(1, 50);
 
-        [HttpGet("{page}/{items}")]
+        [HttpGet("{page:int}/{items:int}")]
         public async Task<PagedList<CategoryVM>> GetTreePagedAsync(int page, int items)
         {
             var pagedCategories = await ((ICategoryService)_service).GetRootCategoriesAsync(page, items);
@@ -44,8 +47,8 @@ namespace ShareBook.Api.Controllers
             };
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetByIdAsync(Guid id)
+        [HttpGet("{id:guid}")]
+        public async Task<IActionResult> GetTreeByIdAsync(Guid id)
         {
             var category = await ((ICategoryService)_service).FindWithHierarchyAsync(id);
             if (category == null)

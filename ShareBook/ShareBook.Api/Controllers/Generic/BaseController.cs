@@ -55,6 +55,6 @@ namespace ShareBook.Api.Controllers
         public virtual async Task<PagedList<T>> PagedAsync(int page, int items) => await _service.GetAsync(x => true, _defaultOrder, page, items);
 
         [HttpGet("{id}")]
-        public async Task<T> GetByIdAsync(string id) => await _service.FindAsync(new Guid(id));
+        public virtual async Task<T> GetByIdAsync(string id) => await _service.FindAsync(new Guid(id));
     }
 }
