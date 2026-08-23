@@ -67,6 +67,7 @@ public class AnalyticsService : IAnalyticsService
         var topDownloadsPerWeek = await FetchTopBooksWeeklyAsync(client, property, dateRange, byDownload: true);
         var eventSummary = await FetchEventSummaryAsync(client, property, dateRange);
         var eventSummaryPerWeek = await FetchEventSummaryWeeklyAsync(client, property, dateRange);
+        var searchAnalytics = await FetchSearchAnalyticsAsync(client, property);
 
         return new AnalyticsDashboardDto
         {
@@ -82,7 +83,91 @@ public class AnalyticsService : IAnalyticsService
             TopBooksByViewsPerWeek = topViewsPerWeek,
             TopBooksByDownloadsPerWeek = topDownloadsPerWeek,
             EventSummary = eventSummary,
-            EventSummaryPerWeek = eventSummaryPerWeek
+            EventSummaryPerWeek = eventSummaryPerWeek,
+            SearchAnalytics = searchAnalytics
+        };
+    }
+
+    private async Task<SearchAnalytics> FetchSearchAnalyticsAsync(
+        BetaAnalyticsDataClient client, string property)
+    {
+        // Date ranges are inclusive in GA4: today + 29 previous days = 30 days.
+        var dateRange = new DateRange { StartDate = "29daysAgo", EndDate = "today" };
+        var eventFilter = new FilterExpression
+        {
+            Filter = new Filter
+            {
+                FieldName = "eventName",
+                StringFilter = new Filter.Types.StringFilter
+                {
+                    Value = "search",
+                    MatchType = Filter.Types.StringFilter.Types.MatchType.Exact
+                }
+            }
+        };
+
+        var totalsResponse = await client.RunReportAsync(new RunReportRequest
+        {
+            Property = property,
+            DateRanges = { dateRange },
+            Metrics = { new Metric { Name = "eventCount" }, new Metric { Name = "totalUsers" } },
+            DimensionFilter = eventFilter
+        });
+
+        var termsResponse = await client.RunReportAsync(new RunReportRequest
+        {
+            Property = property,
+            DateRanges = { dateRange },
+            Dimensions = { new Dimension { Name = "customEvent:search_term" } },
+            Metrics = { new Metric { Name = "eventCount" }, new Metric { Name = "totalUsers" } },
+            DimensionFilter = eventFilter,
+            OrderBys =
+            {
+                new OrderBy
+                {
+                    Metric = new OrderBy.Types.MetricOrderBy { MetricName = "eventCount" },
+                    Desc = true
+                }
+            },
+            Limit = 10
+        });
+
+        var devicesResponse = await client.RunReportAsync(new RunReportRequest
+        {
+            Property = property,
+            DateRanges = { dateRange },
+            Dimensions = { new Dimension { Name = "deviceCategory" } },
+            Metrics = { new Metric { Name = "eventCount" }, new Metric { Name = "totalUsers" } },
+            DimensionFilter = eventFilter,
+            OrderBys =
+            {
+                new OrderBy
+                {
+                    Metric = new OrderBy.Types.MetricOrderBy { MetricName = "eventCount" },
+                    Desc = true
+                }
+            }
+        });
+
+        var totals = totalsResponse.Rows.FirstOrDefault();
+
+        return new SearchAnalytics
+        {
+            TotalSearches = totals is null ? 0 : int.Parse(totals.MetricValues[0].Value),
+            Users = totals is null ? 0 : int.Parse(totals.MetricValues[1].Value),
+            DistinctTerms = termsResponse.RowCount,
+            TopTerms = termsResponse.Rows.Select(row => new SearchTermMetric
+            {
+                Term = row.DimensionValues[0].Value,
+                Count = int.Parse(row.MetricValues[0].Value),
+                Users = int.Parse(row.MetricValues[1].Value)
+            }).ToList(),
+            Devices = devicesResponse.Rows.Select(row => new SearchDeviceMetric
+            {
+                Device = row.DimensionValues[0].Value,
+                Count = int.Parse(row.MetricValues[0].Value),
+                Users = int.Parse(row.MetricValues[1].Value)
+            }).ToList()
         };
     }
 

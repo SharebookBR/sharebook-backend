@@ -17,6 +17,7 @@ public class AnalyticsDashboardDto
     public Dictionary<string, List<BookMetric>> TopBooksByDownloadsPerWeek { get; set; } = new();
     public List<EventMetric> EventSummary { get; set; } = [];
     public Dictionary<string, List<EventMetric>> EventSummaryPerWeek { get; set; } = new();
+    public SearchAnalytics SearchAnalytics { get; set; } = new();
 }
 
 public class WeeklyPoint
@@ -35,6 +36,29 @@ public class BookMetric
 public class EventMetric
 {
     public string EventName { get; set; }
+    public int Count { get; set; }
+    public int Users { get; set; }
+}
+
+public class SearchAnalytics
+{
+    public int TotalSearches { get; set; }
+    public int Users { get; set; }
+    public int DistinctTerms { get; set; }
+    public List<SearchTermMetric> TopTerms { get; set; } = [];
+    public List<SearchDeviceMetric> Devices { get; set; } = [];
+}
+
+public class SearchTermMetric
+{
+    public string Term { get; set; }
+    public int Count { get; set; }
+    public int Users { get; set; }
+}
+
+public class SearchDeviceMetric
+{
+    public string Device { get; set; }
     public int Count { get; set; }
     public int Users { get; set; }
 }
