@@ -45,6 +45,8 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<IDownloadLogsService, DownloadLogsService>();
             services.AddScoped<IRecaptchaService, RecaptchaService>();
             services.AddScoped<IImporterDashboardService, ImporterDashboardService>();
+            services.AddHttpClient<ISearchConsoleApiClient, SearchConsoleApiClient>();
+            services.AddSingleton<ISearchConsoleService, SearchConsoleService>();
             services.AddSingleton<IAnalyticsService, AnalyticsService>();
 
             //repositories

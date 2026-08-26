@@ -6,6 +6,7 @@ using Google.Analytics.Data.V1Beta;
 using Google.Apis.Auth.OAuth2;
 using Grpc.Auth;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text;
 
@@ -18,11 +19,19 @@ public class AnalyticsService : IAnalyticsService
 
     private readonly GA4Settings _settings;
     private readonly IMemoryCache _cache;
+    private readonly ISearchConsoleService _searchConsoleService;
+    private readonly ILogger<AnalyticsService> _logger;
 
-    public AnalyticsService(IOptions<GA4Settings> settings, IMemoryCache cache)
+    public AnalyticsService(
+        IOptions<GA4Settings> settings,
+        IMemoryCache cache,
+        ISearchConsoleService searchConsoleService,
+        ILogger<AnalyticsService> logger)
     {
         _settings = settings.Value;
         _cache = cache;
+        _searchConsoleService = searchConsoleService;
+        _logger = logger;
     }
 
     public async Task<AnalyticsDashboardDto> GetDashboardAsync()
@@ -40,7 +49,8 @@ public class AnalyticsService : IAnalyticsService
     private BetaAnalyticsDataClient BuildClient()
     {
         var json = Encoding.UTF8.GetString(Convert.FromBase64String(_settings.CredentialsBase64));
-        var credential = GoogleCredential.FromJson(json)
+        var credential = CredentialFactory.FromJson<ServiceAccountCredential>(json)
+            .ToGoogleCredential()
             .CreateScoped("https://www.googleapis.com/auth/analytics.readonly");
 
         return new BetaAnalyticsDataClientBuilder
@@ -51,6 +61,7 @@ public class AnalyticsService : IAnalyticsService
 
     private async Task<AnalyticsDashboardDto> FetchAsync(BetaAnalyticsDataClient client)
     {
+        var searchConsoleTask = FetchSearchConsoleSafeAsync();
         var property = $"properties/{PropertyId}";
         var dateRange = new DateRange { StartDate = "84daysAgo", EndDate = "today" };
 
@@ -84,8 +95,24 @@ public class AnalyticsService : IAnalyticsService
             TopBooksByDownloadsPerWeek = topDownloadsPerWeek,
             EventSummary = eventSummary,
             EventSummaryPerWeek = eventSummaryPerWeek,
-            SearchAnalytics = searchAnalytics
+            SearchAnalytics = searchAnalytics,
+            SearchConsole = await searchConsoleTask
         };
+    }
+
+    private async Task<SearchConsoleAnalytics> FetchSearchConsoleSafeAsync()
+    {
+        try
+        {
+            return await _searchConsoleService.GetOverviewAsync();
+        }
+        catch (Exception exception)
+        {
+            _logger.LogWarning(
+                exception,
+                "Search Console indisponivel; mantendo o dashboard com dados do GA4.");
+            return new SearchConsoleAnalytics();
+        }
     }
 
     private async Task<SearchAnalytics> FetchSearchAnalyticsAsync(
