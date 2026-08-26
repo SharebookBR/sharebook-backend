@@ -2,6 +2,7 @@
 using ShareBook.Helper.Image;
 using Xunit;
 using Flurl.Http;
+using System;
 using System.Threading.Tasks;
 
 namespace ShareBook.Test.Unit.Helpers
@@ -12,7 +13,7 @@ namespace ShareBook.Test.Unit.Helpers
         public void GenerateSlugValid()
         {
             var phrase = "Harry Potter and the Philosopher's Stone";
-          
+
             var actual = phrase.GenerateSlug();
             var expected = "harry-potter-and-the-philosophers-stone";
 
@@ -28,6 +29,33 @@ namespace ShareBook.Test.Unit.Helpers
             var expected = "Harry-potter-and-thE-philosophers-stone";
 
             Assert.NotEqual(actual, expected);
+        }
+
+        [Fact]
+        public void NextAvailableCopySlug_ShouldKeepCleanBaseWhenAvailable()
+        {
+            var baseSlug = "o-pequeno-principe";
+
+            var actual = baseSlug.NextAvailableCopySlug(Array.Empty<string>());
+
+            Assert.Equal("o-pequeno-principe", actual);
+        }
+
+        [Fact]
+        public void NextAvailableCopySlug_ShouldUseFirstFreeCopyNumber()
+        {
+            var baseSlug = "o-pequeno-principe";
+            var existingSlugs = new[]
+            {
+                baseSlug,
+                $"{baseSlug}_copy1",
+                $"{baseSlug}_copy3",
+                $"{baseSlug}-edicao-especial"
+            };
+
+            var actual = baseSlug.NextAvailableCopySlug(existingSlugs);
+
+            Assert.Equal("o-pequeno-principe_copy2", actual);
         }
 
         [Fact]
@@ -140,7 +168,7 @@ namespace ShareBook.Test.Unit.Helpers
             Assert.True(result);
 
         }
-        
+
         [Fact]
         public async Task ImageResize()
         {

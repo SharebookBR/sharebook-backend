@@ -176,6 +176,11 @@ namespace ShareBook.Infra.Data.Migrations
 
                     b.HasIndex("CategoryId");
 
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Books_Slug")
+                        .HasFilter("\"Slug\" IS NOT NULL");
+
                     b.HasIndex("UserId");
 
                     b.HasIndex("UserIdFacilitator");

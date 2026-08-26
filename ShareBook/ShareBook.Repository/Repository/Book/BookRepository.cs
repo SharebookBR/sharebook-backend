@@ -3,6 +3,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.Sqlite;
+using Npgsql;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 
@@ -11,6 +13,26 @@ namespace ShareBook.Repository
     public class BookRepository : RepositoryGeneric<Book>, IBookRepository
     {
         public BookRepository(ApplicationDbContext context) : base(context) { }
+
+        public override async Task<Book> InsertAsync(Book entity)
+        {
+            try
+            {
+                return await base.InsertAsync(entity);
+            }
+            catch (Exception exception) when (IsUniqueSlugViolation(exception))
+            {
+                _context.Entry(entity).State = EntityState.Detached;
+                throw new DuplicateBookSlugException(entity.Slug, exception);
+            }
+        }
+
+        public async Task<IList<string>> GetSlugsStartingWithAsync(string baseSlug)
+            => await _dbSet
+                .AsNoTracking()
+                .Where(book => book.Slug.StartsWith(baseSlug))
+                .Select(book => book.Slug)
+                .ToListAsync();
 
         public override async Task<Book> UpdateAsync(Book entity)
         {
@@ -57,6 +79,28 @@ namespace ShareBook.Repository
                 TotalItems = total,
                 Items = result
             };
+        }
+
+        private static bool IsUniqueSlugViolation(Exception exception)
+        {
+            for (var current = exception; current != null; current = current.InnerException)
+            {
+                if (current is PostgresException postgresException
+                    && postgresException.SqlState == PostgresErrorCodes.UniqueViolation
+                    && postgresException.ConstraintName == "UX_Books_Slug")
+                {
+                    return true;
+                }
+
+                if (current is SqliteException sqliteException
+                    && sqliteException.SqliteErrorCode == 19
+                    && sqliteException.Message.Contains("Books.Slug", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

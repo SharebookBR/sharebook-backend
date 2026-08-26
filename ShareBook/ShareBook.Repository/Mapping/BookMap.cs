@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ShareBook.Domain;
 
@@ -28,6 +28,11 @@ namespace ShareBook.Repository.Mapping
 
             entityBuilder.Property(t => t.Slug)
                .HasMaxLength(100);
+
+            entityBuilder.HasIndex(t => t.Slug)
+                .IsUnique()
+                .HasFilter("\"Slug\" IS NOT NULL")
+                .HasDatabaseName("UX_Books_Slug");
 
             entityBuilder.Property(t => t.Synopsis)
                .HasMaxLength(2000);
