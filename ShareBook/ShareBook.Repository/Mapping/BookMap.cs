@@ -44,6 +44,8 @@ namespace ShareBook.Repository.Mapping
 
             entityBuilder.Ignore(t => t.ImageUrl);
 
+            entityBuilder.Ignore(t => t.ThumbnailUrl);
+
             entityBuilder.Ignore(t => t.ImageName);
 
             entityBuilder.Ignore(t => t.PdfBytes);

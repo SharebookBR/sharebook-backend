@@ -9,6 +9,7 @@ using ShareBook.Domain;
 using ShareBook.Domain.DTOs;
 using ShareBook.Repository;
 using ShareBook.Repository.Repository;
+using ShareBook.Service.Upload;
 
 namespace ShareBook.Service.Importer;
 
@@ -20,6 +21,7 @@ public class ImporterDashboardService : IImporterDashboardService
     private readonly IConfiguration _configuration;
     private readonly IBookRepository _bookRepository;
     private readonly ICategoryRepository _categoryRepository;
+    private readonly IUploadService _uploadService;
 
     private static readonly ISet<string> ValidStatuses = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
@@ -39,11 +41,16 @@ public class ImporterDashboardService : IImporterDashboardService
         "error"
     };
 
-    public ImporterDashboardService(IConfiguration configuration, IBookRepository bookRepository, ICategoryRepository categoryRepository)
+    public ImporterDashboardService(
+        IConfiguration configuration,
+        IBookRepository bookRepository,
+        ICategoryRepository categoryRepository,
+        IUploadService uploadService)
     {
         _configuration = configuration;
         _bookRepository = bookRepository;
         _categoryRepository = categoryRepository;
+        _uploadService = uploadService;
     }
 
     public async Task<ImporterDashboardDTO> GetDashboardAsync(CancellationToken cancellationToken = default)
@@ -463,6 +470,7 @@ LIMIT @limit OFFSET @offset;
             {
                 item.BookSlug = bookData.Slug;
                 item.BookImageSlug = bookData.ImageSlug;
+                item.BookThumbnailUrl = _uploadService.GetBookThumbnailUrl(bookData.ImageSlug);
             }
         }
     }

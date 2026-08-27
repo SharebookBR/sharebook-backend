@@ -33,7 +33,8 @@ public class HomeTests
             book.Type == BookType.Printed.ToString()
             && !string.IsNullOrWhiteSpace(book.Title)
             && !string.IsNullOrWhiteSpace(book.Slug)
-            && !string.IsNullOrWhiteSpace(book.ImageUrl));
+            && !string.IsNullOrWhiteSpace(book.ImageUrl)
+            && !string.IsNullOrWhiteSpace(book.ThumbnailUrl));
     }
 
     [Fact]

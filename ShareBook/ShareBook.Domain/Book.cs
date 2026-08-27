@@ -42,6 +42,8 @@ namespace ShareBook.Domain
 
         public string ImageUrl { get; set; }
 
+        public string ThumbnailUrl { get; set; }
+
         public string ImageName { get; set; }
 
         public DateTime? ChooseDate { get; set; }

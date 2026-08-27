@@ -41,6 +41,7 @@ public class ImporterQueueItemDTO
     public string SharebookBookId { get; set; }
     public string BookSlug { get; set; }
     public string BookImageSlug { get; set; }
+    public string BookThumbnailUrl { get; set; }
     public string MetadataJson { get; set; }
     public string PlannedSynopsis { get; set; }
     public string PlannedCoverMode { get; set; }

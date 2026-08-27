@@ -15,6 +15,7 @@ using ShareBook.Service;
 using ShareBook.Service.Authorization;
 using ShareBook.Service.Importer;
 using ShareBook.Service.Server;
+using ShareBook.Service.Upload;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,6 +39,7 @@ public class OperationsController : Controller
     private readonly IConfiguration _config;
     private readonly IJobHistoryRepository _jobHistoryRepo;
     private readonly IImporterDashboardService _importerDashboardService;
+    private readonly IUploadService _uploadService;
     private readonly IList<IJob> _jobs;
 
     public OperationsController(
@@ -50,6 +52,7 @@ public class OperationsController : Controller
         IConfiguration config,
         IJobHistoryRepository jobHistoryRepo,
         IImporterDashboardService importerDashboardService,
+        IUploadService uploadService,
         CancelAbandonedDonations job0,
         ChooseDateReminder job1,
         LateDonationNotification job2,
@@ -69,6 +72,7 @@ public class OperationsController : Controller
         _config = config;
         _jobHistoryRepo = jobHistoryRepo;
         _importerDashboardService = importerDashboardService;
+        _uploadService = uploadService;
         _jobs = new List<IJob> { job0, job1, job2, job3, job4, job5, job6, job7, job8 };
     }
 
@@ -139,6 +143,23 @@ public class OperationsController : Controller
     {
         var dashboard = await _importerDashboardService.GetDashboardAsync(cancellationToken);
         return Ok(dashboard);
+    }
+
+    [HttpPost("BookThumbnails/Backfill")]
+    [Authorize("Bearer")]
+    [AuthorizationFilter(Permissions.Permission.ApproveBook)] // adm
+    public async Task<IActionResult> BackfillBookThumbnailsAsync(
+        [FromQuery] bool overwrite = false,
+        [FromQuery] int offset = 0,
+        [FromQuery] int batchSize = 50,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _uploadService.BackfillBookThumbnailsAsync(
+            overwrite,
+            offset,
+            batchSize,
+            cancellationToken);
+        return Ok(result);
     }
 
     [HttpGet("ImporterEditorialPrompt")]

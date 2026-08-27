@@ -2,7 +2,10 @@
 using ShareBook.Helper.Image;
 using Xunit;
 using Flurl.Http;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace ShareBook.Test.Unit.Helpers
@@ -80,6 +83,45 @@ namespace ShareBook.Test.Unit.Helpers
             var actual = ImageHelper.GenerateImageUrl("image.jpg", "wwwroot/Images/Books", "http://dev.sharebook.com.br");
 
             Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [InlineData("o-mar-de-monstros.png", "o-mar-de-monstros.webp")]
+        [InlineData("uma-capa.jpeg", "uma-capa.webp")]
+        public void ThumbnailNameUsesBookSlug(string imageName, string expected)
+        {
+            var actual = ImageHelper.FormatThumbnailName(imageName);
+
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void BookThumbnailPreservesAspectRatioAndUsesWebp()
+        {
+            using var source = new Image<Rgba32>(800, 1000, Color.CornflowerBlue);
+            using var sourceStream = new MemoryStream();
+            source.SaveAsPng(sourceStream);
+
+            var result = ImageHelper.CreateBookThumbnail(sourceStream.ToArray());
+
+            using var thumbnail = SixLabors.ImageSharp.Image.Load(result);
+            Assert.Equal(360, thumbnail.Width);
+            Assert.Equal(450, thumbnail.Height);
+            Assert.Equal("Webp", SixLabors.ImageSharp.Image.DetectFormat(result).Name);
+        }
+
+        [Fact]
+        public void BookThumbnailDoesNotUpscaleSmallCover()
+        {
+            using var source = new Image<Rgba32>(120, 180, Color.CornflowerBlue);
+            using var sourceStream = new MemoryStream();
+            source.SaveAsPng(sourceStream);
+
+            var result = ImageHelper.CreateBookThumbnail(sourceStream.ToArray());
+
+            using var thumbnail = SixLabors.ImageSharp.Image.Load(result);
+            Assert.Equal(120, thumbnail.Width);
+            Assert.Equal(180, thumbnail.Height);
         }
 
         [Fact]

@@ -10,6 +10,7 @@ namespace ShareBook.Domain.DTOs
         public string Author { get; set; }
         public string Slug { get; set; }
         public string ImageUrl { get; set; }
+        public string ThumbnailUrl { get; set; }
         public string Type { get; set; }
     }
 

@@ -137,7 +137,7 @@ namespace ShareBook.Service
 
         public async Task<IList<Book>> Random15BooksAsync()
         {
-            return SetImageUrl(
+            return SetImageUrls(
                 await _repository.Get()
                     .Include(b => b.User)
                     .ThenInclude(u => u.Address)
@@ -152,7 +152,7 @@ namespace ShareBook.Service
 
         public async Task<IList<Book>> GetNewest15EBooksAsync()
         {
-            return SetImageUrl(
+            return SetImageUrls(
                 await _repository.Get()
                     .Include(b => b.User)
                     .ThenInclude(u => u.Address)
@@ -247,13 +247,23 @@ namespace ShareBook.Service
                 ItemsPerPage = normalizedItemsPerPage,
                 TotalItems = totalItems,
                 Summary = summary,
-                Items = SetImageUrl(books)
+                Items = SetImageUrls(books)
             };
         }
 
-        private IList<Book> SetImageUrl(IList<Book> books)
+        private IList<Book> SetImageUrls(IList<Book> books)
         {
-            return books.Select(b => { b.ImageUrl = _uploadService.GetImageUrl(b.ImageSlug, "Books"); return b; }).ToList();
+            return books.Select(book =>
+            {
+                SetImageUrls(book);
+                return book;
+            }).ToList();
+        }
+
+        private void SetImageUrls(Book book)
+        {
+            book.ImageUrl = _uploadService.GetImageUrl(book.ImageSlug, "Books");
+            book.ThumbnailUrl = _uploadService.GetBookThumbnailUrl(book.ImageSlug);
         }
 
         private IQueryable<Book> BuildAdminBooksQuery()
@@ -468,7 +478,7 @@ namespace ShareBook.Service
             if (result == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
-            result.ImageUrl = _uploadService.GetImageUrl(result.ImageSlug, "Books");
+            SetImageUrls(result);
 
             return result;
         }
@@ -533,6 +543,7 @@ namespace ShareBook.Service
                 }
 
                 result.Value.ImageUrl = await _uploadService.UploadImageAsync(entity.ImageBytes, entity.ImageSlug, "Books");
+                result.Value.ThumbnailUrl = _uploadService.GetBookThumbnailUrl(entity.ImageSlug);
 
                 result.Value.ImageBytes = null;
                 result.Value.PdfBytes = null;
@@ -637,6 +648,7 @@ namespace ShareBook.Service
 
             result.Value = await _repository.UpdateAsync(savedBook);
             result.Value.ImageBytes = null;
+            SetImageUrls(result.Value);
 
             return result;
         }
@@ -698,7 +710,7 @@ namespace ShareBook.Service
                 TotalItems = totalItems,
                 PhysicalBooksCount = physicalCount,
                 EbooksCount = ebooksCount,
-                Items = SetImageUrl(items)
+                Items = SetImageUrls(items)
             };
         }
 
@@ -770,7 +782,7 @@ namespace ShareBook.Service
                 ItemsPerPage = normalizedItemsPerPage,
                 TotalItems = totalItems,
                 Summary = summary,
-                Items = SetImageUrl(items)
+                Items = SetImageUrls(items)
             };
         }
 
@@ -919,6 +931,7 @@ namespace ShareBook.Service
                     DownloadCount = u.DownloadCount,
                     FreightOption = u.FreightOption,
                     ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
+                    ThumbnailUrl = _uploadService.GetBookThumbnailUrl(u.ImageSlug),
                     Slug = u.Slug,
                     CreationDate = u.CreationDate,
                     Synopsis = u.Synopsis,
