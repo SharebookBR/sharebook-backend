@@ -92,6 +92,7 @@ namespace ShareBook.Test.Unit.Services
             });
 
             Assert.Equal("lotr.png", result.Value.ImageSlug);
+            Assert.Equal(1, result.Value.ImageVersion);
         }
 
         [Fact]
@@ -513,6 +514,7 @@ namespace ShareBook.Test.Unit.Services
 
             Assert.NotNull(result);
             Assert.True(result.Success);
+            Assert.Equal(2, result.Value.ImageVersion);
 
             uploadServiceMock.Verify(service => service.UploadImageAsync(
                 It.IsAny<byte[]>(),

@@ -10,7 +10,9 @@ namespace ShareBook.Service.Upload
         Task DeleteFileIfExistsAsync(string fileName, string lastDirectory);
         Task DeleteReplacedImageAsync(string oldFileName, string newFileName, string lastDirectory);
         string GetImageUrl(string imageName, string lastDirectory);
+        string GetImageUrl(string imageName, string lastDirectory, int imageVersion);
         string GetBookThumbnailUrl(string imageName);
+        string GetBookThumbnailUrl(string imageName, int imageVersion);
         Task<BookThumbnailBackfillResult> BackfillBookThumbnailsAsync(
             bool overwrite = false,
             int offset = 0,

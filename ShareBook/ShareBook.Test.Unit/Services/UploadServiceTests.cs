@@ -13,6 +13,18 @@ namespace ShareBook.Test.Unit.Services;
 public class UploadServiceTests
 {
     [Fact]
+    public void VersionedBookUrlsUseImageVersionAsCacheKey()
+    {
+        var service = CreateService("wwwroot/Images");
+
+        var imageUrl = service.GetImageUrl("capa.png", "Books", 7);
+        var thumbnailUrl = service.GetBookThumbnailUrl("capa.png", 7);
+
+        Assert.Equal("https://api.sharebook.com.br/Images/Books/capa.png?v=7", imageUrl);
+        Assert.Equal("https://api.sharebook.com.br/Images/Books/Thumbs/capa.webp?v=7", thumbnailUrl);
+    }
+
+    [Fact]
     public async Task BookCoverUploadCreatesAndDeletesProportionalThumbnail()
     {
         var imageRoot = Path.Combine(Path.GetTempPath(), $"sharebook-thumbnails-{Guid.NewGuid():N}");

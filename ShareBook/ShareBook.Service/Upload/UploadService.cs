@@ -33,11 +33,23 @@ namespace ShareBook.Service.Upload
             return ImageHelper.GenerateImageUrl(imageName, dinamicDirectory, _serverSettings.BackendUrl);
         }
 
+        public string GetImageUrl(string imageName, string lastDirectory, int imageVersion)
+        {
+            var imageUrl = GetImageUrl(imageName, lastDirectory);
+            return AppendImageVersion(imageUrl, imageVersion);
+        }
+
         public string GetBookThumbnailUrl(string imageName)
         {
             var thumbnailName = ImageHelper.FormatThumbnailName(imageName);
             var directory = Path.Combine(BooksDirectory, BookThumbnailsDirectory).Replace('\\', '/');
             return GetImageUrl(thumbnailName, directory);
+        }
+
+        public string GetBookThumbnailUrl(string imageName, int imageVersion)
+        {
+            var thumbnailUrl = GetBookThumbnailUrl(imageName);
+            return AppendImageVersion(thumbnailUrl, imageVersion);
         }
 
         public async Task<string> UploadImageAsync(byte[] imageBytes, string imageName, string lastDirectory)
@@ -260,6 +272,14 @@ namespace ShareBook.Service.Upload
             => Path.IsPathRooted(directory)
                 ? directory
                 : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, directory);
+
+        private static string AppendImageVersion(string imageUrl, int imageVersion)
+        {
+            if (string.IsNullOrWhiteSpace(imageUrl) || imageVersion <= 0)
+                return imageUrl;
+
+            return $"{imageUrl}?v={imageVersion}";
+        }
 
         private static bool IsBooksDirectory(string directory)
             => string.Equals(

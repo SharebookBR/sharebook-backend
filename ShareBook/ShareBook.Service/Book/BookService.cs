@@ -262,8 +262,8 @@ namespace ShareBook.Service
 
         private void SetImageUrls(Book book)
         {
-            book.ImageUrl = _uploadService.GetImageUrl(book.ImageSlug, "Books");
-            book.ThumbnailUrl = _uploadService.GetBookThumbnailUrl(book.ImageSlug);
+            book.ImageUrl = _uploadService.GetImageUrl(book.ImageSlug, "Books", book.ImageVersion);
+            book.ThumbnailUrl = _uploadService.GetBookThumbnailUrl(book.ImageSlug, book.ImageVersion);
         }
 
         private IQueryable<Book> BuildAdminBooksQuery()
@@ -542,8 +542,8 @@ namespace ShareBook.Service
                     }
                 }
 
-                result.Value.ImageUrl = await _uploadService.UploadImageAsync(entity.ImageBytes, entity.ImageSlug, "Books");
-                result.Value.ThumbnailUrl = _uploadService.GetBookThumbnailUrl(entity.ImageSlug);
+                await _uploadService.UploadImageAsync(entity.ImageBytes, entity.ImageSlug, "Books");
+                SetImageUrls(result.Value);
 
                 result.Value.ImageBytes = null;
                 result.Value.PdfBytes = null;
@@ -625,6 +625,8 @@ namespace ShareBook.Service
                         entity.ImageSlug,
                         "Books");
                 }
+
+                savedBook.ImageVersion++;
             }
 
             //preparar o book para atualização
@@ -933,8 +935,10 @@ namespace ShareBook.Service
                     Status = u.Status,
                     DownloadCount = u.DownloadCount,
                     FreightOption = u.FreightOption,
-                    ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
-                    ThumbnailUrl = _uploadService.GetBookThumbnailUrl(u.ImageSlug),
+                    ImageSlug = u.ImageSlug,
+                    ImageVersion = u.ImageVersion,
+                    ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books", u.ImageVersion),
+                    ThumbnailUrl = _uploadService.GetBookThumbnailUrl(u.ImageSlug, u.ImageVersion),
                     Slug = u.Slug,
                     CreationDate = u.CreationDate,
                     Synopsis = u.Synopsis,

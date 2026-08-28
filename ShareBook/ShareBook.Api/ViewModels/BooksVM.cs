@@ -34,6 +34,7 @@ namespace ShareBook.Api.ViewModels
         public string Category { get; set; }
         public BookCategoryVM CategoryInfo { get; set; }
         public string ImageSlug { get; set; }
+        public int ImageVersion { get; set; }
         public string ImageUrl { get; set; }
         public string ThumbnailUrl { get; set; }
         public string City { get; set; }
@@ -96,6 +97,7 @@ namespace ShareBook.Api.ViewModels
         public string Category { get; set; }
         public BookCategoryVM CategoryInfo { get; set; }
         public string ImageSlug { get; set; }
+        public int ImageVersion { get; set; }
         public string ImageUrl { get; set; }
         public string ThumbnailUrl { get; set; }
         public string City { get; set; }

@@ -34,7 +34,9 @@ public class HomeTests
             && !string.IsNullOrWhiteSpace(book.Title)
             && !string.IsNullOrWhiteSpace(book.Slug)
             && !string.IsNullOrWhiteSpace(book.ImageUrl)
-            && !string.IsNullOrWhiteSpace(book.ThumbnailUrl));
+            && !string.IsNullOrWhiteSpace(book.ThumbnailUrl)
+            && book.ImageUrl.EndsWith("?v=1")
+            && book.ThumbnailUrl.EndsWith("?v=1"));
     }
 
     [Fact]

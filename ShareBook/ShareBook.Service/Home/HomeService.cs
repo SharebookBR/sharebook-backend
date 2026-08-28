@@ -107,8 +107,8 @@ namespace ShareBook.Service.Home
                 Title = book.Title,
                 Author = book.Author,
                 Slug = book.Slug,
-                ImageUrl = _uploadService.GetImageUrl(book.ImageSlug, "Books"),
-                ThumbnailUrl = _uploadService.GetBookThumbnailUrl(book.ImageSlug),
+                ImageUrl = _uploadService.GetImageUrl(book.ImageSlug, "Books", book.ImageVersion),
+                ThumbnailUrl = _uploadService.GetBookThumbnailUrl(book.ImageSlug, book.ImageVersion),
                 Type = book.Type.ToString()
             };
         }

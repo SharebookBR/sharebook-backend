@@ -26,6 +26,9 @@ namespace ShareBook.Repository.Mapping
                 .HasMaxLength(100)
                 .IsRequired();
 
+            entityBuilder.Property(t => t.ImageVersion)
+                .HasDefaultValue(1);
+
             entityBuilder.Property(t => t.Slug)
                .HasMaxLength(100);
 
