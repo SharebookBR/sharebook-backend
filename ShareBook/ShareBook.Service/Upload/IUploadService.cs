@@ -8,6 +8,7 @@ namespace ShareBook.Service.Upload
         Task<string> UploadImageAsync(byte[] imageBytes, string imageName, string lastDirectory);
         Task<string> UploadPdfAsync(byte[] imageBytes, string imageName, string lastDirectory);
         Task DeleteFileIfExistsAsync(string fileName, string lastDirectory);
+        Task DeleteReplacedImageAsync(string oldFileName, string newFileName, string lastDirectory);
         string GetImageUrl(string imageName, string lastDirectory);
         string GetBookThumbnailUrl(string imageName);
         Task<BookThumbnailBackfillResult> BackfillBookThumbnailsAsync(

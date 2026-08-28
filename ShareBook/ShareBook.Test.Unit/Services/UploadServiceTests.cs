@@ -51,6 +51,40 @@ public class UploadServiceTests
         }
     }
 
+    [Fact]
+    public async Task ReplacingBookCoverExtensionPreservesNewThumbnail()
+    {
+        var imageRoot = Path.Combine(Path.GetTempPath(), $"sharebook-thumbnails-{Guid.NewGuid():N}");
+        var service = CreateService(imageRoot);
+
+        try
+        {
+            await service.UploadImageAsync(CreateJpeg(800, 1000), "capa.jpg", "Books");
+
+            var oldSourcePath = Path.Combine(imageRoot, "Books", "capa.jpg");
+            var newSourcePath = Path.Combine(imageRoot, "Books", "capa.png");
+            var thumbnailPath = Path.Combine(imageRoot, "Books", "Thumbs", "capa.webp");
+            var oldThumbnailBytes = await File.ReadAllBytesAsync(thumbnailPath);
+
+            await service.UploadImageAsync(CreatePng(800, 1000), "capa.png", "Books");
+            var newThumbnailBytes = await File.ReadAllBytesAsync(thumbnailPath);
+
+            Assert.NotEqual(oldThumbnailBytes, newThumbnailBytes);
+
+            await service.DeleteReplacedImageAsync("capa.jpg", "capa.png", "Books");
+
+            Assert.False(File.Exists(oldSourcePath));
+            Assert.True(File.Exists(newSourcePath));
+            Assert.True(File.Exists(thumbnailPath));
+            Assert.Equal(newThumbnailBytes, await File.ReadAllBytesAsync(thumbnailPath));
+        }
+        finally
+        {
+            if (Directory.Exists(imageRoot))
+                Directory.Delete(imageRoot, true);
+        }
+    }
+
     private static UploadService CreateService(string imageRoot)
     {
         var imageSettings = Options.Create(new ImageSettings
@@ -71,6 +105,14 @@ public class UploadServiceTests
         using var image = new Image<Rgba32>(width, height, Color.CornflowerBlue);
         using var stream = new MemoryStream();
         image.SaveAsPng(stream);
+        return stream.ToArray();
+    }
+
+    private static byte[] CreateJpeg(int width, int height)
+    {
+        using var image = new Image<Rgba32>(width, height, Color.OrangeRed);
+        using var stream = new MemoryStream();
+        image.SaveAsJpeg(stream);
         return stream.ToArray();
     }
 }

@@ -99,6 +99,38 @@ namespace ShareBook.Service.Upload
             return Task.CompletedTask;
         }
 
+        public Task DeleteReplacedImageAsync(string oldFileName, string newFileName, string lastDirectory)
+        {
+            if (string.IsNullOrWhiteSpace(oldFileName) || string.IsNullOrWhiteSpace(lastDirectory))
+                return Task.CompletedTask;
+
+            var dynamicDirectory = Path.Combine(_imageSettings.ImagePath, lastDirectory);
+            var directoryBase = GetAbsoluteDirectory(dynamicDirectory);
+            var oldFilePath = Path.Combine(directoryBase, oldFileName);
+
+            if (File.Exists(oldFilePath))
+                File.Delete(oldFilePath);
+
+            if (IsBooksDirectory(lastDirectory))
+            {
+                var oldThumbnailName = ImageHelper.FormatThumbnailName(oldFileName);
+                var newThumbnailName = ImageHelper.FormatThumbnailName(newFileName);
+
+                if (!oldThumbnailName.Equals(newThumbnailName, StringComparison.OrdinalIgnoreCase))
+                {
+                    var oldThumbnailPath = Path.Combine(
+                        directoryBase,
+                        BookThumbnailsDirectory,
+                        oldThumbnailName);
+
+                    if (File.Exists(oldThumbnailPath))
+                        File.Delete(oldThumbnailPath);
+                }
+            }
+
+            return Task.CompletedTask;
+        }
+
         public async Task<BookThumbnailBackfillResult> BackfillBookThumbnailsAsync(
             bool overwrite = false,
             int offset = 0,

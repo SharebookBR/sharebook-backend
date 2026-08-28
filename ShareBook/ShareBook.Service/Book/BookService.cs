@@ -620,7 +620,10 @@ namespace ShareBook.Service
                 if (!string.IsNullOrWhiteSpace(savedBook.ImageSlug)
                     && !savedBook.ImageSlug.Equals(entity.ImageSlug, StringComparison.OrdinalIgnoreCase))
                 {
-                    await _uploadService.DeleteFileIfExistsAsync(savedBook.ImageSlug, "Books");
+                    await _uploadService.DeleteReplacedImageAsync(
+                        savedBook.ImageSlug,
+                        entity.ImageSlug,
+                        "Books");
                 }
             }
 

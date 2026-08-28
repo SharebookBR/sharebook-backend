@@ -490,7 +490,10 @@ namespace ShareBook.Test.Unit.Services
                 .ReturnsAsync("Ok Mocked");
 
             uploadServiceMock
-                .Setup(service => service.DeleteFileIfExistsAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(service => service.DeleteReplacedImageAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>()))
                 .Returns(Task.CompletedTask);
 
             var service = new BookService(bookRepositoryMock.Object,
@@ -516,8 +519,9 @@ namespace ShareBook.Test.Unit.Services
                 "livro-original.png",
                 "Books"), Times.Once);
 
-            uploadServiceMock.Verify(service => service.DeleteFileIfExistsAsync(
+            uploadServiceMock.Verify(service => service.DeleteReplacedImageAsync(
                 "livro-original.jpg",
+                "livro-original.png",
                 "Books"), Times.Once);
         }
 
