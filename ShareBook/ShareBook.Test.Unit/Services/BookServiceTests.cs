@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
@@ -59,6 +60,33 @@ namespace ShareBook.Test.Unit.Services
             ebookServiceMock.Setup(service => service.UploadPdfAsync(It.IsAny<Book>())).ReturnsAsync("EBooks/test-book.pdf");
             categoryRepositoryMock.Setup(repo => repo.Get()).Returns(new[] { new Category { Id = Guid.NewGuid(), Name = "Leaf" } }.AsQueryable());
             bookServiceMock.Setup(service => service.InsertAsync(It.IsAny<Book>())).ReturnsAsync(() => new Result<Book>(new Book())).Verifiable();
+        }
+
+        [Fact]
+        public async Task FullSearch_PublicSearch_ShouldReturnOnlyAvailableBooks()
+        {
+            await using var context = await CreateSearchContextAsync();
+            var service = CreateService(new BookRepository(context));
+
+            var result = await service.FullSearchAsync("clean", 1, 10, false);
+
+            var book = Assert.Single(result.Items);
+            Assert.Equal(BookStatus.Available, book.Status);
+            Assert.Equal(1, result.TotalItems);
+        }
+
+        [Fact]
+        public async Task FullSearch_AdminSearch_ShouldReturnBooksFromAllStatuses()
+        {
+            await using var context = await CreateSearchContextAsync();
+            var service = CreateService(new BookRepository(context));
+
+            var result = await service.FullSearchAsync("clean", 1, 10, true);
+
+            Assert.Equal(2, result.Items.Count);
+            Assert.Equal(2, result.TotalItems);
+            Assert.Contains(result.Items, book => book.Status == BookStatus.Available);
+            Assert.Contains(result.Items, book => book.Status == BookStatus.WaitingSend);
         }
 
         // O UpdateBookVM nao carrega ImageSlug, entao um PUT sem imagem nova chega
@@ -589,6 +617,60 @@ namespace ShareBook.Test.Unit.Services
 
             Assert.NotNull(result);
             bookRepositoryMock.Verify(repo => repo.DeleteAsync(It.IsAny<object[]>()), Times.Once);
+        }
+
+        private BookService CreateService(IBookRepository repository)
+            => new BookService(repository,
+                unitOfWorkMock.Object, new BookValidator(),
+                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object,
+                sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
+
+        private static async Task<ApplicationDbContext> CreateSearchContextAsync()
+        {
+            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+            var context = new ApplicationDbContext(options);
+
+            var user = new User
+            {
+                Name = "Search Donor",
+                Email = "search@example.com",
+                Password = "password",
+                PasswordSalt = "salt",
+                Address = new Address
+                {
+                    City = "Sao Paulo",
+                    State = "SP",
+                    Country = "Brasil"
+                }
+            };
+            var category = new Category { Name = "Software" };
+
+            context.Books.AddRange(
+                new Book
+                {
+                    Title = "Clean Code Available",
+                    Author = "Robert Martin",
+                    ImageSlug = "clean-code-available.png",
+                    Slug = "clean-code-available",
+                    Status = BookStatus.Available,
+                    User = user,
+                    Category = category
+                },
+                new Book
+                {
+                    Title = "Clean Code Waiting Send",
+                    Author = "Robert Martin",
+                    ImageSlug = "clean-code-waiting-send.png",
+                    Slug = "clean-code-waiting-send",
+                    Status = BookStatus.WaitingSend,
+                    User = user,
+                    Category = category
+                });
+            await context.SaveChangesAsync();
+
+            return context;
         }
     }
 }

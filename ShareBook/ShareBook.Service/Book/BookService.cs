@@ -668,7 +668,7 @@ namespace ShareBook.Service
                  || x.Category.Name.ToLower().Contains(criteria))
                 && x.Status == BookStatus.Available;
 
-            if (!isAdmin)
+            if (isAdmin)
             {
                 filter = x =>
                     x.Author.ToLower().Contains(criteria)
