@@ -64,12 +64,17 @@ namespace ShareBook.Helper.Extensions
             if (string.IsNullOrWhiteSpace(text))
                 return string.Empty;
 
-            var normalized = text
+            var normalized = Regex.Replace(text, @"(?i)c\+\+", "cplusplus");
+            normalized = Regex.Replace(normalized, @"(?i)c#", "csharp");
+            normalized = Regex.Replace(normalized, @"(?i)f#", "fsharp");
+            normalized = Regex.Replace(normalized, @"(?i)\.net", "dotnet");
+
+            normalized = normalized
                 .RemoveAccent()
                 .Replace("-", " ")
                 .Replace("_", " ");
 
-            normalized = Regex.Replace(normalized, @"[^\w\s]", string.Empty);
+            normalized = Regex.Replace(normalized, @"[^\w\s]", " ");
             normalized = Regex.Replace(normalized, @"\s+", " ").Trim();
 
             return normalized.ToLowerInvariant();

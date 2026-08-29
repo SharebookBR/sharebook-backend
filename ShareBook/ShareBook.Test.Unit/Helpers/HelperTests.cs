@@ -62,9 +62,10 @@ namespace ShareBook.Test.Unit.Helpers
         }
 
         [Theory]
-        [InlineData("  Ação__em C# -- 2026! ", "acao em c 2026")]
+        [InlineData("  Ação__em C# -- 2026! ", "acao em csharp 2026")]
         [InlineData("Odisséia", "odisseia")]
         [InlineData("caverna   de   sangue", "caverna de sangue")]
+        [InlineData("C++ / F# / .NET", "cplusplus fsharp dotnet")]
         [InlineData(null, "")]
         public void ToNormalizedSearchText_ShouldPrepareSafePrefixQuery(string input, string expected)
         {

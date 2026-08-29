@@ -25,6 +25,9 @@ public class BookRepositoryFullTextSearchTests
         Assert.Contains("unaccent(", sql);
         Assert.Contains("setweight(", sql);
         Assert.Contains("ts_rank_cd(", sql);
+        Assert.Contains("replace(", sql);
+        Assert.Contains("csharp", sql);
+        Assert.Contains("dotnet", sql);
         Assert.Contains("ORDER BY", sql);
         Assert.Contains("Status", sql);
     }
