@@ -62,8 +62,10 @@ namespace ShareBook.Repository
             else if (requiresElectronic)
                 books = books.Where(book => book.Type == BookType.Eletronic);
 
-            var lexicalTokens = tokens
+            var textTokens = tokens
                 .Where(token => !printedTerms.Contains(token) && !electronicTerms.Contains(token))
+                .ToArray();
+            var lexicalTokens = textTokens
                 .Where(token => token.Length >= 2)
                 .ToArray();
 
@@ -74,13 +76,13 @@ namespace ShareBook.Repository
                     : books.Where(_ => false);
             }
 
-            var lexicalSearchTerm = string.Join(" ", lexicalTokens);
+            var exactSearchTerm = string.Join(" ", textTokens);
 
             // SQLite e InMemory não oferecem o FTS do PostgreSQL. Este caminho existe
             // somente para testes e ambientes locais alternativos; produção usa Npgsql.
             if (!_context.Database.IsNpgsql())
             {
-                var loweredTerm = lexicalSearchTerm.ToLowerInvariant();
+                var loweredTerm = exactSearchTerm.ToLowerInvariant();
                 return books
                     .Where(book =>
                         book.Title.ToLower().Contains(loweredTerm)
@@ -141,10 +143,10 @@ namespace ShareBook.Repository
                 .Where(candidate => candidate.SearchVector.Matches(
                     EF.Functions.ToTsQuery("simple", prefixQuery)))
                 .OrderByDescending(candidate =>
-                    EF.Functions.Unaccent(candidate.Title) == lexicalSearchTerm)
+                    EF.Functions.Unaccent(candidate.Title) == exactSearchTerm)
                 .ThenByDescending(candidate => EF.Functions.ILike(
                     EF.Functions.Unaccent(candidate.Title),
-                    lexicalSearchTerm + "%"))
+                    exactSearchTerm + "%"))
                 .ThenByDescending(candidate => candidate.SearchVector.RankCoverDensity(
                     EF.Functions.ToTsQuery("simple", prefixQuery)))
                 .ThenByDescending(candidate => candidate.Book.CreationDate)

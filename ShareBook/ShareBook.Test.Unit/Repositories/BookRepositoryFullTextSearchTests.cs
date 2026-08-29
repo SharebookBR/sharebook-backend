@@ -71,4 +71,22 @@ public class BookRepositoryFullTextSearchTests
         Assert.Contains("python:*", sql);
         Assert.Contains("to_tsquery('simple'", sql);
     }
+
+    [Fact]
+    public void FullTextSearch_ExactTitle_ShouldKeepShortWordsOutOfTsQueryButInBoost()
+    {
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseNpgsql("Host=localhost;Database=sharebook_search_translation;Username=test;Password=test")
+            .Options;
+        using var context = new ApplicationDbContext(options);
+        var repository = new BookRepository(context);
+
+        var sql = repository
+            .FullTextSearch("a divina comedia", includeUnavailable: false)
+            .ToQueryString();
+
+        Assert.Contains("divina:* & comedia:*", sql);
+        Assert.DoesNotContain("'a:*", sql);
+        Assert.Contains("a divina comedia", sql);
+    }
 }
