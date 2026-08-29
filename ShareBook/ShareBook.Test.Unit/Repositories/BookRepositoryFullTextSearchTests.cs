@@ -31,4 +31,44 @@ public class BookRepositoryFullTextSearchTests
         Assert.Contains("ORDER BY", sql);
         Assert.Contains("Status", sql);
     }
+
+    [Theory]
+    [InlineData("fisico")]
+    [InlineData("impresso")]
+    [InlineData("ebook")]
+    [InlineData("digital")]
+    public void FullTextSearch_FormatOnly_ShouldUseStructuredBookTypeFilter(string criteria)
+    {
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseNpgsql("Host=localhost;Database=sharebook_search_translation;Username=test;Password=test")
+            .Options;
+        using var context = new ApplicationDbContext(options);
+        var repository = new BookRepository(context);
+
+        var sql = repository
+            .FullTextSearch(criteria, includeUnavailable: false)
+            .ToQueryString();
+
+        Assert.Contains("Type", sql);
+        Assert.Contains("ORDER BY", sql);
+        Assert.DoesNotContain("to_tsquery", sql);
+    }
+
+    [Fact]
+    public void FullTextSearch_FormatAndText_ShouldFilterThenRankLexically()
+    {
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseNpgsql("Host=localhost;Database=sharebook_search_translation;Username=test;Password=test")
+            .Options;
+        using var context = new ApplicationDbContext(options);
+        var repository = new BookRepository(context);
+
+        var sql = repository
+            .FullTextSearch("ebook python", includeUnavailable: false)
+            .ToQueryString();
+
+        Assert.Contains("Type", sql);
+        Assert.Contains("python:*", sql);
+        Assert.Contains("to_tsquery('simple'", sql);
+    }
 }

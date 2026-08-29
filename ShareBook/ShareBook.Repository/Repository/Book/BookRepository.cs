@@ -46,11 +46,41 @@ namespace ShareBook.Repository
             if (string.IsNullOrWhiteSpace(searchTerm))
                 return books.Where(_ => false);
 
+            var tokens = searchTerm
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .ToArray();
+            var printedTerms = new[] { "fisico", "impresso", "printed", "physical" };
+            var electronicTerms = new[] { "ebook", "digital", "eletronico", "electronic" };
+            var requiresPrinted = tokens.Any(token => printedTerms.Contains(token));
+            var requiresElectronic = tokens.Any(token => electronicTerms.Contains(token));
+
+            if (requiresPrinted && requiresElectronic)
+                return books.Where(_ => false);
+
+            if (requiresPrinted)
+                books = books.Where(book => book.Type == BookType.Printed);
+            else if (requiresElectronic)
+                books = books.Where(book => book.Type == BookType.Eletronic);
+
+            var lexicalTokens = tokens
+                .Where(token => !printedTerms.Contains(token) && !electronicTerms.Contains(token))
+                .Where(token => token.Length >= 2)
+                .ToArray();
+
+            if (lexicalTokens.Length == 0)
+            {
+                return requiresPrinted || requiresElectronic
+                    ? books.OrderByDescending(book => book.CreationDate)
+                    : books.Where(_ => false);
+            }
+
+            var lexicalSearchTerm = string.Join(" ", lexicalTokens);
+
             // SQLite e InMemory não oferecem o FTS do PostgreSQL. Este caminho existe
             // somente para testes e ambientes locais alternativos; produção usa Npgsql.
             if (!_context.Database.IsNpgsql())
             {
-                var loweredTerm = searchTerm.ToLowerInvariant();
+                var loweredTerm = lexicalSearchTerm.ToLowerInvariant();
                 return books
                     .Where(book =>
                         book.Title.ToLower().Contains(loweredTerm)
@@ -62,15 +92,7 @@ namespace ShareBook.Repository
                     .OrderByDescending(book => book.CreationDate);
             }
 
-            var tokens = searchTerm
-                .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Where(token => token.Length >= 2)
-                .ToArray();
-
-            if (tokens.Length == 0)
-                return books.Where(_ => false);
-
-            var prefixQuery = string.Join(" & ", tokens.Select(token => $"{token}:*"));
+            var prefixQuery = string.Join(" & ", lexicalTokens.Select(token => $"{token}:*"));
 
             var searchableBooks = books.Select(book => new
             {
@@ -119,10 +141,10 @@ namespace ShareBook.Repository
                 .Where(candidate => candidate.SearchVector.Matches(
                     EF.Functions.ToTsQuery("simple", prefixQuery)))
                 .OrderByDescending(candidate =>
-                    EF.Functions.Unaccent(candidate.Title) == searchTerm)
+                    EF.Functions.Unaccent(candidate.Title) == lexicalSearchTerm)
                 .ThenByDescending(candidate => EF.Functions.ILike(
                     EF.Functions.Unaccent(candidate.Title),
-                    searchTerm + "%"))
+                    lexicalSearchTerm + "%"))
                 .ThenByDescending(candidate => candidate.SearchVector.RankCoverDensity(
                     EF.Functions.ToTsQuery("simple", prefixQuery)))
                 .ThenByDescending(candidate => candidate.Book.CreationDate)
