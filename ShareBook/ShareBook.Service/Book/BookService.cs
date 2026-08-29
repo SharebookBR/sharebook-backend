@@ -762,6 +762,51 @@ namespace ShareBook.Service
             return pagedBook.Items.FirstOrDefault();
         }
 
+        public async Task<IList<Book>> GetRecommendationsAsync(Guid bookId, int limit = 6)
+        {
+            var normalizedLimit = Math.Min(Math.Max(limit, 1), 6);
+            var source = await _repository.Get()
+                .AsNoTracking()
+                .Include(book => book.Category)
+                    .ThenInclude(category => category.ParentCategory)
+                .FirstOrDefaultAsync(book => book.Id == bookId);
+
+            if (source == null)
+                throw new ShareBookException(ShareBookException.Error.NotFound);
+
+            var candidates = await _repository.Get()
+                .AsNoTracking()
+                .Include(book => book.Category)
+                    .ThenInclude(category => category.ParentCategory)
+                .Where(book => book.Status == BookStatus.Available && book.Id != bookId)
+                .ToListAsync();
+
+            var rankedIds = BookRecommendationRanker
+                .Rank(source, candidates, normalizedLimit)
+                .Select(book => book.Id)
+                .ToList();
+
+            if (rankedIds.Count == 0)
+                return Array.Empty<Book>();
+
+            var books = await _repository.Get()
+                .AsNoTracking()
+                .Include(book => book.User)
+                    .ThenInclude(user => user.Address)
+                .Include(book => book.Category)
+                    .ThenInclude(category => category.ParentCategory)
+                .Where(book => rankedIds.Contains(book.Id))
+                .ToListAsync();
+
+            var booksById = books.ToDictionary(book => book.Id);
+            var orderedBooks = rankedIds
+                .Where(booksById.ContainsKey)
+                .Select(id => booksById[id])
+                .ToList();
+
+            return SetImageUrls(orderedBooks);
+        }
+
         public async Task<bool> UserRequestedBookAsync(Guid bookId)
         {
             var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);

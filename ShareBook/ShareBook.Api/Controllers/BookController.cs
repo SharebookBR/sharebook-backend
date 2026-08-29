@@ -213,6 +213,14 @@ namespace ShareBook.Api.Controllers
             return Ok(bookVM);
         }
 
+        [HttpGet("Recommendations/{bookId:guid}")]
+        [ProducesResponseType(typeof(IList<BookVM>), 200)]
+        public async Task<IList<BookVM>> RecommendationsAsync(Guid bookId, [FromQuery] int limit = 6)
+        {
+            var books = await _service.GetRecommendationsAsync(bookId, limit);
+            return _mapper.Map<List<BookVM>>(books);
+        }
+
         [Authorize("Bearer")]
         [AuthorizationFilter(Permissions.Permission.ApproveBook)] // apenas adms
         [ProducesResponseType(typeof(BookVM), 200)]

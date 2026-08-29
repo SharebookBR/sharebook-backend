@@ -50,6 +50,8 @@ namespace ShareBook.Service
 
         Task<Book> BySlugAsync(string slug);
 
+        Task<IList<Book>> GetRecommendationsAsync(Guid bookId, int limit = 6);
+
         Task<bool> UserRequestedBookAsync(Guid bookId);
 
         Task<IList<Book>> GetUserDonationsAsync(Guid userId);
