@@ -59,6 +59,22 @@ namespace ShareBook.Helper.Extensions
             return stringBuilder.ToString().Normalize(NormalizationForm.FormC);
         }
 
+        public static string ToNormalizedSearchText(this string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return string.Empty;
+
+            var normalized = text
+                .RemoveAccent()
+                .Replace("-", " ")
+                .Replace("_", " ");
+
+            normalized = Regex.Replace(normalized, @"[^\w\s]", string.Empty);
+            normalized = Regex.Replace(normalized, @"\s+", " ").Trim();
+
+            return normalized.ToLowerInvariant();
+        }
+
 
         public static string AddIncremental(this string text)
         {

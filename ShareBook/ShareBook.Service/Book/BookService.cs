@@ -660,23 +660,60 @@ namespace ShareBook.Service
 
         public async Task<PagedList<Book>> FullSearchAsync(string criteria, int page, int itemsPerPage, bool isAdmin)
         {
-            criteria = (criteria ?? string.Empty).Trim().ToLower();
+            var normalizedCriteria = criteria.ToNormalizedSearchText();
+            var query = _bookRepository
+                .FullTextSearch(normalizedCriteria, includeUnavailable: isAdmin)
+                .Select(book => new Book
+                {
+                    Id = book.Id,
+                    Title = book.Title,
+                    Author = book.Author,
+                    Status = book.Status,
+                    DownloadCount = book.DownloadCount,
+                    FreightOption = book.FreightOption,
+                    ImageSlug = book.ImageSlug,
+                    ImageVersion = book.ImageVersion,
+                    ImageUrl = _uploadService.GetImageUrl(book.ImageSlug, "Books", book.ImageVersion),
+                    ThumbnailUrl = _uploadService.GetBookThumbnailUrl(book.ImageSlug, book.ImageVersion),
+                    Slug = book.Slug,
+                    CreationDate = book.CreationDate,
+                    Synopsis = book.Synopsis,
+                    ChooseDate = book.ChooseDate,
+                    User = new User
+                    {
+                        Id = book.User.Id,
+                        Email = book.User.Email,
+                        Name = book.User.Name,
+                        Linkedin = book.User.Linkedin,
+                        Address = new Address
+                        {
+                            City = book.User.Address.City,
+                            State = book.User.Address.State,
+                            Country = book.User.Address.Country,
+                            UserId = book.User.Address.UserId,
+                            Id = book.User.Address.Id,
+                            CreationDate = book.User.Address.CreationDate,
+                        }
+                    },
+                    CategoryId = book.CategoryId,
+                    Category = new Category
+                    {
+                        Id = book.Category.Id,
+                        Name = book.Category.Name,
+                        ParentCategoryId = book.Category.ParentCategoryId,
+                        ParentCategory = book.Category.ParentCategory == null
+                            ? null
+                            : new Category
+                            {
+                                Id = book.Category.ParentCategory.Id,
+                                Name = book.Category.ParentCategory.Name
+                            }
+                    },
+                    Type = book.Type,
+                    EBookPdfPath = book.EBookPdfPath
+                });
 
-            Expression<Func<Book, bool>> filter = x =>
-                (x.Author.ToLower().Contains(criteria)
-                 || x.Title.ToLower().Contains(criteria)
-                 || x.Category.Name.ToLower().Contains(criteria))
-                && x.Status == BookStatus.Available;
-
-            if (isAdmin)
-            {
-                filter = x =>
-                    x.Author.ToLower().Contains(criteria)
-                    || x.Title.ToLower().Contains(criteria)
-                    || x.Category.Name.ToLower().Contains(criteria);
-            }
-
-            return await SearchBooksAsync(filter, page, itemsPerPage);
+            return await FormatPagedListAsync(query, page, itemsPerPage);
         }
 
         public async Task<CategoryBooksResultDTO> ByCategoryIdAsync(Guid categoryId, int page, int itemsPerPage)

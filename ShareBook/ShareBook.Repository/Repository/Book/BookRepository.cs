@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Data.Sqlite;
 using Npgsql;
+using NpgsqlTypes;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
+using ShareBook.Domain.Enums;
 
 namespace ShareBook.Repository
 {
@@ -33,6 +35,78 @@ namespace ShareBook.Repository
                 .Where(book => book.Slug.StartsWith(baseSlug))
                 .Select(book => book.Slug)
                 .ToListAsync();
+
+        public IQueryable<Book> FullTextSearch(string normalizedCriteria, bool includeUnavailable)
+        {
+            var searchTerm = (normalizedCriteria ?? string.Empty).Trim();
+            var books = _dbSet
+                .AsNoTracking()
+                .Where(book => includeUnavailable || book.Status == BookStatus.Available);
+
+            if (string.IsNullOrWhiteSpace(searchTerm))
+                return books.Where(_ => false);
+
+            // SQLite e InMemory não oferecem o FTS do PostgreSQL. Este caminho existe
+            // somente para testes e ambientes locais alternativos; produção usa Npgsql.
+            if (!_context.Database.IsNpgsql())
+            {
+                var loweredTerm = searchTerm.ToLowerInvariant();
+                return books
+                    .Where(book =>
+                        book.Title.ToLower().Contains(loweredTerm)
+                        || book.Author.ToLower().Contains(loweredTerm)
+                        || book.Category.Name.ToLower().Contains(loweredTerm)
+                        || (book.Category.ParentCategory != null
+                            && book.Category.ParentCategory.Name.ToLower().Contains(loweredTerm))
+                        || (book.Synopsis != null && book.Synopsis.ToLower().Contains(loweredTerm)))
+                    .OrderByDescending(book => book.CreationDate);
+            }
+
+            var prefixQuery = string.Join(
+                " & ",
+                searchTerm
+                    .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .Select(token => $"{token}:*"));
+
+            var rankedBooks = books.Select(book => new
+            {
+                Book = book,
+                SearchVector = EF.Functions
+                    .ToTsVector("simple", EF.Functions.Unaccent(book.Title))
+                    .SetWeight(NpgsqlTsVector.Lexeme.Weight.A)
+                    .Concat(EF.Functions
+                        .ToTsVector("simple", EF.Functions.Unaccent(book.Author))
+                        .SetWeight(NpgsqlTsVector.Lexeme.Weight.B))
+                    .Concat(EF.Functions
+                        .ToTsVector("simple", EF.Functions.Unaccent(book.Category.Name))
+                        .SetWeight(NpgsqlTsVector.Lexeme.Weight.C))
+                    .Concat(EF.Functions
+                        .ToTsVector(
+                            "simple",
+                            EF.Functions.Unaccent(
+                                book.Category.ParentCategory == null
+                                    ? string.Empty
+                                    : book.Category.ParentCategory.Name))
+                        .SetWeight(NpgsqlTsVector.Lexeme.Weight.C))
+                    .Concat(EF.Functions
+                        .ToTsVector("simple", EF.Functions.Unaccent(book.Synopsis ?? string.Empty))
+                        .SetWeight(NpgsqlTsVector.Lexeme.Weight.D))
+            });
+
+            return rankedBooks
+                .Where(candidate => candidate.SearchVector.Matches(
+                    EF.Functions.ToTsQuery("simple", prefixQuery)))
+                .OrderByDescending(candidate =>
+                    EF.Functions.Unaccent(candidate.Book.Title).ToLower()
+                    == searchTerm)
+                .ThenByDescending(candidate => EF.Functions.ILike(
+                    EF.Functions.Unaccent(candidate.Book.Title),
+                    searchTerm + "%"))
+                .ThenByDescending(candidate => candidate.SearchVector.RankCoverDensity(
+                    EF.Functions.ToTsQuery("simple", prefixQuery)))
+                .ThenByDescending(candidate => candidate.Book.CreationDate)
+                .Select(candidate => candidate.Book);
+        }
 
         public override async Task<Book> UpdateAsync(Book entity)
         {

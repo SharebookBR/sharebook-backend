@@ -28,6 +28,8 @@ namespace ShareBook.Repository
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.HasPostgresExtension("unaccent");
+
             //O Contexto procura pelas classes que implementam IEntityTypeConfiguration adicionando o mapeamento de forma automática.
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 

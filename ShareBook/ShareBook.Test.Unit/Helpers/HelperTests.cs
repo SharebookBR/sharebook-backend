@@ -61,6 +61,16 @@ namespace ShareBook.Test.Unit.Helpers
             Assert.Equal("o-pequeno-principe_copy2", actual);
         }
 
+        [Theory]
+        [InlineData("  Ação__em C# -- 2026! ", "acao em c 2026")]
+        [InlineData("Odisséia", "odisseia")]
+        [InlineData("caverna   de   sangue", "caverna de sangue")]
+        [InlineData(null, "")]
+        public void ToNormalizedSearchText_ShouldPrepareSafePrefixQuery(string input, string expected)
+        {
+            Assert.Equal(expected, input.ToNormalizedSearchText());
+        }
+
         [Fact]
         public void FormatImageValid()
         {
