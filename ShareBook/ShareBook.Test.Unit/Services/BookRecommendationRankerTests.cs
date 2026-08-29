@@ -65,6 +65,12 @@ namespace ShareBook.Test.Unit.Services
                 "Uma fantasia sobre um reino encantado.",
                 BookStatus.Available,
                 BookType.Eletronic);
+            var literalSeaMatch = Book(
+                "Pedro, O Menino do Mar",
+                "Rosa Morena",
+                "Uma história sobre o oceano, golfinhos, natureza e preservação ambiental.",
+                BookStatus.Available,
+                BookType.Eletronic);
             var unrelated = Book(
                 "Clean Architecture",
                 "Robert Martin",
@@ -73,7 +79,7 @@ namespace ShareBook.Test.Unit.Services
                 BookType.Printed,
                 new Category { Id = Guid.NewGuid(), Name = "Tecnologia" });
 
-            var result = BookRecommendationRanker.Rank(source, new[] { genericFantasy, unrelated, minotaur });
+            var result = BookRecommendationRanker.Rank(source, new[] { genericFantasy, literalSeaMatch, unrelated, minotaur });
 
             Assert.Equal(minotaur.Id, result[0].Id);
         }

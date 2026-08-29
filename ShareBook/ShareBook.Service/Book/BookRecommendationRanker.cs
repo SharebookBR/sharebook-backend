@@ -76,7 +76,7 @@ namespace ShareBook.Service
                 score += 4d;
 
             var candidateTitleTokens = Tokenize(candidate.Title).ToHashSet(StringComparer.Ordinal);
-            score += Containment(sourceTitleTokens, candidateTitleTokens) * 30d;
+            score += Containment(sourceTitleTokens, candidateTitleTokens) * 4d;
 
             if (source.Type == BookType.Printed && candidate.Type == BookType.Eletronic)
                 score += 2d;
@@ -152,11 +152,11 @@ namespace ShareBook.Service
         private static Dictionary<string, double> BuildRawVector(Book book)
         {
             var vector = new Dictionary<string, double>(StringComparer.Ordinal);
-            AddTokens(vector, book.Title, 5d);
-            AddTokens(vector, book.Author, 1.25d);
-            AddTokens(vector, book.Category?.Name, 2.5d);
-            AddTokens(vector, book.Category?.ParentCategory?.Name, 1.25d);
-            AddTokens(vector, book.Synopsis, 1d);
+            AddTokens(vector, book.Title, 1d);
+            AddTokens(vector, book.Author, 0.25d);
+            AddTokens(vector, book.Category?.Name, 1.5d);
+            AddTokens(vector, book.Category?.ParentCategory?.Name, 0.75d);
+            AddTokens(vector, book.Synopsis, 2d);
             return vector;
         }
 
