@@ -5,6 +5,7 @@ using Rollbar.PlugIns.Serilog;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.PostgreSQL.ColumnWriters;
+using ShareBook.Api.Logging;
 using ShareBook.Api.RateLimiting;
 using System;
 using System.Collections.Generic;
@@ -30,10 +31,12 @@ namespace ShareBook.Api
 
                     if (!string.IsNullOrEmpty(rollbarToken))
                     {
-                        lc.WriteTo.RollbarSink(
-                            rollbarAccessToken: rollbarToken,
-                            rollbarEnvironment: rollbarEnv,
-                            restrictedToMinimumLevel: LogEventLevel.Error);
+                        lc.WriteTo.Logger(rollbarLogger => rollbarLogger
+                            .Filter.ByExcluding(RollbarLogEventFilter.ShouldExclude)
+                            .WriteTo.RollbarSink(
+                                rollbarAccessToken: rollbarToken,
+                                rollbarEnvironment: rollbarEnv,
+                                restrictedToMinimumLevel: LogEventLevel.Error));
                     }
 
                     var dbProvider = ctx.Configuration["DatabaseProvider"]?.ToLower();
