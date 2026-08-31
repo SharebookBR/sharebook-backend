@@ -13,7 +13,6 @@ using ShareBook.Test.Unit.Mocks;
 using ShareBook.Domain.Common;
 using System.Linq;
 using System;
-using Xunit.Extensions.Ordering;
 
 namespace ShareBook.Test.Unit.Jobs
 {
@@ -24,8 +23,8 @@ namespace ShareBook.Test.Unit.Jobs
         private readonly Mock<IBookService> _mockBookService = new();
         private readonly Mock<IBookUserService> _mockBookUserService = new();
         private readonly Mock<IConfiguration> _mockConfiguration = new();
-        private static int _maxLateDonationDaysAutoCancel = 90;
-        private static List<Book> _allBooks = new List<Book> {
+        private const int _maxLateDonationDaysAutoCancel = 90;
+        private readonly List<Book> _allBooks = new List<Book> {
                     BookMock.GetLordTheRings(),
                     BookMock.GetLordTheRings(),
                     BookMock.GetLordTheRings(),
@@ -40,7 +39,7 @@ namespace ShareBook.Test.Unit.Jobs
             _mockBookUserService.Setup(s => s.CancelAsync(It.IsAny<BookCancelationDTO>())).ReturnsAsync(() => new Result<Book>(BookMock.GetLordTheRings()));
         }
 
-        [Fact, Order(1)]
+        [Fact]
         public async Task NotCancellingAnyBook()
         {
             CancelAbandonedDonations job = new CancelAbandonedDonations(_mockJobHistoryRepository.Object, _mockLoggerFactory.Object, _mockBookService.Object, _mockBookUserService.Object, _mockConfiguration.Object);
@@ -57,7 +56,7 @@ namespace ShareBook.Test.Unit.Jobs
             _mockBookUserService.VerifyNoOtherCalls();
         }
 
-        [Fact, Order(2)]
+        [Fact]
         public async Task Cancelling2Of4AbandonedBooks()
         {
             // Mocking 4 books. 2 Of them are ready to be cancelled.

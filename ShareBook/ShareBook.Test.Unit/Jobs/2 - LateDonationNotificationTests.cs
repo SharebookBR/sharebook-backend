@@ -11,7 +11,6 @@ using ShareBook.Domain;
 using ShareBook.Domain.DTOs;
 using ShareBook.Test.Unit.Mocks;
 using System;
-using Xunit.Extensions.Ordering;
 using ShareBook.Domain.Enums;
 
 namespace ShareBook.Test.Unit.Jobs
@@ -24,16 +23,17 @@ namespace ShareBook.Test.Unit.Jobs
         private readonly Mock<IEmailService> _mockEmailService = new();
         private readonly Mock<IEmailTemplate> _mockEmailTemplate = new();
         private readonly Mock<IConfiguration> _mockConfiguration = new();
-        private static int _maxLateDonationDays = 90;
+        private const int _maxLateDonationDays = 90;
         private const string HtmlMock = "<html>Example</html>";
-        private static User _softUser = new User { Id = Guid.NewGuid(), Name = "SoftUser", Email = "softuser@example.com" };
-        private static User _hardUser = new User { Id = Guid.NewGuid(), Name = "HardUser", Email = "harduser@example.com" };
-        private static Book _softBook = BookMock.GetLordTheRings(_softUser, _softUser); 
-        private static Book _hardBook = BookMock.GetLordTheRings(_hardUser, _hardUser);
-        //private static List<Book> _allBooks = new List<Book> { _book1 };
+        private readonly User _softUser = new User { Id = Guid.NewGuid(), Name = "SoftUser", Email = "softuser@example.com" };
+        private readonly User _hardUser = new User { Id = Guid.NewGuid(), Name = "HardUser", Email = "harduser@example.com" };
+        private readonly Book _softBook;
+        private readonly Book _hardBook;
 
         public LateDonationNotificationTests()
         {
+            _softBook = BookMock.GetLordTheRings(_softUser, _softUser);
+            _hardBook = BookMock.GetLordTheRings(_hardUser, _hardUser);
             _hardBook.ChooseDate = DateTime.UtcNow.AddDays((_maxLateDonationDays + 2) * -1);
             _hardBook.Status = BookStatus.AwaitingDonorDecision;
             _hardUser.BooksDonated = new List<Book> { _hardBook };
@@ -42,7 +42,7 @@ namespace ShareBook.Test.Unit.Jobs
             _mockEmailTemplate.Setup(s => s.GenerateHtmlFromTemplateAsync(It.IsAny<string>(), It.IsAny<object>())).ReturnsAsync(HtmlMock);
         }
 
-        [Fact, Order(1)]
+        [Fact]
         public async Task SendSoftEmailToTheUserAndToAdmins_1BookLate()
         {
             _mockBookService.Setup(s => s.GetBooksChooseDateIsLateAsync()).ReturnsAsync(new List<Book> { _softBook });
@@ -69,7 +69,7 @@ namespace ShareBook.Test.Unit.Jobs
             _mockEmailService.VerifyNoOtherCalls();
         }
 
-        [Fact, Order(2)]
+        [Fact]
         public async Task SendHardEmailToTheUserAndToAdmins_1BookLate()
         {
             _mockBookService.Setup(s => s.GetBooksChooseDateIsLateAsync()).ReturnsAsync(new List<Book> { _hardBook });
@@ -96,7 +96,7 @@ namespace ShareBook.Test.Unit.Jobs
             _mockEmailService.VerifyNoOtherCalls();
         }
 
-        [Fact, Order(3)]
+        [Fact]
         public async Task NotSendAnyEmail_0BooksLate()
         {
             _mockBookService.Setup(s => s.GetBooksChooseDateIsLateAsync()).ReturnsAsync(new List<Book>());

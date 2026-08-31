@@ -13,7 +13,6 @@ using ShareBook.Test.Unit.Mocks;
 using ShareBook.Domain.Common;
 using System.Linq;
 using System;
-using Xunit.Extensions.Ordering;
 
 namespace ShareBook.Test.Unit.Jobs
 {
