@@ -14,6 +14,12 @@ namespace ShareBook.Repository
 {
     public class BookRepository : RepositoryGeneric<Book>, IBookRepository
     {
+        // Termos de 1 caractere que representam uma busca real (linguagens de
+        // programação). Casam por lexema EXATO (sem prefixo) contra título +
+        // categoria — nunca contra autor/sinopse, para evitar iniciais de autor
+        // (ex.: "J. R. King") e menções soltas no texto.
+        private static readonly string[] ExactSingleCharTerms = { "r", "c" };
+
         public BookRepository(ApplicationDbContext context) : base(context) { }
 
         public override async Task<Book> InsertAsync(Book entity)
@@ -65,11 +71,14 @@ namespace ShareBook.Repository
             var textTokens = tokens
                 .Where(token => !printedTerms.Contains(token) && !electronicTerms.Contains(token))
                 .ToArray();
+            var exactTokens = textTokens
+                .Where(token => ExactSingleCharTerms.Contains(token))
+                .ToArray();
             var lexicalTokens = textTokens
-                .Where(token => token.Length >= 2)
+                .Where(token => token.Length >= 2 && !ExactSingleCharTerms.Contains(token))
                 .ToArray();
 
-            if (lexicalTokens.Length == 0)
+            if (exactTokens.Length == 0 && lexicalTokens.Length == 0)
             {
                 return requiresPrinted || requiresElectronic
                     ? books.OrderByDescending(book => book.CreationDate)
@@ -95,6 +104,9 @@ namespace ShareBook.Repository
             }
 
             var prefixQuery = string.Join(" & ", lexicalTokens.Select(token => $"{token}:*"));
+            var exactQuery = string.Join(" & ", exactTokens);
+            var rankQuery = string.Join(" & ",
+                lexicalTokens.Select(token => $"{token}:*").Concat(exactTokens));
 
             var searchableBooks = books.Select(book => new
             {
@@ -120,6 +132,17 @@ namespace ShareBook.Repository
             {
                 candidate.Book,
                 candidate.Title,
+                TitleCategoryVector = EF.Functions
+                    .ToTsVector("simple", EF.Functions.Unaccent(candidate.Title))
+                    .SetWeight(NpgsqlTsVector.Lexeme.Weight.A)
+                    .Concat(EF.Functions
+                        .ToTsVector("simple", EF.Functions.Unaccent(candidate.LeafCategory))
+                        .SetWeight(NpgsqlTsVector.Lexeme.Weight.C))
+                    .Concat(EF.Functions
+                        .ToTsVector(
+                            "simple",
+                            EF.Functions.Unaccent(candidate.ParentCategory))
+                        .SetWeight(NpgsqlTsVector.Lexeme.Weight.C)),
                 SearchVector = EF.Functions
                     .ToTsVector("simple", EF.Functions.Unaccent(candidate.Title))
                     .SetWeight(NpgsqlTsVector.Lexeme.Weight.A)
@@ -139,16 +162,24 @@ namespace ShareBook.Repository
                         .SetWeight(NpgsqlTsVector.Lexeme.Weight.D))
             });
 
-            return rankedBooks
-                .Where(candidate => candidate.SearchVector.Matches(
-                    EF.Functions.ToTsQuery("simple", prefixQuery)))
+            var filtered = rankedBooks;
+
+            if (lexicalTokens.Length > 0)
+                filtered = filtered.Where(candidate => candidate.SearchVector.Matches(
+                    EF.Functions.ToTsQuery("simple", prefixQuery)));
+
+            if (exactTokens.Length > 0)
+                filtered = filtered.Where(candidate => candidate.TitleCategoryVector.Matches(
+                    EF.Functions.ToTsQuery("simple", exactQuery)));
+
+            return filtered
                 .OrderByDescending(candidate =>
                     EF.Functions.Unaccent(candidate.Title) == exactSearchTerm)
                 .ThenByDescending(candidate => EF.Functions.ILike(
                     EF.Functions.Unaccent(candidate.Title),
                     exactSearchTerm + "%"))
                 .ThenByDescending(candidate => candidate.SearchVector.RankCoverDensity(
-                    EF.Functions.ToTsQuery("simple", prefixQuery)))
+                    EF.Functions.ToTsQuery("simple", rankQuery)))
                 .ThenByDescending(candidate => candidate.Book.CreationDate)
                 .Select(candidate => candidate.Book);
         }
