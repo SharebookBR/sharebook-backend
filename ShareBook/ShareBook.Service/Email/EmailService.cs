@@ -140,14 +140,20 @@ public class EmailService : IEmailService
                 using var client = new SmtpClient();
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
-                if (_settings.UseSSL)
+                if (_settings.EffectiveSmtpUseSSL)
                     client.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
                 client.CheckCertificateRevocation = false;
 
-                await client.ConnectAsync(_settings.HostName, _settings.Port, _settings.UseSSL, cts.Token);
-                await client.AuthenticateAsync(_settings.Username, _settings.Password, cts.Token);
-                await client.SendAsync(message, cts.Token);
+                await client.ConnectAsync(_settings.EffectiveSmtpHostName, _settings.EffectiveSmtpPort, _settings.EffectiveSmtpUseSSL, cts.Token);
+                await client.AuthenticateAsync(_settings.EffectiveSmtpUsername, _settings.EffectiveSmtpPassword, cts.Token);
+
+                var envelopeSender = MailboxAddress.Parse(_settings.EffectiveReturnPath);
+                var recipients = message.To.Mailboxes
+                    .Concat(message.Cc.Mailboxes)
+                    .Concat(message.Bcc.Mailboxes)
+                    .ToList();
+                await client.SendAsync(message, envelopeSender, recipients, cts.Token);
                 await client.DisconnectAsync(true, cts.Token);
             });
         }
@@ -224,10 +230,16 @@ public class EmailService : IEmailService
             return log;
         }
 
-        await _imapClient.ConnectAsync(_settings.HostName, _settings.ImapPort, _settings.UseSSL);
-        await _imapClient.AuthenticateAsync(_settings.Username, _settings.Password);
+        await _imapClient.ConnectAsync(_settings.EffectiveImapHostName, _settings.ImapPort, _settings.EffectiveImapUseSSL);
+        await _imapClient.AuthenticateAsync(_settings.EffectiveImapUsername, _settings.EffectiveImapPassword);
 
         var bounceFolder = await GetBounceFolderAsync();
+        if (bounceFolder == null)
+        {
+            log.Add($"Não foi possível processar os emails bounce porque a pasta '{_settings.BounceFolder}' não foi encontrada.");
+            return log;
+        }
+
         await bounceFolder.OpenAsync(FolderAccess.ReadWrite);
 
         var uniqueIds = await bounceFolder.SearchAsync(SearchQuery.All);
@@ -236,7 +248,8 @@ public class EmailService : IEmailService
         foreach (var item in items)
         {
             var message = await bounceFolder.GetMessageAsync(item.UniqueId);
-            var bounce = new MailBounce(message.Subject, message.TextBody);
+            var body = message.TextBody ?? message.HtmlBody ?? message.Body?.ToString() ?? string.Empty;
+            var bounce = new MailBounce(message.Subject, body);
             await bounceFolder.AddFlagsAsync(item.UniqueId, MessageFlags.Deleted, true);
 
             if (bounce.IsBounce)
@@ -263,6 +276,9 @@ public class EmailService : IEmailService
 
     private async Task<IMailFolder?> GetBounceFolderAsync()
     {
+        if (string.Equals(_settings.BounceFolder, "INBOX", StringComparison.OrdinalIgnoreCase))
+            return _imapClient.Inbox;
+
         var personal = await _imapClient.GetFolderAsync(_imapClient.PersonalNamespaces[0].Path);
         foreach (var folder in await personal.GetSubfoldersAsync(false))
             if (folder.Name == _settings.BounceFolder)

@@ -29,19 +29,29 @@ public class MailBounce: BaseEntity
         Match match = Regex.Match(Body, pattern);
         Email = match.Success ? match.Value : "";
 
-        // Check if email body contains an error code
-        var errorCodeMatch = Regex.Match(Body, @"Remote Server returned: '(\d{3})");
+        var errorCodeMatch = Regex.Match(Body, @"Remote Server returned:\s*'(?<code>[45]\d{2})");
 
         if (errorCodeMatch.Success)
         {
             IsBounce = true;
-            ErrorCode = errorCodeMatch.Groups.Count == 2 ? errorCodeMatch.Groups[1].Value : "";
+            ErrorCode = errorCodeMatch.Groups["code"].Value;
 
             if (ErrorCode.StartsWith("4"))
             {
                 // Soft bounce
                 IsSoft = true;
             }
+
+            return;
+        }
+
+        errorCodeMatch = Regex.Match(Body, @"\bwith code (?<code>[45]\d{2})\b", RegexOptions.IgnoreCase);
+
+        if (errorCodeMatch.Success)
+        {
+            IsBounce = true;
+            ErrorCode = errorCodeMatch.Groups["code"].Value;
+            IsSoft = ErrorCode.StartsWith("4");
         }
     }
 
