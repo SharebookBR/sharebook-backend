@@ -8,5 +8,6 @@ namespace ShareBook.Service.Home
     {
         Task<List<HomeShowcaseBookDTO>> GetFeaturedPrintedBooksAsync();
         Task<List<HomeShowcaseCategoryDTO>> GetCategoriesShowcaseAsync();
+        Task<List<HomeShowcaseBookDTO>> GetTopDownloadedEbooksAsync(int days);
     }
 }

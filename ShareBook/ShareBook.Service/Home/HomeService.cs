@@ -3,6 +3,7 @@ using ShareBook.Domain;
 using ShareBook.Domain.DTOs;
 using ShareBook.Domain.Enums;
 using ShareBook.Repository;
+using ShareBook.Service.BookDownloadEvents;
 using ShareBook.Service.Upload;
 using System;
 using System.Collections.Generic;
@@ -16,19 +17,23 @@ namespace ShareBook.Service.Home
         private const int FeaturedPrintedBooks = 15;
         private const int ShowcaseCategories = 3;
         private const int BooksPerCategory = 10;
+        private const int TopDownloadedBooks = 15;
 
         private readonly IBookRepository _bookRepository;
         private readonly ICategoryRepository _categoryRepository;
         private readonly IUploadService _uploadService;
+        private readonly IBookDownloadEventService _bookDownloadEventService;
 
         public HomeService(
             IBookRepository bookRepository,
             ICategoryRepository categoryRepository,
-            IUploadService uploadService)
+            IUploadService uploadService,
+            IBookDownloadEventService bookDownloadEventService)
         {
             _bookRepository = bookRepository;
             _categoryRepository = categoryRepository;
             _uploadService = uploadService;
+            _bookDownloadEventService = bookDownloadEventService;
         }
 
         public async Task<List<HomeShowcaseBookDTO>> GetFeaturedPrintedBooksAsync()
@@ -41,6 +46,11 @@ namespace ShareBook.Service.Home
                 .ToListAsync();
 
             return books.Select(ToShowcaseBook).ToList();
+        }
+
+        public async Task<List<HomeShowcaseBookDTO>> GetTopDownloadedEbooksAsync(int days)
+        {
+            return await _bookDownloadEventService.GetTopDownloadedEbooksAsync(days, TopDownloadedBooks);
         }
 
         public async Task<List<HomeShowcaseCategoryDTO>> GetCategoriesShowcaseAsync()

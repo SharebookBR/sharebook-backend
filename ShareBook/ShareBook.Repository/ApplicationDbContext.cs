@@ -12,6 +12,7 @@ namespace ShareBook.Repository
         public ApplicationDbContext() { }
 
         public DbSet<Book> Books { get; set; }
+        public DbSet<BookDownloadEvent> BookDownloadEvents { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<EFLog> EFLogs { get; set; }
         public DbSet<BookUser> BookUser { get; set; }

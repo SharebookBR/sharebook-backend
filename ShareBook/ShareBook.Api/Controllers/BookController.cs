@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Flurl.Util;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -16,6 +18,7 @@ using ShareBook.Repository.Repository;
 using ShareBook.Service;
 using ShareBook.Service.Authorization;
 using ShareBook.Service.AwsSqs.Dto;
+using ShareBook.Service.BookDownloadEvents;
 using ShareBook.Service.EBook;
 using System;
 using System.Collections.Generic;
@@ -36,6 +39,7 @@ namespace ShareBook.Api.Controllers
         private readonly IBookService _service;
         private readonly IUserService _userService;
         private readonly IAccessHistoryService _accessHistoryService;
+        private readonly IBookDownloadEventService _bookDownloadEventService;
         private readonly IEBookService _ebookService;
         private readonly IEBookDownloadRateLimiter _ebookDownloadRateLimiter;
         private readonly ILogger<BookController> _logger;
@@ -47,6 +51,7 @@ namespace ShareBook.Api.Controllers
                               IUserService userService,
                               IMapper mapper,
                               IAccessHistoryService accessHistoryService,
+                              IBookDownloadEventService bookDownloadEventService,
                               IEBookService ebookService,
                               IEBookDownloadRateLimiter ebookDownloadRateLimiter,
                               ILogger<BookController> logger)
@@ -56,6 +61,7 @@ namespace ShareBook.Api.Controllers
             _userService = userService;
             _mapper = mapper;
             _accessHistoryService = accessHistoryService;
+            _bookDownloadEventService = bookDownloadEventService;
             _ebookService = ebookService;
             _ebookDownloadRateLimiter = ebookDownloadRateLimiter;
             _logger = logger;
@@ -679,6 +685,8 @@ namespace ShareBook.Api.Controllers
                 if (!rateLimitResult.IsAllowed)
                     return DailyDownloadLimitExceeded(rateLimitResult);
 
+                var userId = await TryGetAuthenticatedUserIdAsync();
+                await _bookDownloadEventService.RecordAsync(book.Id, userId, BookDownloadEventSource.Live);
                 await _service.IncrementDownloadCountAsync(book.Id);
                 return Redirect(downloadUrl);
             }
@@ -706,11 +714,77 @@ namespace ShareBook.Api.Controllers
             if (!localRateLimitResult.IsAllowed)
                 return DailyDownloadLimitExceeded(localRateLimitResult);
 
+            var localUserId = await TryGetAuthenticatedUserIdAsync();
+            await _bookDownloadEventService.RecordAsync(book.Id, localUserId, BookDownloadEventSource.Live);
             await _service.IncrementDownloadCountAsync(book.Id);
 
             var pdfBytes = await System.IO.File.ReadAllBytesAsync(pdfPath);
             var fileName = book.GetPdfFileName();
             return File(pdfBytes, "application/pdf", fileName);
+        }
+
+        [HttpPost("DownloadEBookUrl/{slug}")]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(DownloadEBookUrlVM), 200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(410)]
+        [ProducesResponseType(429)]
+        public async Task<IActionResult> GetDownloadEBookUrlAsync(string slug)
+        {
+            var book = await _service.BySlugAsync(slug);
+
+            if (book == null)
+                return NotFound(new { message = "Livro não encontrado." });
+
+            if (!book.IsEbook())
+                return BadRequest(new { message = "Este livro não é um livro digital." });
+
+            if (book.Status == BookStatus.Canceled)
+                return StatusCode(410, new { message = "Este livro digital não está mais disponível." });
+
+            if (string.IsNullOrEmpty(book.EBookPdfPath))
+                return NotFound(new { message = "PDF do livro digital não disponível." });
+
+            var downloadUrl = await _ebookService.GetPdfDownloadUrlAsync(book);
+            if (string.IsNullOrEmpty(downloadUrl))
+            {
+                return Ok(new DownloadEBookUrlVM
+                {
+                    Url = $"{Request.Scheme}://{Request.Host}/api/book/DownloadEBook/{Uri.EscapeDataString(slug)}",
+                    Tracked = false
+                });
+            }
+
+            var rateLimitResult = _ebookDownloadRateLimiter.TryAcquire(
+                HttpContext.Connection.RemoteIpAddress);
+
+            LogRateLimitOutcome(book, slug, rateLimitResult);
+
+            if (!rateLimitResult.IsAllowed)
+                return DailyDownloadLimitExceeded(rateLimitResult);
+
+            var userId = await TryGetAuthenticatedUserIdAsync();
+            await _bookDownloadEventService.RecordAsync(book.Id, userId, BookDownloadEventSource.Live);
+            await _service.IncrementDownloadCountAsync(book.Id);
+
+            return Ok(new DownloadEBookUrlVM
+            {
+                Url = downloadUrl,
+                Tracked = true
+            });
+        }
+
+        private async Task<Guid?> TryGetAuthenticatedUserIdAsync()
+        {
+            var authenticateResult = await HttpContext.AuthenticateAsync(JwtBearerDefaults.AuthenticationScheme);
+            if (!authenticateResult.Succeeded)
+                return null;
+
+            if (Guid.TryParse(authenticateResult.Principal?.Identity?.Name, out var userId))
+                return userId;
+
+            return null;
         }
 
         private void LogRateLimitOutcome(Book book, string slug, EBookDownloadRateLimitResult rateLimitResult)

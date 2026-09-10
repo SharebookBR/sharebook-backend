@@ -17,7 +17,7 @@ namespace ShareBook.Infra.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.3")
+                .HasAnnotation("ProductVersion", "10.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "unaccent");
@@ -192,6 +192,38 @@ namespace ShareBook.Infra.Data.Migrations
                     b.HasIndex("UserIdFacilitator");
 
                     b.ToTable("Books");
+                });
+
+            modelBuilder.Entity("ShareBook.Domain.BookDownloadEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BookId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CreationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("DownloadedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Source")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookId", "DownloadedAtUtc");
+
+                    b.HasIndex("DownloadedAtUtc", "BookId");
+
+                    b.HasIndex("UserId", "DownloadedAtUtc");
+
+                    b.ToTable("BookDownloadEvents");
                 });
 
             modelBuilder.Entity("ShareBook.Domain.BookUser", b =>
@@ -545,6 +577,23 @@ namespace ShareBook.Infra.Data.Migrations
                     b.Navigation("User");
 
                     b.Navigation("UserFacilitator");
+                });
+
+            modelBuilder.Entity("ShareBook.Domain.BookDownloadEvent", b =>
+                {
+                    b.HasOne("ShareBook.Domain.Book", "Book")
+                        .WithMany()
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ShareBook.Domain.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("Book");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ShareBook.Domain.BookUser", b =>

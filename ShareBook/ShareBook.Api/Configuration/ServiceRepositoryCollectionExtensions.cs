@@ -11,6 +11,7 @@ using ShareBook.Service;
 using ShareBook.Service.AwsSqs;
 using ShareBook.Service.EBook;
 using ShareBook.Service.Analytics;
+using ShareBook.Service.BookDownloadEvents;
 using ShareBook.Service.DownloadLogs;
 using ShareBook.Service.Importer;
 using ShareBook.Service.Lgpd;
@@ -29,6 +30,7 @@ namespace ShareBook.Api.Configuration
         {
             //services
             services.AddScoped<IHomeService, HomeService>();
+            services.AddScoped<IBookDownloadEventService, BookDownloadEventService>();
             services.AddScoped<IBooksEmailService, BooksEmailService>();
             services.AddScoped<IBookUsersEmailService, BookUserEmailService>();
             services.AddScoped<IBookService, BookService>();
@@ -51,6 +53,7 @@ namespace ShareBook.Api.Configuration
 
             //repositories
             services.AddScoped<IBookRepository, BookRepository>();
+            services.AddScoped<IBookDownloadEventRepository, BookDownloadEventRepository>();
             services.AddScoped<IBookUserRepository, BookUserRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();

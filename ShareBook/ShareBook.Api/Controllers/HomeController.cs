@@ -27,5 +27,12 @@ namespace ShareBook.Api.Controllers
             var result = await _homeService.GetCategoriesShowcaseAsync();
             return Ok(result);
         }
+
+        [HttpGet("top-downloaded-ebooks")]
+        public async Task<IActionResult> GetTopDownloadedEbooksAsync([FromQuery] int days = 30)
+        {
+            var result = await _homeService.GetTopDownloadedEbooksAsync(days);
+            return Ok(result);
+        }
     }
 }
