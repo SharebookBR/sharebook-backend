@@ -15,8 +15,8 @@ namespace ShareBook.Service.Importer;
 
 public class ImporterDashboardService : IImporterDashboardService
 {
-    private const string KnownStatusesSql = @"('waiting_triage', 'triaging', 'triage_rejected', 'waiting_editorial', 'editing', 'waiting_publish', 'publishing', 'done', 'editorial_rejected', 'triage_retry', 'publish_retry', 'source_blocked', 'duplicate', 'error')";
-    private const string ActiveStatusesSql = @"('waiting_triage', 'triaging', 'waiting_editorial', 'editing', 'waiting_publish', 'publishing', 'triage_retry', 'publish_retry', 'error')";
+    private const string KnownStatusesSql = @"('waiting_triage', 'triaging', 'triage_rejected', 'waiting_translation', 'translating', 'waiting_editorial', 'editing', 'waiting_publish', 'publishing', 'done', 'editorial_rejected', 'triage_retry', 'publish_retry', 'source_blocked', 'duplicate', 'error')";
+    private const string ActiveStatusesSql = @"('waiting_triage', 'triaging', 'waiting_translation', 'translating', 'waiting_editorial', 'editing', 'waiting_publish', 'publishing', 'triage_retry', 'publish_retry', 'error')";
 
     private readonly IConfiguration _configuration;
     private readonly IBookRepository _bookRepository;
@@ -28,6 +28,8 @@ public class ImporterDashboardService : IImporterDashboardService
         "waiting_triage",
         "triaging",
         "triage_rejected",
+        "waiting_translation",
+        "translating",
         "waiting_editorial",
         "editing",
         "waiting_publish",
@@ -94,6 +96,8 @@ yesterday_counts AS (
         COUNT(*) FILTER (WHERE midnight_status = 'waiting_triage') AS waiting_triage_d1,
         COUNT(*) FILTER (WHERE midnight_status = 'triaging') AS triaging_d1,
         COUNT(*) FILTER (WHERE midnight_status = 'triage_rejected') AS triage_rejected_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'waiting_translation') AS waiting_translation_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'translating') AS translating_d1,
         COUNT(*) FILTER (WHERE midnight_status = 'waiting_editorial') AS waiting_editorial_d1,
         COUNT(*) FILTER (WHERE midnight_status = 'editing') AS editing_d1,
         COUNT(*) FILTER (WHERE midnight_status = 'waiting_publish') AS waiting_publish_d1,
@@ -119,6 +123,8 @@ source_status AS (
         COUNT(*) FILTER (WHERE q.status = 'waiting_triage') AS waiting_triage,
         COUNT(*) FILTER (WHERE q.status = 'triaging') AS triaging,
         COUNT(*) FILTER (WHERE q.status = 'triage_rejected') AS triage_rejected,
+        COUNT(*) FILTER (WHERE q.status = 'waiting_translation') AS waiting_translation,
+        COUNT(*) FILTER (WHERE q.status = 'translating') AS translating,
         COUNT(*) FILTER (WHERE q.status = 'waiting_editorial') AS waiting_editorial,
         COUNT(*) FILTER (WHERE q.status = 'editing') AS editing,
         COUNT(*) FILTER (WHERE q.status = 'waiting_publish') AS waiting_publish,
@@ -173,6 +179,8 @@ SELECT
     ss.waiting_triage,
     ss.triaging,
     ss.triage_rejected,
+    ss.waiting_translation,
+    ss.translating,
     ss.waiting_editorial,
     ss.editing,
     ss.waiting_publish,
@@ -196,6 +204,8 @@ SELECT
     yc.waiting_triage_d1,
     yc.triaging_d1,
     yc.triage_rejected_d1,
+    yc.waiting_translation_d1,
+    yc.translating_d1,
     yc.waiting_editorial_d1,
     yc.editing_d1,
     yc.waiting_publish_d1,
@@ -245,6 +255,8 @@ ORDER BY ss.source_id;
                 WaitingTriage = reader.GetInt32(reader.GetOrdinal("waiting_triage")),
                 Triaging = reader.GetInt32(reader.GetOrdinal("triaging")),
                 TriageRejected = reader.GetInt32(reader.GetOrdinal("triage_rejected")),
+                WaitingTranslation = reader.GetInt32(reader.GetOrdinal("waiting_translation")),
+                Translating = reader.GetInt32(reader.GetOrdinal("translating")),
                 WaitingEditorial = reader.GetInt32(reader.GetOrdinal("waiting_editorial")),
                 Editing = reader.GetInt32(reader.GetOrdinal("editing")),
                 WaitingPublish = reader.GetInt32(reader.GetOrdinal("waiting_publish")),
@@ -265,6 +277,8 @@ ORDER BY ss.source_id;
                 WaitingTriageD1 = reader.IsDBNull(reader.GetOrdinal("waiting_triage_d1")) ? null : reader.GetInt32(reader.GetOrdinal("waiting_triage_d1")),
                 TriagingD1 = reader.IsDBNull(reader.GetOrdinal("triaging_d1")) ? null : reader.GetInt32(reader.GetOrdinal("triaging_d1")),
                 TriageRejectedD1 = reader.IsDBNull(reader.GetOrdinal("triage_rejected_d1")) ? null : reader.GetInt32(reader.GetOrdinal("triage_rejected_d1")),
+                WaitingTranslationD1 = reader.IsDBNull(reader.GetOrdinal("waiting_translation_d1")) ? null : reader.GetInt32(reader.GetOrdinal("waiting_translation_d1")),
+                TranslatingD1 = reader.IsDBNull(reader.GetOrdinal("translating_d1")) ? null : reader.GetInt32(reader.GetOrdinal("translating_d1")),
                 WaitingEditorialD1 = reader.IsDBNull(reader.GetOrdinal("waiting_editorial_d1")) ? null : reader.GetInt32(reader.GetOrdinal("waiting_editorial_d1")),
                 EditingD1 = reader.IsDBNull(reader.GetOrdinal("editing_d1")) ? null : reader.GetInt32(reader.GetOrdinal("editing_d1")),
                 WaitingPublishD1 = reader.IsDBNull(reader.GetOrdinal("waiting_publish_d1")) ? null : reader.GetInt32(reader.GetOrdinal("waiting_publish_d1")),

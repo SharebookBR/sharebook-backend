@@ -82,6 +82,8 @@ public class ImporterSourceStatusDTO
     public int Error { get; set; }
     public int Unknown { get; set; }
     public int TriageRejected { get; set; }
+    public int WaitingTranslation { get; set; }
+    public int Translating { get; set; }
     public string NextItemTitle { get; set; }
     public string NextItemStatus { get; set; }
     public DateTime? LastRunAt { get; set; }
@@ -103,4 +105,6 @@ public class ImporterSourceStatusDTO
     public int? ErrorD1 { get; set; }
     public int? UnknownD1 { get; set; }
     public int? TriageRejectedD1 { get; set; }
+    public int? WaitingTranslationD1 { get; set; }
+    public int? TranslatingD1 { get; set; }
 }
