@@ -117,6 +117,7 @@ source_status AS (
         s.name AS source_name,
         s.url AS source_url,
         s.enabled,
+        COALESCE(s.requires_translation, FALSE) AS requires_translation,
         COUNT(q.id) AS total_items,
         COUNT(*) FILTER (WHERE q.status = 'done') AS done,
         COUNT(*) FILTER (WHERE q.status = 'editorial_rejected') AS editorial_rejected,
@@ -137,7 +138,7 @@ source_status AS (
         COUNT(*) FILTER (WHERE q.status IS NULL OR q.status NOT IN {KnownStatusesSql}) AS unknown
     FROM importer.sources s
     LEFT JOIN importer.queue_items q ON q.source_id = s.id
-    GROUP BY s.id, s.name, s.url, s.enabled
+    GROUP BY s.id, s.name, s.url, s.enabled, s.requires_translation
 ),
 next_items AS (
     SELECT DISTINCT ON (source_id)
@@ -173,6 +174,7 @@ SELECT
     ss.source_name,
     ss.source_url,
     ss.enabled,
+    ss.requires_translation,
     ss.total_items,
     ss.done,
     ss.editorial_rejected,
@@ -249,6 +251,7 @@ ORDER BY ss.source_id;
                 SourceName = reader.GetString(reader.GetOrdinal("source_name")),
                 SourceUrl = reader.GetString(reader.GetOrdinal("source_url")),
                 Enabled = reader.GetBoolean(reader.GetOrdinal("enabled")),
+                RequiresTranslation = reader.GetBoolean(reader.GetOrdinal("requires_translation")),
                 TotalItems = reader.GetInt32(reader.GetOrdinal("total_items")),
                 Done = reader.GetInt32(reader.GetOrdinal("done")),
                 EditorialRejected = reader.GetInt32(reader.GetOrdinal("editorial_rejected")),

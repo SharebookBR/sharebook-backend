@@ -66,6 +66,7 @@ public class ImporterSourceStatusDTO
     public string SourceName { get; set; }
     public string SourceUrl { get; set; }
     public bool Enabled { get; set; }
+    public bool RequiresTranslation { get; set; }
     public int TotalItems { get; set; }
     public int Done { get; set; }
     public int EditorialRejected { get; set; }
