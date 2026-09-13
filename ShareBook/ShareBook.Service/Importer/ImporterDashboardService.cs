@@ -538,6 +538,28 @@ LIMIT @limit OFFSET @offset;
         await cmd.ExecuteNonQueryAsync(cancellationToken);
     }
 
+    public async Task<string> GetTranslationPromptAsync(string sourceName, CancellationToken cancellationToken = default)
+    {
+        var connectionString = _configuration.GetConnectionString("ImporterPostgresConnection");
+        await using var conn = new NpgsqlConnection(connectionString);
+        await conn.OpenAsync(cancellationToken);
+        await using var cmd = new NpgsqlCommand("SELECT translation_prompt FROM importer.sources WHERE name = @name", conn);
+        cmd.Parameters.AddWithValue("name", sourceName);
+        var result = await cmd.ExecuteScalarAsync(cancellationToken);
+        return result is DBNull ? null : result?.ToString();
+    }
+
+    public async Task UpdateTranslationPromptAsync(string sourceName, string prompt, CancellationToken cancellationToken = default)
+    {
+        var connectionString = _configuration.GetConnectionString("ImporterPostgresConnection");
+        await using var conn = new NpgsqlConnection(connectionString);
+        await conn.OpenAsync(cancellationToken);
+        await using var cmd = new NpgsqlCommand("UPDATE importer.sources SET translation_prompt = @prompt WHERE name = @name", conn);
+        cmd.Parameters.AddWithValue("name", sourceName);
+        cmd.Parameters.AddWithValue("prompt", (object)prompt ?? DBNull.Value);
+        await cmd.ExecuteNonQueryAsync(cancellationToken);
+    }
+
     public async Task UpdateAdminNotesAsync(int id, string notes, CancellationToken cancellationToken = default)
     {
         var connectionString = _configuration.GetConnectionString("ImporterPostgresConnection");

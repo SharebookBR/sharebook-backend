@@ -186,6 +186,30 @@ public class OperationsController : Controller
         return Ok();
     }
 
+    [HttpGet("ImporterTranslationPrompt")]
+    [Authorize("Bearer")]
+    [AuthorizationFilter(Permissions.Permission.ApproveBook)] // adm
+    public async Task<IActionResult> GetImporterTranslationPromptAsync([FromQuery] string sourceName, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(sourceName))
+            return BadRequest("sourceName é obrigatório.");
+
+        var prompt = await _importerDashboardService.GetTranslationPromptAsync(sourceName, cancellationToken);
+        return Ok(new { sourceName, prompt });
+    }
+
+    [HttpPut("ImporterTranslationPrompt")]
+    [Authorize("Bearer")]
+    [AuthorizationFilter(Permissions.Permission.ApproveBook)] // adm
+    public async Task<IActionResult> UpdateImporterTranslationPromptAsync([FromBody] UpdateEditorialPromptVM vm, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(vm?.SourceName))
+            return BadRequest("sourceName é obrigatório.");
+
+        await _importerDashboardService.UpdateTranslationPromptAsync(vm.SourceName, vm.Prompt, cancellationToken);
+        return Ok();
+    }
+
     [HttpPatch("ImporterItems/{id}/AdminNotes")]
     [Authorize("Bearer")]
     [AuthorizationFilter(Permissions.Permission.ApproveBook)] // adm
