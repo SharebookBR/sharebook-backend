@@ -250,16 +250,16 @@ public class EmailService : IEmailService
             var message = await bounceFolder.GetMessageAsync(item.UniqueId);
             var body = message.TextBody ?? message.HtmlBody ?? message.Body?.ToString() ?? string.Empty;
             var bounce = new MailBounce(message.Subject, body);
-            await bounceFolder.AddFlagsAsync(item.UniqueId, MessageFlags.Deleted, true);
 
             if (bounce.IsBounce)
             {
                 log.Add($"Email bounce processado:  subject: {message.Subject}, errorCode: {bounce.ErrorCode}");
                 await _ctx.MailBounces.AddAsync(bounce);
+                await bounceFolder.AddFlagsAsync(item.UniqueId, MessageFlags.Deleted, true);
             }
             else
             {
-                log.Add($"Não vou processar porque NÃO É um email bounce:  subject: {message.Subject}");
+                log.Add($"Não vou processar nem apagar porque NÃO É um email bounce:  subject: {message.Subject}");
             }
 
         }

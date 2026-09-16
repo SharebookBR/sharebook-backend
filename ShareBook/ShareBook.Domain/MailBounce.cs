@@ -29,7 +29,10 @@ public class MailBounce: BaseEntity
         Match match = Regex.Match(Body, pattern);
         Email = match.Success ? match.Value : "";
 
-        var errorCodeMatch = Regex.Match(Body, @"Remote Server returned:\s*'(?<code>[45]\d{2})");
+        var errorCodeMatch = Regex.Match(
+            Body,
+            @"Remote\s+Server\s+returned\s*:?\s*'?(?<code>[45]\d{2})",
+            RegexOptions.IgnoreCase);
 
         if (errorCodeMatch.Success)
         {
@@ -52,6 +55,22 @@ public class MailBounce: BaseEntity
             IsBounce = true;
             ErrorCode = errorCodeMatch.Groups["code"].Value;
             IsSoft = ErrorCode.StartsWith("4");
+            return;
+        }
+
+        if (Regex.IsMatch(Body, @"\bno MX record found\b", RegexOptions.IgnoreCase))
+        {
+            IsBounce = true;
+            ErrorCode = "550";
+            IsSoft = false;
+            return;
+        }
+
+        if (Regex.IsMatch(Body, @"\b(connection timed out|I/O error)\b", RegexOptions.IgnoreCase))
+        {
+            IsBounce = true;
+            ErrorCode = "421";
+            IsSoft = true;
         }
     }
 
