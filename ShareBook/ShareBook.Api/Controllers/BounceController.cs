@@ -10,6 +10,7 @@ using ShareBook.Service.Server;
 using System;
 using System.Linq;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -55,6 +56,9 @@ namespace ShareBook.Api.Controllers
                 var bounce = BuildBounce(item);
                 if (bounce == null)
                 {
+                    _logger.LogInformation("Webhook Stalwart ignorado. Type: {Type}. DataKeys: {DataKeys}.",
+                        item.Type,
+                        DataKeys(item.Data));
                     skipped++;
                     continue;
                 }
@@ -98,13 +102,16 @@ namespace ShareBook.Api.Controllers
 
         private static MailBounce BuildBounce(StalwartWebhookEventVM item)
         {
-            var email = GetString(item.Data, "to");
+            var email = GetFirstString(item.Data, "to", "rcptTo", "recipient", "recipients", "address", "email");
             if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
                 return null;
 
-            var code = GetString(item.Data, "code");
-            var reason = GetString(item.Data, "reason");
-            var details = GetString(item.Data, "details");
+            var code = GetFirstString(item.Data, "code", "statusCode", "smtpCode", "replyCode");
+            var reason = GetFirstString(item.Data, "reason", "error", "causedBy");
+            var details = GetFirstString(item.Data, "details", "detail", "message", "response");
+
+            if (string.IsNullOrWhiteSpace(code))
+                code = ExtractStatusCode(reason, details);
 
             if (string.IsNullOrWhiteSpace(code))
                 code = InferCode(item.Type, reason, details);
@@ -144,11 +151,66 @@ namespace ShareBook.Api.Controllers
             return null;
         }
 
-        private static string GetString(JsonElement data, string propertyName)
+        private static string ExtractStatusCode(params string[] values)
         {
-            if (data.ValueKind != JsonValueKind.Object || !data.TryGetProperty(propertyName, out var value))
-                return null;
+            foreach (var value in values)
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                    continue;
 
+                var match = Regex.Match(value, @"\b(?<code>[45]\d{2})\b");
+                if (match.Success)
+                    return match.Groups["code"].Value;
+            }
+
+            return null;
+        }
+
+        private static string GetFirstString(JsonElement data, params string[] propertyNames)
+        {
+            foreach (var propertyName in propertyNames)
+            {
+                var value = GetStringRecursive(data, propertyName);
+                if (!string.IsNullOrWhiteSpace(value))
+                    return value;
+            }
+
+            return null;
+        }
+
+        private static string GetStringRecursive(JsonElement data, string propertyName)
+        {
+            if (data.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var property in data.EnumerateObject())
+                {
+                    if (string.Equals(property.Name, propertyName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var ownValue = ScalarString(property.Value);
+                        if (!string.IsNullOrWhiteSpace(ownValue))
+                            return ownValue;
+                    }
+
+                    var nestedValue = GetStringRecursive(property.Value, propertyName);
+                    if (!string.IsNullOrWhiteSpace(nestedValue))
+                        return nestedValue;
+                }
+            }
+            else if (data.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in data.EnumerateArray())
+                {
+                    var nestedValue = GetStringRecursive(item, propertyName);
+                    if (!string.IsNullOrWhiteSpace(nestedValue))
+                        return nestedValue;
+                }
+            }
+
+            return null;
+        }
+
+        private static string ScalarString(JsonElement value)
+        {
             return value.ValueKind switch
             {
                 JsonValueKind.String => value.GetString(),
@@ -158,6 +220,14 @@ namespace ShareBook.Api.Controllers
                     .FirstOrDefault(item => !string.IsNullOrWhiteSpace(item)),
                 _ => value.ToString(),
             };
+        }
+
+        private static string DataKeys(JsonElement data)
+        {
+            if (data.ValueKind != JsonValueKind.Object)
+                return data.ValueKind.ToString();
+
+            return string.Join(",", data.EnumerateObject().Select(property => property.Name));
         }
     }
 }

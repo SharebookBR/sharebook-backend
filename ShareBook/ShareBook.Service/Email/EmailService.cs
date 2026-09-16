@@ -274,7 +274,7 @@ public class EmailService : IEmailService
         return log;
     }
 
-    private async Task<IMailFolder?> GetBounceFolderAsync()
+    private async Task<IMailFolder> GetBounceFolderAsync()
     {
         if (string.Equals(_settings.BounceFolder, "INBOX", StringComparison.OrdinalIgnoreCase))
             return _imapClient.Inbox;
