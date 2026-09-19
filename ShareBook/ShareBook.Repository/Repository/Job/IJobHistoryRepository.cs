@@ -1,8 +1,7 @@
 ﻿using ShareBook.Domain;
 
-namespace ShareBook.Repository
+namespace ShareBook.Repository;
+
+public interface IJobHistoryRepository : IRepositoryGeneric<JobHistory>
 {
-    public interface IJobHistoryRepository : IRepositoryGeneric<JobHistory>
-    {
-    }
 }

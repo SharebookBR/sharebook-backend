@@ -1,12 +1,11 @@
 ﻿using System;
 
-namespace ShareBook.Api.ViewModels
+namespace ShareBook.Api.ViewModels;
+
+public class ApproveBookVM
 {
-    public class ApproveBookVM
-    {
-        /// <summary>
-        /// The date that the winner will be choosed
-        /// </summary>
-        public DateTime? ChooseDate { get; set; }
-    }
+    /// <summary>
+    /// The date that the winner will be choosed
+    /// </summary>
+    public DateTime? ChooseDate { get; set; }
 }

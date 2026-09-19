@@ -1,9 +1,8 @@
 ﻿
-namespace ShareBook.Domain.Enums
+namespace ShareBook.Domain.Enums;
+
+public enum Profile
 {
-    public enum Profile
-    {
-        Administrator,
-        User
-    }
+    Administrator,
+    User
 }

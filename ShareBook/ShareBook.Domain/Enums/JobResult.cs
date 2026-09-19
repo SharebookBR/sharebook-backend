@@ -1,11 +1,10 @@
 ﻿using System;
-namespace ShareBook.Domain.Enums
+namespace ShareBook.Domain.Enums;
+
+public enum JobResult
 {
-    public enum JobResult
-    {
-        Success,
-        Error,
-        AwsSqsDisabled,
-        MeetupDisabled,
-    }
+    Success,
+    Error,
+    AwsSqsDisabled,
+    MeetupDisabled,
 }

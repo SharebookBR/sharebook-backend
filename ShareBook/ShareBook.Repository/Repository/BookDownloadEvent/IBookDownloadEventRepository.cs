@@ -1,8 +1,7 @@
 using ShareBook.Domain;
 
-namespace ShareBook.Repository
+namespace ShareBook.Repository;
+
+public interface IBookDownloadEventRepository : IRepositoryGeneric<BookDownloadEvent>
 {
-    public interface IBookDownloadEventRepository : IRepositoryGeneric<BookDownloadEvent>
-    {
-    }
 }

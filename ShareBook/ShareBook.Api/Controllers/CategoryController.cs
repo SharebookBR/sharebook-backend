@@ -9,68 +9,67 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace ShareBook.Api.Controllers
+namespace ShareBook.Api.Controllers;
+
+[Route("api/[controller]")]
+public class CategoryController : BaseCrudController<Category, CategoryVM, Category>
 {
-    [Route("api/[controller]")]
-    public class CategoryController : BaseCrudController<Category, CategoryVM, Category>
+    public CategoryController(ICategoryService categoryService, IMapper mapper)
+        : base(categoryService, mapper)
     {
-        public CategoryController(ICategoryService categoryService, IMapper mapper)
-            : base(categoryService, mapper)
+        SetDefault(x => x.Name);
+    }
+
+    [NonAction]
+    public override Task<PagedList<Category>> GetAllAsync() => base.GetAllAsync();
+
+    [NonAction]
+    public override Task<PagedList<Category>> PagedAsync(int page, int items) => base.PagedAsync(page, items);
+
+    [NonAction]
+    public override Task<Category> GetByIdAsync(string id) => base.GetByIdAsync(id);
+
+    [HttpGet]
+    public async Task<PagedList<CategoryVM>> GetTreeAsync() => await GetTreePagedAsync(1, 50);
+
+    [HttpGet("{page:int}/{items:int}")]
+    public async Task<PagedList<CategoryVM>> GetTreePagedAsync(int page, int items)
+    {
+        var pagedCategories = await ((ICategoryService)_service).GetRootCategoriesAsync(page, items);
+        var categories = _mapper.Map<List<CategoryVM>>(pagedCategories.Items);
+
+        return new PagedList<CategoryVM>
         {
-            SetDefault(x => x.Name);
+            Page = pagedCategories.Page,
+            ItemsPerPage = pagedCategories.ItemsPerPage,
+            TotalItems = pagedCategories.TotalItems,
+            Items = categories
+        };
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetTreeByIdAsync(Guid id)
+    {
+        var category = await ((ICategoryService)_service).FindWithHierarchyAsync(id);
+        if (category == null)
+        {
+            return NotFound();
         }
 
-        [NonAction]
-        public override Task<PagedList<Category>> GetAllAsync() => base.GetAllAsync();
+        return Ok(_mapper.Map<CategoryVM>(category));
+    }
 
-        [NonAction]
-        public override Task<PagedList<Category>> PagedAsync(int page, int items) => base.PagedAsync(page, items);
+    [HttpGet("Counts")]
+    public async Task<IActionResult> GetCategoriesWithCountsAsync()
+    {
+        var categories = await ((ICategoryService)_service).GetCategoriesWithCountsAsync();
+        return Ok(_mapper.Map<IEnumerable<CategoryVM>>(categories));
+    }
 
-        [NonAction]
-        public override Task<Category> GetByIdAsync(string id) => base.GetByIdAsync(id);
-
-        [HttpGet]
-        public async Task<PagedList<CategoryVM>> GetTreeAsync() => await GetTreePagedAsync(1, 50);
-
-        [HttpGet("{page:int}/{items:int}")]
-        public async Task<PagedList<CategoryVM>> GetTreePagedAsync(int page, int items)
-        {
-            var pagedCategories = await ((ICategoryService)_service).GetRootCategoriesAsync(page, items);
-            var categories = _mapper.Map<List<CategoryVM>>(pagedCategories.Items);
-
-            return new PagedList<CategoryVM>
-            {
-                Page = pagedCategories.Page,
-                ItemsPerPage = pagedCategories.ItemsPerPage,
-                TotalItems = pagedCategories.TotalItems,
-                Items = categories
-            };
-        }
-
-        [HttpGet("{id:guid}")]
-        public async Task<IActionResult> GetTreeByIdAsync(Guid id)
-        {
-            var category = await ((ICategoryService)_service).FindWithHierarchyAsync(id);
-            if (category == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(_mapper.Map<CategoryVM>(category));
-        }
-
-        [HttpGet("Counts")]
-        public async Task<IActionResult> GetCategoriesWithCountsAsync()
-        {
-            var categories = await ((ICategoryService)_service).GetCategoriesWithCountsAsync();
-            return Ok(_mapper.Map<IEnumerable<CategoryVM>>(categories));
-        }
-
-        [HttpGet("Sitemap")]
-        [ProducesResponseType(typeof(IList<SitemapCategoryDTO>), 200)]
-        public async Task<IList<SitemapCategoryDTO>> SitemapAsync()
-        {
-            return await ((ICategoryService)_service).GetSitemapCategoriesAsync();
-        }
+    [HttpGet("Sitemap")]
+    [ProducesResponseType(typeof(IList<SitemapCategoryDTO>), 200)]
+    public async Task<IList<SitemapCategoryDTO>> SitemapAsync()
+    {
+        return await ((ICategoryService)_service).GetSitemapCategoriesAsync();
     }
 }

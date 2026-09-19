@@ -9,69 +9,68 @@ using ShareBook.Service.Generic;
 using System;
 using System.Threading.Tasks;
 
-namespace ShareBook.Api.Controllers
+namespace ShareBook.Api.Controllers;
+
+public class BaseCrudController<T> : BaseCrudController<T, T, T>
+    where T : BaseEntity
 {
-    public class BaseCrudController<T> : BaseCrudController<T, T, T>
-        where T : BaseEntity
+    public BaseCrudController(IBaseService<T> service, IMapper mapper) : base(service, mapper) { }
+}
+
+public class BaseCrudController<T, R> : BaseDeleteController<T, R, T>
+   where T : BaseEntity
+   where R : BaseViewModel
+{
+    public BaseCrudController(IBaseService<T> service) : base(service)
     {
-        public BaseCrudController(IBaseService<T> service, IMapper mapper) : base(service, mapper) { }
+    }
+}
+
+[GetClaimsFilter]
+[EnableCors("AllowAllHeaders")]
+public class BaseCrudController<T, R, A> : BaseDeleteController<T, R, A>
+    where T : BaseEntity
+    where R : IIdProperty
+    where A : class
+{
+    protected readonly IMapper _mapper;
+
+    public BaseCrudController(IBaseService<T> service, IMapper mapper) : base(service)
+    {
+        _mapper = mapper;
     }
 
-    public class BaseCrudController<T, R> : BaseDeleteController<T, R, T>
-       where T : BaseEntity
-       where R : BaseViewModel
+    [Authorize("Bearer")]
+    [HttpPost]
+    public virtual async Task<Result<A>> CreateAsync([FromBody] R viewModel)
     {
-        public BaseCrudController(IBaseService<T> service) : base(service)
-        {
-        }
+        if (!HasRequestViewModel)
+            return _mapper.Map<Result<A>>(await _service.InsertAsync(viewModel as T));
+
+        var entity = _mapper.Map<T>(viewModel);
+        var result = await _service.InsertAsync(entity);
+
+        var resultVM = _mapper.Map<Result<A>>(result);
+        return resultVM;
     }
 
-    [GetClaimsFilter]
-    [EnableCors("AllowAllHeaders")]
-    public class BaseCrudController<T, R, A> : BaseDeleteController<T, R, A>
-        where T : BaseEntity
-        where R : IIdProperty
-        where A : class
+    [Authorize("Bearer")]
+    [HttpPut("{id}")]
+    public virtual async Task<Result<A>> UpdateAsync(Guid id, [FromBody] R viewModel)
     {
-        protected readonly IMapper _mapper;
+        viewModel.Id = id;
 
-        public BaseCrudController(IBaseService<T> service, IMapper mapper) : base(service)
+        if (!HasRequestViewModel)
+            return _mapper.Map<Result<A>>(await _service.UpdateAsync(viewModel as T));
+        
+        var entity = _mapper.Map<T>(viewModel);
+        var result = await _service.UpdateAsync(entity);
+        var resultVM = new Result<A>(result.Value == null ? null : _mapper.Map<A>(result.Value))
         {
-            _mapper = mapper;
-        }
+            SuccessMessage = result.SuccessMessage
+        };
+        resultVM.Messages.AddRange(result.Messages);
 
-        [Authorize("Bearer")]
-        [HttpPost]
-        public virtual async Task<Result<A>> CreateAsync([FromBody] R viewModel)
-        {
-            if (!HasRequestViewModel)
-                return _mapper.Map<Result<A>>(await _service.InsertAsync(viewModel as T));
-
-            var entity = _mapper.Map<T>(viewModel);
-            var result = await _service.InsertAsync(entity);
-
-            var resultVM = _mapper.Map<Result<A>>(result);
-            return resultVM;
-        }
-
-        [Authorize("Bearer")]
-        [HttpPut("{id}")]
-        public virtual async Task<Result<A>> UpdateAsync(Guid id, [FromBody] R viewModel)
-        {
-            viewModel.Id = id;
-
-            if (!HasRequestViewModel)
-                return _mapper.Map<Result<A>>(await _service.UpdateAsync(viewModel as T));
-            
-            var entity = _mapper.Map<T>(viewModel);
-            var result = await _service.UpdateAsync(entity);
-            var resultVM = new Result<A>(result.Value == null ? null : _mapper.Map<A>(result.Value))
-            {
-                SuccessMessage = result.SuccessMessage
-            };
-            resultVM.Messages.AddRange(result.Messages);
-
-            return resultVM;
-        }
+        return resultVM;
     }
 }

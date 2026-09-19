@@ -1,11 +1,11 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using ShareBook.Domain;
+using ShareBook.Domain.Enums;
+using ShareBook.Domain.Exceptions;
 using ShareBook.Repository;
 using ShareBook.Service;
-using ShareBook.Domain.Enums;
 using System;
-using ShareBook.Domain;
-using ShareBook.Domain.Exceptions;
-using Microsoft.Extensions.Configuration;
 using System.Threading.Tasks;
 
 namespace Sharebook.Jobs;

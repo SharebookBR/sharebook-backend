@@ -8,113 +8,112 @@ using ShareBook.Infra.CrossCutting.Identity.Interfaces;
 using ShareBook.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service;
-using ShareBook.Service.AwsSqs;
-using ShareBook.Service.EBook;
 using ShareBook.Service.Analytics;
+using ShareBook.Service.AwsSqs;
 using ShareBook.Service.BookDownloadEvents;
 using ShareBook.Service.DownloadLogs;
+using ShareBook.Service.EBook;
+using ShareBook.Service.Home;
 using ShareBook.Service.Importer;
 using ShareBook.Service.Lgpd;
 using ShareBook.Service.Muambator;
 using ShareBook.Service.Notification;
 using ShareBook.Service.Recaptcha;
-using ShareBook.Service.Home;
 using ShareBook.Service.Upload;
 
-namespace ShareBook.Api.Configuration
+namespace ShareBook.Api.Configuration;
+
+public static class ServiceRepositoryCollectionExtensions
 {
-    public static class ServiceRepositoryCollectionExtensions
+    public static IServiceCollection RegisterRepositoryServices(
+       this IServiceCollection services)
     {
-        public static IServiceCollection RegisterRepositoryServices(
-           this IServiceCollection services)
-        {
-            //services
-            services.AddScoped<IHomeService, HomeService>();
-            services.AddScoped<IBookDownloadEventService, BookDownloadEventService>();
-            services.AddScoped<IBooksEmailService, BooksEmailService>();
-            services.AddScoped<IBookUsersEmailService, BookUserEmailService>();
-            services.AddScoped<IBookService, BookService>();
-            services.AddScoped<IBookUserService, BookUserService>();
-            services.AddScoped<IBookDownloadService, BookDownloadService>();
-            services.AddScoped<IUserService, UserService>();
-            services.AddScoped<IUserEmailService, UserEmailService>();
-            services.AddScoped<ICategoryService, CategoryService>();
-            services.AddScoped<IContactUsService, ContactUsService>();
-            services.AddScoped<IContactUsEmailService, ContactUsEmailService>();
-            services.AddScoped<IMuambatorService, MuambatorService>();
-            services.AddScoped<IAccessHistoryService, AccessHistoryService>();
-            services.AddScoped<ILgpdService, LgpdService>();
-            services.AddScoped<IMeetupService, MeetupService>();
-            services.AddScoped<IDownloadLogsService, DownloadLogsService>();
-            services.AddScoped<IRecaptchaService, RecaptchaService>();
-            services.AddScoped<IImporterDashboardService, ImporterDashboardService>();
-            services.AddHttpClient<ISearchConsoleApiClient, SearchConsoleApiClient>();
-            services.AddSingleton<ISearchConsoleService, SearchConsoleService>();
-            services.AddSingleton<IAnalyticsService, AnalyticsService>();
+        //services
+        services.AddScoped<IHomeService, HomeService>();
+        services.AddScoped<IBookDownloadEventService, BookDownloadEventService>();
+        services.AddScoped<IBooksEmailService, BooksEmailService>();
+        services.AddScoped<IBookUsersEmailService, BookUserEmailService>();
+        services.AddScoped<IBookService, BookService>();
+        services.AddScoped<IBookUserService, BookUserService>();
+        services.AddScoped<IBookDownloadService, BookDownloadService>();
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IUserEmailService, UserEmailService>();
+        services.AddScoped<ICategoryService, CategoryService>();
+        services.AddScoped<IContactUsService, ContactUsService>();
+        services.AddScoped<IContactUsEmailService, ContactUsEmailService>();
+        services.AddScoped<IMuambatorService, MuambatorService>();
+        services.AddScoped<IAccessHistoryService, AccessHistoryService>();
+        services.AddScoped<ILgpdService, LgpdService>();
+        services.AddScoped<IMeetupService, MeetupService>();
+        services.AddScoped<IDownloadLogsService, DownloadLogsService>();
+        services.AddScoped<IRecaptchaService, RecaptchaService>();
+        services.AddScoped<IImporterDashboardService, ImporterDashboardService>();
+        services.AddHttpClient<ISearchConsoleApiClient, SearchConsoleApiClient>();
+        services.AddSingleton<ISearchConsoleService, SearchConsoleService>();
+        services.AddSingleton<IAnalyticsService, AnalyticsService>();
 
-            //repositories
-            services.AddScoped<IBookRepository, BookRepository>();
-            services.AddScoped<IBookDownloadEventRepository, BookDownloadEventRepository>();
-            services.AddScoped<IBookUserRepository, BookUserRepository>();
-            services.AddScoped<IBookDownloadRepository, BookDownloadRepository>();
-            services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<ICategoryRepository, CategoryRepository>();
-            services.AddScoped<IJobHistoryRepository, JobHistoryRepository>();
-            services.AddScoped<IAccessHistoryRepository, AccessHistoryRepository>();
-            services.AddScoped<IMeetupRepository, MeetupRepository>();
-            services.AddScoped<IMeetupParticipantRepository, MeetupParticipantRepository>();
+        //repositories
+        services.AddScoped<IBookRepository, BookRepository>();
+        services.AddScoped<IBookDownloadEventRepository, BookDownloadEventRepository>();
+        services.AddScoped<IBookUserRepository, BookUserRepository>();
+        services.AddScoped<IBookDownloadRepository, BookDownloadRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<IJobHistoryRepository, JobHistoryRepository>();
+        services.AddScoped<IAccessHistoryRepository, AccessHistoryRepository>();
+        services.AddScoped<IMeetupRepository, MeetupRepository>();
+        services.AddScoped<IMeetupParticipantRepository, MeetupParticipantRepository>();
 
-            //validators
-            services.AddScoped<IValidator<User>, UserValidator>();
-            services.AddScoped<IValidator<Book>, BookValidator>();
-            services.AddScoped<IValidator<BookDownload>, BookDownloadValidator>();
-            services.AddScoped<IValidator<Category>, CategoryValidator>();
-            services.AddScoped<IValidator<ContactUs>, ContactUsValidator>();
-            services.AddScoped<IValidator<BookUser>, BookUserValidator>();
-            services.AddScoped<IValidator<Address>, AddressValidator>();
-            services.AddScoped<IValidator<AccessHistory>, AccessHistoryValidator>();
-            services.AddScoped<IValidator<Meetup>, MeetupValidator>();
+        //validators
+        services.AddScoped<IValidator<User>, UserValidator>();
+        services.AddScoped<IValidator<Book>, BookValidator>();
+        services.AddScoped<IValidator<BookDownload>, BookDownloadValidator>();
+        services.AddScoped<IValidator<Category>, CategoryValidator>();
+        services.AddScoped<IValidator<ContactUs>, ContactUsValidator>();
+        services.AddScoped<IValidator<BookUser>, BookUserValidator>();
+        services.AddScoped<IValidator<Address>, AddressValidator>();
+        services.AddScoped<IValidator<AccessHistory>, AccessHistoryValidator>();
+        services.AddScoped<IValidator<Meetup>, MeetupValidator>();
 
-            //Auth
-            services.AddScoped<IApplicationSignInManager, ApplicationSignInManager>();
+        //Auth
+        services.AddScoped<IApplicationSignInManager, ApplicationSignInManager>();
 
-            //Email
-            services.AddScoped<IEmailService, EmailService>();
-            services.AddSingleton<IEmailTemplate, EmailTemplate>();
+        //Email
+        services.AddScoped<IEmailService, EmailService>();
+        services.AddSingleton<IEmailTemplate, EmailTemplate>();
 
-            //Upload
-            services.AddScoped<IUploadService, UploadService>();
+        //Upload
+        services.AddScoped<IUploadService, UploadService>();
 
-            //EBook
-            services.AddScoped<IS3Service, S3Service>();
-            services.AddScoped<IEBookService, EBookService>();
+        //EBook
+        services.AddScoped<IS3Service, S3Service>();
+        services.AddScoped<IEBookService, EBookService>();
 
-            //UnitOfWork
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
+        //UnitOfWork
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-            //Queues
-            services.AddScoped<NewBookQueue>();
-            services.AddScoped<MailSenderLowPriorityQueue>();
-            services.AddScoped<MailSenderHighPriorityQueue>();
-            // TODO: colocar as outras duas queues
+        //Queues
+        services.AddScoped<NewBookQueue>();
+        services.AddScoped<MailSenderLowPriorityQueue>();
+        services.AddScoped<MailSenderHighPriorityQueue>();
+        // TODO: colocar as outras duas queues
 
-            //Jobs
-            services.AddScoped<IJobExecutor, JobExecutor>();
-            services.AddScoped<CancelAbandonedDonations>();
-            services.AddScoped<RemoveBookFromShowcase>();
-            services.AddScoped<ChooseDateReminder>();
-            services.AddScoped<LateDonationNotification>();
-            services.AddScoped<MeetupSearch>();
-            services.AddScoped<NewBookGetInterestedUsers>();
-            services.AddScoped<MailSupressListUpdate>();
-            services.AddScoped<MailSender>();
-            services.AddScoped<NewEbookWeeklyDigest>();
-            services.AddScoped<CleanupLogsTable>();
+        //Jobs
+        services.AddScoped<IJobExecutor, JobExecutor>();
+        services.AddScoped<CancelAbandonedDonations>();
+        services.AddScoped<RemoveBookFromShowcase>();
+        services.AddScoped<ChooseDateReminder>();
+        services.AddScoped<LateDonationNotification>();
+        services.AddScoped<MeetupSearch>();
+        services.AddScoped<NewBookGetInterestedUsers>();
+        services.AddScoped<MailSupressListUpdate>();
+        services.AddScoped<MailSender>();
+        services.AddScoped<NewEbookWeeklyDigest>();
+        services.AddScoped<CleanupLogsTable>();
 
-            //notification
-            services.AddScoped<IPushNotificationService, PushNotificationService>();
+        //notification
+        services.AddScoped<IPushNotificationService, PushNotificationService>();
 
-            return services;
-        }
+        return services;
     }
 }

@@ -1,10 +1,9 @@
 ﻿using ShareBook.Domain;
 using System.Threading.Tasks;
 
-namespace ShareBook.Service
+namespace ShareBook.Service;
+
+public interface IContactUsEmailService
 {
-    public interface IContactUsEmailService
-    {
-        Task SendEmailContactUsAsync(ContactUs contactUs);
-    }
+    Task SendEmailContactUsAsync(ContactUs contactUs);
 }

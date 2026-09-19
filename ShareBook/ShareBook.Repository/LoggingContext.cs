@@ -10,67 +10,66 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ShareBook.Repository
+namespace ShareBook.Repository;
+
+public static class LoggingContext
 {
-    public static class LoggingContext
+    private static readonly List<EntityState> entityStates = new List<EntityState>() { EntityState.Added, EntityState.Modified, EntityState.Deleted };
+
+    public static async Task LogChanges(this ApplicationDbContext context)
     {
-        private static readonly List<EntityState> entityStates = new List<EntityState>() { EntityState.Added, EntityState.Modified, EntityState.Deleted };
+        var logTime = DateTime.UtcNow;
+        const string emptyJson = "{}";
+        const string idColumn = "Id";
 
-        public static async Task LogChanges(this ApplicationDbContext context)
+        Guid? user = null;
+        if (!string.IsNullOrEmpty(Thread.CurrentPrincipal?.Identity?.Name))
+            user = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+
+        var changes = context.ChangeTracker.Entries()
+            .Where(x => entityStates.Contains(x.State) && x.Entity.GetType().IsSubclassOf(typeof(BaseEntity)))
+            .ToList();
+
+        var jdp = new JsonDiffPatch();
+
+        foreach (var item in changes)
         {
-            var logTime = DateTime.UtcNow;
-            const string emptyJson = "{}";
-            const string idColumn = "Id";
+            var original = emptyJson;
+            var updated = JsonConvert.SerializeObject(item.CurrentValues.Properties.ToDictionary(pn => pn.Name, pn => item.CurrentValues[pn]));
+            var creationDate = DateTime.UtcNow;
 
-            Guid? user = null;
-            if (!string.IsNullOrEmpty(Thread.CurrentPrincipal?.Identity?.Name))
-                user = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-
-            var changes = context.ChangeTracker.Entries()
-                .Where(x => entityStates.Contains(x.State) && x.Entity.GetType().IsSubclassOf(typeof(BaseEntity)))
-                .ToList();
-
-            var jdp = new JsonDiffPatch();
-
-            foreach (var item in changes)
+            if (item.State == EntityState.Modified)
             {
-                var original = emptyJson;
-                var updated = JsonConvert.SerializeObject(item.CurrentValues.Properties.ToDictionary(pn => pn.Name, pn => item.CurrentValues[pn]));
-                var creationDate = DateTime.UtcNow;
+                var dbValues = await item.GetDatabaseValuesAsync();
 
-                if (item.State == EntityState.Modified)
+                if (dbValues != null)
                 {
-                    var dbValues = await item.GetDatabaseValuesAsync();
-
-                    if (dbValues != null)
-                    {
-                        original = JsonConvert.SerializeObject(dbValues.Properties.ToDictionary(pn => pn.Name, pn => dbValues[pn]));
-                        creationDate = dbValues.GetValue<DateTime>("CreationDate");
-                    }
+                    original = JsonConvert.SerializeObject(dbValues.Properties.ToDictionary(pn => pn.Name, pn => dbValues[pn]));
+                    creationDate = dbValues.GetValue<DateTime>("CreationDate");
                 }
-
-                item.Property("CreationDate").CurrentValue = creationDate;
-
-                string jsonDiff = jdp.Diff(original, updated);
-
-                if (string.IsNullOrWhiteSpace(jsonDiff) == false)
-                {
-                    var EntityDiff = JToken.Parse(jsonDiff).ToString(Formatting.None);
-
-                    var efLog = new EFLog()
-                    {
-                        EntityName = item.Entity.GetType().Name,
-                        EntityId = new Guid(item.CurrentValues[idColumn].ToString()),
-                        LogDateTime = logTime,
-                        Operation = item.State.ToString(),
-                        UserId = user,
-                        ValuesChanges = EntityDiff,
-                    };
-
-                    context.EFLogs.Add(efLog);
-                }
-                
             }
+
+            item.Property("CreationDate").CurrentValue = creationDate;
+
+            string jsonDiff = jdp.Diff(original, updated);
+
+            if (string.IsNullOrWhiteSpace(jsonDiff) == false)
+            {
+                var EntityDiff = JToken.Parse(jsonDiff).ToString(Formatting.None);
+
+                var efLog = new EFLog()
+                {
+                    EntityName = item.Entity.GetType().Name,
+                    EntityId = new Guid(item.CurrentValues[idColumn].ToString()),
+                    LogDateTime = logTime,
+                    Operation = item.State.ToString(),
+                    UserId = user,
+                    ValuesChanges = EntityDiff,
+                };
+
+                context.EFLogs.Add(efLog);
+            }
+            
         }
     }
 }

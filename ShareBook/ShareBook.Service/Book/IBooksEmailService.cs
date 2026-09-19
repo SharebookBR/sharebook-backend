@@ -1,16 +1,15 @@
-﻿using System.Threading.Tasks;
-using ShareBook.Domain;
+﻿using ShareBook.Domain;
+using System.Threading.Tasks;
 
-namespace ShareBook.Service
+namespace ShareBook.Service;
+
+public interface IBooksEmailService
 {
-    public interface IBooksEmailService
-    {
-        Task SendEmailNewBookInsertedAsync(Book book);
+    Task SendEmailNewBookInsertedAsync(Book book);
 
-        Task SendEmailBookApprovedAsync(Book book);
+    Task SendEmailBookApprovedAsync(Book book);
 
-        Task SendEmailBookReceivedAsync(Book book);
+    Task SendEmailBookReceivedAsync(Book book);
 
-        Task SendEmailCopyrightReportAsync(Book book);
-    }
+    Task SendEmailCopyrightReportAsync(Book book);
 }

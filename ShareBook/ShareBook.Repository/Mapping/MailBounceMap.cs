@@ -2,13 +2,12 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ShareBook.Domain;
 
-namespace ShareBook.Repository.Mapping
+namespace ShareBook.Repository.Mapping;
+
+public class MailBounceMap : IEntityTypeConfiguration<MailBounce>
 {
-    public class MailBounceMap : IEntityTypeConfiguration<MailBounce>
+    public void Configure(EntityTypeBuilder<MailBounce> entityBuilder)
     {
-        public void Configure(EntityTypeBuilder<MailBounce> entityBuilder)
-        {
-            entityBuilder.HasIndex("Email");
-        }
+        entityBuilder.HasIndex("Email");
     }
 }

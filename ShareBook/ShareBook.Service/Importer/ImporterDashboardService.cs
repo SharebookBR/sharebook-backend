@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 using ShareBook.Domain;
@@ -10,6 +5,11 @@ using ShareBook.Domain.DTOs;
 using ShareBook.Repository;
 using ShareBook.Repository.Repository;
 using ShareBook.Service.Upload;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ShareBook.Service.Importer;
 

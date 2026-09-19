@@ -1,8 +1,7 @@
-namespace ShareBook.Domain.Enums
+namespace ShareBook.Domain.Enums;
+
+public enum BookDownloadEventSource
 {
-    public enum BookDownloadEventSource
-    {
-        Live = 1,
-        Ga4Backfill = 2
-    }
+    Live = 1,
+    Ga4Backfill = 2
 }

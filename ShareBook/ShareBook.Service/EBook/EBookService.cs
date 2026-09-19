@@ -7,133 +7,132 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace ShareBook.Service.EBook
+namespace ShareBook.Service.EBook;
+
+public class EBookService : IEBookService
 {
-    public class EBookService : IEBookService
+    private const string S3EbookPrefix = "ebooks/";
+    private readonly ImageSettings _imageSettings;
+    private readonly AwsS3Settings _storageSettings;
+    private readonly IS3Service _s3Service;
+
+    public EBookService(
+        IOptions<ImageSettings> imageSettings,
+        IOptions<AwsS3Settings> storageSettings,
+        IS3Service s3Service)
     {
-        private const string S3EbookPrefix = "ebooks/";
-        private readonly ImageSettings _imageSettings;
-        private readonly AwsS3Settings _storageSettings;
-        private readonly IS3Service _s3Service;
+        _imageSettings = imageSettings.Value;
+        _storageSettings = storageSettings.Value;
+        _s3Service = s3Service;
+    }
 
-        public EBookService(
-            IOptions<ImageSettings> imageSettings,
-            IOptions<AwsS3Settings> storageSettings,
-            IS3Service s3Service)
+    public async Task<string> UploadPdfAsync(Book book)
+    {
+        if (!book.HasPdfToUpload())
+            return null;
+
+        if (!_storageSettings.IsActive)
+            return await UploadLocalAsync(book);
+
+        return await UploadS3Async(book);
+    }
+
+    private async Task<string> UploadLocalAsync(Book book)
+    {
+        var pdfFileName = book.GetPdfFileName();
+        var fullDirectoryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _imageSettings.EBookPdfPath);
+
+        Directory.CreateDirectory(fullDirectoryPath);
+
+        var pdfFullPath = Path.Combine(fullDirectoryPath, pdfFileName);
+        await File.WriteAllBytesAsync(pdfFullPath, book.PdfBytes);
+
+        return pdfFileName;
+    }
+
+    private async Task<string> UploadS3Async(Book book)
+    {
+        var key = $"ebooks/{book.GetPdfFileName()}";
+
+        using var stream = new MemoryStream(book.PdfBytes);
+        return await _s3Service.UploadAsync(stream, key, "application/pdf");
+    }
+
+    public async Task<string> GetPdfDownloadUrlAsync(Book book)
+    {
+        if (string.IsNullOrEmpty(book.EBookPdfPath))
+            return null;
+
+        // Registros antigos podem ter URL absoluta salva no banco.
+        if (book.EBookPdfPath.StartsWith("https://") || book.EBookPdfPath.StartsWith("http://"))
+            return book.EBookPdfPath;
+
+        // Storage local: endpoint faz stream do arquivo com validação de path.
+        if (!_storageSettings.IsActive)
+            return null;
+
+        // Storage S3 privado: gera URL assinada temporária.
+        var s3Key = NormalizeS3Key(book.EBookPdfPath);
+        return await _s3Service.GeneratePreSignedDownloadUrlAsync(s3Key, book.GetPdfFileName());
+    }
+
+    public async Task DeletePdfAsync(Book book)
+    {
+        if (book == null || string.IsNullOrWhiteSpace(book.EBookPdfPath))
+            return;
+
+        // Registros legados com URL absoluta: não apagar automaticamente.
+        if (book.EBookPdfPath.StartsWith("https://") || book.EBookPdfPath.StartsWith("http://"))
+            return;
+
+        if (!_storageSettings.IsActive)
         {
-            _imageSettings = imageSettings.Value;
-            _storageSettings = storageSettings.Value;
-            _s3Service = s3Service;
+            var basePath = Path.GetFullPath(Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                _imageSettings.EBookPdfPath
+            ));
+
+            var pdfPath = Path.GetFullPath(Path.Combine(basePath, book.EBookPdfPath));
+            if (pdfPath.StartsWith(basePath) && File.Exists(pdfPath))
+                File.Delete(pdfPath);
+
+            return;
         }
 
-        public async Task<string> UploadPdfAsync(Book book)
+        var s3Key = NormalizeS3Key(book.EBookPdfPath);
+        await _s3Service.DeleteAsync(s3Key);
+    }
+
+    private string NormalizeS3Key(string eBookPdfPath)
+    {
+        var key = eBookPdfPath.Trim();
+
+        // Caminhos antigos seedados sem prefixo precisam apontar para "ebooks/".
+        if (!key.Contains("/"))
+            return $"{S3EbookPrefix}{key}";
+
+        if (key.StartsWith("/"))
+            key = key.TrimStart('/');
+
+        return key;
+    }
+
+    public void Validate(Book book)
+    {
+        if (book.Type != BookType.Eletronic)
+            return;
+
+        if (!book.HasPdfToUpload() && string.IsNullOrEmpty(book.EBookPdfPath))
         {
-            if (!book.HasPdfToUpload())
-                return null;
-
-            if (!_storageSettings.IsActive)
-                return await UploadLocalAsync(book);
-
-            return await UploadS3Async(book);
+            throw new ShareBookException(ShareBookException.Error.BadRequest,
+                "É necessário enviar o arquivo PDF para cadastrar um E-Book.");
         }
 
-        private async Task<string> UploadLocalAsync(Book book)
+        const int maxSizeBytes = 50 * 1024 * 1024; // 50MB
+        if (book.HasPdfToUpload() && book.PdfBytes.Length > maxSizeBytes)
         {
-            var pdfFileName = book.GetPdfFileName();
-            var fullDirectoryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _imageSettings.EBookPdfPath);
-
-            Directory.CreateDirectory(fullDirectoryPath);
-
-            var pdfFullPath = Path.Combine(fullDirectoryPath, pdfFileName);
-            await File.WriteAllBytesAsync(pdfFullPath, book.PdfBytes);
-
-            return pdfFileName;
-        }
-
-        private async Task<string> UploadS3Async(Book book)
-        {
-            var key = $"ebooks/{book.GetPdfFileName()}";
-
-            using var stream = new MemoryStream(book.PdfBytes);
-            return await _s3Service.UploadAsync(stream, key, "application/pdf");
-        }
-
-        public async Task<string> GetPdfDownloadUrlAsync(Book book)
-        {
-            if (string.IsNullOrEmpty(book.EBookPdfPath))
-                return null;
-
-            // Registros antigos podem ter URL absoluta salva no banco.
-            if (book.EBookPdfPath.StartsWith("https://") || book.EBookPdfPath.StartsWith("http://"))
-                return book.EBookPdfPath;
-
-            // Storage local: endpoint faz stream do arquivo com validação de path.
-            if (!_storageSettings.IsActive)
-                return null;
-
-            // Storage S3 privado: gera URL assinada temporária.
-            var s3Key = NormalizeS3Key(book.EBookPdfPath);
-            return await _s3Service.GeneratePreSignedDownloadUrlAsync(s3Key, book.GetPdfFileName());
-        }
-
-        public async Task DeletePdfAsync(Book book)
-        {
-            if (book == null || string.IsNullOrWhiteSpace(book.EBookPdfPath))
-                return;
-
-            // Registros legados com URL absoluta: não apagar automaticamente.
-            if (book.EBookPdfPath.StartsWith("https://") || book.EBookPdfPath.StartsWith("http://"))
-                return;
-
-            if (!_storageSettings.IsActive)
-            {
-                var basePath = Path.GetFullPath(Path.Combine(
-                    AppDomain.CurrentDomain.BaseDirectory,
-                    _imageSettings.EBookPdfPath
-                ));
-
-                var pdfPath = Path.GetFullPath(Path.Combine(basePath, book.EBookPdfPath));
-                if (pdfPath.StartsWith(basePath) && File.Exists(pdfPath))
-                    File.Delete(pdfPath);
-
-                return;
-            }
-
-            var s3Key = NormalizeS3Key(book.EBookPdfPath);
-            await _s3Service.DeleteAsync(s3Key);
-        }
-
-        private string NormalizeS3Key(string eBookPdfPath)
-        {
-            var key = eBookPdfPath.Trim();
-
-            // Caminhos antigos seedados sem prefixo precisam apontar para "ebooks/".
-            if (!key.Contains("/"))
-                return $"{S3EbookPrefix}{key}";
-
-            if (key.StartsWith("/"))
-                key = key.TrimStart('/');
-
-            return key;
-        }
-
-        public void Validate(Book book)
-        {
-            if (book.Type != BookType.Eletronic)
-                return;
-
-            if (!book.HasPdfToUpload() && string.IsNullOrEmpty(book.EBookPdfPath))
-            {
-                throw new ShareBookException(ShareBookException.Error.BadRequest,
-                    "É necessário enviar o arquivo PDF para cadastrar um E-Book.");
-            }
-
-            const int maxSizeBytes = 50 * 1024 * 1024; // 50MB
-            if (book.HasPdfToUpload() && book.PdfBytes.Length > maxSizeBytes)
-            {
-                throw new ShareBookException(ShareBookException.Error.BadRequest,
-                    "O arquivo PDF não pode ser maior que 50MB.");
-            }
+            throw new ShareBookException(ShareBookException.Error.BadRequest,
+                "O arquivo PDF não pode ser maior que 50MB.");
         }
     }
 }

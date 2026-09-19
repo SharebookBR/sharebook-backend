@@ -1,11 +1,10 @@
 using ShareBook.Domain;
 
-namespace ShareBook.Repository
+namespace ShareBook.Repository;
+
+public class BookDownloadEventRepository : RepositoryGeneric<BookDownloadEvent>, IBookDownloadEventRepository
 {
-    public class BookDownloadEventRepository : RepositoryGeneric<BookDownloadEvent>, IBookDownloadEventRepository
+    public BookDownloadEventRepository(ApplicationDbContext context) : base(context)
     {
-        public BookDownloadEventRepository(ApplicationDbContext context) : base(context)
-        {
-        }
     }
 }

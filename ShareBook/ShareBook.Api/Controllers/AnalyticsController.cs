@@ -1,9 +1,9 @@
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ShareBook.Api.Filters;
 using ShareBook.Service.Analytics;
 using ShareBook.Service.Authorization;
+using System.Threading.Tasks;
 
 namespace ShareBook.Api.Controllers;
 
