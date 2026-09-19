@@ -1,12 +1,10 @@
 ﻿using ShareBook.Helper.Extensions;
 using ShareBook.Helper.Image;
 using Xunit;
-using Flurl.Http;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.IO;
-using System.Threading.Tasks;
 
 namespace ShareBook.Test.Unit.Helpers
 {
@@ -223,13 +221,20 @@ namespace ShareBook.Test.Unit.Helpers
         }
 
         [Fact]
-        public async Task ImageResize()
+        public void ImageResize()
         {
-            var imageurl = "https://images.sympla.com.br/62b34c1818c0f.png";
+            // Imagem sintética gerada em memória: evita depender de uma URL externa
+            // (rede indisponível/instável faz o teste falhar por motivo alheio ao código testado).
+            using var original = new Image<Rgba32>(200, 100);
+            using var originalStream = new MemoryStream();
+            original.SaveAsPng(originalStream);
+            var imageBytes = originalStream.ToArray();
 
-            var imageBytes = await imageurl.GetBytesAsync();
             var result = ImageHelper.ResizeImage(imageBytes, 50);
-            Assert.Equal(typeof(byte[]), result.GetType());
+
+            using var resized = SixLabors.ImageSharp.Image.Load(result);
+            Assert.Equal(100, resized.Width);
+            Assert.Equal(50, resized.Height);
         }
     }
 }
