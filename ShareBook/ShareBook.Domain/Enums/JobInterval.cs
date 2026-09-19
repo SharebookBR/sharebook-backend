@@ -1,12 +1,11 @@
 ﻿using System;
-namespace ShareBook.Domain.Enums
+namespace ShareBook.Domain.Enums;
+
+public enum Interval
 {
-    public enum Interval
-    {
-        Weekly,
-        Dayly,
-        Hourly,
-        Each30Minutes,
-        Each5Minutes,
-    }
+    Weekly,
+    Dayly,
+    Hourly,
+    Each30Minutes,
+    Each5Minutes,
 }

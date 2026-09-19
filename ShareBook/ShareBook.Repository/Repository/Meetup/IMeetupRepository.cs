@@ -1,8 +1,7 @@
 ﻿using ShareBook.Domain;
 
-namespace ShareBook.Repository
+namespace ShareBook.Repository;
+
+public interface IMeetupRepository : IRepositoryGeneric<Meetup>
 {
-    public interface IMeetupRepository : IRepositoryGeneric<Meetup>
-    {
-    }
 }

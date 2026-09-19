@@ -1,9 +1,8 @@
 ﻿using ShareBook.Domain.Common;
 
-namespace ShareBook.Service.Recaptcha
+namespace ShareBook.Service.Recaptcha;
+
+public interface IRecaptchaService
 {
-    public interface IRecaptchaService
-    {
-        Result SimpleValidationRecaptcha(string recaptcha);
-    }
+    Result SimpleValidationRecaptcha(string recaptcha);
 }

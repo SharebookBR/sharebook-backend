@@ -1,8 +1,8 @@
-using System.Net;
 using Newtonsoft.Json;
 using ShareBook.Domain;
 using ShareBook.Domain.DTOs;
 using ShareBook.Domain.Enums;
+using System.Net;
 
 namespace ShareBook.Test.Integration.Tests.HomeTests;
 

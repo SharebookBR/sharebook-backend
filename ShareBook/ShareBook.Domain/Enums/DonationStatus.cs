@@ -1,21 +1,20 @@
 ﻿using System.ComponentModel;
 using System.Text.Json.Serialization;
 
-namespace ShareBook.Domain.Enums
+namespace ShareBook.Domain.Enums;
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum DonationStatus
 {
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum DonationStatus
-    {
-        [Description("Aguardando Ação")]
-        WaitingAction,
+    [Description("Aguardando Ação")]
+    WaitingAction,
 
-        [Description("Doado")]
-        Donated,
+    [Description("Doado")]
+    Donated,
 
-        [Description("Não foi dessa vez")]
-        Denied,
+    [Description("Não foi dessa vez")]
+    Denied,
 
-        [Description("Cancelado")]
-        Canceled
-    }
+    [Description("Cancelado")]
+    Canceled
 }

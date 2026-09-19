@@ -3,121 +3,120 @@ using ShareBook.Domain;
 using ShareBook.Domain.Validators;
 using Xunit;
 
-namespace ShareBook.Test.Unit.Validators
+namespace ShareBook.Test.Unit.Validators;
+
+public class UserValidatorTests
 {
-    public class UserValidatorTests
+    UserValidator userValidation;
+    User userPasswordTest;
+
+    public UserValidatorTests()
     {
-        UserValidator userValidation;
-        User userPasswordTest;
+        userValidation = new UserValidator();
+        userPasswordTest = new User();
 
-        public UserValidatorTests()
-        {
-            userValidation = new UserValidator();
-            userPasswordTest = new User();
+    }
 
-        }
-
-        [Fact]
-        public void ValidEntities()
-        {
+    [Fact]
+    public void ValidEntities()
+    {
 			User user = new User()
 			{
 				Email = "joão@sharebook.com",
 				Password = "Password.123",
 				Name = "João da Silva",
 				Linkedin = "linkedin.com/joao-silva",
-                Phone = "11 95316-8850"
-            };
+            Phone = "11 95316-8850"
+        };
 
-            ValidationResult result = userValidation.Validate(user);
+        ValidationResult result = userValidation.Validate(user);
 
-            Assert.True(result.IsValid);
-        }
+        Assert.True(result.IsValid);
+    }
 
 		[Fact]
 		public void InvalidEntities()
+    {
+        User user = new User()
         {
-            User user = new User()
-            {
-                Email = "joão@sharebook.com",
-                Password = null,
+            Email = "joão@sharebook.com",
+            Password = null,
 				Name = null,
 				Linkedin = "linkedin.com/joao-silva",
 			};
 
-            ValidationResult result = userValidation.Validate(user);
+        ValidationResult result = userValidation.Validate(user);
 
-            Assert.False(result.IsValid);
-        }
+        Assert.False(result.IsValid);
+    }
 
-        [Fact]
-        public void PasswordOnlyNumbers()
-        {
-            userPasswordTest.Password = "123456";
+    [Fact]
+    public void PasswordOnlyNumbers()
+    {
+        userPasswordTest.Password = "123456";
 
-            var result = userPasswordTest.PasswordIsStrong();
+        var result = userPasswordTest.PasswordIsStrong();
 
-            Assert.False(result);
-        }
+        Assert.False(result);
+    }
 
-        [Fact]
-        public void PasswordOnlyLetters()
-        {
-            userPasswordTest.Password = "password";
+    [Fact]
+    public void PasswordOnlyLetters()
+    {
+        userPasswordTest.Password = "password";
 
-            var result = userPasswordTest.PasswordIsStrong();
+        var result = userPasswordTest.PasswordIsStrong();
 
-            Assert.False(result);
-        }
+        Assert.False(result);
+    }
 
-        [Fact]
-        public void PasswordLettersNumbers()
-        {
-            userPasswordTest.Password = "password123";
+    [Fact]
+    public void PasswordLettersNumbers()
+    {
+        userPasswordTest.Password = "password123";
 
-            var result = userPasswordTest.PasswordIsStrong();
+        var result = userPasswordTest.PasswordIsStrong();
 
-            Assert.False(result);
-        }
+        Assert.False(result);
+    }
 
-        [Fact]
-        public void PasswordSpecialCharacter()
-        {
-            userPasswordTest.Password = "password.123";
+    [Fact]
+    public void PasswordSpecialCharacter()
+    {
+        userPasswordTest.Password = "password.123";
 
-            var result = userPasswordTest.PasswordIsStrong();
+        var result = userPasswordTest.PasswordIsStrong();
 
-            Assert.False(result);
-        }
+        Assert.False(result);
+    }
 
-        [Fact]
-        public void PasswordValid()
-        {
-            userPasswordTest.Password = "QweRty@123!";
+    [Fact]
+    public void PasswordValid()
+    {
+        userPasswordTest.Password = "QweRty@123!";
 
-            var result = userPasswordTest.PasswordIsStrong();
+        var result = userPasswordTest.PasswordIsStrong();
 
-            Assert.True(result);
-        }
+        Assert.True(result);
+    }
 
-        [Fact]
-        public void PasswordTwoValid()
-        {
-            userPasswordTest.Password = "601jFy0IN#";
+    [Fact]
+    public void PasswordTwoValid()
+    {
+        userPasswordTest.Password = "601jFy0IN#";
 
-            var result = userPasswordTest.PasswordIsStrong();
+        var result = userPasswordTest.PasswordIsStrong();
 
-            Assert.True(result);
-        }
+        Assert.True(result);
+    }
 
-        [Fact]
-        public void PasswordThreeValid()
-        {
-            userPasswordTest.Password = "Anu-P2017";
+    [Fact]
+    public void PasswordThreeValid()
+    {
+        userPasswordTest.Password = "Anu-P2017";
 
-            var result = userPasswordTest.PasswordIsStrong();
+        var result = userPasswordTest.PasswordIsStrong();
 
-            Assert.True(result);
-        }
+        Assert.True(result);
     }
 }

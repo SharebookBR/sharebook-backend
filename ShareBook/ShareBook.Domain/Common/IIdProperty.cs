@@ -1,9 +1,8 @@
 ﻿using System;
 
-namespace ShareBook.Domain.Common
+namespace ShareBook.Domain.Common;
+
+public interface IIdProperty
 {
-    public interface IIdProperty
-    {
-        Guid Id { get; set; }
-    }
+    Guid Id { get; set; }
 }

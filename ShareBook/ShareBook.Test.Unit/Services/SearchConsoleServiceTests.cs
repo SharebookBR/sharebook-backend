@@ -1,10 +1,10 @@
+using Moq;
+using ShareBook.Service.Analytics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Moq;
-using ShareBook.Service.Analytics;
 using Xunit;
 
 namespace ShareBook.Test.Unit.Services;

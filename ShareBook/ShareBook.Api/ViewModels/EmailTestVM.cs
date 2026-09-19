@@ -1,14 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ShareBook.Api.ViewModels
-{
-    public class EmailTestVM
-    {
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; }
+namespace ShareBook.Api.ViewModels;
 
-        [Required]
-        public string Name { get; set; }
-    }
+public class EmailTestVM
+{
+    [Required]
+    [EmailAddress]
+    public string Email { get; set; }
+
+    [Required]
+    public string Name { get; set; }
 }

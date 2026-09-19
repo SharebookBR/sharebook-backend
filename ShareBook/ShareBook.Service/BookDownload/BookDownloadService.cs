@@ -10,54 +10,53 @@ using ShareBook.Service.Generic;
 using System;
 using System.Threading.Tasks;
 
-namespace ShareBook.Service
+namespace ShareBook.Service;
+
+public class BookDownloadService : BaseService<BookDownload>, IBookDownloadService
 {
-    public class BookDownloadService : BaseService<BookDownload>, IBookDownloadService
+    private readonly IBookDownloadRepository _bookDownloadRepository;
+    private readonly IBookService _bookService;
+    private readonly ILogger<BookDownloadService> _logger;
+
+    public BookDownloadService(
+        IBookDownloadRepository bookDownloadRepository,
+        IBookService bookService,
+        IUnitOfWork unitOfWork,
+        IValidator<BookDownload> validator,
+        ILogger<BookDownloadService> logger = null)
+        : base(bookDownloadRepository, unitOfWork, validator)
     {
-        private readonly IBookDownloadRepository _bookDownloadRepository;
-        private readonly IBookService _bookService;
-        private readonly ILogger<BookDownloadService> _logger;
+        _bookDownloadRepository = bookDownloadRepository;
+        _bookService = bookService;
+        _logger = logger ?? NullLogger<BookDownloadService>.Instance;
+    }
 
-        public BookDownloadService(
-            IBookDownloadRepository bookDownloadRepository,
-            IBookService bookService,
-            IUnitOfWork unitOfWork,
-            IValidator<BookDownload> validator,
-            ILogger<BookDownloadService> logger = null)
-            : base(bookDownloadRepository, unitOfWork, validator)
+    public async Task RegisterDownloadAsync(Guid bookId, Guid? userId, string userAgent, string ipAddress)
+    {
+        // Verificar se o livro existe
+        var book = await _bookService.FindAsync(bookId);
+        if (book == null)
+            throw new ShareBookException(ShareBookException.Error.NotFound);
+
+        var download = new BookDownload
         {
-            _bookDownloadRepository = bookDownloadRepository;
-            _bookService = bookService;
-            _logger = logger ?? NullLogger<BookDownloadService>.Instance;
-        }
+            BookId = bookId,
+            UserId = userId,
+            UserAgent = userAgent,
+            IpAddress = ipAddress,
+            DownloadedAt = DateTime.UtcNow
+        };
 
-        public async Task RegisterDownloadAsync(Guid bookId, Guid? userId, string userAgent, string ipAddress)
-        {
-            // Verificar se o livro existe
-            var book = await _bookService.FindAsync(bookId);
-            if (book == null)
-                throw new ShareBookException(ShareBookException.Error.NotFound);
+        await _bookDownloadRepository.InsertAsync(download);
 
-            var download = new BookDownload
-            {
-                BookId = bookId,
-                UserId = userId,
-                UserAgent = userAgent,
-                IpAddress = ipAddress,
-                DownloadedAt = DateTime.UtcNow
-            };
+        // Incrementar contador agregado no Book (opcional, já existe IncrementDownloadCountAsync)
+        await _bookService.IncrementDownloadCountAsync(bookId);
 
-            await _bookDownloadRepository.InsertAsync(download);
+        _logger.LogInformation("Download registrado: BookId={BookId}, UserId={UserId}", bookId, userId);
+    }
 
-            // Incrementar contador agregado no Book (opcional, já existe IncrementDownloadCountAsync)
-            await _bookService.IncrementDownloadCountAsync(bookId);
-
-            _logger.LogInformation("Download registrado: BookId={BookId}, UserId={UserId}", bookId, userId);
-        }
-
-        public async Task<int> GetDownloadCountAsync(Guid bookId)
-        {
-            return await _bookDownloadRepository.CountAsync(bd => bd.BookId == bookId);
-        }
+    public async Task<int> GetDownloadCountAsync(Guid bookId)
+    {
+        return await _bookDownloadRepository.CountAsync(bd => bd.BookId == bookId);
     }
 }

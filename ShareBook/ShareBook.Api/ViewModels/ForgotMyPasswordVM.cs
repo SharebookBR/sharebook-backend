@@ -1,10 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ShareBook.Api.ViewModels
+namespace ShareBook.Api.ViewModels;
+
+public class ForgotMyPasswordVM
 {
-    public class ForgotMyPasswordVM
-    {
-        [Required]
-        public string Email { get; set; }
-    }
+    [Required]
+    public string Email { get; set; }
 }

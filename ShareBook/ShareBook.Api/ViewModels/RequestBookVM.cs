@@ -1,10 +1,9 @@
 ﻿using System;
-namespace ShareBook.Api.ViewModels
-{
-    public class RequestBookVM
-    {
-        public Guid BookId { get; set; }
+namespace ShareBook.Api.ViewModels;
 
-        public string Reason { get; set; }
-    }
+public class RequestBookVM
+{
+    public Guid BookId { get; set; }
+
+    public string Reason { get; set; }
 }

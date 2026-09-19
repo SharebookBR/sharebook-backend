@@ -1,9 +1,8 @@
-namespace ShareBook.Domain.DTOs
+namespace ShareBook.Domain.DTOs;
+
+public class SitemapCategoryDTO
 {
-    public class SitemapCategoryDTO
-    {
-        public string Name { get; set; }
-        public string ParentCategoryName { get; set; }
-        public DateTime? LastModifiedAt { get; set; }
-    }
+    public string Name { get; set; }
+    public string ParentCategoryName { get; set; }
+    public DateTime? LastModifiedAt { get; set; }
 }

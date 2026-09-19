@@ -8,174 +8,173 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ShareBook.Repository
+namespace ShareBook.Repository;
+
+public class RepositoryGeneric<TEntity> : IRepositoryGeneric<TEntity> where TEntity : class
 {
-    public class RepositoryGeneric<TEntity> : IRepositoryGeneric<TEntity> where TEntity : class
+    protected readonly ApplicationDbContext _context;
+    protected readonly DbSet<TEntity> _dbSet;
+
+    public RepositoryGeneric(ApplicationDbContext context)
     {
-        protected readonly ApplicationDbContext _context;
-        protected readonly DbSet<TEntity> _dbSet;
+        _context = context;
+        _dbSet = _context.Set<TEntity>();
+    }
 
-        public RepositoryGeneric(ApplicationDbContext context)
+    public IQueryable<TEntity> FromSql(string query, object[] parameters) => _dbSet.FromSqlRaw(query, parameters);
+
+    #region Asynchronous
+
+    public async Task<TEntity> FindAsync(params object[] keyValues) => await FindAsync(null, keyValues);
+
+    public async Task<TEntity> FindAsync(IncludeList<TEntity> includes, params object[] keyValues)
+    {
+        var result = await _dbSet.FindAsync(keyValues);
+
+        if (includes != null)
+            foreach (var item in includes)
+                await _context.Entry(result).Reference(item).LoadAsync();
+
+        return result;
+    }
+
+    public async Task<TEntity> FindAsync(IncludeList<TEntity> includes, Expression<Func<TEntity, bool>> filter)
+    {
+        var query = _dbSet.AsQueryable();
+
+        if (includes != null)
+            foreach (var item in includes)
+                query = query.Include(item);
+
+        query = query.Where(filter);
+
+        var count = await query.CountAsync();
+        if (count > 1)
+            throw new ShareBookException("More than one entity find for the specified filter");
+
+        return await query.FirstOrDefaultAsync();
+    }
+
+    public virtual async Task<PagedList<TEntity>> GetAsync<TKey>(
+       Expression<Func<TEntity, bool>> filter,
+       Expression<Func<TEntity, TKey>> order,
+       int page,
+       int itemsPerPage,
+       bool descending = false)
+    {
+        return await GetAsync(filter, order, page, itemsPerPage, null, descending);
+    }
+
+    public virtual async Task<PagedList<TEntity>> GetAsync<TKey>(
+        Expression<Func<TEntity, bool>> filter,
+        Expression<Func<TEntity, TKey>> order,
+        int page,
+        int itemsPerPage,
+        IncludeList<TEntity> includes,
+        bool descending = false)
+    {
+        var skip = (page - 1) * itemsPerPage;
+        var query = _dbSet.AsQueryable();
+
+        if (includes != null)
+            foreach (var item in includes)
+                query = query.Include(item);
+
+        query = query.Where(filter);
+        var total = await query.CountAsync();
+        var orderedQuery = descending
+            ? query.OrderByDescending(order)
+            : query.OrderBy(order);
+
+        var result = await orderedQuery
+            .Skip(skip)
+            .Take(itemsPerPage)
+            .ToListAsync();
+
+        return new PagedList<TEntity>()
         {
-            _context = context;
-            _dbSet = _context.Set<TEntity>();
-        }
+            Page = page,
+            ItemsPerPage = itemsPerPage,
+            TotalItems = total,
+            Items = result
+        };
+    }
 
-        public IQueryable<TEntity> FromSql(string query, object[] parameters) => _dbSet.FromSqlRaw(query, parameters);
+    public async Task<int> CountAsync(Expression<Func<TEntity, bool>> filter) => await _dbSet.CountAsync(filter);
 
-        #region Asynchronous
+    public async Task<bool> AnyAsync(Expression<Func<TEntity, bool>> filter) => await CountAsync(filter) > 0;
 
-        public async Task<TEntity> FindAsync(params object[] keyValues) => await FindAsync(null, keyValues);
-
-        public async Task<TEntity> FindAsync(IncludeList<TEntity> includes, params object[] keyValues)
+    public virtual async Task<TEntity> InsertAsync(TEntity entity)
+    {
+        try
         {
-            var result = await _dbSet.FindAsync(keyValues);
-
-            if (includes != null)
-                foreach (var item in includes)
-                    await _context.Entry(result).Reference(item).LoadAsync();
-
-            return result;
-        }
-
-        public async Task<TEntity> FindAsync(IncludeList<TEntity> includes, Expression<Func<TEntity, bool>> filter)
-        {
-            var query = _dbSet.AsQueryable();
-
-            if (includes != null)
-                foreach (var item in includes)
-                    query = query.Include(item);
-
-            query = query.Where(filter);
-
-            var count = await query.CountAsync();
-            if (count > 1)
-                throw new ShareBookException("More than one entity find for the specified filter");
-
-            return await query.FirstOrDefaultAsync();
-        }
-
-        public virtual async Task<PagedList<TEntity>> GetAsync<TKey>(
-           Expression<Func<TEntity, bool>> filter,
-           Expression<Func<TEntity, TKey>> order,
-           int page,
-           int itemsPerPage,
-           bool descending = false)
-        {
-            return await GetAsync(filter, order, page, itemsPerPage, null, descending);
-        }
-
-        public virtual async Task<PagedList<TEntity>> GetAsync<TKey>(
-            Expression<Func<TEntity, bool>> filter,
-            Expression<Func<TEntity, TKey>> order,
-            int page,
-            int itemsPerPage,
-            IncludeList<TEntity> includes,
-            bool descending = false)
-        {
-            var skip = (page - 1) * itemsPerPage;
-            var query = _dbSet.AsQueryable();
-
-            if (includes != null)
-                foreach (var item in includes)
-                    query = query.Include(item);
-
-            query = query.Where(filter);
-            var total = await query.CountAsync();
-            var orderedQuery = descending
-                ? query.OrderByDescending(order)
-                : query.OrderBy(order);
-
-            var result = await orderedQuery
-                .Skip(skip)
-                .Take(itemsPerPage)
-                .ToListAsync();
-
-            return new PagedList<TEntity>()
-            {
-                Page = page,
-                ItemsPerPage = itemsPerPage,
-                TotalItems = total,
-                Items = result
-            };
-        }
-
-        public async Task<int> CountAsync(Expression<Func<TEntity, bool>> filter) => await _dbSet.CountAsync(filter);
-
-        public async Task<bool> AnyAsync(Expression<Func<TEntity, bool>> filter) => await CountAsync(filter) > 0;
-
-        public virtual async Task<TEntity> InsertAsync(TEntity entity)
-        {
-            try
-            {
-                await _context.AddAsync(entity);
-                await _context.SaveChangesAsync();
-
-                return entity;
-            }
-            catch (DbUpdateException ex)
-            {
-                Exception db = HandleDbUpdateException(ex);
-                throw db;
-            }
-        }
-
-        private Exception HandleDbUpdateException(DbUpdateException dbUpdate)
-        {
-            var builder = new StringBuilder("A DbUpdateException was caught while saving changes.");
-            try
-            {
-                builder.AppendLine($"Message: {dbUpdate.InnerException.Message}");
-                foreach (var entries in dbUpdate.Entries)
-                    builder.AppendLine($"Entity of type {entries.Entity.GetType().Name} in state {entries.State} could not be updated");
-            }
-            catch (Exception e)
-            {
-                builder.Append("Error parsing DbUpdateException: " + e.ToString());
-            }
-            string message = builder.ToString();
-            return new Exception(message, dbUpdate);
-        }
-
-        public virtual async Task<TEntity> UpdateAsync(TEntity entity)
-        {
-            _context.Update(entity);
+            await _context.AddAsync(entity);
             await _context.SaveChangesAsync();
 
             return entity;
         }
-
-        public async Task DeleteAsync(params object[] keyValues)
+        catch (DbUpdateException ex)
         {
-            var entity = await FindAsync(keyValues);
-            if (entity == null)
-                throw new ShareBookException(ShareBookException.Error.NotFound);
-            await DeleteAsync(entity);
+            Exception db = HandleDbUpdateException(ex);
+            throw db;
         }
-
-        public async Task DeleteAsync(TEntity entity)
-        {
-            _context.Remove(entity);
-            await _context.SaveChangesAsync();
-        }
-
-        #endregion Asynchronous
-
-        #region Synchronous
-
-        public IQueryable<TEntity> Get() => _dbSet;
-
-        public async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> filter) => await FindAsync(null, filter);
-
-        public async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order)
-            => await GetAsync(filter, order, null);
-
-        public async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, IncludeList<TEntity> includes)
-           => await GetAsync(filter, order, 1, int.MaxValue, includes);
-
-        public async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes, bool descending = false)
-            => await GetAsync(x => true, order, page, itemsPerPage, includes, descending);
-
-        #endregion Synchronous
     }
+
+    private Exception HandleDbUpdateException(DbUpdateException dbUpdate)
+    {
+        var builder = new StringBuilder("A DbUpdateException was caught while saving changes.");
+        try
+        {
+            builder.AppendLine($"Message: {dbUpdate.InnerException.Message}");
+            foreach (var entries in dbUpdate.Entries)
+                builder.AppendLine($"Entity of type {entries.Entity.GetType().Name} in state {entries.State} could not be updated");
+        }
+        catch (Exception e)
+        {
+            builder.Append("Error parsing DbUpdateException: " + e.ToString());
+        }
+        string message = builder.ToString();
+        return new Exception(message, dbUpdate);
+    }
+
+    public virtual async Task<TEntity> UpdateAsync(TEntity entity)
+    {
+        _context.Update(entity);
+        await _context.SaveChangesAsync();
+
+        return entity;
+    }
+
+    public async Task DeleteAsync(params object[] keyValues)
+    {
+        var entity = await FindAsync(keyValues);
+        if (entity == null)
+            throw new ShareBookException(ShareBookException.Error.NotFound);
+        await DeleteAsync(entity);
+    }
+
+    public async Task DeleteAsync(TEntity entity)
+    {
+        _context.Remove(entity);
+        await _context.SaveChangesAsync();
+    }
+
+    #endregion Asynchronous
+
+    #region Synchronous
+
+    public IQueryable<TEntity> Get() => _dbSet;
+
+    public async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> filter) => await FindAsync(null, filter);
+
+    public async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order)
+        => await GetAsync(filter, order, null);
+
+    public async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, IncludeList<TEntity> includes)
+       => await GetAsync(filter, order, 1, int.MaxValue, includes);
+
+    public async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes, bool descending = false)
+        => await GetAsync(x => true, order, page, itemsPerPage, includes, descending);
+
+    #endregion Synchronous
 }
