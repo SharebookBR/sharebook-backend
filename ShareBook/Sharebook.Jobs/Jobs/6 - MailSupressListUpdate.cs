@@ -23,8 +23,8 @@ public class MailSupressListUpdate : GenericJob, IJob
                         mailling. Além de ser um requisito da AWS.";
         Interval = Interval.Dayly;
 
-        // TODO: usar webhook nos novos serviços de email como resend e demais.
-        Active = false;
+        // Bounces assíncronos do Stalwart chegam via IMAP no Return-Path.
+        Active = true;
         BestTimeToExecute = new TimeSpan(2, 0, 0);
 
         _emailService = emailService;
@@ -42,5 +42,4 @@ public class MailSupressListUpdate : GenericJob, IJob
         };
     }
 }
-
 

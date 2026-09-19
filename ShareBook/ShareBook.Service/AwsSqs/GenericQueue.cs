@@ -1,11 +1,11 @@
 ﻿using Amazon.Runtime;
 using Amazon.SQS;
 using Amazon.SQS.Model;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ShareBook.Domain.Exceptions;
 using ShareBook.Service.AwsSqs.Dto;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ShareBook.Service.AwsSqs;
@@ -81,6 +81,21 @@ public class GenericQueue<T> : IAwsSqsQueue<T>
     }
 
 
+    public async Task<int> GetApproximateMessageCountAsync()
+    {
+        if (!_awsSqsSettings.IsActive)
+            return 0;
+
+        var request = new GetQueueAttributesRequest
+        {
+            QueueUrl = _queueUrl,
+            AttributeNames = new List<string> { "ApproximateNumberOfMessages" }
+        };
+
+        var response = await _amazonSQSClient.GetQueueAttributesAsync(request);
+        return response.ApproximateNumberOfMessages;
+    }
+
     public async Task DeleteMessageAsync(string receiptHandle)
     {
         if (!_awsSqsSettings.IsActive)
@@ -91,7 +106,7 @@ public class GenericQueue<T> : IAwsSqsQueue<T>
         var deleteMessageRequest = new DeleteMessageRequest();
 
         deleteMessageRequest.QueueUrl = _queueUrl;
-        deleteMessageRequest.ReceiptHandle = receiptHandle + "aaa";
+        deleteMessageRequest.ReceiptHandle = receiptHandle;
 
         await _amazonSQSClient.DeleteMessageAsync(deleteMessageRequest);
     }

@@ -6,9 +6,9 @@ namespace ShareBook.Service
     public class ContactUsEmailService : IContactUsEmailService
     {
         private const string ContactUsTemplate = "ContactUsTemplate";
-        public const string ContactUsTitle = "Fale Conosco - Sharebook";
+        public const string ContactUsTitle = "Nova mensagem pelo Fale Conosco";
         private const string ContactUsNotificationTemplate = "ContactUsNotificationTemplate";
-        public const string ContactUsNotificationTitle = "Fale Conosco - Sharebook";
+        public const string ContactUsNotificationTitle = "Recebemos sua mensagem";
 
         private readonly IEmailService _emailService;
 

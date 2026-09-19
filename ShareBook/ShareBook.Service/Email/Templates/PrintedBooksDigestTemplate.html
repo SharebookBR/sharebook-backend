@@ -53,6 +53,10 @@
             margin-bottom: 20px;
         }
 
+        .signature {
+            margin-bottom: 20px;
+        }
+
         .unsubscribe a {
             color: #aaa;
         }
@@ -90,11 +94,11 @@
 <body>
     <div class="container">
         <div class="main-content">
-            <h2>Novos livros para você hoje</h2>
+            <h2>Livros novos disponíveis hoje</h2>
 
             <div class="message">
-                Olá, {Name}!<br><br>
-                Chegaram {BookCount} livros hoje que eu acho que você vai gostar!
+                Olá, {Name}.<br><br>
+                {BookCountMessage}
             </div>
 
             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 24px 0;">
@@ -103,6 +107,12 @@
         </div>
 
         <div class="footer">
+            <div class="signature">
+                Um abraço,<br>
+                Equipe Sharebook<br>
+                <small>Compartilhando conhecimento</small>
+            </div>
+
             <div class="unsubscribe">
                 <a href="{UnsubscribeUrl}">Cancelar inscrição</a>
             </div>

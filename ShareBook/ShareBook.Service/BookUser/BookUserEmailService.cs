@@ -17,14 +17,14 @@ namespace ShareBook.Service
         private const string BookNoticeDeclinedUsersTemplate = "BookNoticeDeclinedUsersTemplate";
         private const string BookCanceledNoticeUsersTemplate = "BookCanceledNoticeUsersTemplate";
         private const string BookTrackingNumberNoticeWinnerTemplate = "BookTrackingNumberNoticeWinnerTemplate";
-        private const string BookDonatedTitle = "Parabéns você foi selecionado!";
-        private const string BookDonatedTitleNotifyDonor = "Parabéns você escolheu um ganhador!";
-        private const string BookNoticeDonorTitle = "Seu livro foi solicitado!";
+        private const string BookDonatedTitle = "Você foi escolhido(a) para receber um livro";
+        private const string BookDonatedTitleNotifyDonor = "Agora é hora de combinar a entrega";
+        private const string BookNoticeDonorTitle = "Seu livro recebeu uma solicitação";
         private const string BookCanceledTemplate = "BookCanceledTemplate";
         private const string BookCanceledTitle = "Doação cancelada";
-        private const string BookTrackingNumberNoticeWinnerTitle = "Seu livro foi postado - Sharebook";
+        private const string BookTrackingNumberNoticeWinnerTitle = "Seu livro está a caminho";
         private const string BookNoticeInterestedTemplate = "BookNoticeInterestedTemplate";
-        private const string BookNoticeInterestedTitle = "Sharebook - Sua solicitação foi registrada";
+        private const string BookNoticeInterestedTitle = "Sua solicitação foi registrada";
 
         private readonly IUserService _userService;
         private readonly IEmailService _emailService;
@@ -131,7 +131,7 @@ namespace ShareBook.Service
                 html += "<tr><td>" + request.NickName + "</td><td><pre>" + request.Reason + "</pre></td></tr>";
             }
 
-            html += "<tr><td colspan=\"2\"> Para ver a lista completa de interessados, use esse link: <a href=\"https://www.sharebook.com.br/book/donate/" + bookRequested.Slug + "?returnUrl=book%2Fdonations\">" + bookRequested.Title + "</a>.</td></tr>";
+            html += "<tr><td colspan=\"2\">Veja todas as solicitações: <a href=\"https://www.sharebook.com.br/book/donate/" + bookRequested.Slug + "?returnUrl=book%2Fdonations\">" + bookRequested.Title + "</a>.</td></tr>";
             html += "</table>";
 
             return html;
@@ -162,14 +162,18 @@ namespace ShareBook.Service
 
             if (bookUser.User.AllowSendingEmail)
             {
+                // Facilitator pode não estar cadastrado (ex.: livro físico sem facilitador definido).
+                // Usa o doador como fallback para os dados de contato.
+                var facilitator = book.UserFacilitator ?? book.User;
+
                 var vm = new
                 {
-                    NameBook = bookUser.Book.Title,
-                    NameFacilitator = book.UserFacilitator.Name,
-                    LinkedinFacilitator = book.UserFacilitator.Linkedin,
-                    PhoneFacilitator = book.UserFacilitator.Phone,
-                    EmailFacilitator = book.UserFacilitator.Email,
-                    ChooseDate = string.Format("{0:dd/MM/yyyy}", book.ChooseDate.Value) ,
+                    NameBook = bookUser.Book.Title ?? book.Title,
+                    NameFacilitator = facilitator.Name,
+                    LinkedinFacilitator = facilitator.Linkedin,
+                    PhoneFacilitator = facilitator.Phone,
+                    EmailFacilitator = facilitator.Email,
+                    ChooseDate = string.Format("{0:dd/MM/yyyy}", book.ChooseDate ?? DateTime.Today.AddDays(30)),
                     NameInterested = bookUser.User.Name,
                 };
 
@@ -214,7 +218,7 @@ namespace ShareBook.Service
                 BookTitle = book.Title,
             };
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookNoticeDeclinedUsersTemplate, vm);
-            var emailSubject = $"Resultado da doação do livro {book.Title}.";
+            var emailSubject = $"Outra pessoa receberá o livro \"{book.Title}\"";
 
             bookUsersDeclined.ForEach(async (bookUser) =>
             {
@@ -234,7 +238,7 @@ namespace ShareBook.Service
             {
                 // TODO: Find out a better approach instead of awaiting one by one
                 if (bookUser.User.AllowSendingEmail)
-                    await _emailService.SendAsync(bookUser.User.Email, bookUser.User.Name, html, $"Resultado da doação do livro {book.Title}.");
+                    await _emailService.SendAsync(bookUser.User.Email, bookUser.User.Name, html, $"A doação do livro \"{book.Title}\" foi cancelada");
             });
             
         }
@@ -261,11 +265,7 @@ namespace ShareBook.Service
             {
                 var vm = new
                 {
-                    book = book,
-                    NameFacilitator = book.UserFacilitator.Name,
-                    LinkedInFacilitator = book.UserFacilitator.Linkedin,
-                    ZapFacilitator = book.UserFacilitator.Phone,
-                    EmailFacilitator = book.UserFacilitator.Email,
+                    book
                 };
                 var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookTrackingNumberNoticeWinnerTemplate, vm);
                 await _emailService.SendAsync(bookUserWinner.User.Email, bookUserWinner.User.Name, html, BookTrackingNumberNoticeWinnerTitle, copyAdmins: false, highPriority: true);
@@ -274,8 +274,8 @@ namespace ShareBook.Service
 
         public async Task SendEmailMaxRequestsAsync(Book bookRequested)
         {
-            var subject = "Limite de solicitações";
-            var body = $"Prezados adms, o livro <b>{bookRequested.Title}</b> atingiu o limite de solicitações e foi removido automaticamente da vitrine. A data de decisão foi configurada pra amanhã. Obrigado.";
+            var subject = "Livro atingiu o limite de solicitações";
+            var body = $"O livro <b>{bookRequested.Title}</b> atingiu o limite de solicitações e foi removido automaticamente da vitrine. A data de escolha foi definida para amanhã.";
             await _emailService.SendToAdminsAsync(body, subject);
         }
     }

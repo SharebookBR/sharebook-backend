@@ -1,9 +1,13 @@
 ﻿using AutoMapper;
 using Flurl.Util;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using ShareBook.Api.Filters;
+using ShareBook.Api.RateLimiting;
 using ShareBook.Api.ViewModels;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
@@ -14,6 +18,7 @@ using ShareBook.Repository.Repository;
 using ShareBook.Service;
 using ShareBook.Service.Authorization;
 using ShareBook.Service.AwsSqs.Dto;
+using ShareBook.Service.BookDownloadEvents;
 using ShareBook.Service.EBook;
 using System;
 using System.Collections.Generic;
@@ -34,8 +39,11 @@ namespace ShareBook.Api.Controllers
         private readonly IBookService _service;
         private readonly IUserService _userService;
         private readonly IAccessHistoryService _accessHistoryService;
+        private readonly IBookDownloadEventService _bookDownloadEventService;
         private readonly IEBookService _ebookService;
         private readonly IBookDownloadService _bookDownloadService;
+        private readonly IEBookDownloadRateLimiter _ebookDownloadRateLimiter;
+        private readonly ILogger<BookController> _logger;
         private Expression<Func<Book, object>> _defaultOrder = x => x.Id;
         private readonly IMapper _mapper;
 
@@ -44,16 +52,22 @@ namespace ShareBook.Api.Controllers
                               IUserService userService,
                               IMapper mapper,
                               IAccessHistoryService accessHistoryService,
+                              IBookDownloadEventService bookDownloadEventService,
                               IEBookService ebookService,
-                              IBookDownloadService bookDownloadService)
+                              IBookDownloadService bookDownloadService,
+                              IEBookDownloadRateLimiter ebookDownloadRateLimiter,
+                              ILogger<BookController> logger)
         {
             _service = bookService;
             _bookUserService = bookUserService;
             _userService = userService;
             _mapper = mapper;
             _accessHistoryService = accessHistoryService;
+            _bookDownloadEventService = bookDownloadEventService;
             _ebookService = ebookService;
             _bookDownloadService = bookDownloadService;
+            _ebookDownloadRateLimiter = ebookDownloadRateLimiter;
+            _logger = logger;
         }
 
         protected void SetDefault(Expression<Func<Book, object>> defaultOrder)
@@ -208,6 +222,14 @@ namespace ShareBook.Api.Controllers
             return Ok(bookVM);
         }
 
+        [HttpGet("Recommendations/{bookId:guid}")]
+        [ProducesResponseType(typeof(IList<BookVM>), 200)]
+        public async Task<IList<BookVM>> RecommendationsAsync(Guid bookId, [FromQuery] int limit = 6)
+        {
+            var books = await _service.GetRecommendationsAsync(bookId, limit);
+            return _mapper.Map<List<BookVM>>(books);
+        }
+
         [Authorize("Bearer")]
         [AuthorizationFilter(Permissions.Permission.ApproveBook)] // apenas adms
         [ProducesResponseType(typeof(BookVM), 200)]
@@ -217,13 +239,6 @@ namespace ShareBook.Api.Controllers
             var book = await _service.FindAsync(new Guid(id));
             var bookVM = _mapper.Map<BookVMAdm>(book);
             return bookVM != null ? (IActionResult)Ok(bookVM) : NotFound();
-        }
-
-        [HttpGet("AvailableBooks")]
-        public async Task<IList<BookVM>> AvailableBooksAsync()
-        {
-            var books = await _service.AvailableBooksAsync();
-            return _mapper.Map<List<BookVM>>(books);
         }
 
         [HttpGet("Random15Books")]
@@ -262,6 +277,20 @@ namespace ShareBook.Api.Controllers
             return Ok(new { total });
         }
 
+        [HttpGet("RecentEBooksCount")]
+        public async Task<IActionResult> RecentEBooksCountAsync([FromQuery] int days = 7)
+        {
+            var total = await _service.GetRecentEBooksCountAsync(days);
+            return Ok(new { total });
+        }
+
+        [HttpGet("Sitemap")]
+        [ProducesResponseType(typeof(IList<SitemapBookDTO>), 200)]
+        public async Task<IList<SitemapBookDTO>> SitemapAsync()
+        {
+            return await _service.GetSitemapBooksAsync();
+        }
+
         [HttpGet("FullSearch/{criteria}/{page}/{items}")]
         public async Task<PagedList<BookVM>> FullSearchAsync(string criteria, int page, int items)
         {
@@ -286,33 +315,35 @@ namespace ShareBook.Api.Controllers
         }
 
         [HttpGet("Category/{categoryId}/{page}/{items}")]
-        public async Task<PagedList<BookVM>> ByCategoryIdAsync(Guid categoryId, int page, int items)
+        public async Task<CategoryBooksVM> ByCategoryIdAsync(Guid categoryId, int page, int items)
         {
-            var booksPaged = await _service.ByCategoryIdAsync(categoryId, page, items);
-            var books = booksPaged.Items;
-            var booksVM = _mapper.Map<List<BookVM>>(books);
+            var result = await _service.ByCategoryIdAsync(categoryId, page, items);
+            var booksVM = _mapper.Map<List<BookVM>>(result.Items);
 
-            return new PagedList<BookVM>()
+            return new CategoryBooksVM()
             {
                 Page = page,
                 ItemsPerPage = items,
-                TotalItems = booksPaged.TotalItems,
+                TotalItems = result.TotalItems,
+                PhysicalBooksCount = result.PhysicalBooksCount,
+                EbooksCount = result.EbooksCount,
                 Items = booksVM
             };
         }
 
         [HttpGet("CategoryTree/{categoryId}/{page}/{items}")]
-        public async Task<PagedList<BookVM>> ByCategoryTreeIdAsync(Guid categoryId, int page, int items)
+        public async Task<CategoryBooksVM> ByCategoryTreeIdAsync(Guid categoryId, int page, int items)
         {
-            var booksPaged = await _service.ByCategoryTreeIdAsync(categoryId, page, items);
-            var books = booksPaged.Items;
-            var booksVM = _mapper.Map<List<BookVM>>(books);
+            var result = await _service.ByCategoryTreeIdAsync(categoryId, page, items);
+            var booksVM = _mapper.Map<List<BookVM>>(result.Items);
 
-            return new PagedList<BookVM>()
+            return new CategoryBooksVM()
             {
                 Page = page,
                 ItemsPerPage = items,
-                TotalItems = booksPaged.TotalItems,
+                TotalItems = result.TotalItems,
+                PhysicalBooksCount = result.PhysicalBooksCount,
+                EbooksCount = result.EbooksCount,
                 Items = booksVM
             };
         }
@@ -353,6 +384,7 @@ namespace ShareBook.Api.Controllers
 
         [HttpPost]
         [Authorize("Bearer")]
+        [RequestSizeLimit(52428800)]
         public async Task<IActionResult> CreateAsync([FromBody] CreateBookVM createBookVM)
         {
             var book = _mapper.Map<Book>(createBookVM);
@@ -367,6 +399,7 @@ namespace ShareBook.Api.Controllers
         [HttpPut("{id}")]
         [Authorize("Bearer")]
         [AuthorizationFilter(Permissions.Permission.ApproveBook)]
+        [RequestSizeLimit(52428800)]
         public async Task<IActionResult> UpdateAsync(Guid Id, [FromBody] UpdateBookVM updateBookVM)
         {
             updateBookVM.Id = Id;
@@ -620,73 +653,14 @@ namespace ShareBook.Api.Controllers
             return Ok(new Result("Report enviado. Obrigado pela colaboração."));
         }
 
-        [HttpGet("/share/livros/{slug}")]
-        [AllowAnonymous]
-        [ProducesResponseType(typeof(ContentResult), 200)]
-        [ProducesResponseType(302)]
-        [ProducesResponseType(404)]
-        public async Task<IActionResult> ShareLandingAsync(string slug)
-        {
-            var book = await _service.BySlugAsync(slug);
-            if (book == null) return NotFound("Livro não encontrado.");
-
-            var pageUrl = $"https://www.sharebook.com.br/livros/{book.Slug}";
-            var userAgent = Request?.Headers["User-Agent"].ToString() ?? string.Empty;
-            var isSocialCrawler = userAgent.Contains("facebookexternalhit", StringComparison.OrdinalIgnoreCase)
-                || userAgent.Contains("Facebot", StringComparison.OrdinalIgnoreCase)
-                || userAgent.Contains("WhatsApp", StringComparison.OrdinalIgnoreCase)
-                || userAgent.Contains("LinkedInBot", StringComparison.OrdinalIgnoreCase)
-                || userAgent.Contains("Twitterbot", StringComparison.OrdinalIgnoreCase)
-                || userAgent.Contains("Slackbot", StringComparison.OrdinalIgnoreCase)
-                || userAgent.Contains("Discordbot", StringComparison.OrdinalIgnoreCase);
-
-            if (!isSocialCrawler)
-            {
-                return Redirect(pageUrl);
-            }
-
-            var title = WebUtility.HtmlEncode($"{book.Title} | ShareBook");
-            var description = WebUtility.HtmlEncode(string.IsNullOrWhiteSpace(book.Synopsis)
-                ? $"Encontrei este livro grátis no ShareBook: {book.Title}."
-                : book.Synopsis.Length > 220 ? book.Synopsis.Substring(0, 220) + "..." : book.Synopsis);
-            var image = string.IsNullOrWhiteSpace(book.ImageUrl)
-                ? "https://www.sharebook.com.br/assets/img/sharebook-share.png"
-                : book.ImageUrl;
-
-            var html = $@"<!doctype html>
-<html lang='pt-BR'>
-<head>
-  <meta charset='utf-8' />
-  <meta name='viewport' content='width=device-width, initial-scale=1' />
-  <title>{title}</title>
-  <meta name='description' content='{description}' />
-  <meta property='og:type' content='article' />
-  <meta property='og:site_name' content='ShareBook' />
-  <meta property='og:title' content='{title}' />
-  <meta property='og:description' content='{description}' />
-  <meta property='og:image' content='{WebUtility.HtmlEncode(image)}' />
-  <meta property='og:url' content='{WebUtility.HtmlEncode(pageUrl)}' />
-  <meta property='og:image:secure_url' content='{WebUtility.HtmlEncode(image)}' />
-  <meta name='twitter:card' content='summary_large_image' />
-  <meta name='twitter:title' content='{title}' />
-  <meta name='twitter:description' content='{description}' />
-  <meta name='twitter:image' content='{WebUtility.HtmlEncode(image)}' />
-  <link rel='canonical' href='{WebUtility.HtmlEncode(pageUrl)}' />
-</head>
-<body>
-  <p>ShareBook</p>
-  <a href='{WebUtility.HtmlEncode(pageUrl)}'>Abrir livro</a>
-</body>
-</html>";
-
-            return Content(html, "text/html; charset=utf-8");
-        }
-
         [HttpGet("DownloadEBook/{slug}")]
         [AllowAnonymous]
+        [Throttle(Name = "DownloadEBook", Seconds = 5, VaryByIp = false, LogBlockedAttempts = true,
+            Message = "Muitos downloads em sequência. Tente novamente em alguns segundos.")]
         [ProducesResponseType(typeof(FileContentResult), 200)]
         [ProducesResponseType(302)]
         [ProducesResponseType(404)]
+        [ProducesResponseType(429)]
         public async Task<IActionResult> DownloadEBookAsync(string slug)
         {
             var book = await _service.BySlugAsync(slug);
@@ -703,19 +677,25 @@ namespace ShareBook.Api.Controllers
             if (string.IsNullOrEmpty(book.EBookPdfPath))
                 return NotFound(new { message = "PDF do livro digital não disponível." });
 
-            await _service.IncrementDownloadCountAsync(book.Id);
-
-            // Registrar download individual
-            var userId = User?.Identity?.IsAuthenticated == true
-                ? new Guid(User.Identity.Name)
-                : (Guid?)null;
-            var userAgent = Request.Headers["User-Agent"].ToString();
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-            await _bookDownloadService.RegisterDownloadAsync(book.Id, userId, userAgent, ipAddress);
-
             var downloadUrl = await _ebookService.GetPdfDownloadUrlAsync(book);
             if (!string.IsNullOrEmpty(downloadUrl))
+            {
+                var rateLimitResult = _ebookDownloadRateLimiter.TryAcquire(
+                    HttpContext.Connection.RemoteIpAddress);
+
+                LogRateLimitOutcome(book, slug, rateLimitResult);
+
+                if (!rateLimitResult.IsAllowed)
+                    return DailyDownloadLimitExceeded(rateLimitResult);
+
+                var userId = await TryGetAuthenticatedUserIdAsync();
+                await _bookDownloadEventService.RecordAsync(book.Id, userId, BookDownloadEventSource.Live);
+                await _bookDownloadService.RegisterDownloadAsync(book.Id, userId,
+                    Request.Headers["User-Agent"].ToString(),
+                    HttpContext.Connection.RemoteIpAddress?.ToString());
+                await _service.IncrementDownloadCountAsync(book.Id);
                 return Redirect(downloadUrl);
+            }
 
             // Storage local (retrocompatibilidade com livros cadastrados antes da migração)
             var basePath = Path.GetFullPath(Path.Combine(
@@ -732,9 +712,112 @@ namespace ShareBook.Api.Controllers
             if (!System.IO.File.Exists(pdfPath))
                 return NotFound(new { message = "Arquivo PDF não encontrado." });
 
+            var localRateLimitResult = _ebookDownloadRateLimiter.TryAcquire(
+                HttpContext.Connection.RemoteIpAddress);
+
+            LogRateLimitOutcome(book, slug, localRateLimitResult);
+
+            if (!localRateLimitResult.IsAllowed)
+                return DailyDownloadLimitExceeded(localRateLimitResult);
+
+            var localUserId = await TryGetAuthenticatedUserIdAsync();
+            await _bookDownloadEventService.RecordAsync(book.Id, localUserId, BookDownloadEventSource.Live);
+            await _bookDownloadService.RegisterDownloadAsync(book.Id, localUserId,
+                Request.Headers["User-Agent"].ToString(),
+                HttpContext.Connection.RemoteIpAddress?.ToString());
+            await _service.IncrementDownloadCountAsync(book.Id);
+
             var pdfBytes = await System.IO.File.ReadAllBytesAsync(pdfPath);
             var fileName = book.GetPdfFileName();
             return File(pdfBytes, "application/pdf", fileName);
+        }
+
+        [HttpPost("DownloadEBookUrl/{slug}")]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(DownloadEBookUrlVM), 200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(410)]
+        [ProducesResponseType(429)]
+        public async Task<IActionResult> GetDownloadEBookUrlAsync(string slug)
+        {
+            var book = await _service.BySlugAsync(slug);
+
+            if (book == null)
+                return NotFound(new { message = "Livro não encontrado." });
+
+            if (!book.IsEbook())
+                return BadRequest(new { message = "Este livro não é um livro digital." });
+
+            if (book.Status == BookStatus.Canceled)
+                return StatusCode(410, new { message = "Este livro digital não está mais disponível." });
+
+            if (string.IsNullOrEmpty(book.EBookPdfPath))
+                return NotFound(new { message = "PDF do livro digital não disponível." });
+
+            var downloadUrl = await _ebookService.GetPdfDownloadUrlAsync(book);
+            if (string.IsNullOrEmpty(downloadUrl))
+            {
+                return Ok(new DownloadEBookUrlVM
+                {
+                    Url = $"{Request.Scheme}://{Request.Host}/api/book/DownloadEBook/{Uri.EscapeDataString(slug)}",
+                    Tracked = false
+                });
+            }
+
+            var rateLimitResult = _ebookDownloadRateLimiter.TryAcquire(
+                HttpContext.Connection.RemoteIpAddress);
+
+            LogRateLimitOutcome(book, slug, rateLimitResult);
+
+            if (!rateLimitResult.IsAllowed)
+                return DailyDownloadLimitExceeded(rateLimitResult);
+
+            var userId = await TryGetAuthenticatedUserIdAsync();
+            await _bookDownloadEventService.RecordAsync(book.Id, userId, BookDownloadEventSource.Live);
+            await _service.IncrementDownloadCountAsync(book.Id);
+
+            return Ok(new DownloadEBookUrlVM
+            {
+                Url = downloadUrl,
+                Tracked = true
+            });
+        }
+
+        private async Task<Guid?> TryGetAuthenticatedUserIdAsync()
+        {
+            var authenticateResult = await HttpContext.AuthenticateAsync(JwtBearerDefaults.AuthenticationScheme);
+            if (!authenticateResult.Succeeded)
+                return null;
+
+            if (Guid.TryParse(authenticateResult.Principal?.Identity?.Name, out var userId))
+                return userId;
+
+            return null;
+        }
+
+        private void LogRateLimitOutcome(Book book, string slug, EBookDownloadRateLimitResult rateLimitResult)
+        {
+            var outcome = rateLimitResult.IsAllowed ? "Allowed" : "BlockedDailyLimit";
+
+            _logger.LogInformation(
+                "Download de ebook: {LogsCategory} {Outcome} {Ip} {Slug} {BookId} {Remaining} {RetryAfterSeconds}",
+                RateLimitLogging.EBookDownloadCategory, outcome, HttpContext.Connection.RemoteIpAddress,
+                slug, book.Id, rateLimitResult.Remaining, rateLimitResult.RetryAfterSeconds);
+        }
+
+        private IActionResult DailyDownloadLimitExceeded(
+            EBookDownloadRateLimitResult rateLimitResult)
+        {
+            Response.Headers["Retry-After"] = rateLimitResult.RetryAfterSeconds.ToString();
+
+            return StatusCode(
+                (int)HttpStatusCode.TooManyRequests,
+                new
+                {
+                    message = "Limite diário de downloads atingido. Tente novamente mais tarde.",
+                    retryAfterSeconds = rateLimitResult.RetryAfterSeconds
+                });
         }
     }
 }

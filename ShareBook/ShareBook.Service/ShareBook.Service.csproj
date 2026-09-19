@@ -1,6 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
     <TargetFramework>net10.0</TargetFramework>
     <DebugType>Full</DebugType>
   </PropertyGroup>
@@ -10,6 +11,7 @@
     <PackageReference Include="AWSSDK.SQS" Version="4.0.2.15" />
     <PackageReference Include="Flurl.Http" Version="4.0.2" />
     <PackageReference Include="MailKit" Version="4.16.0" />
+    <PackageReference Include="Google.Analytics.Data.V1Beta" Version="2.0.0-beta10" />
     <PackageReference Include="Polly" Version="8.6.5" />
   </ItemGroup>
 
@@ -44,7 +46,13 @@
     <None Update="Email\Templates\BookApprovedTemplate.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Email\Templates\EbookApprovedTemplate.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Email\Templates\BookDonatedTemplate.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Email\Templates\BookReceivedTemplate.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Email\Templates\ContactUsNotificationTemplate.html">
@@ -68,10 +76,16 @@
     <None Update="Email\Templates\WaitingApprovalTemplate.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Email\Templates\EbookWaitingApprovalTemplate.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Email\Templates\BookCanceledNoticeUsersTemplate.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Email\Templates\ChooseDateReminderTemplate.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Email\Templates\ChooseDateReminderMultipleTemplate.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Email\Templates\BookTrackingNumberNoticeWinnerTemplate.html">

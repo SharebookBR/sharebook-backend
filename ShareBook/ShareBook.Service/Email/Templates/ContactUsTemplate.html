@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fale Conosco - Nova Mensagem</title>
+    <title>Nova mensagem pelo Fale Conosco</title>
     <style>
         * {
             margin: 0;
@@ -112,38 +112,10 @@
             border-top: 1px solid #eee;
         }
 
-        .social-title {
-            font-size: 16px;
+        .footer p {
             color: #666;
-            margin-bottom: 20px;
-            font-weight: 500;
-        }
-
-        .social-links {
-            margin-bottom: 20px;
-        }
-
-        .social-links a {
-            display: inline-block;
-            margin: 0 10px;
-            transition: transform 0.2s ease;
-        }
-
-        .social-links a:hover {
-            transform: scale(1.1);
-        }
-
-        .social-links img {
-            width: 32px;
-            height: 32px;
-            border: none;
-            border-radius: 4px;
-        }
-
-        .copyright {
-            font-size: 12px;
-            color: #999;
-            font-style: italic;
+            font-size: 14px;
+            line-height: 1.5;
         }
 
         @media only screen and (max-width: 600px) {
@@ -174,34 +146,34 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Nova Mensagem de Contato</h1>
-            <p>Administração Sharebook</p>
+            <h1>Nova mensagem pelo Fale Conosco</h1>
+            <p>Sharebook</p>
         </div>
 
         <div class="content">
             <div class="intro-message">
-                🎉 Um usuário entrou em contato conosco!
+                Uma pessoa enviou uma mensagem pelo Fale Conosco.
             </div>
 
-            <h2 class="message-title">📨 Detalhes da Mensagem</h2>
+            <h2 class="message-title">Dados da mensagem</h2>
 
             <div class="field-group">
-                <div class="field-label">👤 Nome</div>
+                <div class="field-label">Nome</div>
                 <div class="field-value">{Name}</div>
             </div>
 
             <div class="field-group">
-                <div class="field-label">📧 E-mail</div>
+                <div class="field-label">E-mail</div>
                 <div class="field-value">{Email}</div>
             </div>
 
             <div class="field-group">
-                <div class="field-label">📱 Telefone</div>
+                <div class="field-label">Telefone</div>
                 <div class="field-value">{Phone}</div>
             </div>
 
             <div class="field-group">
-                <div class="field-label">💬 Mensagem</div>
+                <div class="field-label">Mensagem</div>
                 <div class="message-field">
                     <div class="field-value">{Message}</div>
                 </div>
@@ -209,23 +181,7 @@
         </div>
 
         <div class="footer">
-            <h3 class="social-title">Conecte-se conosco</h3>
-
-            <div class="social-links">
-                <a href="https://www.facebook.com/sharebookbr/" target="_blank">
-                    <img src="https://cdn-images.mailchimp.com/icons/social-block-v2/outline-dark-facebook-48.png" alt="Facebook">
-                </a>
-                <a href="https://www.instagram.com/sharebook.com.br/" target="_blank">
-                    <img src="https://cdn-images.mailchimp.com/icons/social-block-v2/outline-dark-instagram-48.png" alt="Instagram">
-                </a>
-                <a href="https://www.linkedin.com/company/sharebook-br/" target="_blank">
-                    <img src="https://cdn-images.mailchimp.com/icons/social-block-v2/outline-dark-linkedin-48.png" alt="LinkedIn">
-                </a>
-            </div>
-
-            <div class="copyright">
-                Sharebook é open source e gratuito · MIT License
-            </div>
+            <p>Equipe Sharebook<br><small>Compartilhando conhecimento</small></p>
         </div>
     </div>
 </body>

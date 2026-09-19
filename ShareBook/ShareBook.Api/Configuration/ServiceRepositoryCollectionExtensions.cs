@@ -10,10 +10,15 @@ using ShareBook.Repository.UoW;
 using ShareBook.Service;
 using ShareBook.Service.AwsSqs;
 using ShareBook.Service.EBook;
+using ShareBook.Service.Analytics;
+using ShareBook.Service.BookDownloadEvents;
+using ShareBook.Service.DownloadLogs;
+using ShareBook.Service.Importer;
 using ShareBook.Service.Lgpd;
 using ShareBook.Service.Muambator;
 using ShareBook.Service.Notification;
 using ShareBook.Service.Recaptcha;
+using ShareBook.Service.Home;
 using ShareBook.Service.Upload;
 
 namespace ShareBook.Api.Configuration
@@ -24,6 +29,8 @@ namespace ShareBook.Api.Configuration
            this IServiceCollection services)
         {
             //services
+            services.AddScoped<IHomeService, HomeService>();
+            services.AddScoped<IBookDownloadEventService, BookDownloadEventService>();
             services.AddScoped<IBooksEmailService, BooksEmailService>();
             services.AddScoped<IBookUsersEmailService, BookUserEmailService>();
             services.AddScoped<IBookService, BookService>();
@@ -38,10 +45,16 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<IAccessHistoryService, AccessHistoryService>();
             services.AddScoped<ILgpdService, LgpdService>();
             services.AddScoped<IMeetupService, MeetupService>();
+            services.AddScoped<IDownloadLogsService, DownloadLogsService>();
             services.AddScoped<IRecaptchaService, RecaptchaService>();
+            services.AddScoped<IImporterDashboardService, ImporterDashboardService>();
+            services.AddHttpClient<ISearchConsoleApiClient, SearchConsoleApiClient>();
+            services.AddSingleton<ISearchConsoleService, SearchConsoleService>();
+            services.AddSingleton<IAnalyticsService, AnalyticsService>();
 
             //repositories
             services.AddScoped<IBookRepository, BookRepository>();
+            services.AddScoped<IBookDownloadEventRepository, BookDownloadEventRepository>();
             services.AddScoped<IBookUserRepository, BookUserRepository>();
             services.AddScoped<IBookDownloadRepository, BookDownloadRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
@@ -96,6 +109,7 @@ namespace ShareBook.Api.Configuration
             services.AddScoped<MailSupressListUpdate>();
             services.AddScoped<MailSender>();
             services.AddScoped<NewEbookWeeklyDigest>();
+            services.AddScoped<CleanupLogsTable>();
 
             //notification
             services.AddScoped<IPushNotificationService, PushNotificationService>();

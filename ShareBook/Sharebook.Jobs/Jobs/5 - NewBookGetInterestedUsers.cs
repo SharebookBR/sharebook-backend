@@ -111,10 +111,16 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
             var unsubscribeToken = _userService.GenerateUnsubscribeToken(entry.User.Id);
             var unsubscribeUrl = $"{frontendUrl}/descadastrar?userId={entry.User.Id}&token={unsubscribeToken}";
 
+            var bookCount = entry.Books.Count;
+            var bookCountMsg = bookCount == 1
+                ? "Chegou 1 livro novo hoje para você."
+                : $"Chegaram {bookCount} livros novos hoje para você.";
+
             var vm = new
             {
                 Name = "{name}", // o MailSender substitui pelo nome do destinatário
-                BookCount = entry.Books.Count,
+                BookCount = bookCount,
+                BookCountMessage = bookCountMsg,
                 BookListHtml = bookListHtml,
                 FrontendUrl = frontendUrl,
                 UnsubscribeUrl = unsubscribeUrl

@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp;
 using System;
 
@@ -18,6 +19,64 @@ namespace ShareBook.Helper.Image
         public static string GenerateImageUrl(string imageName, string directory, string serverUrl)
         {
             return serverUrl + directory.Replace("wwwroot", "") + "/" + imageName;
+        }
+
+        public static string FormatThumbnailName(string imageName)
+        {
+            if (string.IsNullOrWhiteSpace(imageName))
+            {
+                return null;
+            }
+
+            return $"{Path.GetFileNameWithoutExtension(Path.GetFileName(imageName))}.webp";
+        }
+
+        public static byte[] CreateBookThumbnail(
+            byte[] imageBytes,
+            int maxWidth = 360,
+            int maxHeight = 540,
+            int quality = 78,
+            float sharpenSigma = 0.8f)
+        {
+            if (imageBytes == null || imageBytes.Length == 0)
+            {
+                throw new ArgumentException("A imagem da capa é obrigatória.", nameof(imageBytes));
+            }
+
+            if (maxWidth <= 0 || maxHeight <= 0)
+            {
+                throw new ArgumentException("As dimensões máximas do thumbnail devem ser maiores que zero.");
+            }
+
+            using var image = SixLabors.ImageSharp.Image.Load(imageBytes);
+
+            image.Mutate(context => context.AutoOrient());
+
+            if (image.Width > maxWidth || image.Height > maxHeight)
+            {
+                image.Mutate(context => context
+                    .Resize(new ResizeOptions
+                    {
+                        Mode = ResizeMode.Max,
+                        Size = new Size(maxWidth, maxHeight),
+                        Sampler = KnownResamplers.Lanczos3,
+                        Compand = true
+                    })
+                    .GaussianSharpen(sharpenSigma));
+            }
+
+            image.Metadata.ExifProfile = null;
+            image.Metadata.IccProfile = null;
+            image.Metadata.XmpProfile = null;
+
+            using var output = new MemoryStream();
+            image.Save(output, new WebpEncoder
+            {
+                FileFormat = WebpFileFormatType.Lossy,
+                Quality = quality
+            });
+
+            return output.ToArray();
         }
         
         /// <summary>

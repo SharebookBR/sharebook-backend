@@ -1,0 +1,607 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using Npgsql;
+using ShareBook.Domain;
+using ShareBook.Domain.DTOs;
+using ShareBook.Repository;
+using ShareBook.Repository.Repository;
+using ShareBook.Service.Upload;
+
+namespace ShareBook.Service.Importer;
+
+public class ImporterDashboardService : IImporterDashboardService
+{
+    private const string KnownStatusesSql = @"('waiting_triage', 'triaging', 'triage_rejected', 'waiting_translation', 'translating', 'waiting_editorial', 'editing', 'waiting_publish', 'publishing', 'done', 'editorial_rejected', 'triage_retry', 'publish_retry', 'source_blocked', 'duplicate', 'error')";
+    private const string ActiveStatusesSql = @"('waiting_triage', 'triaging', 'waiting_translation', 'translating', 'waiting_editorial', 'editing', 'waiting_publish', 'publishing', 'triage_retry', 'publish_retry', 'error')";
+
+    private readonly IConfiguration _configuration;
+    private readonly IBookRepository _bookRepository;
+    private readonly ICategoryRepository _categoryRepository;
+    private readonly IUploadService _uploadService;
+
+    private static readonly ISet<string> ValidStatuses = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        "waiting_triage",
+        "triaging",
+        "triage_rejected",
+        "waiting_translation",
+        "translating",
+        "waiting_editorial",
+        "editing",
+        "waiting_publish",
+        "publishing",
+        "done",
+        "editorial_rejected",
+        "triage_retry",
+        "publish_retry",
+        "source_blocked",
+        "duplicate",
+        "error"
+    };
+
+    public ImporterDashboardService(
+        IConfiguration configuration,
+        IBookRepository bookRepository,
+        ICategoryRepository categoryRepository,
+        IUploadService uploadService)
+    {
+        _configuration = configuration;
+        _bookRepository = bookRepository;
+        _categoryRepository = categoryRepository;
+        _uploadService = uploadService;
+    }
+
+    public async Task<ImporterDashboardDTO> GetDashboardAsync(CancellationToken cancellationToken = default)
+    {
+        var connectionString = _configuration.GetConnectionString("ImporterPostgresConnection");
+        if (string.IsNullOrWhiteSpace(connectionString))
+            throw new InvalidOperationException("ConnectionStrings:ImporterPostgresConnection não configurada.");
+
+        var sql = $@"
+WITH today_start AS (
+    SELECT date_trunc('day', NOW() AT TIME ZONE 'America/Sao_Paulo')
+             AT TIME ZONE 'America/Sao_Paulo' AS ts
+),
+first_today_transition AS (
+    SELECT DISTINCT ON (h.queue_item_id)
+        h.queue_item_id,
+        h.source_id,
+        h.from_status AS midnight_status
+    FROM importer.queue_item_history h, today_start
+    WHERE h.changed_at >= today_start.ts
+    ORDER BY h.queue_item_id, h.changed_at ASC
+),
+unchanged_today AS (
+    SELECT q.id AS queue_item_id, q.source_id, q.status AS midnight_status
+    FROM importer.queue_items q, today_start
+    WHERE NOT EXISTS (
+        SELECT 1 FROM importer.queue_item_history h
+        WHERE h.queue_item_id = q.id AND h.changed_at >= today_start.ts
+    )
+),
+pre_midnight AS (
+    SELECT * FROM first_today_transition
+    UNION ALL
+    SELECT * FROM unchanged_today
+),
+yesterday_counts AS (
+    SELECT
+        source_id,
+        COUNT(*) FILTER (WHERE midnight_status = 'done') AS done_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'editorial_rejected') AS editorial_rejected_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'waiting_triage') AS waiting_triage_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'triaging') AS triaging_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'triage_rejected') AS triage_rejected_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'waiting_translation') AS waiting_translation_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'translating') AS translating_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'waiting_editorial') AS waiting_editorial_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'editing') AS editing_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'waiting_publish') AS waiting_publish_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'publishing') AS publishing_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'triage_retry') AS triage_retry_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'publish_retry') AS publish_retry_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'source_blocked') AS source_blocked_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'duplicate') AS duplicate_d1,
+        COUNT(*) FILTER (WHERE midnight_status = 'error') AS error_d1,
+        COUNT(*) FILTER (WHERE midnight_status IS NULL OR midnight_status NOT IN {KnownStatusesSql}) AS unknown_d1
+    FROM pre_midnight
+    GROUP BY source_id
+),
+source_status AS (
+    SELECT
+        s.id AS source_id,
+        s.name AS source_name,
+        s.url AS source_url,
+        s.enabled,
+        COALESCE(s.requires_translation, FALSE) AS requires_translation,
+        COUNT(q.id) AS total_items,
+        COUNT(*) FILTER (WHERE q.status = 'done') AS done,
+        COUNT(*) FILTER (WHERE q.status = 'editorial_rejected') AS editorial_rejected,
+        COUNT(*) FILTER (WHERE q.status = 'waiting_triage') AS waiting_triage,
+        COUNT(*) FILTER (WHERE q.status = 'triaging') AS triaging,
+        COUNT(*) FILTER (WHERE q.status = 'triage_rejected') AS triage_rejected,
+        COUNT(*) FILTER (WHERE q.status = 'waiting_translation') AS waiting_translation,
+        COUNT(*) FILTER (WHERE q.status = 'translating') AS translating,
+        COUNT(*) FILTER (WHERE q.status = 'waiting_editorial') AS waiting_editorial,
+        COUNT(*) FILTER (WHERE q.status = 'editing') AS editing,
+        COUNT(*) FILTER (WHERE q.status = 'waiting_publish') AS waiting_publish,
+        COUNT(*) FILTER (WHERE q.status = 'publishing') AS publishing,
+        COUNT(*) FILTER (WHERE q.status = 'triage_retry') AS triage_retry,
+        COUNT(*) FILTER (WHERE q.status = 'publish_retry') AS publish_retry,
+        COUNT(*) FILTER (WHERE q.status = 'source_blocked') AS source_blocked,
+        COUNT(*) FILTER (WHERE q.status = 'duplicate') AS duplicate,
+        COUNT(*) FILTER (WHERE q.status = 'error') AS error,
+        COUNT(*) FILTER (WHERE q.status IS NULL OR q.status NOT IN {KnownStatusesSql}) AS unknown
+    FROM importer.sources s
+    LEFT JOIN importer.queue_items q ON q.source_id = s.id
+    GROUP BY s.id, s.name, s.url, s.enabled, s.requires_translation
+),
+next_items AS (
+    SELECT DISTINCT ON (source_id)
+        source_id,
+        title,
+        status
+    FROM importer.queue_items
+    WHERE status IN {ActiveStatusesSql}
+    ORDER BY source_id, id ASC
+),
+global_last_run AS (
+    SELECT
+        started_at,
+        status,
+        message
+    FROM importer.runs
+    ORDER BY started_at DESC, id DESC
+    LIMIT 1
+),
+source_last_runs AS (
+    SELECT DISTINCT ON (qi.source_id)
+        qi.source_id,
+        r.started_at,
+        r.status,
+        r.message
+    FROM importer.runs r
+    JOIN importer.queue_items qi ON qi.id = r.processed_item_id
+    WHERE qi.source_id IS NOT NULL
+    ORDER BY qi.source_id, r.started_at DESC, r.id DESC
+)
+SELECT
+    ss.source_id,
+    ss.source_name,
+    ss.source_url,
+    ss.enabled,
+    ss.requires_translation,
+    ss.total_items,
+    ss.done,
+    ss.editorial_rejected,
+    ss.waiting_triage,
+    ss.triaging,
+    ss.triage_rejected,
+    ss.waiting_translation,
+    ss.translating,
+    ss.waiting_editorial,
+    ss.editing,
+    ss.waiting_publish,
+    ss.publishing,
+    ss.triage_retry,
+    ss.publish_retry,
+    ss.source_blocked,
+    ss.duplicate,
+    ss.error,
+    ss.unknown,
+    ni.title AS next_item_title,
+    ni.status AS next_item_status,
+    slr.started_at AS last_run_at,
+    slr.status AS last_run_status,
+    slr.message AS last_run_message,
+    glr.started_at AS global_last_run_at,
+    glr.status AS global_last_run_status,
+    glr.message AS global_last_run_message,
+    yc.done_d1,
+    yc.editorial_rejected_d1,
+    yc.waiting_triage_d1,
+    yc.triaging_d1,
+    yc.triage_rejected_d1,
+    yc.waiting_translation_d1,
+    yc.translating_d1,
+    yc.waiting_editorial_d1,
+    yc.editing_d1,
+    yc.waiting_publish_d1,
+    yc.publishing_d1,
+    yc.triage_retry_d1,
+    yc.publish_retry_d1,
+    yc.source_blocked_d1,
+    yc.duplicate_d1,
+    yc.error_d1,
+    yc.unknown_d1
+FROM source_status ss
+LEFT JOIN next_items ni ON ni.source_id = ss.source_id
+LEFT JOIN source_last_runs slr ON slr.source_id = ss.source_id
+LEFT JOIN global_last_run glr ON TRUE
+LEFT JOIN yesterday_counts yc ON yc.source_id = ss.source_id
+ORDER BY ss.source_id;
+";
+
+        var result = new ImporterDashboardDTO
+        {
+            GeneratedAtUtc = DateTime.UtcNow
+        };
+
+        await using var conn = new NpgsqlConnection(connectionString);
+        await conn.OpenAsync(cancellationToken);
+        await using var cmd = new NpgsqlCommand(sql, conn);
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            if (result.LastRunAt is null)
+            {
+                result.LastRunAt = reader.IsDBNull(reader.GetOrdinal("global_last_run_at")) ? null : reader.GetDateTime(reader.GetOrdinal("global_last_run_at"));
+                result.LastRunStatus = reader.IsDBNull(reader.GetOrdinal("global_last_run_status")) ? null : reader.GetString(reader.GetOrdinal("global_last_run_status"));
+                result.LastRunMessage = reader.IsDBNull(reader.GetOrdinal("global_last_run_message")) ? null : reader.GetString(reader.GetOrdinal("global_last_run_message"));
+            }
+
+            var item = new ImporterSourceStatusDTO
+            {
+                SourceId = reader.GetInt32(reader.GetOrdinal("source_id")),
+                SourceName = reader.GetString(reader.GetOrdinal("source_name")),
+                SourceUrl = reader.GetString(reader.GetOrdinal("source_url")),
+                Enabled = reader.GetBoolean(reader.GetOrdinal("enabled")),
+                RequiresTranslation = reader.GetBoolean(reader.GetOrdinal("requires_translation")),
+                TotalItems = reader.GetInt32(reader.GetOrdinal("total_items")),
+                Done = reader.GetInt32(reader.GetOrdinal("done")),
+                EditorialRejected = reader.GetInt32(reader.GetOrdinal("editorial_rejected")),
+                WaitingTriage = reader.GetInt32(reader.GetOrdinal("waiting_triage")),
+                Triaging = reader.GetInt32(reader.GetOrdinal("triaging")),
+                TriageRejected = reader.GetInt32(reader.GetOrdinal("triage_rejected")),
+                WaitingTranslation = reader.GetInt32(reader.GetOrdinal("waiting_translation")),
+                Translating = reader.GetInt32(reader.GetOrdinal("translating")),
+                WaitingEditorial = reader.GetInt32(reader.GetOrdinal("waiting_editorial")),
+                Editing = reader.GetInt32(reader.GetOrdinal("editing")),
+                WaitingPublish = reader.GetInt32(reader.GetOrdinal("waiting_publish")),
+                Publishing = reader.GetInt32(reader.GetOrdinal("publishing")),
+                TriageRetry = reader.GetInt32(reader.GetOrdinal("triage_retry")),
+                PublishRetry = reader.GetInt32(reader.GetOrdinal("publish_retry")),
+                SourceBlocked = reader.GetInt32(reader.GetOrdinal("source_blocked")),
+                Duplicate = reader.GetInt32(reader.GetOrdinal("duplicate")),
+                Error = reader.GetInt32(reader.GetOrdinal("error")),
+                Unknown = reader.GetInt32(reader.GetOrdinal("unknown")),
+                NextItemTitle = reader.IsDBNull(reader.GetOrdinal("next_item_title")) ? null : reader.GetString(reader.GetOrdinal("next_item_title")),
+                NextItemStatus = reader.IsDBNull(reader.GetOrdinal("next_item_status")) ? null : reader.GetString(reader.GetOrdinal("next_item_status")),
+                LastRunAt = reader.IsDBNull(reader.GetOrdinal("last_run_at")) ? null : reader.GetDateTime(reader.GetOrdinal("last_run_at")),
+                LastRunStatus = reader.IsDBNull(reader.GetOrdinal("last_run_status")) ? null : reader.GetString(reader.GetOrdinal("last_run_status")),
+                LastRunMessage = reader.IsDBNull(reader.GetOrdinal("last_run_message")) ? null : reader.GetString(reader.GetOrdinal("last_run_message")),
+                DoneD1 = reader.IsDBNull(reader.GetOrdinal("done_d1")) ? null : reader.GetInt32(reader.GetOrdinal("done_d1")),
+                EditorialRejectedD1 = reader.IsDBNull(reader.GetOrdinal("editorial_rejected_d1")) ? null : reader.GetInt32(reader.GetOrdinal("editorial_rejected_d1")),
+                WaitingTriageD1 = reader.IsDBNull(reader.GetOrdinal("waiting_triage_d1")) ? null : reader.GetInt32(reader.GetOrdinal("waiting_triage_d1")),
+                TriagingD1 = reader.IsDBNull(reader.GetOrdinal("triaging_d1")) ? null : reader.GetInt32(reader.GetOrdinal("triaging_d1")),
+                TriageRejectedD1 = reader.IsDBNull(reader.GetOrdinal("triage_rejected_d1")) ? null : reader.GetInt32(reader.GetOrdinal("triage_rejected_d1")),
+                WaitingTranslationD1 = reader.IsDBNull(reader.GetOrdinal("waiting_translation_d1")) ? null : reader.GetInt32(reader.GetOrdinal("waiting_translation_d1")),
+                TranslatingD1 = reader.IsDBNull(reader.GetOrdinal("translating_d1")) ? null : reader.GetInt32(reader.GetOrdinal("translating_d1")),
+                WaitingEditorialD1 = reader.IsDBNull(reader.GetOrdinal("waiting_editorial_d1")) ? null : reader.GetInt32(reader.GetOrdinal("waiting_editorial_d1")),
+                EditingD1 = reader.IsDBNull(reader.GetOrdinal("editing_d1")) ? null : reader.GetInt32(reader.GetOrdinal("editing_d1")),
+                WaitingPublishD1 = reader.IsDBNull(reader.GetOrdinal("waiting_publish_d1")) ? null : reader.GetInt32(reader.GetOrdinal("waiting_publish_d1")),
+                PublishingD1 = reader.IsDBNull(reader.GetOrdinal("publishing_d1")) ? null : reader.GetInt32(reader.GetOrdinal("publishing_d1")),
+                TriageRetryD1 = reader.IsDBNull(reader.GetOrdinal("triage_retry_d1")) ? null : reader.GetInt32(reader.GetOrdinal("triage_retry_d1")),
+                PublishRetryD1 = reader.IsDBNull(reader.GetOrdinal("publish_retry_d1")) ? null : reader.GetInt32(reader.GetOrdinal("publish_retry_d1")),
+                SourceBlockedD1 = reader.IsDBNull(reader.GetOrdinal("source_blocked_d1")) ? null : reader.GetInt32(reader.GetOrdinal("source_blocked_d1")),
+                DuplicateD1 = reader.IsDBNull(reader.GetOrdinal("duplicate_d1")) ? null : reader.GetInt32(reader.GetOrdinal("duplicate_d1")),
+                ErrorD1 = reader.IsDBNull(reader.GetOrdinal("error_d1")) ? null : reader.GetInt32(reader.GetOrdinal("error_d1")),
+                UnknownD1 = reader.IsDBNull(reader.GetOrdinal("unknown_d1")) ? null : reader.GetInt32(reader.GetOrdinal("unknown_d1")),
+            };
+
+            result.TotalItems += item.TotalItems;
+            result.Sources.Add(item);
+        }
+
+        return result;
+    }
+
+    public async Task<ImporterQueueItemsPageDTO> GetItemsAsync(int? sourceId, string status, int? id, string title, string sort, int page, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var connectionString = _configuration.GetConnectionString("ImporterPostgresConnection");
+        if (string.IsNullOrWhiteSpace(connectionString))
+            throw new InvalidOperationException("ConnectionStrings:ImporterPostgresConnection não configurada.");
+
+        var normalizedStatus = string.IsNullOrWhiteSpace(status) ? null : status.Trim().ToLowerInvariant();
+        if (normalizedStatus is not null && !ValidStatuses.Contains(normalizedStatus))
+            throw new ArgumentException("Status inválido para fila do importador.", nameof(status));
+
+        var orderBySql = sort?.ToLowerInvariant() switch
+        {
+            "id_asc" => "ORDER BY q.id ASC",
+            _ => "ORDER BY q.updated_at DESC, q.id DESC"
+        };
+
+        var safePage = Math.Max(page, 1);
+        var safePageSize = Math.Min(Math.Max(pageSize, 1), 200);
+        var offset = (safePage - 1) * safePageSize;
+        var where = new List<string>();
+
+        if (sourceId.HasValue)
+            where.Add("q.source_id = @source_id");
+
+        if (normalizedStatus is not null)
+            where.Add("q.status = @status");
+
+        if (id.HasValue)
+            where.Add("q.id = @id");
+
+        if (!string.IsNullOrWhiteSpace(title))
+            where.Add("q.title ILIKE @title");
+
+        var whereSql = where.Count > 0 ? $"WHERE {string.Join(" AND ", where)}" : string.Empty;
+
+        var countSql = $@"
+SELECT COUNT(*)
+FROM importer.queue_items q
+JOIN importer.sources s ON s.id = q.source_id
+{whereSql};
+";
+
+        var itemsSql = $@"
+SELECT
+    q.id,
+    q.source_id,
+    s.name AS source_name,
+    q.title,
+    q.author,
+    q.source_url,
+    q.status,
+    q.planned_title,
+    q.planned_author,
+    q.planned_category_id,
+    q.triage_attempts,
+    q.publish_attempts,
+    q.last_error,
+    q.sharebook_book_id,
+    q.metadata_json,
+    q.planned_synopsis,
+    q.planned_cover_mode,
+    q.planned_cover_url,
+    q.planned_by,
+    q.planned_at,
+    q.admin_notes,
+    q.created_at,
+    q.updated_at
+FROM importer.queue_items q
+JOIN importer.sources s ON s.id = q.source_id
+{whereSql}
+{orderBySql}
+LIMIT @limit OFFSET @offset;
+";
+
+        var result = new ImporterQueueItemsPageDTO
+        {
+            Page = safePage,
+            ItemsPerPage = safePageSize
+        };
+
+        await using var conn = new NpgsqlConnection(connectionString);
+        await conn.OpenAsync(cancellationToken);
+
+        await using (var countCmd = new NpgsqlCommand(countSql, conn))
+        {
+            AddItemFilterParameters(countCmd, sourceId, normalizedStatus, id, title);
+            result.TotalItems = Convert.ToInt32(await countCmd.ExecuteScalarAsync(cancellationToken));
+        }
+
+        await using (var itemsCmd = new NpgsqlCommand(itemsSql, conn))
+        {
+            AddItemFilterParameters(itemsCmd, sourceId, normalizedStatus, id, title);
+            itemsCmd.Parameters.AddWithValue("limit", safePageSize);
+            itemsCmd.Parameters.AddWithValue("offset", offset);
+
+            await using var reader = await itemsCmd.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                result.Items.Add(new ImporterQueueItemDTO
+                {
+                    Id = reader.GetInt32(reader.GetOrdinal("id")),
+                    SourceId = reader.GetInt32(reader.GetOrdinal("source_id")),
+                    SourceName = reader.GetString(reader.GetOrdinal("source_name")),
+                    Title = reader.GetString(reader.GetOrdinal("title")),
+                    Author = GetUniversalString(reader, "author"),
+                    SourceUrl = reader.GetString(reader.GetOrdinal("source_url")),
+                    Status = reader.GetString(reader.GetOrdinal("status")),
+                    PlannedTitle = GetUniversalString(reader, "planned_title"),
+                    PlannedAuthor = GetUniversalString(reader, "planned_author"),
+                    PlannedCategoryId = GetUniversalString(reader, "planned_category_id"),
+                    TriageAttempts = reader.GetInt32(reader.GetOrdinal("triage_attempts")),
+                    PublishAttempts = reader.GetInt32(reader.GetOrdinal("publish_attempts")),
+                    LastError = GetUniversalString(reader, "last_error"),
+                    SharebookBookId = GetUniversalString(reader, "sharebook_book_id"),
+                    MetadataJson = GetUniversalString(reader, "metadata_json"),
+                    PlannedSynopsis = GetUniversalString(reader, "planned_synopsis"),
+                    PlannedCoverMode = GetUniversalString(reader, "planned_cover_mode"),
+                    PlannedCoverUrl = GetUniversalString(reader, "planned_cover_url"),
+                    PlannedBy = GetUniversalString(reader, "planned_by"),
+                    PlannedAt = reader.IsDBNull(reader.GetOrdinal("planned_at")) ? null : reader.GetDateTime(reader.GetOrdinal("planned_at")),
+                    AdminNotes = GetUniversalString(reader, "admin_notes"),
+                    CreatedAt = reader.GetDateTime(reader.GetOrdinal("created_at")),
+                    UpdatedAt = reader.GetDateTime(reader.GetOrdinal("updated_at")),
+                });
+            }
+        }
+
+        await EnrichWithBookSlugsAsync(result.Items);
+        await EnrichWithCategoryNamesAsync(result.Items);
+
+        return result;
+    }
+
+    private async Task EnrichWithCategoryNamesAsync(IList<ImporterQueueItemDTO> items)
+    {
+        var categoryIds = items
+            .Where(x => !string.IsNullOrWhiteSpace(x.PlannedCategoryId))
+            .Select(x => Guid.Parse(x.PlannedCategoryId))
+            .Distinct()
+            .ToList();
+
+        if (!categoryIds.Any()) return;
+
+        // Busca as categorias filho com o pai carregado via Include
+        var categories = await _categoryRepository.GetAsync(
+            x => categoryIds.Contains(x.Id),
+            x => x.Id,
+            new IncludeList<Category>(x => x.ParentCategory));
+
+        var categoryMap = categories.Items.ToDictionary(
+            x => x.Id,
+            x => new { x.Name, ParentName = x.ParentCategory?.Name });
+
+        foreach (var item in items)
+        {
+            if (!string.IsNullOrWhiteSpace(item.PlannedCategoryId) &&
+                Guid.TryParse(item.PlannedCategoryId, out var catId) &&
+                categoryMap.TryGetValue(catId, out var catData))
+            {
+                item.PlannedCategoryName = catData.Name;
+                item.PlannedCategoryParentName = catData.ParentName;
+            }
+        }
+    }
+
+    private async Task EnrichWithBookSlugsAsync(IList<ImporterQueueItemDTO> items)
+    {
+        var bookIds = items
+            .Where(x => !string.IsNullOrWhiteSpace(x.SharebookBookId))
+            .Select(x => Guid.Parse(x.SharebookBookId))
+            .Distinct()
+            .ToList();
+
+        if (!bookIds.Any()) return;
+
+        var books = await _bookRepository.GetAsync(x => bookIds.Contains(x.Id), x => x.Id);
+        var bookMap = books.Items.ToDictionary(x => x.Id, x => new { x.Slug, x.ImageSlug, x.ImageVersion });
+
+        foreach (var item in items)
+        {
+            if (!string.IsNullOrWhiteSpace(item.SharebookBookId) &&
+                Guid.TryParse(item.SharebookBookId, out var bookId) &&
+                bookMap.TryGetValue(bookId, out var bookData))
+            {
+                item.BookSlug = bookData.Slug;
+                item.BookImageSlug = bookData.ImageSlug;
+                item.BookThumbnailUrl = _uploadService.GetBookThumbnailUrl(bookData.ImageSlug, bookData.ImageVersion);
+            }
+        }
+    }
+
+    private static void AddItemFilterParameters(NpgsqlCommand command, int? sourceId, string status, int? id, string title)
+    {
+        if (sourceId.HasValue)
+            command.Parameters.AddWithValue("source_id", sourceId.Value);
+
+        if (status is not null)
+            command.Parameters.AddWithValue("status", status);
+
+        if (id.HasValue)
+            command.Parameters.AddWithValue("id", id.Value);
+
+        if (!string.IsNullOrWhiteSpace(title))
+            command.Parameters.AddWithValue("title", $"%{title.Trim()}%");
+    }
+
+    private static string GetUniversalString(NpgsqlDataReader reader, string columnName)
+    {
+        var ordinal = reader.GetOrdinal(columnName);
+        if (reader.IsDBNull(ordinal)) return null;
+
+        var value = reader.GetValue(ordinal);
+        return value?.ToString();
+    }
+
+    public async Task<string> GetEditorialPromptAsync(string sourceName, CancellationToken cancellationToken = default)
+    {
+        var connectionString = _configuration.GetConnectionString("ImporterPostgresConnection");
+        await using var conn = new NpgsqlConnection(connectionString);
+        await conn.OpenAsync(cancellationToken);
+        await using var cmd = new NpgsqlCommand("SELECT editorial_prompt FROM importer.sources WHERE name = @name", conn);
+        cmd.Parameters.AddWithValue("name", sourceName);
+        var result = await cmd.ExecuteScalarAsync(cancellationToken);
+        return result is DBNull ? null : result?.ToString();
+    }
+
+    public async Task UpdateEditorialPromptAsync(string sourceName, string prompt, CancellationToken cancellationToken = default)
+    {
+        var connectionString = _configuration.GetConnectionString("ImporterPostgresConnection");
+        await using var conn = new NpgsqlConnection(connectionString);
+        await conn.OpenAsync(cancellationToken);
+        await using var cmd = new NpgsqlCommand("UPDATE importer.sources SET editorial_prompt = @prompt WHERE name = @name", conn);
+        cmd.Parameters.AddWithValue("name", sourceName);
+        cmd.Parameters.AddWithValue("prompt", (object)prompt ?? DBNull.Value);
+        await cmd.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    public async Task<string> GetTranslationPromptAsync(string sourceName, CancellationToken cancellationToken = default)
+    {
+        var connectionString = _configuration.GetConnectionString("ImporterPostgresConnection");
+        await using var conn = new NpgsqlConnection(connectionString);
+        await conn.OpenAsync(cancellationToken);
+        await using var cmd = new NpgsqlCommand("SELECT translation_prompt FROM importer.sources WHERE name = @name", conn);
+        cmd.Parameters.AddWithValue("name", sourceName);
+        var result = await cmd.ExecuteScalarAsync(cancellationToken);
+        return result is DBNull ? null : result?.ToString();
+    }
+
+    public async Task UpdateTranslationPromptAsync(string sourceName, string prompt, CancellationToken cancellationToken = default)
+    {
+        var connectionString = _configuration.GetConnectionString("ImporterPostgresConnection");
+        await using var conn = new NpgsqlConnection(connectionString);
+        await conn.OpenAsync(cancellationToken);
+        await using var cmd = new NpgsqlCommand("UPDATE importer.sources SET translation_prompt = @prompt WHERE name = @name", conn);
+        cmd.Parameters.AddWithValue("name", sourceName);
+        cmd.Parameters.AddWithValue("prompt", (object)prompt ?? DBNull.Value);
+        await cmd.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    public async Task UpdateAdminNotesAsync(int id, string notes, CancellationToken cancellationToken = default)
+    {
+        var connectionString = _configuration.GetConnectionString("ImporterPostgresConnection");
+        await using var conn = new NpgsqlConnection(connectionString);
+        await conn.OpenAsync(cancellationToken);
+        await using var cmd = new NpgsqlCommand("UPDATE importer.queue_items SET admin_notes = @notes WHERE id = @id", conn);
+        cmd.Parameters.AddWithValue("id", id);
+        cmd.Parameters.AddWithValue("notes", string.IsNullOrWhiteSpace(notes) ? (object)DBNull.Value : notes.Trim());
+        await cmd.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    private static string GetNullableString(NpgsqlDataReader reader, string columnName)
+    {
+        return GetUniversalString(reader, columnName);
+    }
+
+    public async Task<IList<ImporterQueueItemHistoryEntryDTO>> GetItemHistoryAsync(int itemId, CancellationToken cancellationToken = default)
+    {
+        var connectionString = _configuration.GetConnectionString("ImporterPostgresConnection");
+        await using var conn = new NpgsqlConnection(connectionString);
+        await conn.OpenAsync(cancellationToken);
+
+        const string sql = @"
+SELECT changed_at, from_status, to_status
+FROM importer.queue_item_history
+WHERE queue_item_id = @item_id
+ORDER BY changed_at DESC";
+
+        await using var cmd = new NpgsqlCommand(sql, conn);
+        cmd.Parameters.AddWithValue("item_id", itemId);
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+
+        var result = new List<ImporterQueueItemHistoryEntryDTO>();
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            result.Add(new ImporterQueueItemHistoryEntryDTO
+            {
+                ChangedAt = reader.GetDateTime(reader.GetOrdinal("changed_at")),
+                FromStatus = reader.IsDBNull(reader.GetOrdinal("from_status")) ? null : reader.GetString(reader.GetOrdinal("from_status")),
+                ToStatus = reader.GetString(reader.GetOrdinal("to_status")),
+            });
+        }
+        return result;
+    }
+}

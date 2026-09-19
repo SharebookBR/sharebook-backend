@@ -30,7 +30,7 @@ namespace ShareBook.Service
             };
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync("ForgotPasswordTemplate", vm);
 
-            var title = "Esqueceu sua senha - Sharebook";
+            var title = "Crie uma nova senha";
             await _emailService.SendAsync(user.Email, user.Name, html, title);
         }
 
@@ -43,7 +43,7 @@ namespace ShareBook.Service
             };
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync("RequestParentAproval", vm);
 
-            var title = "Consentimento dos pais";
+            var title = "Autorize o acesso ao Sharebook";
             await _emailService.SendAsync(userDto.ParentEmail, "Pais", html, title);
         }
 
@@ -55,7 +55,7 @@ namespace ShareBook.Service
             };
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync("ParentAprovedNotifyUser", vm);
 
-            var title = "Consentimento dos pais";
+            var title = "Seu acesso ao Sharebook foi liberado";
             await _emailService.SendAsync(user.Email, user.Name, html, title);
         }
 

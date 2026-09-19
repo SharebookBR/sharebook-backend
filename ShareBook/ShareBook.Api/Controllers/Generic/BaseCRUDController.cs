@@ -65,8 +65,13 @@ namespace ShareBook.Api.Controllers
             
             var entity = _mapper.Map<T>(viewModel);
             var result = await _service.UpdateAsync(entity);
-            var resultVM = _mapper.Map<A>(result);
-            return new Result<A>(resultVM);
+            var resultVM = new Result<A>(result.Value == null ? null : _mapper.Map<A>(result.Value))
+            {
+                SuccessMessage = result.SuccessMessage
+            };
+            resultVM.Messages.AddRange(result.Messages);
+
+            return resultVM;
         }
     }
 }

@@ -149,10 +149,16 @@ public class NewEbookWeeklyDigest : GenericJob, IJob
             var unsubscribeToken = _userService.GenerateUnsubscribeToken(entry.User.Id);
             var unsubscribeUrl = $"{frontendUrl}/descadastrar?userId={entry.User.Id}&token={unsubscribeToken}";
 
+            var ebookCount = selectedEbooks.Count;
+            var ebookCountMsg = ebookCount == 1
+                ? "Há 1 livro digital novo para você esta semana."
+                : $"Há {ebookCount} livros digitais novos para você esta semana.";
+
             var vm = new
             {
                 Name = "{name}",
-                EbookCount = selectedEbooks.Count,
+                EbookCount = ebookCount,
+                EbookCountMessage = ebookCountMsg,
                 EbookListHtml = ebookListHtml,
                 AdditionalEbooksMessage = additionalEbooksMessage,
                 FrontendUrl = frontendUrl,
@@ -266,7 +272,7 @@ public class NewEbookWeeklyDigest : GenericJob, IJob
                     <span style=""color:#aaa;font-size:14px;"">{ebook.Author}</span>
                 </td>
                 <td style=""padding:14px 0;vertical-align:middle;text-align:right;white-space:nowrap;"">
-                    <a href=""{frontendUrl}/livros/{ebook.Slug}"" style=""background-color:#009FC7;color:white;text-decoration:none;font-size:14px;font-weight:bold;padding:8px 16px;border-radius:3px;display:inline-block;"">Tenho interesse</a>
+                    <a href=""{frontendUrl}/livros/{ebook.Slug}"" style=""background-color:#009FC7;color:white;text-decoration:none;font-size:14px;font-weight:bold;padding:8px 16px;border-radius:3px;display:inline-block;"">Ver livro digital</a>
                 </td>
             </tr>");
         }

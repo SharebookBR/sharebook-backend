@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -18,6 +19,22 @@ namespace ShareBook.Helper.Extensions
             str = str.Substring(0, str.Length <= 45 ? str.Length : 45).Trim();
             str = Regex.Replace(str, @"\s", "-"); // hyphens   
             return str;
+        }
+
+        public static string NextAvailableCopySlug(this string baseSlug, IEnumerable<string> existingSlugs)
+        {
+            var occupiedSlugs = new HashSet<string>(existingSlugs ?? Array.Empty<string>(), StringComparer.Ordinal);
+            if (!occupiedSlugs.Contains(baseSlug))
+                return baseSlug;
+
+            for (var copyNumber = 1; copyNumber < int.MaxValue; copyNumber++)
+            {
+                var candidate = $"{baseSlug}_copy{copyNumber}";
+                if (!occupiedSlugs.Contains(candidate))
+                    return candidate;
+            }
+
+            throw new InvalidOperationException($"Não foi possível gerar um slug disponível para '{baseSlug}'.");
         }
 
         public static string RemoveAccent(this string text)
@@ -40,6 +57,27 @@ namespace ShareBook.Helper.Extensions
             }
 
             return stringBuilder.ToString().Normalize(NormalizationForm.FormC);
+        }
+
+        public static string ToNormalizedSearchText(this string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return string.Empty;
+
+            var normalized = Regex.Replace(text, @"(?i)c\+\+", "cplusplus");
+            normalized = Regex.Replace(normalized, @"(?i)c#", "csharp");
+            normalized = Regex.Replace(normalized, @"(?i)f#", "fsharp");
+            normalized = Regex.Replace(normalized, @"(?i)\.net", "dotnet");
+
+            normalized = normalized
+                .RemoveAccent()
+                .Replace("-", " ")
+                .Replace("_", " ");
+
+            normalized = Regex.Replace(normalized, @"[^\w\s]", " ");
+            normalized = Regex.Replace(normalized, @"\s+", " ").Trim();
+
+            return normalized.ToLowerInvariant();
         }
 
 

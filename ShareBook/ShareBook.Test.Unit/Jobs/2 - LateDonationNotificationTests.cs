@@ -60,7 +60,21 @@ namespace ShareBook.Test.Unit.Jobs
             _mockBookService.Verify(c => c.GetStatsAsync(), Times.Once);
 
             _mockEmailService.Verify(c => c.SendToAdminsAsync(HtmlMock, LateDonationNotification.EmailAdminsSubject), Times.Once);
-            _mockEmailService.Verify(c => c.SendAsync(_softUser.Email, _softUser.Name, It.IsAny<string>(), LateDonationNotification.EmailDonatorSoftSubject, false, true), Times.Once);
+            Assert.Equal("Só falta escolher quem vai receber", LateDonationNotification.EmailDonatorSoftSubject);
+            _mockEmailService.Verify(c => c.SendAsync(
+                _softUser.Email,
+                _softUser.Name,
+                It.Is<string>(html =>
+                    html.Contains("Tem gente interessada em receber um livro") &&
+                    html.Contains("Escolher ganhador(a)") &&
+                    html.Contains("fale com a gente") &&
+                    html.Contains("Equipe Sharebook") &&
+                    html.Contains("Compartilhando conhecimento") &&
+                    !html.Contains("Para sua conveniência") &&
+                    !html.Contains("=)")),
+                LateDonationNotification.EmailDonatorSoftSubject,
+                false,
+                true), Times.Once);
 
 
             _mockConfiguration.VerifyNoOtherCalls();
@@ -87,13 +101,59 @@ namespace ShareBook.Test.Unit.Jobs
             _mockBookService.Verify(c => c.GetStatsAsync(), Times.Once);
 
             _mockEmailService.Verify(c => c.SendToAdminsAsync(HtmlMock, LateDonationNotification.EmailAdminsSubject), Times.Once);
-            _mockEmailService.Verify(c => c.SendAsync(_hardUser.Email, _hardUser.Name, It.IsAny<string>(), LateDonationNotification.EmailDonatorHardSubject, true, true), Times.Once);
+            Assert.Equal("Último aviso sobre sua doação", LateDonationNotification.EmailDonatorHardSubject);
+            _mockEmailService.Verify(c => c.SendAsync(
+                _hardUser.Email,
+                _hardUser.Name,
+                It.Is<string>(html =>
+                    html.Contains($"mais de {_maxLateDonationDays} dias") &&
+                    html.Contains("escolher o(a) ganhador(a) ou cancelar") &&
+                    html.Contains("Resolver minha doação") &&
+                    html.Contains("Este é o último aviso") &&
+                    html.Contains("sua conta será bloqueada") &&
+                    !html.Contains("Pessoas humildes") &&
+                    !html.Contains(" vc ") &&
+                    !html.Contains("Para sua conveniência")),
+                LateDonationNotification.EmailDonatorHardSubject,
+                true,
+                true), Times.Once);
 
 
             _mockConfiguration.VerifyNoOtherCalls();
             _mockEmailTemplate.VerifyNoOtherCalls();
             _mockBookService.VerifyNoOtherCalls();
             _mockEmailService.VerifyNoOtherCalls();
+        }
+
+        // Regressão do incidente de 20/08/2026: facilitador é opcional no livro, e
+        // um único livro sem facilitador derrubava o job inteiro.
+        [Fact]
+        public async Task SendEmailsWhenBookHasNoFacilitator()
+        {
+            var donor = new User { Id = Guid.NewGuid(), Name = "DonorWithoutFacilitator", Email = "donor@example.com" };
+            var bookWithoutFacilitator = BookMock.GetLordTheRings(donor);
+            _mockBookService.Setup(s => s.GetBooksChooseDateIsLateAsync()).ReturnsAsync(new List<Book> { bookWithoutFacilitator });
+
+            object adminVm = null;
+            _mockEmailTemplate
+                .Setup(s => s.GenerateHtmlFromTemplateAsync(It.IsAny<string>(), It.IsAny<object>()))
+                .Callback<string, object>((_, vm) => adminVm = vm)
+                .ReturnsAsync(HtmlMock);
+
+            LateDonationNotification job = new LateDonationNotification(_mockJobHistoryRepository.Object, _mockBookService.Object, _mockEmailService.Object, _mockEmailTemplate.Object, _mockLoggerFactory.Object, _mockConfiguration.Object);
+
+            JobHistory result = await job.WorkAsync();
+
+            Assert.True(result.IsSuccess);
+            Assert.Equal($"Encontradas 1 doações em atraso de 1 doadores distintos.E-mail enviado para o usuário: {donor.Name}", result.Details);
+
+            // A aposentadoria do facilitador começou pela experiência visível:
+            // o relatório continua útil sem expor essa função operacional.
+            var htmlTable = adminVm.GetType().GetProperty("htmlTable").GetValue(adminVm) as string;
+            Assert.Contains(donor.Name, htmlTable);
+            Assert.DoesNotContain("FACILITADOR", htmlTable);
+
+            _mockEmailService.Verify(c => c.SendToAdminsAsync(HtmlMock, LateDonationNotification.EmailAdminsSubject), Times.Once);
         }
 
         [Fact]

@@ -27,7 +27,9 @@ namespace ShareBook.Service
 {
     public class BookService : BaseService<Book>, IBookService
     {
+        private const int MaxSlugInsertAttempts = 5;
         private readonly IUploadService _uploadService;
+        private readonly IBookRepository _bookRepository;
         private readonly IBooksEmailService _booksEmailService;
         private readonly IConfiguration _configuration;
         private readonly IEBookService _ebookService;
@@ -41,6 +43,7 @@ namespace ShareBook.Service
                     NewBookQueue newBookQueue, IEBookService ebookService, ICategoryRepository categoryRepository)
                     : base(bookRepository, unitOfWork, validator)
         {
+            _bookRepository = bookRepository;
             _uploadService = uploadService;
             _booksEmailService = booksEmailService;
             _configuration = configuration;
@@ -132,23 +135,9 @@ namespace ShareBook.Service
             return enumValues;
         }
 
-        public async Task<IList<Book>> AvailableBooksAsync()
-        {
-            return SetImageUrl(
-                await _repository.Get()
-                    .Include(b => b.User)
-                    .ThenInclude(u => u.Address)
-                    .Include(b => b.Category)
-                    .ThenInclude(c => c.ParentCategory)
-                    .Where(b => b.Status == BookStatus.Available)
-                    .OrderByDescending(b => b.CreationDate)
-                    .ToListAsync()
-            );
-        }
-
         public async Task<IList<Book>> Random15BooksAsync()
         {
-            return SetImageUrl(
+            return SetImageUrls(
                 await _repository.Get()
                     .Include(b => b.User)
                     .ThenInclude(u => u.Address)
@@ -163,7 +152,7 @@ namespace ShareBook.Service
 
         public async Task<IList<Book>> GetNewest15EBooksAsync()
         {
-            return SetImageUrl(
+            return SetImageUrls(
                 await _repository.Get()
                     .Include(b => b.User)
                     .ThenInclude(u => u.Address)
@@ -195,6 +184,34 @@ namespace ShareBook.Service
             return await _repository.Get()
                 .Where(b => b.Status == BookStatus.Available && b.Type == BookType.Eletronic)
                 .CountAsync();
+        }
+
+        public async Task<int> GetRecentEBooksCountAsync(int days = 7)
+        {
+            var since = DateTime.UtcNow.AddDays(-days);
+
+            return await _repository.Get()
+                .Where(b => b.Status == BookStatus.Available 
+                    && b.Type == BookType.Eletronic
+                    && b.ApprovedAt.HasValue
+                    && b.ApprovedAt.Value >= since)
+                .CountAsync();
+        }
+
+        public async Task<IList<SitemapBookDTO>> GetSitemapBooksAsync()
+        {
+            return await _repository.Get()
+                .AsNoTracking()
+                .Where(b => b.Status != BookStatus.WaitingApproval
+                    && b.Status != BookStatus.Canceled
+                    && !string.IsNullOrWhiteSpace(b.Slug))
+                .OrderBy(b => b.Slug)
+                .Select(b => new SitemapBookDTO
+                {
+                    Slug = b.Slug,
+                    LastModifiedAt = b.ApprovedAt ?? b.CreationDate
+                })
+                .ToListAsync();
         }
 
         public async Task<AdminBooksResultDTO> GetAdminBooksAsync(
@@ -230,13 +247,23 @@ namespace ShareBook.Service
                 ItemsPerPage = normalizedItemsPerPage,
                 TotalItems = totalItems,
                 Summary = summary,
-                Items = SetImageUrl(books)
+                Items = SetImageUrls(books)
             };
         }
 
-        private IList<Book> SetImageUrl(IList<Book> books)
+        private IList<Book> SetImageUrls(IList<Book> books)
         {
-            return books.Select(b => { b.ImageUrl = _uploadService.GetImageUrl(b.ImageSlug, "Books"); return b; }).ToList();
+            return books.Select(book =>
+            {
+                SetImageUrls(book);
+                return book;
+            }).ToList();
+        }
+
+        private void SetImageUrls(Book book)
+        {
+            book.ImageUrl = _uploadService.GetImageUrl(book.ImageSlug, "Books", book.ImageVersion);
+            book.ThumbnailUrl = _uploadService.GetBookThumbnailUrl(book.ImageSlug, book.ImageVersion);
         }
 
         private IQueryable<Book> BuildAdminBooksQuery()
@@ -451,7 +478,7 @@ namespace ShareBook.Service
             if (result == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
-            result.ImageUrl = _uploadService.GetImageUrl(result.ImageSlug, "Books");
+            SetImageUrls(result);
 
             return result;
         }
@@ -490,16 +517,33 @@ namespace ShareBook.Service
 
             if (result.Success)
             {
-                entity.Slug = SetSlugByTitleOrIncremental(entity);
+                for (var attempt = 1; attempt <= MaxSlugInsertAttempts; attempt++)
+                {
+                    entity.Slug = await GetAvailableSlugAsync(entity.Title);
+                    entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, entity.Slug);
 
-                entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, entity.Slug);
+                    var uploadedPdf = entity.HasPdfToUpload();
+                    if (uploadedPdf)
+                        entity.EBookPdfPath = await _ebookService.UploadPdfAsync(entity);
 
-                if (entity.HasPdfToUpload())
-                    entity.EBookPdfPath = await _ebookService.UploadPdfAsync(entity);
+                    try
+                    {
+                        result.Value = await _repository.InsertAsync(entity);
+                        break;
+                    }
+                    catch (DuplicateBookSlugException) when (attempt < MaxSlugInsertAttempts)
+                    {
+                        await DeleteUploadedPdfAfterSlugConflictAsync(entity, uploadedPdf);
+                    }
+                    catch (DuplicateBookSlugException)
+                    {
+                        await DeleteUploadedPdfAfterSlugConflictAsync(entity, uploadedPdf);
+                        throw;
+                    }
+                }
 
-                result.Value = await _repository.InsertAsync(entity);
-
-                result.Value.ImageUrl = await _uploadService.UploadImageAsync(entity.ImageBytes, entity.ImageSlug, "Books");
+                await _uploadService.UploadImageAsync(entity.ImageBytes, entity.ImageSlug, "Books");
+                SetImageUrls(result.Value);
 
                 result.Value.ImageBytes = null;
                 result.Value.PdfBytes = null;
@@ -576,22 +620,27 @@ namespace ShareBook.Service
                 if (!string.IsNullOrWhiteSpace(savedBook.ImageSlug)
                     && !savedBook.ImageSlug.Equals(entity.ImageSlug, StringComparison.OrdinalIgnoreCase))
                 {
-                    await _uploadService.DeleteFileIfExistsAsync(savedBook.ImageSlug, "Books");
+                    await _uploadService.DeleteReplacedImageAsync(
+                        savedBook.ImageSlug,
+                        entity.ImageSlug,
+                        "Books");
                 }
+
+                savedBook.ImageVersion++;
             }
 
             //preparar o book para atualização
             savedBook.Author = entity.Author;
             savedBook.FreightOption = entity.FreightOption;
             savedBook.Author = entity.Author;
-            savedBook.ImageSlug = entity.ImageSlug;
+
+            // Imagem é opcional no update e o UpdateBookVM não carrega ImageSlug.
+            // Copiar cegamente apagava a capa de quem só quis editar texto.
+            if (!string.IsNullOrWhiteSpace(entity.ImageSlug))
+                savedBook.ImageSlug = entity.ImageSlug;
+
             savedBook.Title = entity.Title;
             savedBook.CategoryId = entity.CategoryId;
-
-            // Condição efetuada para evitar busca no BD desnecessariamente por conta do SetSlugByTitleOrIncremental()
-            if (savedBook.Slug != entity.Slug)
-                savedBook.Slug = SetSlugByTitleOrIncremental(entity);
-
 
             savedBook.Synopsis = entity.Synopsis;
             savedBook.TrackingNumber = entity.TrackingNumber;
@@ -604,45 +653,158 @@ namespace ShareBook.Service
 
             result.Value = await _repository.UpdateAsync(savedBook);
             result.Value.ImageBytes = null;
+            SetImageUrls(result.Value);
 
             return result;
         }
 
         public async Task<PagedList<Book>> FullSearchAsync(string criteria, int page, int itemsPerPage, bool isAdmin)
         {
-            criteria = (criteria ?? string.Empty).Trim().ToLower();
+            var normalizedCriteria = criteria.ToNormalizedSearchText();
+            var query = _bookRepository
+                .FullTextSearch(normalizedCriteria, includeUnavailable: isAdmin)
+                .Select(book => new Book
+                {
+                    Id = book.Id,
+                    Title = book.Title,
+                    Author = book.Author,
+                    Status = book.Status,
+                    DownloadCount = book.DownloadCount,
+                    FreightOption = book.FreightOption,
+                    ImageSlug = book.ImageSlug,
+                    ImageVersion = book.ImageVersion,
+                    ImageUrl = _uploadService.GetImageUrl(book.ImageSlug, "Books", book.ImageVersion),
+                    ThumbnailUrl = _uploadService.GetBookThumbnailUrl(book.ImageSlug, book.ImageVersion),
+                    Slug = book.Slug,
+                    CreationDate = book.CreationDate,
+                    Synopsis = book.Synopsis,
+                    ChooseDate = book.ChooseDate,
+                    User = new User
+                    {
+                        Id = book.User.Id,
+                        Email = book.User.Email,
+                        Name = book.User.Name,
+                        Linkedin = book.User.Linkedin,
+                        Address = new Address
+                        {
+                            City = book.User.Address.City,
+                            State = book.User.Address.State,
+                            Country = book.User.Address.Country,
+                            UserId = book.User.Address.UserId,
+                            Id = book.User.Address.Id,
+                            CreationDate = book.User.Address.CreationDate,
+                        }
+                    },
+                    CategoryId = book.CategoryId,
+                    Category = new Category
+                    {
+                        Id = book.Category.Id,
+                        Name = book.Category.Name,
+                        ParentCategoryId = book.Category.ParentCategoryId,
+                        ParentCategory = book.Category.ParentCategory == null
+                            ? null
+                            : new Category
+                            {
+                                Id = book.Category.ParentCategory.Id,
+                                Name = book.Category.ParentCategory.Name
+                            }
+                    },
+                    Type = book.Type,
+                    EBookPdfPath = book.EBookPdfPath
+                });
 
-            Expression<Func<Book, bool>> filter = x =>
-                (x.Author.ToLower().Contains(criteria)
-                 || x.Title.ToLower().Contains(criteria)
-                 || x.Category.Name.ToLower().Contains(criteria))
-                && x.Status == BookStatus.Available;
-
-            if (!isAdmin)
-            {
-                filter = x =>
-                    x.Author.ToLower().Contains(criteria)
-                    || x.Title.ToLower().Contains(criteria)
-                    || x.Category.Name.ToLower().Contains(criteria);
-            }
-
-            return await SearchBooksAsync(filter, page, itemsPerPage);
+            return await FormatPagedListAsync(query, page, itemsPerPage);
         }
 
-        public async Task<PagedList<Book>> ByCategoryIdAsync(Guid categoryId, int page, int itemsPerPage)
-            => await SearchBooksAsync(x => x.Status == BookStatus.Available && x.CategoryId == categoryId, page, itemsPerPage);
+        public async Task<CategoryBooksResultDTO> ByCategoryIdAsync(Guid categoryId, int page, int itemsPerPage)
+        {
+            var query = _repository.Get()
+                .Where(x => x.Status == BookStatus.Available && x.CategoryId == categoryId);
 
-        public async Task<PagedList<Book>> ByCategoryTreeIdAsync(Guid categoryId, int page, int itemsPerPage)
-            => await SearchBooksAsync(
-                x => x.Status == BookStatus.Available
-                    && (x.CategoryId == categoryId || x.Category.ParentCategoryId == categoryId),
-                page,
-                itemsPerPage);
+            return await FormatCategoryBooksResultAsync(query, page, itemsPerPage);
+        }
+
+        public async Task<CategoryBooksResultDTO> ByCategoryTreeIdAsync(Guid categoryId, int page, int itemsPerPage)
+        {
+            var query = _repository.Get()
+                .Where(x => x.Status == BookStatus.Available
+                    && (x.CategoryId == categoryId || x.Category.ParentCategoryId == categoryId));
+
+            return await FormatCategoryBooksResultAsync(query, page, itemsPerPage);
+        }
+
+        private async Task<CategoryBooksResultDTO> FormatCategoryBooksResultAsync(IQueryable<Book> query, int page, int itemsPerPage)
+        {
+            var totalItems = await query.CountAsync();
+            var physicalCount = await query.CountAsync(x => x.Type == BookType.Printed);
+            var ebooksCount = await query.CountAsync(x => x.Type == BookType.Eletronic);
+
+            var items = await query
+                .OrderByDescending(x => x.CreationDate)
+                .Skip((page - 1) * itemsPerPage)
+                .Take(itemsPerPage)
+                .ToListAsync();
+
+            return new CategoryBooksResultDTO
+            {
+                Page = page,
+                ItemsPerPage = itemsPerPage,
+                TotalItems = totalItems,
+                PhysicalBooksCount = physicalCount,
+                EbooksCount = ebooksCount,
+                Items = SetImageUrls(items)
+            };
+        }
 
         public async Task<Book> BySlugAsync(string slug)
         {
             var pagedBook = await SearchBooksAsync(x => (x.Slug.Equals(slug)), 1, 1);
             return pagedBook.Items.FirstOrDefault();
+        }
+
+        public async Task<IList<Book>> GetRecommendationsAsync(Guid bookId, int limit = 6)
+        {
+            var normalizedLimit = Math.Min(Math.Max(limit, 1), 6);
+            var source = await _repository.Get()
+                .AsNoTracking()
+                .Include(book => book.Category)
+                    .ThenInclude(category => category.ParentCategory)
+                .FirstOrDefaultAsync(book => book.Id == bookId);
+
+            if (source == null)
+                throw new ShareBookException(ShareBookException.Error.NotFound);
+
+            var candidates = await _repository.Get()
+                .AsNoTracking()
+                .Include(book => book.Category)
+                    .ThenInclude(category => category.ParentCategory)
+                .Where(book => book.Status == BookStatus.Available && book.Id != bookId)
+                .ToListAsync();
+
+            var rankedIds = BookRecommendationRanker
+                .Rank(source, candidates, normalizedLimit)
+                .Select(book => book.Id)
+                .ToList();
+
+            if (rankedIds.Count == 0)
+                return Array.Empty<Book>();
+
+            var books = await _repository.Get()
+                .AsNoTracking()
+                .Include(book => book.User)
+                    .ThenInclude(user => user.Address)
+                .Include(book => book.Category)
+                    .ThenInclude(category => category.ParentCategory)
+                .Where(book => rankedIds.Contains(book.Id))
+                .ToListAsync();
+
+            var booksById = books.ToDictionary(book => book.Id);
+            var orderedBooks = rankedIds
+                .Where(booksById.ContainsKey)
+                .Select(id => booksById[id])
+                .ToList();
+
+            return SetImageUrls(orderedBooks);
         }
 
         public async Task<bool> UserRequestedBookAsync(Guid bookId)
@@ -707,7 +869,7 @@ namespace ShareBook.Service
                 ItemsPerPage = normalizedItemsPerPage,
                 TotalItems = totalItems,
                 Summary = summary,
-                Items = SetImageUrl(items)
+                Items = SetImageUrls(items)
             };
         }
 
@@ -812,6 +974,33 @@ namespace ShareBook.Service
 
         #region Private
 
+        private async Task<string> GetAvailableSlugAsync(string title)
+        {
+            var baseSlug = title.GenerateSlug();
+            var existingSlugs = await _bookRepository.GetSlugsStartingWithAsync(baseSlug);
+
+            return baseSlug.NextAvailableCopySlug(existingSlugs);
+        }
+
+        private async Task DeleteUploadedPdfAfterSlugConflictAsync(Book entity, bool uploadedPdf)
+        {
+            if (!uploadedPdf || string.IsNullOrWhiteSpace(entity.EBookPdfPath))
+                return;
+
+            try
+            {
+                await _ebookService.DeletePdfAsync(entity);
+            }
+            catch
+            {
+                // A disputa de slug não deve impedir a nova tentativa de persistência.
+            }
+            finally
+            {
+                entity.EBookPdfPath = null;
+            }
+        }
+
         private async Task<PagedList<Book>> SearchBooksAsync(Expression<Func<Book, bool>> filter, int page, int itemsPerPage)
             => await SearchBooksAsync(filter, page, itemsPerPage, x => x.CreationDate);
 
@@ -828,7 +1017,10 @@ namespace ShareBook.Service
                     Status = u.Status,
                     DownloadCount = u.DownloadCount,
                     FreightOption = u.FreightOption,
-                    ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books"),
+                    ImageSlug = u.ImageSlug,
+                    ImageVersion = u.ImageVersion,
+                    ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books", u.ImageVersion),
+                    ThumbnailUrl = _uploadService.GetBookThumbnailUrl(u.ImageSlug, u.ImageVersion),
                     Slug = u.Slug,
                     CreationDate = u.CreationDate,
                     Synopsis = u.Synopsis,
@@ -869,18 +1061,6 @@ namespace ShareBook.Service
 
             return await FormatPagedListAsync(query, page, itemsPerPage);
         }
-
-        private string SetSlugByTitleOrIncremental(Book entity)
-        {
-            // TODO: Migrate to async/await (P.s: breaking unit tests)
-            var slug = _repository.Get()
-                        .Where(x => x.Title.ToUpper().Trim().Equals(entity.Title.ToUpper().Trim())
-                                    && !x.Id.Equals(entity.Id))
-                        .OrderByDescending(x => x.CreationDate).FirstOrDefault()?.Slug;
-
-            return string.IsNullOrWhiteSpace(slug) ? entity.Title.GenerateSlug() : slug.AddIncremental();
-        }
-
 
         public async Task<BookStatsDTO> GetStatsAsync()
         {

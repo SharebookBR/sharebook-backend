@@ -20,8 +20,6 @@ namespace ShareBook.Service
 
         IList<dynamic> FreightOptions();
 
-        Task<IList<Book>> AvailableBooksAsync();
-
         Task<IList<Book>> Random15BooksAsync();
 
         Task<IList<Book>> GetNewest15EBooksAsync();
@@ -29,6 +27,10 @@ namespace ShareBook.Service
         Task<PagedList<Book>> RecentEBooksAsync(int page, int itemsPerPage, int days = 7);
 
         Task<int> GetAvailableEBooksCountAsync();
+
+        Task<int> GetRecentEBooksCountAsync(int days = 7);
+
+        Task<IList<SitemapBookDTO>> GetSitemapBooksAsync();
 
         Task<AdminBooksResultDTO> GetAdminBooksAsync(
             int page,
@@ -40,13 +42,15 @@ namespace ShareBook.Service
 
         Task<PagedList<Book>> FullSearchAsync(string criteria, int page, int itemsPerPage, bool isAdmin = false);
 
-        Task<PagedList<Book>> ByCategoryIdAsync(Guid categoryId, int page, int items);
+        Task<CategoryBooksResultDTO> ByCategoryIdAsync(Guid categoryId, int page, int items);
 
-        Task<PagedList<Book>> ByCategoryTreeIdAsync(Guid categoryId, int page, int items);
+        Task<CategoryBooksResultDTO> ByCategoryTreeIdAsync(Guid categoryId, int page, int items);
 
         Task<IList<Book>> GetAllAsync(int page, int items);
 
         Task<Book> BySlugAsync(string slug);
+
+        Task<IList<Book>> GetRecommendationsAsync(Guid bookId, int limit = 6);
 
         Task<bool> UserRequestedBookAsync(Guid bookId);
 

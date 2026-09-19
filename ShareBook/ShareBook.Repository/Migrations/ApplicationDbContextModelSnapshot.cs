@@ -17,9 +17,10 @@ namespace ShareBook.Infra.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.3")
+                .HasAnnotation("ProductVersion", "10.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "unaccent");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("ShareBook.Domain.AccessHistory", b =>
@@ -144,6 +145,11 @@ namespace ShareBook.Infra.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<int>("ImageVersion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
                     b.Property<string>("Slug")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
@@ -175,6 +181,11 @@ namespace ShareBook.Infra.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Books_Slug")
+                        .HasFilter("\"Slug\" IS NOT NULL");
 
                     b.HasIndex("UserId");
 
@@ -216,6 +227,38 @@ namespace ShareBook.Infra.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("BookDownloads", (string)null);
+                });
+
+            modelBuilder.Entity("ShareBook.Domain.BookDownloadEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BookId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CreationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("DownloadedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Source")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookId", "DownloadedAtUtc");
+
+                    b.HasIndex("DownloadedAtUtc", "BookId");
+
+                    b.HasIndex("UserId", "DownloadedAtUtc");
+
+                    b.ToTable("BookDownloadEvents");
                 });
 
             modelBuilder.Entity("ShareBook.Domain.BookUser", b =>
@@ -280,40 +323,7 @@ namespace ShareBook.Infra.Data.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("ShareBook.Domain.JobHistory", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("CreationDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Details")
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)");
-
-                    b.Property<bool>("IsSuccess")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("JobName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("LastResult")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<double>("TimeSpentSeconds")
-                        .HasColumnType("double precision");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("JobHistories");
-                });
-
-            modelBuilder.Entity("ShareBook.Domain.LogEntry", b =>
+            modelBuilder.Entity("ShareBook.Domain.EFLog", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -345,7 +355,40 @@ namespace ShareBook.Infra.Data.Migrations
 
                     b.HasIndex("EntityName", "EntityId");
 
-                    b.ToTable("LogEntries");
+                    b.ToTable("EFLogs");
+                });
+
+            modelBuilder.Entity("ShareBook.Domain.JobHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CreationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Details")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<bool>("IsSuccess")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("JobName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("LastResult")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<double>("TimeSpentSeconds")
+                        .HasColumnType("double precision");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("JobHistories");
                 });
 
             modelBuilder.Entity("ShareBook.Domain.MailBounce", b =>
@@ -583,6 +626,23 @@ namespace ShareBook.Infra.Data.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Book");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ShareBook.Domain.BookDownloadEvent", b =>
+                {
+                    b.HasOne("ShareBook.Domain.Book", "Book")
+                        .WithMany()
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ShareBook.Domain.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
 
                     b.Navigation("Book");
 

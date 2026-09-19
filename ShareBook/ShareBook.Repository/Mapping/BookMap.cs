@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ShareBook.Domain;
 
@@ -26,8 +26,16 @@ namespace ShareBook.Repository.Mapping
                 .HasMaxLength(100)
                 .IsRequired();
 
+            entityBuilder.Property(t => t.ImageVersion)
+                .HasDefaultValue(1);
+
             entityBuilder.Property(t => t.Slug)
                .HasMaxLength(100);
+
+            entityBuilder.HasIndex(t => t.Slug)
+                .IsUnique()
+                .HasFilter("\"Slug\" IS NOT NULL")
+                .HasDatabaseName("UX_Books_Slug");
 
             entityBuilder.Property(t => t.Synopsis)
                .HasMaxLength(2000);
@@ -38,6 +46,8 @@ namespace ShareBook.Repository.Mapping
             entityBuilder.Ignore(t => t.ImageBytes);
 
             entityBuilder.Ignore(t => t.ImageUrl);
+
+            entityBuilder.Ignore(t => t.ThumbnailUrl);
 
             entityBuilder.Ignore(t => t.ImageName);
 

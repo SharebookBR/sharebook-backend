@@ -20,9 +20,9 @@ public class LateDonationNotification : GenericJob, IJob
     private readonly IConfiguration _configuration;
 
     public const string EmailTemplateName = "LateDonationNotification";
-    public const string EmailAdminsSubject = "SHAREBOOK - STATUS DO DIA.";
-    public const string EmailDonatorHardSubject = "Doação abandonada no Sharebook. Urgente!";
-    public const string EmailDonatorSoftSubject = "Lembrete do Sharebook";
+    public const string EmailAdminsSubject = "Status diário das doações";
+    public const string EmailDonatorHardSubject = "Último aviso sobre sua doação";
+    public const string EmailDonatorSoftSubject = "Só falta escolher quem vai receber";
     public const string ConfigMaxLateDonationDaysKey = "SharebookSettings:MaxLateDonationDays";
     private readonly int maxLateDonationDays;
 
@@ -33,7 +33,7 @@ public class LateDonationNotification : GenericJob, IJob
         IEmailTemplate emailTemplate, ILoggerFactory loggerFactory, IConfiguration configuration) : base(jobHistoryRepo, loggerFactory)
     {
         JobName = "LateDonationNotification";
-        Description = "Notifica o facilitador e doador com lista de doações em atraso " +
+        Description = "Notifica administradores e doadores com a lista de doações em atraso " +
                         "ordenado pelo mais atrasado.";
         Interval    = Interval.Dayly;
         Active      = true;
@@ -79,7 +79,7 @@ public class LateDonationNotification : GenericJob, IJob
 
     private async Task SendEmailAdminAsync(IList<Book> booksLate, BookStatsDTO status)
     {
-        var htmlTable = "<TABLE border=1 cellpadding=3 cellspacing=0><TR bgcolor='#ffff00'><TD><b>LIVRO</b></TD><TD><b>DIAS DE <BR>ATRASO</b></TD><TD><b>TOTAL <br>INTERESSADOS</b></TD><TD><b>DOADOR</b></TD><TD><b>FACILITADOR</b></TD><TD><b>ANOTAÇÕES</b></TD></TR>";
+        var htmlTable = "<TABLE border=1 cellpadding=3 cellspacing=0><TR bgcolor='#ffff00'><TD><b>LIVRO</b></TD><TD><b>DIAS DE <BR>ATRASO</b></TD><TD><b>TOTAL <br>INTERESSADOS</b></TD><TD><b>DOADOR</b></TD><TD><b>ANOTAÇÕES</b></TD></TR>";
 
         foreach (var book in booksLate)
         {
@@ -87,13 +87,12 @@ public class LateDonationNotification : GenericJob, IJob
 
             var whatsappLink = GetWhatsappLink(book.User.Phone);
 
-            htmlTable += string.Format("<TR><TD>{0}<BR>{1}</TD><TD>{2}</TD><TD>{3}</TD><TD>{4}<BR>{5}<BR>{6}<BR>{7}</TD><TD>{8}<BR>{9}<BR>{10}<BR>{11}</TD><TD>{12}</TD></TR>", 
+            htmlTable += string.Format("<TR><TD>{0}<BR>{1}</TD><TD>{2}</TD><TD>{3}</TD><TD>{4}<BR>{5}<BR>{6}<BR>{7}</TD><TD>{8}</TD></TR>",
                 book.Title, 
                 book.Status, 
                 book.DaysLate(), 
                 book.TotalInterested(),
                 book.User.Name, book.User.Email, whatsappLink, book.User.Linkedin,
-                book.UserFacilitator.Name, book.UserFacilitator.Email, book.UserFacilitator.Phone, book.UserFacilitator.Linkedin,
                 notes);
         }
 
@@ -143,25 +142,26 @@ public class LateDonationNotification : GenericJob, IJob
 
     private async Task SendEmailDonatorHardAsync(User donator)
     {
-        var html = $"<p>Bom dia. Consta em nosso sistema que você tem uma doação abandonada no sharebook com mais de {maxLateDonationDays} dias de atraso.</p>";
-        html += "<p>Essa é uma situação grave porque temos muitos usuários aguardando sua decisão. Pessoas humildes que desejam e precisam do livro que vc se propôs a doar em nosso app.</p>";
-        html += "<p>Para sua conveniência use esse link para <strong>concluir</strong> ou <strong>cancelar</strong>: <a href='https://www.sharebook.com.br/book/donations' target='_blank'>Minhas doações</a></p>";
-        html += "<p>Esse é nosso último aviso. Caso não responda, vamos considerar que a doação foi abandonada e sua conta será bloqueada em nosso sistema.</p>";
+        var html = "<p>Olá!</p>";
+        html += $"<p>Sua doação está há mais de {maxLateDonationDays} dias aguardando uma decisão.</p>";
+        html += "<p>Entre no Sharebook para escolher o(a) ganhador(a) ou cancelar a doação.</p>";
+        html += "<p><a href='https://www.sharebook.com.br/book/donations' target='_blank'><strong>Resolver minha doação</strong></a></p>";
+        html += "<p>Este é o último aviso. Se não houver uma resposta, a doação será considerada abandonada e sua conta será bloqueada.</p>";
             
-        html += "<p>Conto com sua compreensão e colaboração.</p>";
-        html += "<p>Sinceramente,</p>";
-        html += "<p>Sharebook</p>";
+        html += "<p>Se precisar de ajuda, <a href='https://www.sharebook.com.br/contact-us' target='_blank'>fale com a gente</a>.</p>";
+        html += "<p>Um abraço,<br>Equipe Sharebook<br><small>Compartilhando conhecimento</small></p>";
 
         await _emailService.SendAsync(donator.Email, donator.Name, html, EmailDonatorHardSubject, copyAdmins: true, highPriority: true);
     }
 
     private async Task SendEmailDonatorSoftAsync(User donator)
     {
-        var html = "<p>Bom dia! Aqui é o Sharebook. Vim aqui pra te ajudar a concluir a doação do seu livro.</p>";
-        html += "<p>Por favor entre no Sharebook e escolha o ganhador.</p>";
-        html += "<p>Para sua conveniência use esse link: <a href='https://www.sharebook.com.br/book/donations' target='_blank'>Minhas doações</a></p>";
-        html += "<p>Obrigado. Qualquer dúvida pode entrar em contato com o seu facilitador. É um prazer ajudar. =)</p>";
-        html += "<p>Sharebook</p>";
+        var html = "<p>Olá!</p>";
+        html += "<p>Tem gente interessada em receber um livro que você colocou para doação. Agora só falta fazer sua escolha.</p>";
+        html += "<p><a href='https://www.sharebook.com.br/book/donations' target='_blank'><strong>Escolher ganhador(a)</strong></a></p>";
+        html += "<p>Se precisar de ajuda, <a href='https://www.sharebook.com.br/contact-us' target='_blank'>fale com a gente</a>.</p>";
+        html += "<p>Valeu por fazer os livros seguirem adiante.</p>";
+        html += "<p>Um abraço,<br>Equipe Sharebook<br><small>Compartilhando conhecimento</small></p>";
 
         await _emailService.SendAsync(donator.Email, donator.Name, html, EmailDonatorSoftSubject, copyAdmins: false, highPriority: true);
     }

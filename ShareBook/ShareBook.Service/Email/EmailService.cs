@@ -121,7 +121,8 @@ public class EmailService : IEmailService
                 MaxRetryAttempts = 2,
                 Delay = TimeSpan.FromSeconds(2),
                 BackoffType = DelayBackoffType.Exponential,
-                ShouldHandle = new PredicateBuilder().Handle<Exception>(),
+                ShouldHandle = new PredicateBuilder().Handle<Exception>(ex =>
+                    ex is not SmtpCommandException smtp || !smtp.Message.Contains("Ratelimit")),
                 OnRetry = args =>
                 {
                     _logger.LogWarning(args.Outcome.Exception,
@@ -139,16 +140,28 @@ public class EmailService : IEmailService
                 using var client = new SmtpClient();
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
-                if (_settings.UseSSL)
+                if (_settings.EffectiveSmtpUseSSL)
                     client.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
                 client.CheckCertificateRevocation = false;
 
-                await client.ConnectAsync(_settings.HostName, _settings.Port, _settings.UseSSL, cts.Token);
-                await client.AuthenticateAsync(_settings.Username, _settings.Password, cts.Token);
-                await client.SendAsync(message, cts.Token);
+                await client.ConnectAsync(_settings.EffectiveSmtpHostName, _settings.EffectiveSmtpPort, _settings.EffectiveSmtpUseSSL, cts.Token);
+                await client.AuthenticateAsync(_settings.EffectiveSmtpUsername, _settings.EffectiveSmtpPassword, cts.Token);
+
+                var envelopeSender = MailboxAddress.Parse(_settings.EffectiveReturnPath);
+                var recipients = message.To.Mailboxes
+                    .Concat(message.Cc.Mailboxes)
+                    .Concat(message.Bcc.Mailboxes)
+                    .ToList();
+                await client.SendAsync(message, envelopeSender, recipients, cts.Token);
                 await client.DisconnectAsync(true, cts.Token);
             });
+        }
+        catch (SmtpCommandException ex) when (ex.Message.Contains("Ratelimit"))
+        {
+            // Rate limit é um erro transitório e self-healing — não alarmamos aqui.
+            _logger.LogInformation("Rate limit SMTP ao tentar enviar para {Email}.", emailRecipient);
+            throw;
         }
         catch (Exception ex)
         {
@@ -202,8 +215,8 @@ public class EmailService : IEmailService
 
     public async Task TestAsync(string email, string name)
     {
-        var subject = "Sharebook - teste de email";
-        var message = $"<p>Olá {name},</p> <p>Esse é um email de teste para verificar se o sharebook consegue fazer contato com você. Por favor avise o facilitador quando esse email chegar. Obrigado.</p>";
+        var subject = "Teste de envio do Sharebook";
+        var message = $"<p>Olá, {name}!</p><p>Este é um e-mail de teste do Sharebook. Se ele chegou, o envio está funcionando.</p><p>Um abraço,<br>Equipe Sharebook<br><small>Compartilhando conhecimento</small></p>";
         await this.SendSmtpAsync(email, name, message, subject, copyAdmins: false);
     }
 
@@ -217,10 +230,16 @@ public class EmailService : IEmailService
             return log;
         }
 
-        await _imapClient.ConnectAsync(_settings.HostName, _settings.ImapPort, _settings.UseSSL);
-        await _imapClient.AuthenticateAsync(_settings.Username, _settings.Password);
+        await _imapClient.ConnectAsync(_settings.EffectiveImapHostName, _settings.ImapPort, _settings.EffectiveImapUseSSL);
+        await _imapClient.AuthenticateAsync(_settings.EffectiveImapUsername, _settings.EffectiveImapPassword);
 
         var bounceFolder = await GetBounceFolderAsync();
+        if (bounceFolder == null)
+        {
+            log.Add($"Não foi possível processar os emails bounce porque a pasta '{_settings.BounceFolder}' não foi encontrada.");
+            return log;
+        }
+
         await bounceFolder.OpenAsync(FolderAccess.ReadWrite);
 
         var uniqueIds = await bounceFolder.SearchAsync(SearchQuery.All);
@@ -229,17 +248,18 @@ public class EmailService : IEmailService
         foreach (var item in items)
         {
             var message = await bounceFolder.GetMessageAsync(item.UniqueId);
-            var bounce = new MailBounce(message.Subject, message.TextBody);
-            await bounceFolder.AddFlagsAsync(item.UniqueId, MessageFlags.Deleted, true);
+            var body = message.TextBody ?? message.HtmlBody ?? message.Body?.ToString() ?? string.Empty;
+            var bounce = new MailBounce(message.Subject, body);
 
             if (bounce.IsBounce)
             {
                 log.Add($"Email bounce processado:  subject: {message.Subject}, errorCode: {bounce.ErrorCode}");
                 await _ctx.MailBounces.AddAsync(bounce);
+                await bounceFolder.AddFlagsAsync(item.UniqueId, MessageFlags.Deleted, true);
             }
             else
             {
-                log.Add($"Não vou processar porque NÃO É um email bounce:  subject: {message.Subject}");
+                log.Add($"Não vou processar nem apagar porque NÃO É um email bounce:  subject: {message.Subject}");
             }
 
         }
@@ -254,8 +274,11 @@ public class EmailService : IEmailService
         return log;
     }
 
-    private async Task<IMailFolder?> GetBounceFolderAsync()
+    private async Task<IMailFolder> GetBounceFolderAsync()
     {
+        if (string.Equals(_settings.BounceFolder, "INBOX", StringComparison.OrdinalIgnoreCase))
+            return _imapClient.Inbox;
+
         var personal = await _imapClient.GetFolderAsync(_imapClient.PersonalNamespaces[0].Path);
         foreach (var folder in await personal.GetSubfoldersAsync(false))
             if (folder.Name == _settings.BounceFolder)

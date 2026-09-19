@@ -3,6 +3,7 @@ using Serilog;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -12,9 +13,11 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using ShareBook.Api.Configuration;
 using ShareBook.Api.Filters;
+using ShareBook.Api.RateLimiting;
 using ShareBook.Api.Middleware;
 using ShareBook.Repository;
 using ShareBook.Service;
+using ShareBook.Service.Analytics;
 using ShareBook.Service.AwsSqs;
 using ShareBook.Service.EBook;
 using ShareBook.Service.Muambator;
@@ -68,6 +71,17 @@ namespace ShareBook.Api
             });
 
             services.AddHttpContextAccessor();
+            services.AddShareBookForwardedHeaders(Configuration);
+            services
+                .AddOptions<EBookDownloadRateLimitOptions>()
+                .Bind(Configuration.GetSection(EBookDownloadRateLimitOptions.SectionName))
+                .Validate(options => options.PermitLimit > 0,
+                    "EBookDownloadRateLimit:PermitLimit deve ser maior que zero.")
+                .Validate(options => options.WindowHours > 0,
+                    "EBookDownloadRateLimit:WindowHours deve ser maior que zero.")
+                .ValidateOnStart();
+            services.AddSingleton(TimeProvider.System);
+            services.AddSingleton<IEBookDownloadRateLimiter, EBookDownloadRateLimiter>();
 
             services.Configure<ImageSettings>(options => Configuration.GetSection("ImageSettings").Bind(options));
 
@@ -87,6 +101,8 @@ namespace ShareBook.Api
             });
 
             services.Configure<MeetupSettings>(options => Configuration.GetSection("MeetupSettings").Bind(options));
+
+            services.Configure<GA4Settings>(options => Configuration.GetSection("GA4").Bind(options));
 
             services.AddHttpContextAccessor();
 
@@ -113,6 +129,7 @@ namespace ShareBook.Api
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseForwardedHeaders();
             app.UseSerilogRequestLogging();
 
             app.UseHealthChecks("/hc");
@@ -124,6 +141,11 @@ namespace ShareBook.Api
                 {
                     // Enable cors
                     context.Context.Response.Headers["Access-Control-Allow-Origin"] = "*";
+
+                    if (context.Context.Request.Path.StartsWithSegments("/Images/Books"))
+                    {
+                        context.Context.Response.Headers["Cache-Control"] = "public,max-age=86400";
+                    }
                 }
             };
 

@@ -53,6 +53,10 @@
             margin-bottom: 20px;
         }
 
+        .signature {
+            margin-bottom: 20px;
+        }
+
         .unsubscribe a {
             color: #aaa;
         }
@@ -90,11 +94,11 @@
 <body>
     <div class="container">
         <div class="main-content">
-            <h2>Novos livros digitais esta semana</h2>
+            <h2>Livros digitais novos esta semana</h2>
 
             <div class="message">
-                Olá, {Name}!<br><br>
-                Separei {EbookCount} livros digitais desta semana para você.
+                Olá, {Name}.<br><br>
+                {EbookCountMessage}
             </div>
 
             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 24px 0;">
@@ -104,15 +108,18 @@
             {AdditionalEbooksMessage}
 
             <a href="{FrontendUrl}/livros-digitais/novidades" class="button" target="_blank">
-                Ver todos os livros digitais
+                Ver livros digitais
             </a>
 
-            <p style="font-size:16px;color:#757575;">
-                Tem alguma dúvida ou sugestão? Use o <a href="{FrontendUrl}/contact-us" target="_blank">fale conosco no app</a>. :-)
-            </p>
         </div>
 
         <div class="footer">
+            <div class="signature">
+                Um abraço,<br>
+                Equipe Sharebook<br>
+                <small>Compartilhando conhecimento</small>
+            </div>
+
             <div class="unsubscribe">
                 <a href="{UnsubscribeUrl}">Cancelar inscrição</a>
             </div>

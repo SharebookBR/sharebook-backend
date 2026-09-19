@@ -1,0 +1,82 @@
+using System.Net;
+using Newtonsoft.Json;
+using ShareBook.Domain;
+using ShareBook.Domain.DTOs;
+using ShareBook.Domain.Enums;
+
+namespace ShareBook.Test.Integration.Tests.HomeTests;
+
+[Collection(nameof(ShareBookTestsFixture))]
+public class HomeTests
+{
+    private readonly ShareBookTestsFixture _fixture;
+
+    public HomeTests(ShareBookTestsFixture fixture)
+    {
+        _fixture = fixture;
+    }
+
+    [Fact]
+    public async Task FeaturedPrintedBooks_ReturnsCompactAvailableList()
+    {
+        var response = await _fixture.ShareBookApiClient.GetAsync("api/home/featured-printed-books");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var responseAsString = await response.Content.ReadAsStringAsync();
+        var books = JsonConvert.DeserializeObject<IList<HomeShowcaseBookDTO>>(responseAsString);
+
+        var expectedCount = _fixture.ApplicationDbContext.Books
+            .Count(b => b.Status == BookStatus.Available && b.Type == BookType.Printed);
+
+        books.Should().NotBeNull();
+        books!.Count.Should().Be(Math.Min(expectedCount, 15));
+        books.Should().OnlyContain(book =>
+            book.Type == BookType.Printed.ToString()
+            && !string.IsNullOrWhiteSpace(book.Title)
+            && !string.IsNullOrWhiteSpace(book.Slug)
+            && !string.IsNullOrWhiteSpace(book.ImageUrl)
+            && !string.IsNullOrWhiteSpace(book.ThumbnailUrl)
+            && book.ImageUrl.EndsWith("?v=1")
+            && book.ThumbnailUrl.EndsWith("?v=1"));
+    }
+
+    [Fact]
+    public async Task TopDownloadedEbooks_ReturnsDownloadsFromRequestedWindow()
+    {
+        var ebooks = _fixture.ApplicationDbContext.Books
+            .Where(b => b.Status == BookStatus.Available && b.Type == BookType.Eletronic)
+            .Take(2)
+            .ToList();
+
+        ebooks.Count.Should().BeGreaterThanOrEqualTo(2);
+
+        _fixture.ApplicationDbContext.BookDownloadEvents.AddRange(
+            new BookDownloadEvent { BookId = ebooks[0].Id, DownloadedAtUtc = DateTime.UtcNow.AddDays(-1), Source = BookDownloadEventSource.Live },
+            new BookDownloadEvent { BookId = ebooks[0].Id, DownloadedAtUtc = DateTime.UtcNow.AddDays(-1), Source = BookDownloadEventSource.Live },
+            new BookDownloadEvent { BookId = ebooks[1].Id, DownloadedAtUtc = DateTime.UtcNow.AddDays(-40), Source = BookDownloadEventSource.Live });
+        await _fixture.ApplicationDbContext.SaveChangesAsync();
+
+        var response = await _fixture.ShareBookApiClient.GetAsync("api/home/top-downloaded-ebooks?days=30");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var responseAsString = await response.Content.ReadAsStringAsync();
+        var books = JsonConvert.DeserializeObject<IList<HomeShowcaseBookDTO>>(responseAsString);
+
+        books.Should().NotBeNull();
+        books!.First().Slug.Should().Be(ebooks[0].Slug);
+        books.Should().NotContain(book => book.Slug == ebooks[1].Slug);
+    }
+
+    [Fact]
+    public async Task BookCover_HasTemporaryBrowserCache()
+    {
+        var response = await _fixture.ShareBookApiClient.GetAsync(
+            "Images/Books/a-cabana.jpg",
+            HttpCompletionOption.ResponseHeadersRead);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.Headers.CacheControl.Should().NotBeNull();
+        response.Headers.CacheControl!.Public.Should().BeTrue();
+        response.Headers.CacheControl.MaxAge.Should().Be(TimeSpan.FromDays(1));
+    }
+}

@@ -2,6 +2,10 @@
 using ShareBook.Helper.Image;
 using Xunit;
 using Flurl.Http;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace ShareBook.Test.Unit.Helpers
@@ -12,7 +16,7 @@ namespace ShareBook.Test.Unit.Helpers
         public void GenerateSlugValid()
         {
             var phrase = "Harry Potter and the Philosopher's Stone";
-          
+
             var actual = phrase.GenerateSlug();
             var expected = "harry-potter-and-the-philosophers-stone";
 
@@ -28,6 +32,44 @@ namespace ShareBook.Test.Unit.Helpers
             var expected = "Harry-potter-and-thE-philosophers-stone";
 
             Assert.NotEqual(actual, expected);
+        }
+
+        [Fact]
+        public void NextAvailableCopySlug_ShouldKeepCleanBaseWhenAvailable()
+        {
+            var baseSlug = "o-pequeno-principe";
+
+            var actual = baseSlug.NextAvailableCopySlug(Array.Empty<string>());
+
+            Assert.Equal("o-pequeno-principe", actual);
+        }
+
+        [Fact]
+        public void NextAvailableCopySlug_ShouldUseFirstFreeCopyNumber()
+        {
+            var baseSlug = "o-pequeno-principe";
+            var existingSlugs = new[]
+            {
+                baseSlug,
+                $"{baseSlug}_copy1",
+                $"{baseSlug}_copy3",
+                $"{baseSlug}-edicao-especial"
+            };
+
+            var actual = baseSlug.NextAvailableCopySlug(existingSlugs);
+
+            Assert.Equal("o-pequeno-principe_copy2", actual);
+        }
+
+        [Theory]
+        [InlineData("  Ação__em C# -- 2026! ", "acao em csharp 2026")]
+        [InlineData("Odisséia", "odisseia")]
+        [InlineData("caverna   de   sangue", "caverna de sangue")]
+        [InlineData("C++ / F# / .NET", "cplusplus fsharp dotnet")]
+        [InlineData(null, "")]
+        public void ToNormalizedSearchText_ShouldPrepareSafePrefixQuery(string input, string expected)
+        {
+            Assert.Equal(expected, input.ToNormalizedSearchText());
         }
 
         [Fact]
@@ -52,6 +94,45 @@ namespace ShareBook.Test.Unit.Helpers
             var actual = ImageHelper.GenerateImageUrl("image.jpg", "wwwroot/Images/Books", "http://dev.sharebook.com.br");
 
             Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [InlineData("o-mar-de-monstros.png", "o-mar-de-monstros.webp")]
+        [InlineData("uma-capa.jpeg", "uma-capa.webp")]
+        public void ThumbnailNameUsesBookSlug(string imageName, string expected)
+        {
+            var actual = ImageHelper.FormatThumbnailName(imageName);
+
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void BookThumbnailPreservesAspectRatioAndUsesWebp()
+        {
+            using var source = new Image<Rgba32>(800, 1000, Color.CornflowerBlue);
+            using var sourceStream = new MemoryStream();
+            source.SaveAsPng(sourceStream);
+
+            var result = ImageHelper.CreateBookThumbnail(sourceStream.ToArray());
+
+            using var thumbnail = SixLabors.ImageSharp.Image.Load(result);
+            Assert.Equal(360, thumbnail.Width);
+            Assert.Equal(450, thumbnail.Height);
+            Assert.Equal("Webp", SixLabors.ImageSharp.Image.DetectFormat(result).Name);
+        }
+
+        [Fact]
+        public void BookThumbnailDoesNotUpscaleSmallCover()
+        {
+            using var source = new Image<Rgba32>(120, 180, Color.CornflowerBlue);
+            using var sourceStream = new MemoryStream();
+            source.SaveAsPng(sourceStream);
+
+            var result = ImageHelper.CreateBookThumbnail(sourceStream.ToArray());
+
+            using var thumbnail = SixLabors.ImageSharp.Image.Load(result);
+            Assert.Equal(120, thumbnail.Width);
+            Assert.Equal(180, thumbnail.Height);
         }
 
         [Fact]
@@ -140,7 +221,7 @@ namespace ShareBook.Test.Unit.Helpers
             Assert.True(result);
 
         }
-        
+
         [Fact]
         public async Task ImageResize()
         {
