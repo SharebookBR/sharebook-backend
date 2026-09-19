@@ -41,7 +41,6 @@ public class BookController : ControllerBase
     private readonly IAccessHistoryService _accessHistoryService;
     private readonly IBookDownloadEventService _bookDownloadEventService;
     private readonly IEBookService _ebookService;
-    private readonly IBookDownloadService _bookDownloadService;
     private readonly IEBookDownloadRateLimiter _ebookDownloadRateLimiter;
     private readonly ILogger<BookController> _logger;
     private Expression<Func<Book, object>> _defaultOrder = x => x.Id;
@@ -54,7 +53,6 @@ public class BookController : ControllerBase
                           IAccessHistoryService accessHistoryService,
                           IBookDownloadEventService bookDownloadEventService,
                           IEBookService ebookService,
-                          IBookDownloadService bookDownloadService,
                           IEBookDownloadRateLimiter ebookDownloadRateLimiter,
                           ILogger<BookController> logger)
     {
@@ -65,7 +63,6 @@ public class BookController : ControllerBase
         _accessHistoryService = accessHistoryService;
         _bookDownloadEventService = bookDownloadEventService;
         _ebookService = ebookService;
-        _bookDownloadService = bookDownloadService;
         _ebookDownloadRateLimiter = ebookDownloadRateLimiter;
         _logger = logger;
     }
@@ -690,9 +687,6 @@ public class BookController : ControllerBase
 
             var userId = await TryGetAuthenticatedUserIdAsync();
             await _bookDownloadEventService.RecordAsync(book.Id, userId, BookDownloadEventSource.Live);
-            await _bookDownloadService.RegisterDownloadAsync(book.Id, userId,
-                Request.Headers["User-Agent"].ToString(),
-                HttpContext.Connection.RemoteIpAddress?.ToString());
             await _service.IncrementDownloadCountAsync(book.Id);
             return Redirect(downloadUrl);
         }
@@ -722,9 +716,6 @@ public class BookController : ControllerBase
 
         var localUserId = await TryGetAuthenticatedUserIdAsync();
         await _bookDownloadEventService.RecordAsync(book.Id, localUserId, BookDownloadEventSource.Live);
-        await _bookDownloadService.RegisterDownloadAsync(book.Id, localUserId,
-            Request.Headers["User-Agent"].ToString(),
-            HttpContext.Connection.RemoteIpAddress?.ToString());
         await _service.IncrementDownloadCountAsync(book.Id);
 
         var pdfBytes = await System.IO.File.ReadAllBytesAsync(pdfPath);

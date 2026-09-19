@@ -35,7 +35,6 @@ public static class ServiceRepositoryCollectionExtensions
         services.AddScoped<IBookUsersEmailService, BookUserEmailService>();
         services.AddScoped<IBookService, BookService>();
         services.AddScoped<IBookUserService, BookUserService>();
-        services.AddScoped<IBookDownloadService, BookDownloadService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IUserEmailService, UserEmailService>();
         services.AddScoped<ICategoryService, CategoryService>();
@@ -56,7 +55,6 @@ public static class ServiceRepositoryCollectionExtensions
         services.AddScoped<IBookRepository, BookRepository>();
         services.AddScoped<IBookDownloadEventRepository, BookDownloadEventRepository>();
         services.AddScoped<IBookUserRepository, BookUserRepository>();
-        services.AddScoped<IBookDownloadRepository, BookDownloadRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IJobHistoryRepository, JobHistoryRepository>();
@@ -67,7 +65,6 @@ public static class ServiceRepositoryCollectionExtensions
         //validators
         services.AddScoped<IValidator<User>, UserValidator>();
         services.AddScoped<IValidator<Book>, BookValidator>();
-        services.AddScoped<IValidator<BookDownload>, BookDownloadValidator>();
         services.AddScoped<IValidator<Category>, CategoryValidator>();
         services.AddScoped<IValidator<ContactUs>, ContactUsValidator>();
         services.AddScoped<IValidator<BookUser>, BookUserValidator>();
