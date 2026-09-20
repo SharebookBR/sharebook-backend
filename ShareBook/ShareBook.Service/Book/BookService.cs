@@ -25,7 +25,7 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service;
 
-public class BookService : BaseService<Book>, IBookService
+public partial class BookService : BaseService<Book>, IBookService
 {
     private const int MaxSlugInsertAttempts = 5;
     private readonly IUploadService _uploadService;
@@ -135,122 +135,6 @@ public class BookService : BaseService<Book>, IBookService
         return enumValues;
     }
 
-    public async Task<IList<Book>> Random15BooksAsync()
-    {
-        return SetImageUrls(
-            await _repository.Get()
-                .Include(b => b.User)
-                .ThenInclude(u => u.Address)
-                .Include(b => b.Category)
-                .ThenInclude(c => c.ParentCategory)
-                .Where(b => b.Status == BookStatus.Available)
-                .OrderBy(x => Guid.NewGuid()) // ordem aleatória
-                .Take(15) // apenas 15 registros
-                .ToListAsync()
-         );
-    }
-
-    public async Task<IList<Book>> GetNewest15EBooksAsync()
-    {
-        return SetImageUrls(
-            await _repository.Get()
-                .Include(b => b.User)
-                .ThenInclude(u => u.Address)
-                .Include(b => b.Category)
-                .ThenInclude(c => c.ParentCategory)
-                .Where(b => b.Status == BookStatus.Available && b.Type == BookType.Eletronic)
-                .OrderByDescending(x => x.CreationDate) // os mais novos primeiro
-                .Take(15) // apenas 15 registros
-                .ToListAsync()
-         );
-    }
-
-    public async Task<PagedList<Book>> RecentEBooksAsync(int page, int itemsPerPage, int days = 7)
-    {
-        var since = DateTime.UtcNow.AddDays(-days);
-
-        return await SearchBooksAsync(
-            x => x.Status == BookStatus.Available
-                && x.Type == BookType.Eletronic
-                && x.ApprovedAt.HasValue
-                && x.ApprovedAt.Value >= since,
-            page,
-            itemsPerPage,
-            x => x.ApprovedAt ?? x.CreationDate);
-    }
-
-    public async Task<int> GetAvailableEBooksCountAsync()
-    {
-        return await _repository.Get()
-            .Where(b => b.Status == BookStatus.Available && b.Type == BookType.Eletronic)
-            .CountAsync();
-    }
-
-    public async Task<int> GetRecentEBooksCountAsync(int days = 7)
-    {
-        var since = DateTime.UtcNow.AddDays(-days);
-
-        return await _repository.Get()
-            .Where(b => b.Status == BookStatus.Available 
-                && b.Type == BookType.Eletronic
-                && b.ApprovedAt.HasValue
-                && b.ApprovedAt.Value >= since)
-            .CountAsync();
-    }
-
-    public async Task<IList<SitemapBookDTO>> GetSitemapBooksAsync()
-    {
-        return await _repository.Get()
-            .AsNoTracking()
-            .Where(b => b.Status != BookStatus.WaitingApproval
-                && b.Status != BookStatus.Canceled
-                && !string.IsNullOrWhiteSpace(b.Slug))
-            .OrderBy(b => b.Slug)
-            .Select(b => new SitemapBookDTO
-            {
-                Slug = b.Slug,
-                LastModifiedAt = b.ApprovedAt ?? b.CreationDate
-            })
-            .ToListAsync();
-    }
-
-    public async Task<AdminBooksResultDTO> GetAdminBooksAsync(
-        int page,
-        int itemsPerPage,
-        string search = null,
-        string status = null,
-        string bucket = null,
-        string type = null)
-    {
-        var normalizedPage = page <= 0 ? 1 : page;
-        var normalizedItemsPerPage = itemsPerPage <= 0 ? 24 : Math.Min(itemsPerPage, 100);
-
-        var baseQuery = BuildAdminBooksQuery();
-        var summary = await BuildAdminSummaryAsync(baseQuery);
-
-        var filteredQuery = ApplyAdminBooksFilters(baseQuery, search, status, bucket, type);
-        var totalItems = await filteredQuery.CountAsync();
-        var totalPages = Math.Max((int)Math.Ceiling(totalItems / (double)normalizedItemsPerPage), 1);
-        var effectivePage = Math.Min(normalizedPage, totalPages);
-        var skip = (effectivePage - 1) * normalizedItemsPerPage;
-
-        var books = await filteredQuery
-            .OrderByDescending(x => x.CreationDate)
-            .ThenByDescending(x => x.Id)
-            .Skip(skip)
-            .Take(normalizedItemsPerPage)
-            .ToListAsync();
-
-        return new AdminBooksResultDTO
-        {
-            Page = effectivePage,
-            ItemsPerPage = normalizedItemsPerPage,
-            TotalItems = totalItems,
-            Summary = summary,
-            Items = SetImageUrls(books)
-        };
-    }
-
     private IList<Book> SetImageUrls(IList<Book> books)
     {
         return books.Select(book =>
@@ -266,187 +150,6 @@ public class BookService : BaseService<Book>, IBookService
         book.ThumbnailUrl = _uploadService.GetBookThumbnailUrl(book.ImageSlug, book.ImageVersion);
     }
 
-    private IQueryable<Book> BuildAdminBooksQuery()
-    {
-        return _repository.Get()
-            .Include(b => b.User)
-                .ThenInclude(u => u.Address)
-            .Include(b => b.BookUsers)
-                .ThenInclude(bu => bu.User)
-            .Include(b => b.UserFacilitator)
-            .Include(b => b.Category)
-                .ThenInclude(c => c.ParentCategory);
-    }
-
-    private async Task<AdminBooksSummaryDTO> BuildAdminSummaryAsync(IQueryable<Book> query)
-    {
-        var totalItems = await query.CountAsync();
-        var statusCounts = await query
-            .GroupBy(x => x.Status)
-            .Select(x => new { Status = x.Key, Count = x.Count() })
-            .ToListAsync();
-        var typeCounts = await query
-            .GroupBy(x => x.Type)
-            .Select(x => new { Type = x.Key, Count = x.Count() })
-            .ToListAsync();
-
-        int GetStatusCount(BookStatus status) => statusCounts.FirstOrDefault(x => x.Status == status)?.Count ?? 0;
-        int GetTypeCount(BookType bookType) => typeCounts.FirstOrDefault(x => x.Type == bookType)?.Count ?? 0;
-
-        return new AdminBooksSummaryDTO
-        {
-            All = totalItems,
-            NeedsAction = GetStatusCount(BookStatus.WaitingApproval) + GetStatusCount(BookStatus.AwaitingDonorDecision),
-            Shipping = GetStatusCount(BookStatus.WaitingSend) + GetStatusCount(BookStatus.Sent),
-            Physical = GetTypeCount(BookType.Printed),
-            Ebooks = GetTypeCount(BookType.Eletronic),
-            Finished = GetStatusCount(BookStatus.Received) + GetStatusCount(BookStatus.Canceled),
-            Available = GetStatusCount(BookStatus.Available)
-        };
-    }
-
-    private IQueryable<Book> ApplyAdminBooksFilters(
-        IQueryable<Book> query,
-        string search,
-        string status,
-        string bucket,
-        string type)
-    {
-        var normalizedSearch = (search ?? string.Empty).Trim().ToLower();
-        if (!string.IsNullOrWhiteSpace(normalizedSearch))
-        {
-            query = query.Where(x =>
-                (x.Title != null && x.Title.ToLower().Contains(normalizedSearch))
-                || (x.Author != null && x.Author.ToLower().Contains(normalizedSearch))
-                || (x.User != null && x.User.Name != null && x.User.Name.ToLower().Contains(normalizedSearch))
-                || (x.UserFacilitator != null && x.UserFacilitator.Name != null && x.UserFacilitator.Name.ToLower().Contains(normalizedSearch))
-                || x.BookUsers.Any(bu =>
-                    bu.Status == DonationStatus.Donated
-                    && bu.User != null
-                    && bu.User.Name != null
-                    && bu.User.Name.ToLower().Contains(normalizedSearch))
-            );
-        }
-
-        if (TryParseBookStatus(status, out var parsedStatus))
-            query = query.Where(x => x.Status == parsedStatus);
-
-        if (TryParseBookType(type, out var parsedType))
-            query = query.Where(x => x.Type == parsedType);
-
-        if (!string.IsNullOrWhiteSpace(bucket))
-            query = ApplyAdminBucket(query, bucket);
-
-        return query;
-    }
-
-    private IQueryable<Book> ApplyAdminBucket(IQueryable<Book> query, string bucket)
-    {
-        switch ((bucket ?? string.Empty).Trim().ToLower())
-        {
-            case "needsaction":
-                return query.Where(x => x.Status == BookStatus.WaitingApproval || x.Status == BookStatus.AwaitingDonorDecision);
-            case "shipping":
-                return query.Where(x => x.Status == BookStatus.WaitingSend || x.Status == BookStatus.Sent);
-            case "finished":
-                return query.Where(x => x.Status == BookStatus.Received || x.Status == BookStatus.Canceled);
-            case "ebooks":
-                return query.Where(x => x.Type == BookType.Eletronic);
-            case "physical":
-                return query.Where(x => x.Type == BookType.Printed);
-            case "available":
-                return query.Where(x => x.Status == BookStatus.Available);
-            default:
-                return query;
-        }
-    }
-
-    private bool TryParseBookStatus(string status, out BookStatus parsedStatus)
-    {
-        parsedStatus = default;
-        return !string.IsNullOrWhiteSpace(status)
-            && Enum.TryParse(status.Trim(), true, out parsedStatus);
-    }
-
-    private bool TryParseBookType(string type, out BookType parsedType)
-    {
-        parsedType = default;
-
-        switch ((type ?? string.Empty).Trim().ToLower())
-        {
-            case "printed":
-            case "physical":
-                parsedType = BookType.Printed;
-                return true;
-            case "eletronic":
-            case "ebook":
-            case "ebooks":
-            case "digital":
-                parsedType = BookType.Eletronic;
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    private async Task<UserDonationsSummaryDTO> BuildUserDonationsSummaryAsync(IQueryable<Book> query)
-    {
-        var statusCounts = await query
-            .GroupBy(x => x.Status)
-            .Select(x => new { Status = x.Key, Count = x.Count() })
-            .ToListAsync();
-        var ebookDownloadsTotal = await query
-            .Where(x => x.Type == BookType.Eletronic)
-            .SumAsync(x => (int?)x.DownloadCount) ?? 0;
-
-        int GetStatusCount(BookStatus status) => statusCounts.FirstOrDefault(x => x.Status == status)?.Count ?? 0;
-
-        return new UserDonationsSummaryDTO
-        {
-            WaitingDecision = GetStatusCount(BookStatus.AwaitingDonorDecision),
-            WaitingSend = GetStatusCount(BookStatus.WaitingSend),
-            Finished = GetStatusCount(BookStatus.Received) + GetStatusCount(BookStatus.Canceled),
-            EbookDownloadsTotal = ebookDownloadsTotal
-        };
-    }
-
-    private IQueryable<Book> ApplyUserDonationsFilters(IQueryable<Book> query, string search, string bucket)
-    {
-        if (!string.IsNullOrWhiteSpace(bucket))
-        {
-            switch (bucket.Trim().ToLower())
-            {
-                case "needsaction":
-                    query = query.Where(x => x.Status == BookStatus.AwaitingDonorDecision || x.Status == BookStatus.WaitingSend);
-                    break;
-                case "physical":
-                    query = query.Where(x => x.Type == BookType.Printed);
-                    break;
-                case "digital":
-                    query = query.Where(x => x.Type == BookType.Eletronic);
-                    break;
-                case "finished":
-                    query = query.Where(x => x.Status == BookStatus.Received || x.Status == BookStatus.Canceled);
-                    break;
-            }
-        }
-
-        var normalizedSearch = (search ?? string.Empty).Trim().ToLower();
-        if (!string.IsNullOrWhiteSpace(normalizedSearch))
-        {
-            query = query.Where(x =>
-                (x.Title != null && x.Title.ToLower().Contains(normalizedSearch))
-                || (x.Author != null && x.Author.ToLower().Contains(normalizedSearch))
-                || x.Status.ToString().ToLower().Contains(normalizedSearch)
-                || (normalizedSearch.Contains("digital") && x.Type == BookType.Eletronic)
-                || (normalizedSearch.Contains("fisico") && x.Type == BookType.Printed)
-                || (normalizedSearch.Contains("físico") && x.Type == BookType.Printed)
-            );
-        }
-
-        return query;
-    }
-
     private bool IsLeafCategory(Guid categoryId)
     {
         var hasChildren = _categoryRepository
@@ -455,7 +158,6 @@ public class BookService : BaseService<Book>, IBookService
 
         return !hasChildren;
     }
-
 
     public async Task<IList<Book>> GetAllAsync(int page, int items)
         => await _repository.Get()
@@ -658,155 +360,6 @@ public class BookService : BaseService<Book>, IBookService
         return result;
     }
 
-    public async Task<PagedList<Book>> FullSearchAsync(string criteria, int page, int itemsPerPage, bool isAdmin)
-    {
-        var normalizedCriteria = criteria.ToNormalizedSearchText();
-        var query = _bookRepository
-            .FullTextSearch(normalizedCriteria, includeUnavailable: isAdmin)
-            .Select(book => new Book
-            {
-                Id = book.Id,
-                Title = book.Title,
-                Author = book.Author,
-                Status = book.Status,
-                DownloadCount = book.DownloadCount,
-                FreightOption = book.FreightOption,
-                ImageSlug = book.ImageSlug,
-                ImageVersion = book.ImageVersion,
-                ImageUrl = _uploadService.GetImageUrl(book.ImageSlug, "Books", book.ImageVersion),
-                ThumbnailUrl = _uploadService.GetBookThumbnailUrl(book.ImageSlug, book.ImageVersion),
-                Slug = book.Slug,
-                CreationDate = book.CreationDate,
-                Synopsis = book.Synopsis,
-                ChooseDate = book.ChooseDate,
-                User = new User
-                {
-                    Id = book.User.Id,
-                    Email = book.User.Email,
-                    Name = book.User.Name,
-                    Linkedin = book.User.Linkedin,
-                    Address = new Address
-                    {
-                        City = book.User.Address.City,
-                        State = book.User.Address.State,
-                        Country = book.User.Address.Country,
-                        UserId = book.User.Address.UserId,
-                        Id = book.User.Address.Id,
-                        CreationDate = book.User.Address.CreationDate,
-                    }
-                },
-                CategoryId = book.CategoryId,
-                Category = new Category
-                {
-                    Id = book.Category.Id,
-                    Name = book.Category.Name,
-                    ParentCategoryId = book.Category.ParentCategoryId,
-                    ParentCategory = book.Category.ParentCategory == null
-                        ? null
-                        : new Category
-                        {
-                            Id = book.Category.ParentCategory.Id,
-                            Name = book.Category.ParentCategory.Name
-                        }
-                },
-                Type = book.Type,
-                EBookPdfPath = book.EBookPdfPath
-            });
-
-        return await FormatPagedListAsync(query, page, itemsPerPage);
-    }
-
-    public async Task<CategoryBooksResultDTO> ByCategoryIdAsync(Guid categoryId, int page, int itemsPerPage)
-    {
-        var query = _repository.Get()
-            .Where(x => x.Status == BookStatus.Available && x.CategoryId == categoryId);
-
-        return await FormatCategoryBooksResultAsync(query, page, itemsPerPage);
-    }
-
-    public async Task<CategoryBooksResultDTO> ByCategoryTreeIdAsync(Guid categoryId, int page, int itemsPerPage)
-    {
-        var query = _repository.Get()
-            .Where(x => x.Status == BookStatus.Available
-                && (x.CategoryId == categoryId || x.Category.ParentCategoryId == categoryId));
-
-        return await FormatCategoryBooksResultAsync(query, page, itemsPerPage);
-    }
-
-    private async Task<CategoryBooksResultDTO> FormatCategoryBooksResultAsync(IQueryable<Book> query, int page, int itemsPerPage)
-    {
-        var totalItems = await query.CountAsync();
-        var physicalCount = await query.CountAsync(x => x.Type == BookType.Printed);
-        var ebooksCount = await query.CountAsync(x => x.Type == BookType.Eletronic);
-
-        var items = await query
-            .OrderByDescending(x => x.CreationDate)
-            .Skip((page - 1) * itemsPerPage)
-            .Take(itemsPerPage)
-            .ToListAsync();
-
-        return new CategoryBooksResultDTO
-        {
-            Page = page,
-            ItemsPerPage = itemsPerPage,
-            TotalItems = totalItems,
-            PhysicalBooksCount = physicalCount,
-            EbooksCount = ebooksCount,
-            Items = SetImageUrls(items)
-        };
-    }
-
-    public async Task<Book> BySlugAsync(string slug)
-    {
-        var pagedBook = await SearchBooksAsync(x => (x.Slug.Equals(slug)), 1, 1);
-        return pagedBook.Items.FirstOrDefault();
-    }
-
-    public async Task<IList<Book>> GetRecommendationsAsync(Guid bookId, int limit = 6)
-    {
-        var normalizedLimit = Math.Min(Math.Max(limit, 1), 6);
-        var source = await _repository.Get()
-            .AsNoTracking()
-            .Include(book => book.Category)
-                .ThenInclude(category => category.ParentCategory)
-            .FirstOrDefaultAsync(book => book.Id == bookId);
-
-        if (source == null)
-            throw new ShareBookException(ShareBookException.Error.NotFound);
-
-        var candidates = await _repository.Get()
-            .AsNoTracking()
-            .Include(book => book.Category)
-                .ThenInclude(category => category.ParentCategory)
-            .Where(book => book.Status == BookStatus.Available && book.Id != bookId)
-            .ToListAsync();
-
-        var rankedIds = BookRecommendationRanker
-            .Rank(source, candidates, normalizedLimit)
-            .Select(book => book.Id)
-            .ToList();
-
-        if (rankedIds.Count == 0)
-            return Array.Empty<Book>();
-
-        var books = await _repository.Get()
-            .AsNoTracking()
-            .Include(book => book.User)
-                .ThenInclude(user => user.Address)
-            .Include(book => book.Category)
-                .ThenInclude(category => category.ParentCategory)
-            .Where(book => rankedIds.Contains(book.Id))
-            .ToListAsync();
-
-        var booksById = books.ToDictionary(book => book.Id);
-        var orderedBooks = rankedIds
-            .Where(booksById.ContainsKey)
-            .Select(id => booksById[id])
-            .ToList();
-
-        return SetImageUrls(orderedBooks);
-    }
-
     public async Task<bool> UserRequestedBookAsync(Guid bookId)
     {
         var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
@@ -822,56 +375,6 @@ public class BookService : BaseService<Book>, IBookService
         int itemsPerPage,
         bool descending = false)
         => await base.GetAsync(filter, order, page, itemsPerPage, descending);
-
-    public async Task<IList<Book>> GetUserDonationsAsync(Guid userId)
-    {
-        return await _repository.Get()
-            .Include(b => b.BookUsers)
-            .Where(b => b.UserId == userId)
-            .OrderByDescending(b => b.CreationDate)
-            .ToListAsync();
-    }
-
-    public async Task<UserDonationsResultDTO> GetUserDonationsAsync(
-        Guid userId,
-        int page,
-        int itemsPerPage,
-        string search = null,
-        string bucket = null)
-    {
-        var normalizedPage = page <= 0 ? 1 : page;
-        var normalizedItemsPerPage = itemsPerPage <= 0 ? 24 : Math.Min(itemsPerPage, 100);
-
-        var baseQuery = _repository.Get()
-            .Include(b => b.BookUsers)
-                .ThenInclude(bu => bu.User)
-            .Include(b => b.Category)
-                .ThenInclude(c => c.ParentCategory)
-            .Where(b => b.UserId == userId);
-
-        var summary = await BuildUserDonationsSummaryAsync(baseQuery);
-        var filteredQuery = ApplyUserDonationsFilters(baseQuery, search, bucket);
-        var totalItems = await filteredQuery.CountAsync();
-        var totalPages = Math.Max((int)Math.Ceiling(totalItems / (double)normalizedItemsPerPage), 1);
-        var effectivePage = Math.Min(normalizedPage, totalPages);
-        var skip = (effectivePage - 1) * normalizedItemsPerPage;
-
-        var items = await filteredQuery
-            .OrderByDescending(x => x.CreationDate)
-            .ThenByDescending(x => x.Id)
-            .Skip(skip)
-            .Take(normalizedItemsPerPage)
-            .ToListAsync();
-
-        return new UserDonationsResultDTO
-        {
-            Page = effectivePage,
-            ItemsPerPage = normalizedItemsPerPage,
-            TotalItems = totalItems,
-            Summary = summary,
-            Items = SetImageUrls(items)
-        };
-    }
 
     public async Task<IList<Book>> GetBooksChooseDateIsTodayAsync()
     {
@@ -972,6 +475,16 @@ public class BookService : BaseService<Book>, IBookService
         await _booksEmailService.SendEmailCopyrightReportAsync(book);
     }
 
+    public async Task IncrementDownloadCountAsync(Guid bookId)
+    {
+        var book = await _repository.FindAsync(bookId);
+        if (book == null)
+            throw new ShareBookException(ShareBookException.Error.NotFound);
+
+        book.DownloadCount++;
+        await _repository.UpdateAsync(book);
+    }
+
     #region Private
 
     private async Task<string> GetAvailableSlugAsync(string title)
@@ -999,101 +512,6 @@ public class BookService : BaseService<Book>, IBookService
         {
             entity.EBookPdfPath = null;
         }
-    }
-
-    private async Task<PagedList<Book>> SearchBooksAsync(Expression<Func<Book, bool>> filter, int page, int itemsPerPage)
-        => await SearchBooksAsync(filter, page, itemsPerPage, x => x.CreationDate);
-
-    private async Task<PagedList<Book>> SearchBooksAsync<TKey>(Expression<Func<Book, bool>> filter, int page, int itemsPerPage, Expression<Func<Book, TKey>> expression)
-    {
-        var query = _repository.Get()
-            .Where(filter)
-            .OrderByDescending(expression)
-            .Select(u => new Book
-            {
-                Id = u.Id,
-                Title = u.Title,
-                Author = u.Author,
-                Status = u.Status,
-                DownloadCount = u.DownloadCount,
-                FreightOption = u.FreightOption,
-                ImageSlug = u.ImageSlug,
-                ImageVersion = u.ImageVersion,
-                ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books", u.ImageVersion),
-                ThumbnailUrl = _uploadService.GetBookThumbnailUrl(u.ImageSlug, u.ImageVersion),
-                Slug = u.Slug,
-                CreationDate = u.CreationDate,
-                Synopsis = u.Synopsis,
-                ChooseDate = u.ChooseDate,
-                User = new User()
-                {
-                    Id = u.User.Id,
-                    Email = u.User.Email,
-                    Name = u.User.Name,
-                    Linkedin = u.User.Linkedin,
-                    Address = new Address()
-                    {
-                        City = u.User.Address.City,
-                        State = u.User.Address.State,
-                        Country = u.User.Address.Country,
-                        UserId = u.User.Address.UserId,
-                        Id = u.User.Address.Id,
-                        CreationDate = u.User.Address.CreationDate,
-                    }
-                },
-                CategoryId = u.CategoryId,
-                Category = new Category()
-                {
-                    Id = u.Category.Id,
-                    Name = u.Category.Name,
-                    ParentCategoryId = u.Category.ParentCategoryId,
-                    ParentCategory = u.Category.ParentCategory == null
-                        ? null
-                        : new Category()
-                        {
-                            Id = u.Category.ParentCategory.Id,
-                            Name = u.Category.ParentCategory.Name
-                        }
-                },
-                Type = u.Type,
-                EBookPdfPath = u.EBookPdfPath
-            });
-
-        return await FormatPagedListAsync(query, page, itemsPerPage);
-    }
-
-    public async Task<BookStatsDTO> GetStatsAsync()
-    {
-        var groupedStatus = await _repository.Get()
-            .GroupBy(b => b.Status)
-            .Select(g => new
-            {
-                Status = g.Key,
-                Total = g.Count()
-            })
-            .ToListAsync();
-
-        var status = new BookStatsDTO();
-
-        status.TotalWaitingApproval = groupedStatus.Exists(g => g.Status == BookStatus.WaitingApproval)
-            ? groupedStatus.Find(g => g.Status == BookStatus.WaitingApproval).Total
-            : 0;
-
-        status.TotalOk = groupedStatus
-            .Where(g => g.Status == BookStatus.WaitingSend || g.Status == BookStatus.Sent || g.Status == BookStatus.Received)
-            .Sum(g => g.Total);
-
-        return status;
-    }
-
-    public async Task IncrementDownloadCountAsync(Guid bookId)
-    {
-        var book = await _repository.FindAsync(bookId);
-        if (book == null)
-            throw new ShareBookException(ShareBookException.Error.NotFound);
-
-        book.DownloadCount++;
-        await _repository.UpdateAsync(book);
     }
 
     #endregion Private
