@@ -6,8 +6,8 @@ namespace ShareBook.Domain;
 public class MailBounce: BaseEntity
 {
     public string? Email { get; set; }
-    public string Subject { get; set; }
-    public string Body { get; set; }
+    public string? Subject { get; set; }
+    public string? Body { get; set; }
     public string? ErrorCode { get; set; }
     public bool IsSoft { get; set; } = false;
     public bool IsBounce { get; set; } = false;

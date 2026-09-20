@@ -23,7 +23,7 @@ public class User : BaseEntity
     public Profile Profile { get; set; } = Profile.User;
     public bool Active { get; set; } = true;
     public bool AllowSendingEmail { get; set; } = true;
-    public virtual Address Address { get; set; } = null!;
+    public virtual Address? Address { get; set; }
     public virtual ICollection<BookUser> BookUsers { get; set; } = new List<BookUser>();
     public virtual ICollection<Book> BooksDonated { get; set; } = new List<Book>();
     public virtual ICollection<AccessHistory> Visitors { get; set; } = new List<AccessHistory>();
@@ -71,7 +71,7 @@ public class User : BaseEntity
 
     public void ChangeAddress(Address address)
     {
-        var AddressIdCopy = this.Address.Id;
+        var AddressIdCopy = this.Address!.Id;
         this.Address = address;
 
         this.Address.UserId = Id;
@@ -89,7 +89,7 @@ public class User : BaseEntity
         return LastLogin > refDate;
     }
 
-    public string Location() => Address.City + "-" + Address.State;
+    public string Location() => Address!.City + "-" + Address.State;
 
     public int TotalBooksWon() => BookUsers.Where(b => b.Status == DonationStatus.Donated).ToList().Count;
 
@@ -114,7 +114,7 @@ public class User : BaseEntity
         Phone = null;
         ParentEmail = null;
 
-        Address.City = null;
+        Address!.City = null;
         Address.Complement = null;
         Address.Country = null;
         Address.Neighborhood = null;
