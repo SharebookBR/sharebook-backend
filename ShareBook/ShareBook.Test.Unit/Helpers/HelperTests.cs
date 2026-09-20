@@ -1,5 +1,4 @@
-﻿using Flurl.Http;
-using ShareBook.Helper.Extensions;
+﻿using ShareBook.Helper.Extensions;
 using ShareBook.Helper.Image;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -223,12 +222,26 @@ public class HelperTests
     }
 
     [Fact]
-    public async Task ImageResize()
+    public void ImageResize()
     {
-        var imageurl = "https://images.sympla.com.br/62b34c1818c0f.png";
+        var imageBytes = CreateSamplePngBytes(200, 100);
 
-        var imageBytes = await imageurl.GetBytesAsync();
         var result = ImageHelper.ResizeImage(imageBytes, 50);
+
         Assert.Equal(typeof(byte[]), result.GetType());
+        using var resized = SixLabors.ImageSharp.Image.Load(result);
+        Assert.Equal(100, resized.Width);
+        Assert.Equal(50, resized.Height);
+    }
+
+    // Gera um PNG pequeno em memória em vez de baixar uma imagem real de um domínio
+    // de terceiro (images.sympla.com.br) — o teste depende só do ImageHelper.ResizeImage,
+    // não de rede disponível nem daquele arquivo específico continuar existindo.
+    private static byte[] CreateSamplePngBytes(int width, int height)
+    {
+        using var image = new Image<Rgba32>(width, height);
+        using var memoryStream = new MemoryStream();
+        image.SaveAsPng(memoryStream);
+        return memoryStream.ToArray();
     }
 }
