@@ -30,6 +30,6 @@ public interface IBookUserService
     Task<Result<Book>> CancelAsync(BookCancelationDTO dto);
 
     Task InformTrackingNumberAsync(Guid bookId, string trackingNumber);
-    Task<BookUser> GetRequestAsync(Guid requestId);
+    Task<BookUser?> GetRequestAsync(Guid requestId);
     Task<bool> CancelRequestAsync(BookUser request);
 }

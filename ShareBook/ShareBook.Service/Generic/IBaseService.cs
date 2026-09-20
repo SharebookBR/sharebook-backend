@@ -16,19 +16,19 @@ public interface IBaseService<TEntity> where TEntity : class
     /// <para>Using this method will return onlye the Entity, without the children.</para>
     /// <para>If you want to get the Child Objects too, use the <seealso cref="Find(IncludeList{TEntity}, object[])"/> method.</para>
     /// </summary>
-    Task<TEntity> FindAsync(object keyValue);
+    Task<TEntity?> FindAsync(object keyValue);
 
     /// <summary>
     /// Execute a Find on the DbSet using the <paramref name="keyValues"/> and the <paramref name="includes"/>
     /// </summary>
-    Task<TEntity> FindAsync(IncludeList<TEntity> includes, object keyValue);
+    Task<TEntity?> FindAsync(IncludeList<TEntity>? includes, object keyValue);
 
     /// <summary>
     /// Find in the DbSet an entity that matches the specified filter.
     /// </summary>
     /// <returns>Entity with the child objects</returns>
     /// <exception cref="ShareBook.Domain.Exceptions.ShareBookException">In case that more than 1 entity could be returned for the filter specified.</exception>
-    Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> filter);
+    Task<TEntity?> FindAsync(Expression<Func<TEntity, bool>> filter);
 
     /// <summary>
     /// Find in the DbSet an entity that matches the specified filter.
@@ -36,13 +36,13 @@ public interface IBaseService<TEntity> where TEntity : class
     /// <param name="includes">Includes (child objects) to be returned.</param>
     /// <returns>Entity with the child objects</returns>
     /// <exception cref="ShareBook.Domain.Exceptions.ShareBookException">In case that more than 1 entity could be returned for the filter specified.</exception>
-    Task<TEntity> FindAsync(IncludeList<TEntity> includes, Expression<Func<TEntity, bool>> filter);
+    Task<TEntity?> FindAsync(IncludeList<TEntity>? includes, Expression<Func<TEntity, bool>> filter);
 
     /// <summary>
     /// Get a paged list of the entity, without any filter, on the specified order, with the specified child objects.
     /// </summary>
     /// <param name="page">First Page = 1</param>
-    Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes, bool descending = false);
+    Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity>? includes, bool descending = false);
 
     /// <summary>
     /// Get a paged list of the entity, based on the filter passed, on the specified order, without child objects.

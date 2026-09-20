@@ -13,12 +13,12 @@ public class EmailTemplate : IEmailTemplate
     const string PropertyRegex = @"\{(.*?)\}";
     private Dictionary<string, string> Templates { get; set; } = new Dictionary<string, string>();
 
-    private string GetPropValue(object obj, string propName)
+    private string? GetPropValue(object? obj, string propName)
     {
         string[] nameParts = propName.Split('.');
         if (nameParts.Length == 1)
         {
-            return obj.GetType().GetProperty(propName).GetValue(obj, null)?.ToString();
+            return obj?.GetType().GetProperty(propName)?.GetValue(obj, null)?.ToString();
         }
 
         foreach (string part in nameParts)
@@ -26,7 +26,7 @@ public class EmailTemplate : IEmailTemplate
             if (obj == null) { return null; }
 
             Type type = obj.GetType();
-            PropertyInfo info = type.GetProperty(part);
+            PropertyInfo? info = type.GetProperty(part);
             if (info == null) { return null; }
 
             obj = info.GetValue(obj, null);
@@ -50,7 +50,7 @@ public class EmailTemplate : IEmailTemplate
         var matches = Regex.Matches(templateString, PropertyRegex);
         foreach (Match item in matches)
         {
-            templateString = templateString.Replace(item.Value, GetPropValue(model, item.Groups[1].Value));
+            templateString = templateString.Replace(item.Value, GetPropValue(model, item.Groups[1].Value) ?? string.Empty);
         }
         return templateString;
     }

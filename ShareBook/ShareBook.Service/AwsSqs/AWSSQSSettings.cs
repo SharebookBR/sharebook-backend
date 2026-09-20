@@ -7,15 +7,15 @@ namespace ShareBook.Service.AwsSqs;
 public class AwsSqsSettings
 {
     public bool IsActive { get; set; }
-    public string AccessKey { get; set; }
-    public string SecretKey { get; set; }
-    public string Region { get; set; }
-    public string QueueBaseUrl { get; set; }
+    public string AccessKey { get; set; } = string.Empty;
+    public string SecretKey { get; set; } = string.Empty;
+    public string Region { get; set; } = string.Empty;
+    public string QueueBaseUrl { get; set; } = string.Empty;
     
     // Queues
-    public string NewBookQueue { get; set; }
+    public string NewBookQueue { get; set; } = string.Empty;
 
-    public string SendEmailHighPriorityQueue { get; set; }
+    public string SendEmailHighPriorityQueue { get; set; } = string.Empty;
 
-    public string SendEmailLowPriorityQueue { get; set; }
+    public string SendEmailLowPriorityQueue { get; set; } = string.Empty;
 }

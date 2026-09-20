@@ -430,7 +430,7 @@ LIMIT @limit OFFSET @offset;
     {
         var categoryIds = items
             .Where(x => !string.IsNullOrWhiteSpace(x.PlannedCategoryId))
-            .Select(x => Guid.Parse(x.PlannedCategoryId))
+            .Select(x => Guid.Parse(x.PlannedCategoryId!))
             .Distinct()
             .ToList();
 
@@ -462,7 +462,7 @@ LIMIT @limit OFFSET @offset;
     {
         var bookIds = items
             .Where(x => !string.IsNullOrWhiteSpace(x.SharebookBookId))
-            .Select(x => Guid.Parse(x.SharebookBookId))
+            .Select(x => Guid.Parse(x.SharebookBookId!))
             .Distinct()
             .ToList();
 
@@ -479,12 +479,12 @@ LIMIT @limit OFFSET @offset;
             {
                 item.BookSlug = bookData.Slug;
                 item.BookImageSlug = bookData.ImageSlug;
-                item.BookThumbnailUrl = _uploadService.GetBookThumbnailUrl(bookData.ImageSlug, bookData.ImageVersion);
+                item.BookThumbnailUrl = _uploadService.GetBookThumbnailUrl(bookData.ImageSlug ?? string.Empty, bookData.ImageVersion);
             }
         }
     }
 
-    private static void AddItemFilterParameters(NpgsqlCommand command, int? sourceId, string status, int? id, string title)
+    private static void AddItemFilterParameters(NpgsqlCommand command, int? sourceId, string? status, int? id, string title)
     {
         if (sourceId.HasValue)
             command.Parameters.AddWithValue("source_id", sourceId.Value);
@@ -499,7 +499,7 @@ LIMIT @limit OFFSET @offset;
             command.Parameters.AddWithValue("title", $"%{title.Trim()}%");
     }
 
-    private static string GetUniversalString(NpgsqlDataReader reader, string columnName)
+    private static string? GetUniversalString(NpgsqlDataReader reader, string columnName)
     {
         var ordinal = reader.GetOrdinal(columnName);
         if (reader.IsDBNull(ordinal)) return null;
@@ -508,7 +508,7 @@ LIMIT @limit OFFSET @offset;
         return value?.ToString();
     }
 
-    public async Task<string> GetEditorialPromptAsync(string sourceName, CancellationToken cancellationToken = default)
+    public async Task<string?> GetEditorialPromptAsync(string sourceName, CancellationToken cancellationToken = default)
     {
         var connectionString = _configuration.GetConnectionString("ImporterPostgresConnection");
         await using var conn = new NpgsqlConnection(connectionString);
@@ -530,7 +530,7 @@ LIMIT @limit OFFSET @offset;
         await cmd.ExecuteNonQueryAsync(cancellationToken);
     }
 
-    public async Task<string> GetTranslationPromptAsync(string sourceName, CancellationToken cancellationToken = default)
+    public async Task<string?> GetTranslationPromptAsync(string sourceName, CancellationToken cancellationToken = default)
     {
         var connectionString = _configuration.GetConnectionString("ImporterPostgresConnection");
         await using var conn = new NpgsqlConnection(connectionString);
@@ -563,7 +563,7 @@ LIMIT @limit OFFSET @offset;
         await cmd.ExecuteNonQueryAsync(cancellationToken);
     }
 
-    private static string GetNullableString(NpgsqlDataReader reader, string columnName)
+    private static string? GetNullableString(NpgsqlDataReader reader, string columnName)
     {
         return GetUniversalString(reader, columnName);
     }

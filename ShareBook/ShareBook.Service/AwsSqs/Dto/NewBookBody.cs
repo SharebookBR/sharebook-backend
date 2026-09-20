@@ -8,6 +8,6 @@ namespace ShareBook.Service.AwsSqs.Dto;
 public class NewBookBody{
 
     public Guid BookId { get; set; }
-    public string BookTitle { get; set; }
+    public string BookTitle { get; set; } = string.Empty;
     public Guid CategoryId { get; set; }
 }

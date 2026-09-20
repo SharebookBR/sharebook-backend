@@ -28,7 +28,7 @@ public class BookUserService(
     IMuambatorService muambatorService,
     IBookRepository bookRepository,
     IUnitOfWork unitOfWork,
-    IValidator<BookUser> validator, IConfiguration configuration, ILogger<BookUserService> logger = null) : BaseService<BookUser>(context, unitOfWork, validator), IBookUserService
+    IValidator<BookUser> validator, IConfiguration configuration, ILogger<BookUserService>? logger = null) : BaseService<BookUser>(context, unitOfWork, validator), IBookUserService
 {
     private readonly IBookService _bookService = bookService;
     private readonly IBookUsersEmailService _bookUsersEmailService = bookUsersEmailService;
@@ -55,12 +55,15 @@ public class BookUserService(
     {
         //obtem o livro requisitado e o doador
         var bookRequested = await _bookService.GetBookWithAllUsersAsync(bookId);
+        if (bookRequested == null)
+            throw new ShareBookException(ShareBookException.Error.NotFound);
+
         var bookUser = new BookUser()
         {
             BookId = bookId,
-            UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name),
+            UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name!),
             Reason = reason,
-            NickName = $"Interessado {bookRequested?.TotalInterested() + 1}"
+            NickName = $"Interessado {bookRequested.TotalInterested() + 1}"
         };
 
         if (!await _bookService.AnyAsync(x => x.Id == bookUser.BookId))
@@ -84,7 +87,7 @@ public class BookUserService(
 
     private async Task MaxRequestsValidationAsync(Book bookRequested)
     {
-        var maxRequestsPerBook = int.Parse(_configuration["SharebookSettings:MaxRequestsPerBook"]);
+        var maxRequestsPerBook = int.Parse(_configuration["SharebookSettings:MaxRequestsPerBook"]!);
         if (bookRequested.BookUsers.Count < maxRequestsPerBook)
             return;
 
@@ -98,6 +101,9 @@ public class BookUserService(
     public async Task DonateBookAsync(Guid bookId, Guid userId, string note)
     {
         var book = await _bookService.FindAsync(bookId);
+        if (book == null)
+            throw new ShareBookException(ShareBookException.Error.NotFound);
+
         if (!book.MayChooseWinner())
             throw new ShareBookException(ShareBookException.Error.BadRequest, "Aguarde a data de decisão.");
 
@@ -173,7 +179,7 @@ public class BookUserService(
 
     public async Task<PagedList<BookUser>> GetRequestsByUserAsync(int page, int itemsPerPage)
     {
-        var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+        var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
         var query = _repository.Get()
             .Include(x => x.Book)
             .Where(x => x.UserId == userId)
@@ -201,6 +207,8 @@ public class BookUserService(
 
         //obter apenas o ganhador
         var winnerBookUser = bookUsers.FirstOrDefault(bu => bu.Status == DonationStatus.Donated);
+        if (winnerBookUser == null)
+            throw new ShareBookException(ShareBookException.Error.NotFound, "Nenhum ganhador encontrado para este livro.");
 
         //Book
         var book = winnerBookUser.Book;
@@ -235,6 +243,9 @@ public class BookUserService(
 
         if (winnerBookUser == null)
             throw new ShareBookException("Vencedor ainda não foi escolhido");
+
+        if (book == null)
+            throw new ShareBookException(ShareBookException.Error.NotFound);
 
         if (MuambatorConfigurator.IsActive)
         {
@@ -275,7 +286,7 @@ public class BookUserService(
 
         return false;
     }
-    public async Task<BookUser> GetRequestAsync(Guid requestId)
+    public async Task<BookUser?> GetRequestAsync(Guid requestId)
     {
         return await _repository.FindAsync(new IncludeList<BookUser>(x => x.Book), x => x.Id == requestId);
     }

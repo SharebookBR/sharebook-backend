@@ -113,7 +113,7 @@ public partial class BookService(IBookRepository bookRepository,
 
     public async Task ApproveAsync(Guid bookId, DateTime? chooseDate = null)
     {
-        var daysInShowcase = int.Parse(_configuration["SharebookSettings:DaysInShowcase"]);
+        var daysInShowcase = int.Parse(_configuration["SharebookSettings:DaysInShowcase"]!);
 
         var book = await _repository.Get().Include(b => b.Category).FirstOrDefaultAsync(b => b.Id == bookId);
         if (book == null)
@@ -205,8 +205,10 @@ public partial class BookService(IBookRepository bookRepository,
 
     private void SetImageUrls(Book book)
     {
-        book.ImageUrl = _uploadService.GetImageUrl(book.ImageSlug, "Books", book.ImageVersion);
-        book.ThumbnailUrl = _uploadService.GetBookThumbnailUrl(book.ImageSlug, book.ImageVersion);
+        // ImageSlug é opcional no domínio (nem todo fluxo tem imagem persistida ainda),
+        // mas os dois métodos abaixo só são chamados após o book já ter uma imagem/slug definidos.
+        book.ImageUrl = _uploadService.GetImageUrl(book.ImageSlug ?? string.Empty, "Books", book.ImageVersion);
+        book.ThumbnailUrl = _uploadService.GetBookThumbnailUrl(book.ImageSlug ?? string.Empty, book.ImageVersion);
     }
 
     private bool IsLeafCategory(Guid categoryId)
@@ -226,11 +228,11 @@ public partial class BookService(IBookRepository bookRepository,
             .Skip((page - 1) * items)
             .Take(items).ToListAsync();
 
-    public override async Task<Book> FindAsync(object keyValue)
+    public override async Task<Book?> FindAsync(object keyValue)
     {
         var result = await _repository.Get()
             .Include(b => b.User)
-            .ThenInclude(u => u.Address)
+            .ThenInclude(u => u!.Address)
             .Include(b => b.Category)
             .Include(b => b.UserFacilitator)
             .Where(b => b.Id == (Guid)keyValue)
@@ -246,7 +248,8 @@ public partial class BookService(IBookRepository bookRepository,
 
     public override async Task<Result<Book>> InsertAsync(Book entity)
     {
-        entity.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+        // Name do principal é o Id do usuário autenticado (setado no middleware de auth).
+        entity.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
 
         if (entity.IsEbook())
             entity.ChooseDate = null;
@@ -281,7 +284,9 @@ public partial class BookService(IBookRepository bookRepository,
             for (var attempt = 1; attempt <= MaxSlugInsertAttempts; attempt++)
             {
                 entity.Slug = await GetAvailableSlugAsync(entity.Title);
-                entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, entity.Slug);
+                // ImageName é obrigatório no Insert (BookValidator.ImageName.NotEmpty()), então result.Success
+                // já garante que não é nulo/vazio neste ponto.
+                entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName!, entity.Slug!);
 
                 var uploadedPdf = entity.HasPdfToUpload();
                 if (uploadedPdf)
@@ -305,10 +310,11 @@ public partial class BookService(IBookRepository bookRepository,
                 }
             }
 
-            await _uploadService.UploadImageAsync(entity.ImageBytes, entity.ImageSlug, "Books");
-            SetImageUrls(result.Value);
+            // ImageBytes é obrigatório no Insert (BookValidator.ImageBytes.NotEmpty()).
+            await _uploadService.UploadImageAsync(entity.ImageBytes!, entity.ImageSlug!, "Books");
+            SetImageUrls(result.Value!);
 
-            result.Value.ImageBytes = null;
+            result.Value!.ImageBytes = null;
             result.Value.PdfBytes = null;
 
             await _booksEmailService.SendEmailNewBookInsertedAsync(entity);
@@ -374,9 +380,9 @@ public partial class BookService(IBookRepository bookRepository,
             throw new ShareBookException(ShareBookException.Error.NotFound);
 
         //imagem eh opcional no update
-        if (!string.IsNullOrEmpty(entity.ImageName) && entity.ImageBytes.Length > 0)
+        if (!string.IsNullOrEmpty(entity.ImageName) && entity.ImageBytes?.Length > 0)
         {
-            entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, savedBook.Slug);
+            entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, savedBook.Slug ?? string.Empty);
 
             await _uploadService.UploadImageAsync(entity.ImageBytes, entity.ImageSlug, "Books");
 
@@ -415,7 +421,7 @@ public partial class BookService(IBookRepository bookRepository,
             savedBook.UserIdFacilitator = entity.UserIdFacilitator;
 
         result.Value = await PersistBookUpdateAsync(savedBook);
-        result.Value.ImageBytes = null;
+        result.Value!.ImageBytes = null;
         SetImageUrls(result.Value);
 
         return result;
@@ -423,7 +429,7 @@ public partial class BookService(IBookRepository bookRepository,
 
     public async Task<bool> UserRequestedBookAsync(Guid bookId)
     {
-        var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+        var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
         return await _repository.AnyAsync(x =>
                 x.Id == bookId &&
                 x.BookUsers.Any(y => y.UserId == userId));
@@ -493,12 +499,12 @@ public partial class BookService(IBookRepository bookRepository,
         await PersistBookUpdateAsync(book);
     }
 
-    public async Task<Book> GetBookWithAllUsersAsync(Guid bookId)
+    public async Task<Book?> GetBookWithAllUsersAsync(Guid bookId)
     {
         return await _repository
-            .Get().Include(x => x.User).ThenInclude(u => u.Address)
-            .Include(x => x.UserFacilitator).ThenInclude(u => u.Address)
-            .Include(x => x.BookUsers).ThenInclude(bu => bu.User).ThenInclude(u => u.Address)
+            .Get().Include(x => x.User).ThenInclude(u => u!.Address)
+            .Include(x => x.UserFacilitator).ThenInclude(u => u!.Address)
+            .Include(x => x.BookUsers).ThenInclude(bu => bu.User).ThenInclude(u => u!.Address)
             .Where(x => x.Id == bookId)
             .FirstOrDefaultAsync();
     }

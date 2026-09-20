@@ -9,10 +9,10 @@ public interface IUploadService
     Task<string> UploadPdfAsync(byte[] imageBytes, string imageName, string lastDirectory);
     Task DeleteFileIfExistsAsync(string fileName, string lastDirectory);
     Task DeleteReplacedImageAsync(string oldFileName, string newFileName, string lastDirectory);
-    string GetImageUrl(string imageName, string lastDirectory);
-    string GetImageUrl(string imageName, string lastDirectory, int imageVersion);
-    string GetBookThumbnailUrl(string imageName);
-    string GetBookThumbnailUrl(string imageName, int imageVersion);
+    string? GetImageUrl(string imageName, string lastDirectory);
+    string? GetImageUrl(string imageName, string lastDirectory, int imageVersion);
+    string? GetBookThumbnailUrl(string imageName);
+    string? GetBookThumbnailUrl(string imageName, int imageVersion);
     Task<BookThumbnailBackfillResult> BackfillBookThumbnailsAsync(
         bool overwrite = false,
         int offset = 0,

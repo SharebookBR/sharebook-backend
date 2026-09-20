@@ -28,7 +28,7 @@ public class AnalyticsService(
 
     public async Task<AnalyticsDashboardDto> GetDashboardAsync()
     {
-        if (_cache.TryGetValue(CacheKey, out AnalyticsDashboardDto cached))
+        if (_cache.TryGetValue(CacheKey, out AnalyticsDashboardDto? cached) && cached != null)
             return cached;
 
         var client = BuildClient();

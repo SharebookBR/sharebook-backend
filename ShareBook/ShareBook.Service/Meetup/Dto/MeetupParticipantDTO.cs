@@ -9,8 +9,8 @@ namespace ShareBook.Service.Dto;
 
 public class MeetupParticipantDto
 {
-    public List<Data> Data { get; set; }
-    public Pagination Pagination { get; set; }
+    public List<Data> Data { get; set; } = [];
+    public Pagination Pagination { get; set; } = null!;
 }
 
 public class Data
@@ -18,10 +18,10 @@ public class Data
     [JsonProperty("event_id")]
     public int EventId { get; set; }
     [JsonProperty("first_name")]
-    public string FirstName { get; set; }
+    public string FirstName { get; set; } = string.Empty;
     [JsonProperty("last_name")]
-    public string LastName { get; set; }
-    public string Email { get; set; }
+    public string LastName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
 }
 
 public class Pagination

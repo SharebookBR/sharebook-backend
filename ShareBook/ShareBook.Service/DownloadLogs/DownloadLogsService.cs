@@ -49,7 +49,7 @@ public class DownloadLogsService(ApplicationDbContext context) : IDownloadLogsSe
     }
 
     public async Task<PagedDownloadLogEventsDto> GetEventsAsync(
-        DateTime from, DateTime to, int page, int pageSize, string ip = null, string outcome = null)
+        DateTime from, DateTime to, int page, int pageSize, string? ip = null, string? outcome = null)
     {
         page = Math.Max(page, 1);
         pageSize = Math.Clamp(pageSize, 1, 1000);
@@ -70,7 +70,7 @@ public class DownloadLogsService(ApplicationDbContext context) : IDownloadLogsSe
               AND ({4}::text IS NULL OR ""Properties""->>'Outcome' = {4})";
 
         var totalItems = await _ctx.Database
-            .SqlQueryRaw<int>(countSql, Category, fromUtc, toUtcExclusive, ipFilter, outcomeFilter)
+            .SqlQueryRaw<int>(countSql, Category, fromUtc, toUtcExclusive, (object?)ipFilter ?? DBNull.Value, (object?)outcomeFilter ?? DBNull.Value)
             .SingleAsync();
 
         const string eventsSql = @"
@@ -89,7 +89,7 @@ public class DownloadLogsService(ApplicationDbContext context) : IDownloadLogsSe
             LIMIT {5} OFFSET {6}";
 
         var items = await _ctx.Database
-            .SqlQueryRaw<DownloadLogEventDto>(eventsSql, Category, fromUtc, toUtcExclusive, ipFilter, outcomeFilter, pageSize, offset)
+            .SqlQueryRaw<DownloadLogEventDto>(eventsSql, Category, fromUtc, toUtcExclusive, (object?)ipFilter ?? DBNull.Value, (object?)outcomeFilter ?? DBNull.Value, pageSize, offset)
             .ToListAsync();
 
         return new PagedDownloadLogEventsDto

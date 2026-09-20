@@ -12,7 +12,7 @@ public interface ICategoryService : IBaseService<Category>
 {
     Task<PagedList<Category>> GetRootCategoriesAsync(int page, int itemsPerPage);
 
-    Task<Category> FindWithHierarchyAsync(Guid categoryId);
+    Task<Category?> FindWithHierarchyAsync(Guid categoryId);
 
     Task<IEnumerable<Category>> GetCategoriesWithCountsAsync();
 

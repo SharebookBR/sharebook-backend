@@ -8,7 +8,7 @@ public class NewBookQueue : GenericQueue<NewBookBody>
 
     public NewBookQueue(IOptions<AwsSqsSettings> awsSqsSettings) : base(awsSqsSettings)
     {
-        _queueUrl = $"{_awsSqsSettings.QueueBaseUrl}/{_awsSqsSettings.NewBookQueue}";
+        _queueUrl = $"{_awsSqsSettings!.QueueBaseUrl}/{_awsSqsSettings.NewBookQueue}";
     }
 
     // pra poder mockar

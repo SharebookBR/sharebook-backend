@@ -38,7 +38,7 @@ public class MeetupService(IOptions<MeetupSettings> settings, ApplicationDbConte
         Expression<Func<Meetup, TKey>> order,
         int page,
         int itemsPerPage,
-        IncludeList<Meetup> includes,
+        IncludeList<Meetup>? includes,
         bool descending = false)
     {
         var skip = (page - 1) * itemsPerPage;
@@ -196,7 +196,7 @@ public class MeetupService(IOptions<MeetupSettings> settings, ApplicationDbConte
     public async Task<IList<Meetup>> SearchAsync(string title)
     {
         return await _repository.Get()
-            .Where(m => m.Active && (m.Title.Contains(title) || m.Description.Contains(title)))
+            .Where(m => m.Active && (m.Title.Contains(title) || (m.Description != null && m.Description.Contains(title))))
             .OrderByDescending(m => m.StartDate)
             .ToListAsync();
     }

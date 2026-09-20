@@ -23,18 +23,18 @@ public class BaseService<TEntity>(ApplicationDbContext context, IUnitOfWork unit
 
     public async Task<int> CountAsync(Expression<Func<TEntity, bool>> filter) => await _repository.CountAsync(filter);
 
-    public virtual async Task<TEntity> FindAsync(object keyValue)
+    public virtual async Task<TEntity?> FindAsync(object keyValue)
         => await _repository.FindAsync(keyValue);
 
-    public virtual async Task<TEntity> FindAsync(IncludeList<TEntity> includes, object keyValue)
+    public virtual async Task<TEntity?> FindAsync(IncludeList<TEntity>? includes, object keyValue)
         => await _repository.FindAsync(includes, keyValue);
 
-    public async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> filter)
+    public async Task<TEntity?> FindAsync(Expression<Func<TEntity, bool>> filter)
         => await _repository.FindAsync(filter);
 
-    public async Task<TEntity> FindAsync(IncludeList<TEntity> includes, Expression<Func<TEntity, bool>> filter) => await _repository.FindAsync(includes, filter);
+    public async Task<TEntity?> FindAsync(IncludeList<TEntity>? includes, Expression<Func<TEntity, bool>> filter) => await _repository.FindAsync(includes, filter);
 
-    public async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes, bool descending = false)
+    public async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity>? includes, bool descending = false)
         => await GetAsync(x => true, order, page, itemsPerPage, includes, descending);
 
     public virtual async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, bool descending = false)
@@ -49,7 +49,7 @@ public class BaseService<TEntity>(ApplicationDbContext context, IUnitOfWork unit
         Expression<Func<TEntity, TKey>> order,
         int page,
         int itemsPerPage,
-        IncludeList<TEntity> includes,
+        IncludeList<TEntity>? includes,
         bool descending = false)
         => await _repository.GetAsync(filter, order, page, itemsPerPage, includes, descending);
 

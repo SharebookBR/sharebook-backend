@@ -6,6 +6,6 @@ using System.Text;
 namespace ShareBook.Service.AwsSqs.Dto;
 
 public class SharebookMessage<T>{
-    public string ReceiptHandle { get; set; }
-    public T Body { get; set; }
+    public string ReceiptHandle { get; set; } = string.Empty;
+    public T Body { get; set; } = default!;
 }

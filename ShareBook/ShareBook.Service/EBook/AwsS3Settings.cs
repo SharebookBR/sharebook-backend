@@ -9,20 +9,20 @@ public class AwsS3Settings
 {
     public bool IsActive { get; set; } = false;
 
-    public string S3BucketName { get; set; }
+    public string S3BucketName { get; set; } = string.Empty;
 
-    public string S3Region { get; set; }
+    public string S3Region { get; set; } = string.Empty;
 
     /// <summary>
     /// Opcional. Se vazio, usa as credenciais padrão do ambiente (IAM role,
     /// variáveis AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY, etc.)
     /// </summary>
-    public string S3AccessKey { get; set; }
+    public string S3AccessKey { get; set; } = string.Empty;
 
     /// <summary>
     /// Opcional. Par de S3AccessKey.
     /// </summary>
-    public string S3SecretKey { get; set; }
+    public string S3SecretKey { get; set; } = string.Empty;
 
     /// <summary>
     /// Duração, em minutos, da URL assinada de download.

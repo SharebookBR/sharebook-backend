@@ -8,7 +8,7 @@ namespace ShareBook.Service.Muambator;
 
 public class MuambatorService : IMuambatorService
 {
-public async Task<dynamic> AddPackageToTrackerAsync(Book book, User winner, string packageNumber)
+public async Task<dynamic?> AddPackageToTrackerAsync(Book book, User winner, string packageNumber)
 {
   var emailWinner = winner.Email;
   var emailDonor = book.User == null ? string.Empty : book.User.Email;
@@ -16,7 +16,7 @@ public async Task<dynamic> AddPackageToTrackerAsync(Book book, User winner, stri
 
   var url = $"https://www.muambator.com.br/api/clientes/v1/pacotes/{packageNumber}/?api-token={MuambatorConfigurator.Token}";
 
-  dynamic result;
+  dynamic? result;
 
   try
   {

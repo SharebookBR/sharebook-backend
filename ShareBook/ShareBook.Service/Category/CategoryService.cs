@@ -33,7 +33,7 @@ public class CategoryService(
         return await FormatPagedListAsync(query, page, itemsPerPage);
     }
 
-    public async Task<Category> FindWithHierarchyAsync(Guid categoryId)
+    public async Task<Category?> FindWithHierarchyAsync(Guid categoryId)
     {
         return await _repository.Get()
             .Include(x => x.ParentCategory)
@@ -86,7 +86,7 @@ public class CategoryService(
         var categoriesById = categories.ToDictionary(category => category.Id);
         var childrenByParentId = categories
             .Where(category => category.ParentCategoryId.HasValue)
-            .GroupBy(category => category.ParentCategoryId.Value)
+            .GroupBy(category => category.ParentCategoryId!.Value)
             .ToDictionary(group => group.Key, group => group.Select(category => category.Id).ToList());
         var booksByCategoryId = books
             .GroupBy(book => book.CategoryId)

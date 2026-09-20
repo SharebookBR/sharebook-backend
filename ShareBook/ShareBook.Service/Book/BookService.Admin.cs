@@ -14,10 +14,10 @@ public partial class BookService
     public async Task<AdminBooksResultDTO> GetAdminBooksAsync(
         int page,
         int itemsPerPage,
-        string search = null,
-        string status = null,
-        string bucket = null,
-        string type = null)
+        string? search = null,
+        string? status = null,
+        string? bucket = null,
+        string? type = null)
     {
         var normalizedPage = page <= 0 ? 1 : page;
         var normalizedItemsPerPage = itemsPerPage <= 0 ? 24 : Math.Min(itemsPerPage, 100);
@@ -52,7 +52,7 @@ public partial class BookService
     {
         return _repository.Get()
             .Include(b => b.User)
-                .ThenInclude(u => u.Address)
+                .ThenInclude(u => u!.Address)
             .Include(b => b.BookUsers)
                 .ThenInclude(bu => bu.User)
             .Include(b => b.UserFacilitator)
@@ -89,10 +89,10 @@ public partial class BookService
 
     private IQueryable<Book> ApplyAdminBooksFilters(
         IQueryable<Book> query,
-        string search,
-        string status,
-        string bucket,
-        string type)
+        string? search,
+        string? status,
+        string? bucket,
+        string? type)
     {
         var normalizedSearch = (search ?? string.Empty).Trim().ToLower();
         if (!string.IsNullOrWhiteSpace(normalizedSearch))
@@ -143,14 +143,14 @@ public partial class BookService
         }
     }
 
-    private bool TryParseBookStatus(string status, out BookStatus parsedStatus)
+    private bool TryParseBookStatus(string? status, out BookStatus parsedStatus)
     {
         parsedStatus = default;
         return !string.IsNullOrWhiteSpace(status)
             && Enum.TryParse(status.Trim(), true, out parsedStatus);
     }
 
-    private bool TryParseBookType(string type, out BookType parsedType)
+    private bool TryParseBookType(string? type, out BookType parsedType)
     {
         parsedType = default;
 
@@ -184,8 +184,8 @@ public partial class BookService
         Guid userId,
         int page,
         int itemsPerPage,
-        string search = null,
-        string bucket = null)
+        string? search = null,
+        string? bucket = null)
     {
         var normalizedPage = page <= 0 ? 1 : page;
         var normalizedItemsPerPage = itemsPerPage <= 0 ? 24 : Math.Min(itemsPerPage, 100);
@@ -242,7 +242,7 @@ public partial class BookService
         };
     }
 
-    private IQueryable<Book> ApplyUserDonationsFilters(IQueryable<Book> query, string search, string bucket)
+    private IQueryable<Book> ApplyUserDonationsFilters(IQueryable<Book> query, string? search, string? bucket)
     {
         if (!string.IsNullOrWhiteSpace(bucket))
         {
@@ -293,7 +293,7 @@ public partial class BookService
         var status = new BookStatsDTO();
 
         status.TotalWaitingApproval = groupedStatus.Exists(g => g.Status == BookStatus.WaitingApproval)
-            ? groupedStatus.Find(g => g.Status == BookStatus.WaitingApproval).Total
+            ? groupedStatus.Find(g => g.Status == BookStatus.WaitingApproval)!.Total
             : 0;
 
         status.TotalOk = groupedStatus

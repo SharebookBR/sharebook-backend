@@ -9,6 +9,6 @@ public class MailSenderHighPriorityQueue : GenericQueue<MailSenderbody>
 {
     public MailSenderHighPriorityQueue(IOptions<AwsSqsSettings> awsSqsSettings) : base(awsSqsSettings)
     {
-        _queueUrl = $"{_awsSqsSettings.QueueBaseUrl}/{_awsSqsSettings.SendEmailHighPriorityQueue}";
+        _queueUrl = $"{_awsSqsSettings!.QueueBaseUrl}/{_awsSqsSettings.SendEmailHighPriorityQueue}";
     }
 }

@@ -204,13 +204,13 @@ public static class BookRecommendationRanker
         return first.Intersect(second, StringComparer.Ordinal).Count() / (double)Math.Min(first.Count, second.Count);
     }
 
-    private static void AddTokens(IDictionary<string, double> vector, string text, double weight)
+    private static void AddTokens(IDictionary<string, double> vector, string? text, double weight)
     {
         foreach (var token in Tokenize(text))
             vector[token] = vector.TryGetValue(token, out var current) ? current + weight : weight;
     }
 
-    private static IEnumerable<string> Tokenize(string text)
+    private static IEnumerable<string> Tokenize(string? text)
     {
         var normalized = Normalize(text);
         return Regex.Matches(normalized, @"[a-z0-9]+")
@@ -227,7 +227,7 @@ public static class BookRecommendationRanker
         => !string.IsNullOrWhiteSpace(first)
             && string.Equals(Normalize(first), Normalize(second), StringComparison.Ordinal);
 
-    private static string Normalize(string text)
+    private static string Normalize(string? text)
         => (text ?? string.Empty).RemoveAccent().ToLowerInvariant().Trim();
 
     private sealed class RankedBook(Book book, double score)

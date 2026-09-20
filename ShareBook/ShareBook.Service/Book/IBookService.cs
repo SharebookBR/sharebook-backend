@@ -35,10 +35,10 @@ public interface IBookService : IBaseService<Book>
     Task<AdminBooksResultDTO> GetAdminBooksAsync(
         int page,
         int itemsPerPage,
-        string search = null,
-        string status = null,
-        string bucket = null,
-        string type = null);
+        string? search = null,
+        string? status = null,
+        string? bucket = null,
+        string? type = null);
 
     Task<PagedList<Book>> FullSearchAsync(string criteria, int page, int itemsPerPage, bool isAdmin = false);
 
@@ -48,7 +48,7 @@ public interface IBookService : IBaseService<Book>
 
     Task<IList<Book>> GetAllAsync(int page, int items);
 
-    Task<Book> BySlugAsync(string slug);
+    Task<Book?> BySlugAsync(string slug);
 
     Task<IList<Book>> GetRecommendationsAsync(Guid bookId, int limit = 6);
 
@@ -59,8 +59,8 @@ public interface IBookService : IBaseService<Book>
         Guid userId,
         int page,
         int itemsPerPage,
-        string search = null,
-        string bucket = null);
+        string? search = null,
+        string? bucket = null);
 
     Task<IList<Book>> GetBooksChooseDateIsTodayAsync();
 
@@ -70,7 +70,7 @@ public interface IBookService : IBaseService<Book>
 
     Task AddFacilitatorNotesAsync(Guid bookId, string facilitatorNotes);
 
-    Task<Book> GetBookWithAllUsersAsync(Guid bookId);
+    Task<Book?> GetBookWithAllUsersAsync(Guid bookId);
 
     Task RenewChooseDateAsync(Guid bookId);
     Task<BookStatsDTO> GetStatsAsync();

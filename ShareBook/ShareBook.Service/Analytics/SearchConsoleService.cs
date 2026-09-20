@@ -63,7 +63,7 @@ public class SearchConsoleService(
         };
     }
 
-    private static SearchConsoleMetricSummary ToSummary(SearchConsoleApiRow row)
+    private static SearchConsoleMetricSummary ToSummary(SearchConsoleApiRow? row)
     {
         if (row is null)
             return new SearchConsoleMetricSummary();

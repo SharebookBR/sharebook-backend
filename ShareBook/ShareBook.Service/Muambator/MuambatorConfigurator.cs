@@ -5,7 +5,7 @@ namespace ShareBook.Service.Muambator;
 
 public static class MuambatorConfigurator
 {
-    public static string Token { get; private set; }
+    public static string Token { get; private set; } = string.Empty;
 
     public static bool IsActive { get; private set; }
 

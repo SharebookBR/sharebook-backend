@@ -2,7 +2,7 @@
 
 public class ServerSettings
 {
-    public string BackendUrl { get; set; }
-    public string FrontendUrl { get; set; }
-    public string JobExecutorToken { get; set; }
+    public string BackendUrl { get; set; } = string.Empty;
+    public string FrontendUrl { get; set; } = string.Empty;
+    public string JobExecutorToken { get; set; } = string.Empty;
 }

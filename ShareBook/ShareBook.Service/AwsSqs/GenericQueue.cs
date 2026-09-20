@@ -12,14 +12,14 @@ namespace ShareBook.Service.AwsSqs;
 
 public class GenericQueue<T> : IAwsSqsQueue<T>
 {
-    protected AwsSqsSettings _awsSqsSettings;
-    protected AmazonSQSClient _amazonSQSClient;
+    protected AwsSqsSettings? _awsSqsSettings;
+    protected AmazonSQSClient? _amazonSQSClient;
 
-    protected string _queueUrl;
+    protected string _queueUrl = string.Empty;
 
     // protected readonly ILogger _logger;
 
-    public GenericQueue(IOptions<AwsSqsSettings> awsSqsSettings)
+    public GenericQueue(IOptions<AwsSqsSettings>? awsSqsSettings)
     {
         _awsSqsSettings = awsSqsSettings?.Value;
         bool isActive = _awsSqsSettings?.IsActive ?? false;
@@ -27,21 +27,21 @@ public class GenericQueue<T> : IAwsSqsQueue<T>
         if (isActive)
         {
             // usando padrão Reflection
-            var region = (Amazon.RegionEndpoint)typeof(Amazon.RegionEndpoint).GetField(_awsSqsSettings.Region).GetValue(null);
+            var region = (Amazon.RegionEndpoint)typeof(Amazon.RegionEndpoint).GetField(_awsSqsSettings!.Region)!.GetValue(null)!;
 
-            var awsCreds = new BasicAWSCredentials(awsSqsSettings.Value.AccessKey, awsSqsSettings.Value.SecretKey);
+            var awsCreds = new BasicAWSCredentials(_awsSqsSettings.AccessKey, _awsSqsSettings.SecretKey);
             _amazonSQSClient = new AmazonSQSClient(awsCreds, region);
         }
     }
 
     public async Task SendMessageAsync(T message)
     {
-        if (!_awsSqsSettings.IsActive)
+        if (_awsSqsSettings is null || !_awsSqsSettings.IsActive)
         {
             // _logger.LogInformation("Serviço aws sqs está desabilitado no appsettings.");
             return;
         }
-            
+
         var request = new SendMessageRequest
         {
             DelaySeconds = (int)TimeSpan.FromSeconds(5).TotalSeconds,
@@ -49,28 +49,30 @@ public class GenericQueue<T> : IAwsSqsQueue<T>
             QueueUrl = _queueUrl
         };
 
-        await _amazonSQSClient.SendMessageAsync(request);
+        await _amazonSQSClient!.SendMessageAsync(request);
     }
 
-    public async Task<SharebookMessage<T>> GetMessageAsync()
+    public async Task<SharebookMessage<T>?> GetMessageAsync()
     {
-        if (!_awsSqsSettings.IsActive)
+        if (_awsSqsSettings is null || !_awsSqsSettings.IsActive)
         {
             throw new AwsSqsDisabledException("Serviço aws sqs está desabilitado no appsettings.");
         }
 
         var receiveMessageRequest = new ReceiveMessageRequest(_queueUrl);
 
-        var result = await _amazonSQSClient.ReceiveMessageAsync(receiveMessageRequest);
+        var result = await _amazonSQSClient!.ReceiveMessageAsync(receiveMessageRequest);
 
         if (result?.Messages?.Count > 0)
         {
             var firstMessageTemp = result.Messages[0].Body;
             var firstMessage = System.Text.Json.JsonSerializer.Deserialize<T>(firstMessageTemp);
 
-            var envelope = new SharebookMessage<T>();
-            envelope.Body = firstMessage;
-            envelope.ReceiptHandle = result.Messages[0].ReceiptHandle;
+            var envelope = new SharebookMessage<T>
+            {
+                Body = firstMessage!,
+                ReceiptHandle = result.Messages[0].ReceiptHandle
+            };
 
             return envelope;
         }
@@ -83,7 +85,7 @@ public class GenericQueue<T> : IAwsSqsQueue<T>
 
     public async Task<int> GetApproximateMessageCountAsync()
     {
-        if (!_awsSqsSettings.IsActive)
+        if (_awsSqsSettings is null || !_awsSqsSettings.IsActive)
             return 0;
 
         var request = new GetQueueAttributesRequest
@@ -92,13 +94,13 @@ public class GenericQueue<T> : IAwsSqsQueue<T>
             AttributeNames = new List<string> { "ApproximateNumberOfMessages" }
         };
 
-        var response = await _amazonSQSClient.GetQueueAttributesAsync(request);
+        var response = await _amazonSQSClient!.GetQueueAttributesAsync(request);
         return response.ApproximateNumberOfMessages;
     }
 
     public async Task DeleteMessageAsync(string receiptHandle)
     {
-        if (!_awsSqsSettings.IsActive)
+        if (_awsSqsSettings is null || !_awsSqsSettings.IsActive)
         {
             throw new AwsSqsDisabledException("Serviço aws sqs está desabilitado no appsettings.");
         }
@@ -108,7 +110,7 @@ public class GenericQueue<T> : IAwsSqsQueue<T>
         deleteMessageRequest.QueueUrl = _queueUrl;
         deleteMessageRequest.ReceiptHandle = receiptHandle;
 
-        await _amazonSQSClient.DeleteMessageAsync(deleteMessageRequest);
+        await _amazonSQSClient!.DeleteMessageAsync(deleteMessageRequest);
     }
 
 }

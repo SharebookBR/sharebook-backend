@@ -56,7 +56,7 @@ public class ImporterQueueItemDTO
 public class ImporterQueueItemHistoryEntryDTO
 {
     public DateTime ChangedAt { get; set; }
-    public string FromStatus { get; set; } = string.Empty;
+    public string? FromStatus { get; set; }
     public string ToStatus { get; set; } = string.Empty;
 }
 

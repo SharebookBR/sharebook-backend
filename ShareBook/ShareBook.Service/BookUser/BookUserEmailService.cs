@@ -36,9 +36,9 @@ public class BookUserEmailService(IUserService userService, IEmailService emailS
     {
         var bookDonated = bookUser.Book;
         if (bookDonated.User == null)
-            bookDonated.User = await _userService.FindAsync(bookUser.Book.UserId);
+            bookDonated.User = await _userService.FindAsync(bookUser.Book.UserId!);
 
-        if (bookDonated.User.AllowSendingEmail)
+        if (bookDonated.User != null && bookDonated.User.AllowSendingEmail)
         {
             var vm = new
             {
@@ -52,7 +52,7 @@ public class BookUserEmailService(IUserService userService, IEmailService emailS
 
     public async Task SendEmailBookDonatedNotifyDonorAsync(Book book, User winner)
     {
-        if (book.User.AllowSendingEmail)
+        if (book.User != null && book.User.AllowSendingEmail)
         {
             var vm = new
             {
@@ -76,7 +76,7 @@ public class BookUserEmailService(IUserService userService, IEmailService emailS
 
         //obter o endereço do interessado
         var donatedUser = await this._userService.FindAsync(bookUser.UserId);
-        if (bookRequested.User.AllowSendingEmail)
+        if (bookRequested.User != null && bookRequested.User.AllowSendingEmail)
         {
             var htmlTable = GenerateInterestedListHtml(bookRequested);
 
@@ -86,7 +86,7 @@ public class BookUserEmailService(IUserService userService, IEmailService emailS
                 Donor = new
                 {
                     Name = bookRequested.User.Name,
-                    ChooseDate = string.Format("{0:dd/MM/yyyy}", bookRequested.ChooseDate.Value),
+                    ChooseDate = string.Format("{0:dd/MM/yyyy}", bookRequested.ChooseDate ?? DateTime.Today.AddDays(30)),
                     BookTitle = bookRequested.Title,
                 },
                 RequestingUser = new { bookUser.NickName },
@@ -148,13 +148,16 @@ public class BookUserEmailService(IUserService userService, IEmailService emailS
     {
         // lazy load depression
         if (bookUser.User == null)
-            bookUser.User = await _userService.FindAsync(bookUser.UserId);
+            bookUser.User = (await _userService.FindAsync(bookUser.UserId))!;
 
-        if (bookUser.User.AllowSendingEmail)
+        if (bookUser.User != null && bookUser.User.AllowSendingEmail)
         {
             // Facilitator pode não estar cadastrado (ex.: livro físico sem facilitador definido).
-            // Usa o doador como fallback para os dados de contato.
+            // Usa o doador como fallback para os dados de contato. Se nenhum dos dois existir
+            // (dado inconsistente), não há pra quem notificar o pedido.
             var facilitator = book.UserFacilitator ?? book.User;
+            if (facilitator == null)
+                return;
 
             var vm = new
             {
@@ -236,6 +239,8 @@ public class BookUserEmailService(IUserService userService, IEmailService emailS
     public async Task SendEmailBookCanceledToAdminsAndDonorAsync(BookCancelationDTO dto)
     {
         var donor = dto.Book.User;
+        if (donor == null)
+            return;
 
         var templateData = new
         {

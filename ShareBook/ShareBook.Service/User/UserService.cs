@@ -49,13 +49,14 @@ public class UserService(IUserRepository userRepository, IBookRepository bookRep
         string decryptedPass = user.Password;
 
         var normalizedEmail = user.Email?.Trim().ToLowerInvariant();
-        user = await _repository.FindAsync(e => e.Email == normalizedEmail);
+        var foundUser = await _repository.FindAsync(e => e.Email == normalizedEmail);
 
-        if (user == null)
+        if (foundUser == null)
         {
             result.Messages.Add("Não encontramos esse email no Sharebook. Você já se cadastrou?");
             return result;
         }
+        user = foundUser;
 
         if (user.IsBruteForceLogin())
         {
@@ -93,7 +94,7 @@ public class UserService(IUserRepository userRepository, IBookRepository bookRep
     public async Task<Result<User>> InsertAsync(RegisterUserDTO userDto)
     {
         User user = _mapper.Map<User>(userDto);
-        Result resultRecaptcha = _recaptchaService.SimpleValidationRecaptcha(userDto?.RecaptchaReactive);
+        Result resultRecaptcha = _recaptchaService.SimpleValidationRecaptcha(userDto.RecaptchaReactive ?? string.Empty);
 
         var result = await ValidateAsync(user);
         if (!resultRecaptcha.Success && resultRecaptcha.Messages != null)
@@ -103,7 +104,8 @@ public class UserService(IUserRepository userRepository, IBookRepository bookRep
             return result;
 
         // Senha forte não é mais obrigatória.
-        user.Email = user.Email?.Trim().ToLowerInvariant();
+        // Email já validado (result.Success) neste ponto, então é seguro assumir não-nulo.
+        user.Email = user.Email.Trim().ToLowerInvariant();
 
         if (await _repository.AnyAsync(x => x.Email == user.Email))
             throw new ShareBookException(ShareBookException.Error.Conflict, DuplicateEmailMessage);
@@ -140,19 +142,25 @@ public class UserService(IUserRepository userRepository, IBookRepository bookRep
 
     public override async Task<Result<User>> UpdateAsync(User user)
     {
-        user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+        // Name do principal é o Id do usuário autenticado (setado no middleware de auth); se vier nulo,
+        // o comportamento (ArgumentNullException do Guid) é o mesmo de antes do Nullable ser ligado aqui.
+        user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
         Result<User> result = Validate(user, x =>
            x.Email,
-            x => x.Linkedin,
+            x => x.Linkedin!,
             x => x.Name,
-            x => x.Phone,
+            x => x.Phone!,
             x => x.Id);
 
         if (!result.Success) return result;
 
         var userAux = await _repository.FindAsync(new IncludeList<User>(x => x.Address), user.Id);
 
-        if (userAux == null) result.Messages.Add("Usuário não existe.");
+        if (userAux == null)
+        {
+            result.Messages.Add("Usuário não existe.");
+            return result;
+        }
 
         if (await _repository.AnyAsync(u => u.Email == user.Email && u.Id != user.Id))
             result.Messages.Add("Email já existe.");
@@ -168,7 +176,7 @@ public class UserService(IUserRepository userRepository, IBookRepository bookRep
         return result;
     }
 
-    public override async Task<User> FindAsync(object keyValue)
+    public override async Task<User?> FindAsync(object keyValue)
     {
         var includes = new IncludeList<User>(x => x.Address);
         return await _repository.FindAsync(includes, keyValue);
@@ -178,7 +186,7 @@ public class UserService(IUserRepository userRepository, IBookRepository bookRep
     {
         var resultUserAuth = this.AuthenticationByIdAndPassword(user);
 
-        if (resultUserAuth.Success)
+        if (resultUserAuth.Success && resultUserAuth.Value != null)
             await ChangeUserPasswordAsync(resultUserAuth.Value, newPassword);
 
         return resultUserAuth;
@@ -223,7 +231,7 @@ public class UserService(IUserRepository userRepository, IBookRepository bookRep
     {
         var result = new Result();
 
-        var userConfirmedHashCodePassword = await _repository.FindAsync(e => e.HashCodePassword.Equals(hashCodePassword));
+        var userConfirmedHashCodePassword = await _repository.FindAsync(e => e.HashCodePassword != null && e.HashCodePassword.Equals(hashCodePassword));
 
         if (userConfirmedHashCodePassword == null)
             result.Messages.Add("Hash code não encontrado.");
@@ -237,7 +245,7 @@ public class UserService(IUserRepository userRepository, IBookRepository bookRep
 
     public IList<User> GetFacilitators(Guid userIdDonator)
     {
-        var database = _config["DatabaseProvider"].ToLower();
+        var database = (_config["DatabaseProvider"] ?? string.Empty).ToLower();
 
         string query;
 
@@ -300,17 +308,17 @@ public class UserService(IUserRepository userRepository, IBookRepository bookRep
 
         string decryptedPass = user.Password;
 
-        user = _repository.Get()
+        var foundUser = _repository.Get()
             .Where(e => e.Id == user.Id)
             .FirstOrDefault();
 
-        if (user == null || !IsValidPassword(user, decryptedPass))
+        if (foundUser == null || !IsValidPassword(foundUser, decryptedPass))
         {
             result.Messages.Add("Senha incorreta");
             return result;
         }
 
-        result.Value = UserCleanup(user);
+        result.Value = UserCleanup(foundUser);
         return result;
     }
 
@@ -360,7 +368,9 @@ public class UserService(IUserRepository userRepository, IBookRepository bookRep
 
     public async Task<UserStatsDTO> GetStatsAsync(Guid? userId)
     {
-        var user = await _repository.FindAsync(userId);
+        if (userId == null) throw new ShareBookException(ShareBookException.Error.NotFound, "Usuário não encontrado.");
+
+        var user = await _repository.FindAsync(userId.Value);
         var books = await _bookRepository.Get().Where(b => b.UserId == userId).ToListAsync();
 
         if (user == null) throw new ShareBookException(ShareBookException.Error.NotFound, "Usuário não encontrado.");

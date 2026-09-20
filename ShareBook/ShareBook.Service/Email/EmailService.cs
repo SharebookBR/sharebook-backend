@@ -54,6 +54,11 @@ public class EmailService : IEmailService
     public async Task SendToAdminsAsync(string messageText, string subject)
     {
         var firstAdm = await _userRepository.Get().Where(u => u.Profile == Domain.Enums.Profile.Administrator).FirstOrDefaultAsync();
+        if (firstAdm == null)
+        {
+            _logger.LogWarning("Nenhum administrador cadastrado. Não foi possível enviar o email '{Subject}'.", subject);
+            return;
+        }
         await SendAsync(firstAdm.Email, firstAdm.Name, messageText, subject, copyAdmins: true, highPriority: true);
     }
 
@@ -75,7 +80,7 @@ public class EmailService : IEmailService
             return;
         }
 
-        var sqsEnabled = bool.Parse(_configuration["AwsSqsSettings:IsActive"]);
+        var sqsEnabled = bool.Parse(_configuration["AwsSqsSettings:IsActive"] ?? "false");
 
         if (!sqsEnabled)
         {
@@ -249,7 +254,7 @@ public class EmailService : IEmailService
         {
             var message = await bounceFolder.GetMessageAsync(item.UniqueId);
             var body = message.TextBody ?? message.HtmlBody ?? message.Body?.ToString() ?? string.Empty;
-            var bounce = new MailBounce(message.Subject, body);
+            var bounce = new MailBounce(message.Subject ?? string.Empty, body);
 
             if (bounce.IsBounce)
             {
@@ -274,7 +279,7 @@ public class EmailService : IEmailService
         return log;
     }
 
-    private async Task<IMailFolder> GetBounceFolderAsync()
+    private async Task<IMailFolder?> GetBounceFolderAsync()
     {
         if (string.Equals(_settings.BounceFolder, "INBOX", StringComparison.OrdinalIgnoreCase))
             return _imapClient.Inbox;
@@ -289,7 +294,7 @@ public class EmailService : IEmailService
 
     public async Task<IList<MailBounce>> GetBouncesAsync(string email)
     {
-        return await _ctx.MailBounces.Where(m => email.Contains(m.Email)).ToListAsync();
+        return await _ctx.MailBounces.Where(m => m.Email != null && email.Contains(m.Email)).ToListAsync();
     }
 
     public async Task<bool> IsBounceAsync(string email)

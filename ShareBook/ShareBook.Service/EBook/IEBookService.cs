@@ -10,7 +10,7 @@ public interface IEBookService
     /// </summary>
     /// <param name="book">Livro com os bytes do PDF</param>
     /// <returns>Caminho do arquivo salvo</returns>
-    Task<string> UploadPdfAsync(Book book);
+    Task<string?> UploadPdfAsync(Book book);
 
     /// <summary>
     /// Obtém a URL de download do PDF do e-book quando aplicável.
@@ -19,7 +19,7 @@ public interface IEBookService
     /// </summary>
     /// <param name="book">Livro</param>
     /// <returns>URL para download/redirect ou null.</returns>
-    Task<string> GetPdfDownloadUrlAsync(Book book);
+    Task<string?> GetPdfDownloadUrlAsync(Book book);
 
     /// <summary>
     /// Remove o PDF associado ao e-book, quando existir.

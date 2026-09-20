@@ -7,7 +7,7 @@ public interface IAwsSqsQueue<T>
 {
     Task SendMessageAsync(T message);
 
-    Task<SharebookMessage<T>> GetMessageAsync();
+    Task<SharebookMessage<T>?> GetMessageAsync();
 
     Task DeleteMessageAsync(string receiptHandle);
 

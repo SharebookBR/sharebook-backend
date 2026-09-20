@@ -18,7 +18,7 @@ public class UploadService(IOptions<ImageSettings> imageSettings, IOptions<Serve
     private readonly ImageSettings _imageSettings = imageSettings.Value;
     private readonly ServerSettings _serverSettings = serverSettings.Value;
 
-    public string GetImageUrl(string imageName, string lastDirectory)
+    public string? GetImageUrl(string imageName, string lastDirectory)
     {
         if (string.IsNullOrWhiteSpace(imageName))
             return null;
@@ -27,20 +27,20 @@ public class UploadService(IOptions<ImageSettings> imageSettings, IOptions<Serve
         return ImageHelper.GenerateImageUrl(imageName, dinamicDirectory, _serverSettings.BackendUrl);
     }
 
-    public string GetImageUrl(string imageName, string lastDirectory, int imageVersion)
+    public string? GetImageUrl(string imageName, string lastDirectory, int imageVersion)
     {
         var imageUrl = GetImageUrl(imageName, lastDirectory);
         return AppendImageVersion(imageUrl, imageVersion);
     }
 
-    public string GetBookThumbnailUrl(string imageName)
+    public string? GetBookThumbnailUrl(string imageName)
     {
         var thumbnailName = ImageHelper.FormatThumbnailName(imageName);
         var directory = Path.Combine(BooksDirectory, BookThumbnailsDirectory).Replace('\\', '/');
-        return GetImageUrl(thumbnailName, directory);
+        return thumbnailName == null ? null : GetImageUrl(thumbnailName, directory);
     }
 
-    public string GetBookThumbnailUrl(string imageName, int imageVersion)
+    public string? GetBookThumbnailUrl(string imageName, int imageVersion)
     {
         var thumbnailUrl = GetBookThumbnailUrl(imageName);
         return AppendImageVersion(thumbnailUrl, imageVersion);
@@ -50,8 +50,8 @@ public class UploadService(IOptions<ImageSettings> imageSettings, IOptions<Serve
     {
         var dinamicDirectory = Path.Combine(_imageSettings.ImagePath, lastDirectory);
 
-        byte[] thumbnailBytes = null;
-        string thumbnailName = null;
+        byte[]? thumbnailBytes = null;
+        string? thumbnailName = null;
         if (IsBooksDirectory(lastDirectory))
         {
             // Gera antes de escrever o original para que uma imagem inválida não deixe upload parcial.
@@ -64,10 +64,11 @@ public class UploadService(IOptions<ImageSettings> imageSettings, IOptions<Serve
         if (thumbnailBytes != null)
         {
             var thumbnailDirectory = Path.Combine(dinamicDirectory, BookThumbnailsDirectory);
-            await UploadFileAsync(thumbnailBytes, thumbnailName, thumbnailDirectory);
+            await UploadFileAsync(thumbnailBytes, thumbnailName!, thumbnailDirectory);
         }
 
-        return GetImageUrl(imageName, lastDirectory);
+        // O nome não é vazio (verificado no início do fluxo de upload), então a URL nunca é nula aqui.
+        return GetImageUrl(imageName, lastDirectory)!;
     }
 
     public async Task<string> UploadPdfAsync(byte[] imageBytes, string imageName, string lastDirectory)
@@ -93,10 +94,11 @@ public class UploadService(IOptions<ImageSettings> imageSettings, IOptions<Serve
 
         if (IsBooksDirectory(lastDirectory))
         {
+            // fileName é um nome de arquivo já validado no upload (extensão de imagem garantida).
             var thumbnailPath = Path.Combine(
                 directoryBase,
                 BookThumbnailsDirectory,
-                ImageHelper.FormatThumbnailName(fileName));
+                ImageHelper.FormatThumbnailName(fileName)!);
 
             if (File.Exists(thumbnailPath))
                 File.Delete(thumbnailPath);
@@ -119,8 +121,9 @@ public class UploadService(IOptions<ImageSettings> imageSettings, IOptions<Serve
 
         if (IsBooksDirectory(lastDirectory))
         {
-            var oldThumbnailName = ImageHelper.FormatThumbnailName(oldFileName);
-            var newThumbnailName = ImageHelper.FormatThumbnailName(newFileName);
+            // Nomes de arquivos já validados no upload (extensão de imagem garantida).
+            var oldThumbnailName = ImageHelper.FormatThumbnailName(oldFileName)!;
+            var newThumbnailName = ImageHelper.FormatThumbnailName(newFileName)!;
 
             if (!oldThumbnailName.Equals(newThumbnailName, StringComparison.OrdinalIgnoreCase))
             {
@@ -184,6 +187,20 @@ public class UploadService(IOptions<ImageSettings> imageSettings, IOptions<Serve
 
             var sourceInfo = new FileInfo(sourcePath);
             var thumbnailName = ImageHelper.FormatThumbnailName(sourceInfo.Name);
+
+            // Achado real ao ligar Nullable: o diretório de capas pode conter arquivos sem extensão
+            // de imagem suportada (lixo/uploads antigos). Antes, isso quebraria o backfill inteiro
+            // com NullReferenceException no Path.Combine. Agora tratamos como falha do item e seguimos.
+            if (thumbnailName == null)
+            {
+                result.Failures.Add(new BookThumbnailBackfillFailure
+                {
+                    FileName = sourceInfo.Name,
+                    Error = "Extensão de arquivo não suportada para gerar thumbnail."
+                });
+                continue;
+            }
+
             var thumbnailPath = Path.Combine(thumbnailsDirectory, thumbnailName);
             var thumbnailExists = File.Exists(thumbnailPath);
 
@@ -267,7 +284,7 @@ public class UploadService(IOptions<ImageSettings> imageSettings, IOptions<Serve
             ? directory
             : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, directory);
 
-    private static string AppendImageVersion(string imageUrl, int imageVersion)
+    private static string? AppendImageVersion(string? imageUrl, int imageVersion)
     {
         if (string.IsNullOrWhiteSpace(imageUrl) || imageVersion <= 0)
             return imageUrl;

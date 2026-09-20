@@ -59,7 +59,7 @@ public class HomeService(
             .Where(b => b.Status == BookStatus.Available
                      && b.Type == BookType.Eletronic
                      && b.Category.ParentCategoryId != null)
-            .Select(b => b.Category.ParentCategoryId.Value);
+            .Select(b => b.Category.ParentCategoryId!.Value);
 
         var categoryIds = await directRootIds.Union(subRootIds)
             .Distinct()
@@ -109,8 +109,8 @@ public class HomeService(
             Title = book.Title,
             Author = book.Author,
             Slug = book.Slug,
-            ImageUrl = _uploadService.GetImageUrl(book.ImageSlug, "Books", book.ImageVersion),
-            ThumbnailUrl = _uploadService.GetBookThumbnailUrl(book.ImageSlug, book.ImageVersion),
+            ImageUrl = _uploadService.GetImageUrl(book.ImageSlug ?? string.Empty, "Books", book.ImageVersion),
+            ThumbnailUrl = _uploadService.GetBookThumbnailUrl(book.ImageSlug ?? string.Empty, book.ImageVersion),
             Type = book.Type.ToString()
         };
     }

@@ -19,7 +19,7 @@ public partial class BookService
         return SetImageUrls(
             await _repository.Get()
                 .Include(b => b.User)
-                .ThenInclude(u => u.Address)
+                .ThenInclude(u => u!.Address)
                 .Include(b => b.Category)
                 .ThenInclude(c => c.ParentCategory)
                 .Where(b => b.Status == BookStatus.Available)
@@ -34,7 +34,7 @@ public partial class BookService
         return SetImageUrls(
             await _repository.Get()
                 .Include(b => b.User)
-                .ThenInclude(u => u.Address)
+                .ThenInclude(u => u!.Address)
                 .Include(b => b.Category)
                 .ThenInclude(c => c.ParentCategory)
                 .Where(b => b.Status == BookStatus.Available && b.Type == BookType.Eletronic)
@@ -87,7 +87,7 @@ public partial class BookService
             .OrderBy(b => b.Slug)
             .Select(b => new SitemapBookDTO
             {
-                Slug = b.Slug,
+                Slug = b.Slug ?? string.Empty,
                 LastModifiedAt = b.ApprovedAt ?? b.CreationDate
             })
             .ToListAsync();
@@ -108,21 +108,21 @@ public partial class BookService
                 FreightOption = book.FreightOption,
                 ImageSlug = book.ImageSlug,
                 ImageVersion = book.ImageVersion,
-                ImageUrl = _uploadService.GetImageUrl(book.ImageSlug, "Books", book.ImageVersion),
-                ThumbnailUrl = _uploadService.GetBookThumbnailUrl(book.ImageSlug, book.ImageVersion),
+                ImageUrl = _uploadService.GetImageUrl(book.ImageSlug ?? string.Empty, "Books", book.ImageVersion),
+                ThumbnailUrl = _uploadService.GetBookThumbnailUrl(book.ImageSlug ?? string.Empty, book.ImageVersion),
                 Slug = book.Slug,
                 CreationDate = book.CreationDate,
                 Synopsis = book.Synopsis,
                 ChooseDate = book.ChooseDate,
                 User = new User
                 {
-                    Id = book.User.Id,
+                    Id = book.User!.Id,
                     Email = book.User.Email,
                     Name = book.User.Name,
                     Linkedin = book.User.Linkedin,
                     Address = new Address
                     {
-                        City = book.User.Address.City,
+                        City = book.User.Address!.City,
                         State = book.User.Address.State,
                         Country = book.User.Address.Country,
                         UserId = book.User.Address.UserId,
@@ -191,9 +191,9 @@ public partial class BookService
         };
     }
 
-    public async Task<Book> BySlugAsync(string slug)
+    public async Task<Book?> BySlugAsync(string slug)
     {
-        var pagedBook = await SearchBooksAsync(x => (x.Slug.Equals(slug)), 1, 1);
+        var pagedBook = await SearchBooksAsync(x => x.Slug != null && x.Slug.Equals(slug), 1, 1);
         return pagedBook.Items.FirstOrDefault();
     }
 
@@ -227,7 +227,7 @@ public partial class BookService
         var books = await _repository.Get()
             .AsNoTracking()
             .Include(book => book.User)
-                .ThenInclude(user => user.Address)
+                .ThenInclude(user => user!.Address)
             .Include(book => book.Category)
                 .ThenInclude(category => category.ParentCategory)
             .Where(book => rankedIds.Contains(book.Id))
@@ -260,21 +260,21 @@ public partial class BookService
                 FreightOption = u.FreightOption,
                 ImageSlug = u.ImageSlug,
                 ImageVersion = u.ImageVersion,
-                ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books", u.ImageVersion),
-                ThumbnailUrl = _uploadService.GetBookThumbnailUrl(u.ImageSlug, u.ImageVersion),
+                ImageUrl = _uploadService.GetImageUrl(u.ImageSlug ?? string.Empty, "Books", u.ImageVersion),
+                ThumbnailUrl = _uploadService.GetBookThumbnailUrl(u.ImageSlug ?? string.Empty, u.ImageVersion),
                 Slug = u.Slug,
                 CreationDate = u.CreationDate,
                 Synopsis = u.Synopsis,
                 ChooseDate = u.ChooseDate,
                 User = new User()
                 {
-                    Id = u.User.Id,
+                    Id = u.User!.Id,
                     Email = u.User.Email,
                     Name = u.User.Name,
                     Linkedin = u.User.Linkedin,
                     Address = new Address()
                     {
-                        City = u.User.Address.City,
+                        City = u.User.Address!.City,
                         State = u.User.Address.State,
                         Country = u.User.Address.Country,
                         UserId = u.User.Address.UserId,

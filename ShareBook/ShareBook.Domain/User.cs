@@ -59,7 +59,7 @@ public class User : BaseEntity
             && (this.HashCodePasswordExpiryDate.Date == DateTime.UtcNow.AddDays(1).Date
                || this.HashCodePasswordExpiryDate.Date == DateTime.UtcNow.Date);
 
-    public void Change(string email, string name, string linkedin, string instagram, string phone, bool AllowSendingEmail)
+    public void Change(string email, string name, string? linkedin, string? instagram, string? phone, bool AllowSendingEmail)
     {
         this.Email = email;
         this.Name = name;

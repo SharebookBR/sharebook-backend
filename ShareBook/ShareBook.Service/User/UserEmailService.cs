@@ -36,7 +36,8 @@ public class UserEmailService(IEmailService emailService, IEmailTemplate emailTe
         var html = await _emailTemplate.GenerateHtmlFromTemplateAsync("RequestParentAproval", vm);
 
         var title = "Autorize o acesso ao Sharebook";
-        await _emailService.SendAsync(userDto.ParentEmail, "Pais", html, title);
+        // ParentEmail já foi validado como não-vazio em UserService.ParentAprovalStartFlowAsync antes deste envio.
+        await _emailService.SendAsync(userDto.ParentEmail!, "Pais", html, title);
     }
 
     public async Task SendEmailParentAprovedNotifyUserAsync(User user)

@@ -11,10 +11,7 @@ namespace ShareBook.Service;
 public class BooksEmailService(
     IEmailService emailService,
     IUserService userService,
-    IEmailTemplate emailTemplate,
-    IOptions<ServerSettings> serverSettings,
-    IConfiguration configuration,
-    MailSenderHighPriorityQueue mailSenderHighPriorityQueue) : IBooksEmailService
+    IEmailTemplate emailTemplate) : IBooksEmailService
 {
     private const string NewBookInsertedTemplate = "NewBookInsertedTemplate";
     private const string NewBookInsertedTitle = "Novo livro para aprovação";
@@ -34,9 +31,9 @@ public class BooksEmailService(
     public async Task SendEmailBookApprovedAsync(Book book)
     {
         if (book.User == null)
-            book.User = await _userService.FindAsync(book.UserId);
+            book.User = await _userService.FindAsync(book.UserId!);
 
-        if (book.User.AllowSendingEmail)
+        if (book.User != null && book.User.AllowSendingEmail)
         {
             var vm = new
             {
@@ -53,9 +50,9 @@ public class BooksEmailService(
     public async Task SendEmailBookReceivedAsync(Book book)
     {
         if (book.User == null)
-            book.User = await _userService.FindAsync(book.UserId);
+            book.User = await _userService.FindAsync(book.UserId!);
 
-        if (book.User.AllowSendingEmail)
+        if (book.User != null && book.User.AllowSendingEmail)
         {
             var vm = new
             {
@@ -72,13 +69,13 @@ public class BooksEmailService(
     public async Task SendEmailNewBookInsertedAsync(Book book)
     {
         if (book.User == null)
-            book.User = await _userService.FindAsync(book.UserId);
+            book.User = await _userService.FindAsync(book.UserId!);
 
         var userStats = await _userService.GetStatsAsync(book.UserId);
 
         await SendEmailNewBookInsertedToAdministrators(book, userStats);
 
-        if (book.User.AllowSendingEmail)
+        if (book.User != null && book.User.AllowSendingEmail)
             await SendEmailWaitingApprovalToUser(book);
     }
 
@@ -96,7 +93,7 @@ public class BooksEmailService(
 
     private async Task SendEmailWaitingApprovalToUser(Book book)
     {
-        if (book.User.AllowSendingEmail)
+        if (book.User != null && book.User.AllowSendingEmail)
         {
             var templateName = book.IsEbook() ? EbookWaitingApprovalTemplate : WaitingApprovalTemplate;
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(templateName, book);

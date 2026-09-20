@@ -19,7 +19,7 @@ public class EBookService(
     private readonly AwsS3Settings _storageSettings = storageSettings.Value;
     private readonly IS3Service _s3Service = s3Service;
 
-    public async Task<string> UploadPdfAsync(Book book)
+    public async Task<string?> UploadPdfAsync(Book book)
     {
         if (!book.HasPdfToUpload())
             return null;
@@ -38,7 +38,8 @@ public class EBookService(
         Directory.CreateDirectory(fullDirectoryPath);
 
         var pdfFullPath = Path.Combine(fullDirectoryPath, pdfFileName);
-        await File.WriteAllBytesAsync(pdfFullPath, book.PdfBytes);
+        // HasPdfToUpload() (checado por UploadPdfAsync) já garante PdfBytes não-nulo/não-vazio aqui.
+        await File.WriteAllBytesAsync(pdfFullPath, book.PdfBytes!);
 
         return pdfFileName;
     }
@@ -47,11 +48,11 @@ public class EBookService(
     {
         var key = $"ebooks/{book.GetPdfFileName()}";
 
-        using var stream = new MemoryStream(book.PdfBytes);
+        using var stream = new MemoryStream(book.PdfBytes!);
         return await _s3Service.UploadAsync(stream, key, "application/pdf");
     }
 
-    public async Task<string> GetPdfDownloadUrlAsync(Book book)
+    public async Task<string?> GetPdfDownloadUrlAsync(Book book)
     {
         if (string.IsNullOrEmpty(book.EBookPdfPath))
             return null;
@@ -122,7 +123,7 @@ public class EBookService(
         }
 
         const int maxSizeBytes = 50 * 1024 * 1024; // 50MB
-        if (book.HasPdfToUpload() && book.PdfBytes.Length > maxSizeBytes)
+        if (book.HasPdfToUpload() && book.PdfBytes!.Length > maxSizeBytes)
         {
             throw new ShareBookException(ShareBookException.Error.BadRequest,
                 "O arquivo PDF não pode ser maior que 50MB.");
