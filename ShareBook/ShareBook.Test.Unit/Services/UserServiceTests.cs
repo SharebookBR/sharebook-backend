@@ -1,4 +1,6 @@
-﻿using AutoMapper;
+using AutoMapper;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -7,16 +9,12 @@ using ShareBook.Domain.Common;
 using ShareBook.Domain.Validators;
 using ShareBook.Infra.CrossCutting.Identity.Interfaces;
 using ShareBook.Repository;
-using ShareBook.Repository.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service;
 using ShareBook.Service.Authorization;
 using ShareBook.Service.Recaptcha;
 using ShareBook.Test.Unit.Mocks;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -33,10 +31,9 @@ public class UserServiceTests
     readonly Mock<IUserEmailService> userEmailServiceMock;
     readonly Mock<IMapper> mapperMock;
     readonly Mock<IRecaptchaService> recaptchaServiceMock;
-    //readonly Mock<ICrypto> cryptoMock;
     readonly Mock<ILogger<UserService>> loggerMock;
-    readonly Mock<ILogger<ApplicationDbContext>> ctxMock;
     readonly Mock<IConfiguration> configMock;
+    readonly Guid _currentUserId;
 
     public UserServiceTests()
     {
@@ -49,71 +46,34 @@ public class UserServiceTests
         userEmailServiceMock = new Mock<IUserEmailService>();
         mapperMock = new Mock<IMapper>();
         recaptchaServiceMock = new Mock<IRecaptchaService>();
-        //cryptoMock = new Mock<ICrypto>();
         loggerMock = new Mock<ILogger<UserService>>();
         configMock = new Mock<IConfiguration>();
 
-
         //Simula login do usuario
-        Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
-
-        userRepositoryMock.Setup(repo => repo.InsertAsync(It.IsAny<User>())).ReturnsAsync(() =>
-        {
-            return UserMock.GetGrantee();
-        });
-
-        userRepositoryMock.Setup(repo => repo.UpdateAsync(It.IsAny<User>())).ReturnsAsync(() =>
-        {
-            return UserMock.GetGrantee();
-        });
-
-        userRepositoryMock.Setup(repo => repo.FindAsync(It.IsAny<Expression<Func<User, bool>>>())).ReturnsAsync(() =>
-        {
-            return UserMock.GetGrantee();
-        });
-
-        userRepositoryMock.Setup(repo => repo.FindAsync(It.IsAny<IncludeList<User>>(), It.IsAny<Guid>())).ReturnsAsync(() =>
-        {
-            return UserMock.GetGrantee();
-        });
-
-        userRepositoryMock.Setup(repo => repo.Get()).Returns(() =>
-        {
-            return new List<User>()
-            {
-                UserMock.GetGrantee(),
-                UserMock.GetDonor()
-            }.AsQueryable();
-        });
+        var claimsUser = new UserMock().GetClaimsUser();
+        Thread.CurrentPrincipal = claimsUser;
+        _currentUserId = new Guid(claimsUser.Identity.Name);
 
         userServiceMock.Setup(service => service.InsertAsync(It.IsAny<User>())).Verifiable();
         userServiceMock.Setup(service => service.UpdateAsync(It.IsAny<User>())).Verifiable();
-
     }
 
+    private static ApplicationDbContext CreateContext(string databaseName = null) => new ApplicationDbContext(
+        new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseInMemoryDatabase(databaseName ?? Guid.NewGuid().ToString())
+            .Options);
+
+    private UserService CreateService(ApplicationDbContext context)
+        => new UserService(userRepositoryMock.Object, bookRepositoryMock.Object, context, unitOfWorkMock.Object,
+            new UserValidator(), mapperMock.Object, userEmailServiceMock.Object, recaptchaServiceMock.Object, configMock.Object);
+
     #region Register User
-    //[Fact]
-    //public async Task RegisterValidUser()
-    //{
-    //    var service = new UserService(userRepositoryMock.Object, bookRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), mapperMock.Object, userEmailServiceMock.Object, recaptchaServiceMock.Object, cryptoMock.Object, loggerMock.Object);
-
-    //    Result<User> result = await service.InsertAsync(new User()
-    //    {
-    //        Email = "jose@sharebook.com",
-    //        Password = "Password.123",
-    //        Name = "José da Silva",
-    //        Linkedin = @"linkedin.com\jose-silva",
-    //        Phone = "55601719"
-
-    //    });
-    //    Assert.NotNull(result);
-    //    Assert.True(result.Success);
-    //}
 
     [Fact]
     public async Task RegisterInvalidUser()
     {
-        var service = new UserService(userRepositoryMock.Object, bookRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), mapperMock.Object, userEmailServiceMock.Object, recaptchaServiceMock.Object, configMock.Object);
+        await using var context = CreateContext();
+        var service = CreateService(context);
 
         Result<User> result = await service.InsertAsync(new User()
         {
@@ -130,11 +90,40 @@ public class UserServiceTests
     [Fact]
     public async Task UpdateValidUser()
     {
-        var service = new UserService(userRepositoryMock.Object, bookRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), mapperMock.Object, userEmailServiceMock.Object, recaptchaServiceMock.Object, configMock.Object);
+        // ChangeAddress() troca a instância de Address por uma nova (reaproveitando o Id
+        // antigo) e o UpdateAsync depende do EF fazer o fixup dessa troca via chave —
+        // o provider InMemory não resolve esse padrão da mesma forma que um provider
+        // relacional de verdade (Postgres em produção), por isso usamos SQLite aqui.
+        await using var connection = new SqliteConnection("Data Source=:memory:");
+        connection.Open();
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>().UseSqlite(connection).Options;
+        await using var context = new ApplicationDbContext(options);
+        await context.Database.EnsureCreatedAsync();
+
+        context.Users.Add(new User
+        {
+            Id = _currentUserId,
+            Name = "Sergio (antes do update)",
+            Email = "sergio.antigo@example.com",
+            Password = "x",
+            PasswordSalt = "y",
+            Address = new Address
+            {
+                PostalCode = "00000-000",
+                Street = "Rua antiga",
+                Number = "1",
+                City = "São Paulo",
+                Country = "Brasil",
+                State = "SP",
+                Neighborhood = "Antigo"
+            }
+        });
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
 
         Result<User> result = await service.UpdateAsync(new User()
         {
-            Id = new Guid("C53B3552-606C-40C6-9D7F-FFC87572977E"),
             Email = "sergioprates.student@gmail.com",
             Linkedin = "https://www.linkedin.com/in/sergiopratesdossantos/",
             Name = "Sergio1",
@@ -158,7 +147,8 @@ public class UserServiceTests
     [Fact]
     public async Task UpdateInvalidUser()
     {
-        var service = new UserService(userRepositoryMock.Object, bookRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), mapperMock.Object, userEmailServiceMock.Object, recaptchaServiceMock.Object, configMock.Object);
+        await using var context = CreateContext();
+        var service = CreateService(context);
 
         Result<User> result = await service.UpdateAsync(new User()
         {
@@ -175,7 +165,8 @@ public class UserServiceTests
     [Fact]
     public async Task UpdateUserNotExists()
     {
-        var service = new UserService(userRepositoryMock.Object, bookRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), mapperMock.Object, userEmailServiceMock.Object, recaptchaServiceMock.Object, configMock.Object);
+        await using var context = CreateContext();
+        var service = CreateService(context);
 
         Result<User> result = await service.UpdateAsync(new User()
         {
@@ -193,7 +184,11 @@ public class UserServiceTests
     [Fact]
     public async Task LoginValidUser()
     {
-        var service = new UserService(userRepositoryMock.Object, bookRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), mapperMock.Object, userEmailServiceMock.Object, recaptchaServiceMock.Object, configMock.Object);
+        await using var context = CreateContext();
+        context.Users.Add(UserMock.GetGrantee());
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
         Result<User> result = await service.AuthenticationByEmailAndPasswordAsync(new User()
         {
             Email = "walter@sharebook.com",
@@ -209,7 +204,11 @@ public class UserServiceTests
     [Fact]
     public async Task LoginInvalidPassword()
     {
-        var service = new UserService(userRepositoryMock.Object, bookRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), mapperMock.Object, userEmailServiceMock.Object, recaptchaServiceMock.Object, configMock.Object);
+        await using var context = CreateContext();
+        context.Users.Add(UserMock.GetGrantee());
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
         Result<User> result = await service.AuthenticationByEmailAndPasswordAsync(new User()
         {
             Email = "walter@sharebook.com",
@@ -222,13 +221,17 @@ public class UserServiceTests
     [Fact]
     public async Task LoginInvalidEmail()
     {
-        var service = new UserService(userRepositoryMock.Object, bookRepositoryMock.Object, unitOfWorkMock.Object, new UserValidator(), mapperMock.Object, userEmailServiceMock.Object, recaptchaServiceMock.Object, configMock.Object);
+        await using var context = CreateContext();
+        context.Users.Add(UserMock.GetGrantee());
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
         Result<User> result = await service.AuthenticationByEmailAndPasswordAsync(new User()
         {
             Email = "joao@sharebook.com",
             Password = "wrongpassword"
         });
-        Assert.Equal("Email ou senha incorretos", result.Messages[0]);
+        Assert.Equal("Não encontramos esse email no Sharebook. Você já se cadastrou?", result.Messages[0]);
         Assert.False(result.Success);
     }
     #endregion

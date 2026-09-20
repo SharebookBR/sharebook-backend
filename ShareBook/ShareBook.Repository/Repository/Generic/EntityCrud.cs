@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.Exceptions;
 using ShareBook.Repository.Repository;
@@ -10,12 +10,17 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Repository;
 
-public class RepositoryGeneric<TEntity> : IRepositoryGeneric<TEntity> where TEntity : class
+/// <summary>
+/// Acesso a dados CRUD comum a várias entidades, usado internamente por <see cref="ShareBook.Service.Generic.BaseService{TEntity}"/>
+/// e pelos repositories específicos que ainda precisam de operações genéricas. Não é injetado via DI nem exposto
+/// por interface: é só um jeito de não repetir a mesma query em cada repository.
+/// </summary>
+public sealed class EntityCrud<TEntity> where TEntity : class
 {
-    protected readonly ApplicationDbContext _context;
-    protected readonly DbSet<TEntity> _dbSet;
+    private readonly ApplicationDbContext _context;
+    private readonly DbSet<TEntity> _dbSet;
 
-    public RepositoryGeneric(ApplicationDbContext context)
+    public EntityCrud(ApplicationDbContext context)
     {
         _context = context;
         _dbSet = _context.Set<TEntity>();
@@ -23,7 +28,7 @@ public class RepositoryGeneric<TEntity> : IRepositoryGeneric<TEntity> where TEnt
 
     public IQueryable<TEntity> FromSql(string query, object[] parameters) => _dbSet.FromSqlRaw(query, parameters);
 
-    #region Asynchronous
+    public IQueryable<TEntity> Get() => _dbSet;
 
     public async Task<TEntity> FindAsync(params object[] keyValues) => await FindAsync(null, keyValues);
 
@@ -37,6 +42,8 @@ public class RepositoryGeneric<TEntity> : IRepositoryGeneric<TEntity> where TEnt
 
         return result;
     }
+
+    public async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> filter) => await FindAsync(null, filter);
 
     public async Task<TEntity> FindAsync(IncludeList<TEntity> includes, Expression<Func<TEntity, bool>> filter)
     {
@@ -55,17 +62,64 @@ public class RepositoryGeneric<TEntity> : IRepositoryGeneric<TEntity> where TEnt
         return await query.FirstOrDefaultAsync();
     }
 
-    public virtual async Task<PagedList<TEntity>> GetAsync<TKey>(
-       Expression<Func<TEntity, bool>> filter,
-       Expression<Func<TEntity, TKey>> order,
-       int page,
-       int itemsPerPage,
-       bool descending = false)
+    public async Task<int> CountAsync(Expression<Func<TEntity, bool>> filter) => await _dbSet.CountAsync(filter);
+
+    public async Task<bool> AnyAsync(Expression<Func<TEntity, bool>> filter) => await CountAsync(filter) > 0;
+
+    public async Task<TEntity> InsertAsync(TEntity entity)
     {
-        return await GetAsync(filter, order, page, itemsPerPage, null, descending);
+        try
+        {
+            await _context.AddAsync(entity);
+            await _context.SaveChangesAsync();
+
+            return entity;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw HandleDbUpdateException(ex);
+        }
     }
 
-    public virtual async Task<PagedList<TEntity>> GetAsync<TKey>(
+    private static Exception HandleDbUpdateException(DbUpdateException dbUpdate)
+    {
+        var builder = new StringBuilder("A DbUpdateException was caught while saving changes.");
+        try
+        {
+            builder.AppendLine($"Message: {dbUpdate.InnerException.Message}");
+            foreach (var entries in dbUpdate.Entries)
+                builder.AppendLine($"Entity of type {entries.Entity.GetType().Name} in state {entries.State} could not be updated");
+        }
+        catch (Exception e)
+        {
+            builder.Append("Error parsing DbUpdateException: " + e.ToString());
+        }
+        return new Exception(builder.ToString(), dbUpdate);
+    }
+
+    public async Task<TEntity> UpdateAsync(TEntity entity)
+    {
+        _context.Update(entity);
+        await _context.SaveChangesAsync();
+
+        return entity;
+    }
+
+    public async Task DeleteAsync(params object[] keyValues)
+    {
+        var entity = await FindAsync(keyValues);
+        if (entity == null)
+            throw new ShareBookException(ShareBookException.Error.NotFound);
+        await DeleteAsync(entity);
+    }
+
+    public async Task DeleteAsync(TEntity entity)
+    {
+        _context.Remove(entity);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<PagedList<TEntity>> GetAsync<TKey>(
         Expression<Func<TEntity, bool>> filter,
         Expression<Func<TEntity, TKey>> order,
         int page,
@@ -100,81 +154,9 @@ public class RepositoryGeneric<TEntity> : IRepositoryGeneric<TEntity> where TEnt
         };
     }
 
-    public async Task<int> CountAsync(Expression<Func<TEntity, bool>> filter) => await _dbSet.CountAsync(filter);
-
-    public async Task<bool> AnyAsync(Expression<Func<TEntity, bool>> filter) => await CountAsync(filter) > 0;
-
-    public virtual async Task<TEntity> InsertAsync(TEntity entity)
-    {
-        try
-        {
-            await _context.AddAsync(entity);
-            await _context.SaveChangesAsync();
-
-            return entity;
-        }
-        catch (DbUpdateException ex)
-        {
-            Exception db = HandleDbUpdateException(ex);
-            throw db;
-        }
-    }
-
-    private Exception HandleDbUpdateException(DbUpdateException dbUpdate)
-    {
-        var builder = new StringBuilder("A DbUpdateException was caught while saving changes.");
-        try
-        {
-            builder.AppendLine($"Message: {dbUpdate.InnerException.Message}");
-            foreach (var entries in dbUpdate.Entries)
-                builder.AppendLine($"Entity of type {entries.Entity.GetType().Name} in state {entries.State} could not be updated");
-        }
-        catch (Exception e)
-        {
-            builder.Append("Error parsing DbUpdateException: " + e.ToString());
-        }
-        string message = builder.ToString();
-        return new Exception(message, dbUpdate);
-    }
-
-    public virtual async Task<TEntity> UpdateAsync(TEntity entity)
-    {
-        _context.Update(entity);
-        await _context.SaveChangesAsync();
-
-        return entity;
-    }
-
-    public async Task DeleteAsync(params object[] keyValues)
-    {
-        var entity = await FindAsync(keyValues);
-        if (entity == null)
-            throw new ShareBookException(ShareBookException.Error.NotFound);
-        await DeleteAsync(entity);
-    }
-
-    public async Task DeleteAsync(TEntity entity)
-    {
-        _context.Remove(entity);
-        await _context.SaveChangesAsync();
-    }
-
-    #endregion Asynchronous
-
-    #region Synchronous
-
-    public IQueryable<TEntity> Get() => _dbSet;
-
-    public async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> filter) => await FindAsync(null, filter);
-
     public async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order)
         => await GetAsync(filter, order, null);
 
     public async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, IncludeList<TEntity> includes)
-       => await GetAsync(filter, order, 1, int.MaxValue, includes);
-
-    public async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes, bool descending = false)
-        => await GetAsync(x => true, order, page, itemsPerPage, includes, descending);
-
-    #endregion Synchronous
+        => await GetAsync(filter, order, 1, int.MaxValue, includes);
 }

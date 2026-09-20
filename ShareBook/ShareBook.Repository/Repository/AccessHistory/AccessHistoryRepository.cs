@@ -7,9 +7,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ShareBook.Repository; 
-public class AccessHistoryRepository : RepositoryGeneric<AccessHistory>, IAccessHistoryRepository {
-    public AccessHistoryRepository(ApplicationDbContext context) : base(context) { }
+namespace ShareBook.Repository;
+public class AccessHistoryRepository : IAccessHistoryRepository {
+    private readonly ApplicationDbContext _context;
+
+    public AccessHistoryRepository(ApplicationDbContext context)
+    {
+        _context = context;
+    }
+
     public async Task<IEnumerable<AccessHistory>> GetWhoAccessedMyProfileAsync(Guid userId) {
         if (userId.Equals(null)) return null;
 

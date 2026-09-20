@@ -28,6 +28,7 @@ namespace ShareBook.Service;
 public partial class BookService : BaseService<Book>, IBookService
 {
     private const int MaxSlugInsertAttempts = 5;
+    private readonly ApplicationDbContext _context;
     private readonly IUploadService _uploadService;
     private readonly IBookRepository _bookRepository;
     private readonly IBooksEmailService _booksEmailService;
@@ -38,11 +39,13 @@ public partial class BookService : BaseService<Book>, IBookService
     private readonly NewBookQueue _newBookQueue;
 
     public BookService(IBookRepository bookRepository,
+                ApplicationDbContext context,
                 IUnitOfWork unitOfWork, IValidator<Book> validator,
                 IUploadService uploadService, IBooksEmailService booksEmailService, IConfiguration configuration,
                 NewBookQueue newBookQueue, IEBookService ebookService, ICategoryRepository categoryRepository)
-                : base(bookRepository, unitOfWork, validator)
+                : base(context, unitOfWork, validator)
     {
+        _context = context;
         _bookRepository = bookRepository;
         _uploadService = uploadService;
         _booksEmailService = booksEmailService;
@@ -50,6 +53,75 @@ public partial class BookService : BaseService<Book>, IBookService
         _newBookQueue = newBookQueue;
         _ebookService = ebookService;
         _categoryRepository = categoryRepository;
+    }
+
+    private async Task<Book> PersistBookUpdateAsync(Book entity)
+    {
+        _context.Update(entity);
+
+        // imagem e slug são opcionais em alguns fluxos de update; se vierem nulos,
+        // não sobrescrevemos o valor já persistido.
+        if (entity.ImageSlug == null)
+            _context.Entry(entity).Property(x => x.ImageSlug).IsModified = false;
+
+        if (entity.Slug == null)
+            _context.Entry(entity).Property(x => x.Slug).IsModified = false;
+
+        _context.Entry(entity).Property(x => x.UserId).IsModified = false;
+
+        await _context.SaveChangesAsync();
+
+        return entity;
+    }
+
+    private static bool IsUniqueSlugViolation(Exception exception)
+    {
+        for (var current = exception; current != null; current = current.InnerException)
+        {
+            if (current is Npgsql.PostgresException postgresException
+                && postgresException.SqlState == Npgsql.PostgresErrorCodes.UniqueViolation
+                && postgresException.ConstraintName == "UX_Books_Slug")
+            {
+                return true;
+            }
+
+            if (current is Microsoft.Data.Sqlite.SqliteException sqliteException
+                && sqliteException.SqliteErrorCode == 19
+                && sqliteException.Message.Contains("Books.Slug", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public override async Task<PagedList<Book>> GetAsync<TKey>(
+        Expression<Func<Book, bool>> filter,
+        Expression<Func<Book, TKey>> order,
+        int page,
+        int itemsPerPage,
+        bool descending = false)
+    {
+        var skip = (page - 1) * itemsPerPage;
+        var query = _repository.Get().Where(filter);
+        var total = await query.CountAsync();
+        var orderedQuery = descending
+            ? query.Include(x => x.BookUsers).Include(x => x.User).OrderByDescending(order)
+            : query.Include(x => x.BookUsers).Include(x => x.User).OrderBy(order);
+
+        var result = await orderedQuery
+            .Skip(skip)
+            .Take(itemsPerPage)
+            .ToListAsync();
+
+        return new PagedList<Book>()
+        {
+            Page = page,
+            ItemsPerPage = itemsPerPage,
+            TotalItems = total,
+            Items = result
+        };
     }
 
     public async Task ApproveAsync(Guid bookId, DateTime? chooseDate = null)
@@ -65,7 +137,7 @@ public partial class BookService : BaseService<Book>, IBookService
         book.ChooseDate = book.IsEbook()
             ? null
             : chooseDate?.Date ?? DateTime.Today.AddDays(daysInShowcase);
-        await _repository.UpdateAsync(book);
+        await PersistBookUpdateAsync(book);
 
         // notifica o doador
         await _booksEmailService.SendEmailBookApprovedAsync(book);
@@ -88,7 +160,7 @@ public partial class BookService : BaseService<Book>, IBookService
             throw new ShareBookException(ShareBookException.Error.NotFound);
 
         book.Status = BookStatus.Received;
-        await _repository.UpdateAsync(book);
+        await PersistBookUpdateAsync(book);
     }
 
     public async Task ReceivedAsync(Guid bookId, Guid winnerUserId)
@@ -106,7 +178,7 @@ public partial class BookService : BaseService<Book>, IBookService
             throw new ShareBookException(ShareBookException.Error.Forbidden);
 
         book.Status = BookStatus.Received;
-        await _repository.UpdateAsync(book);
+        await PersistBookUpdateAsync(book);
 
         await _booksEmailService.SendEmailBookReceivedAsync(book);
     }
@@ -118,7 +190,7 @@ public partial class BookService : BaseService<Book>, IBookService
             throw new ShareBookException(ShareBookException.Error.NotFound);
 
         book.Status = bookStatus;
-        await _repository.UpdateAsync(book);
+        await PersistBookUpdateAsync(book);
     }
 
     public IList<dynamic> FreightOptions()
@@ -233,14 +305,16 @@ public partial class BookService : BaseService<Book>, IBookService
                     result.Value = await _repository.InsertAsync(entity);
                     break;
                 }
-                catch (DuplicateBookSlugException) when (attempt < MaxSlugInsertAttempts)
+                catch (Exception exception) when (IsUniqueSlugViolation(exception) && attempt < MaxSlugInsertAttempts)
                 {
+                    _context.Entry(entity).State = EntityState.Detached;
                     await DeleteUploadedPdfAfterSlugConflictAsync(entity, uploadedPdf);
                 }
-                catch (DuplicateBookSlugException)
+                catch (Exception exception) when (IsUniqueSlugViolation(exception))
                 {
+                    _context.Entry(entity).State = EntityState.Detached;
                     await DeleteUploadedPdfAfterSlugConflictAsync(entity, uploadedPdf);
-                    throw;
+                    throw new DuplicateBookSlugException(entity.Slug, exception);
                 }
             }
 
@@ -353,7 +427,7 @@ public partial class BookService : BaseService<Book>, IBookService
         if (entity.UserIdFacilitator.HasValue && entity.UserIdFacilitator != Guid.Empty)
             savedBook.UserIdFacilitator = entity.UserIdFacilitator;
 
-        result.Value = await _repository.UpdateAsync(savedBook);
+        result.Value = await PersistBookUpdateAsync(savedBook);
         result.Value.ImageBytes = null;
         SetImageUrls(result.Value);
 
@@ -368,13 +442,6 @@ public partial class BookService : BaseService<Book>, IBookService
                 x.BookUsers.Any(y => y.UserId == userId));
     }
 
-    public override async Task<PagedList<Book>> GetAsync<TKey>(
-        Expression<Func<Book, bool>> filter,
-        Expression<Func<Book, TKey>> order,
-        int page,
-        int itemsPerPage,
-        bool descending = false)
-        => await base.GetAsync(filter, order, page, itemsPerPage, descending);
 
     public async Task<IList<Book>> GetBooksChooseDateIsTodayAsync()
     {
@@ -436,7 +503,7 @@ public partial class BookService : BaseService<Book>, IBookService
         var lineBreak = (string.IsNullOrEmpty(book.FacilitatorNotes)) ? "" : "\n";
         book.FacilitatorNotes += string.Format("{0}{1} - {2}", lineBreak, date, facilitatorNotes);
 
-        await _repository.UpdateAsync(book);
+        await PersistBookUpdateAsync(book);
     }
 
     public async Task<Book> GetBookWithAllUsersAsync(Guid bookId)
@@ -460,7 +527,7 @@ public partial class BookService : BaseService<Book>, IBookService
 
         book.Status = BookStatus.Available;
         book.ChooseDate = DateTime.UtcNow.AddDays(10);
-        await _repository.UpdateAsync(book);
+        await PersistBookUpdateAsync(book);
     }
 
     public async Task ReportCopyrightAsync(string slug)
@@ -482,7 +549,7 @@ public partial class BookService : BaseService<Book>, IBookService
             throw new ShareBookException(ShareBookException.Error.NotFound);
 
         book.DownloadCount++;
-        await _repository.UpdateAsync(book);
+        await PersistBookUpdateAsync(book);
     }
 
     #region Private

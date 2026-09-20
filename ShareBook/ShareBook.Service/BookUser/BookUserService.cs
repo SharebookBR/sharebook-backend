@@ -23,7 +23,6 @@ namespace ShareBook.Service;
 
 public class BookUserService : BaseService<BookUser>, IBookUserService
 {
-    private readonly IBookUserRepository _bookUserRepository;
     private readonly IBookService _bookService;
     private readonly IBookUsersEmailService _bookUsersEmailService;
     private readonly IMuambatorService _muambatorService;
@@ -32,16 +31,15 @@ public class BookUserService : BaseService<BookUser>, IBookUserService
     private readonly ILogger<BookUserService> _logger;
 
     public BookUserService(
-        IBookUserRepository bookUserRepository,
+        ApplicationDbContext context,
         IBookService bookService,
         IBookUsersEmailService bookUsersEmailService,
         IMuambatorService muambatorService,
         IBookRepository bookRepository,
         IUnitOfWork unitOfWork,
         IValidator<BookUser> validator, IConfiguration configuration, ILogger<BookUserService> logger = null)
-        : base(bookUserRepository, unitOfWork, validator)
+        : base(context, unitOfWork, validator)
     {
-        _bookUserRepository = bookUserRepository;
         _bookService = bookService;
         _bookUsersEmailService = bookUsersEmailService;
         _muambatorService = muambatorService;
@@ -51,12 +49,12 @@ public class BookUserService : BaseService<BookUser>, IBookUserService
     }
 
     public async Task<IList<User>> GetGranteeUsersByBookIdAsync(Guid bookId) =>
-        await _bookUserRepository.Get().Include(x => x.User)
+        await _repository.Get().Include(x => x.User)
         .Where(x => x.BookId == bookId && x.Status == DonationStatus.WaitingAction)
         .Select(x => x.User.Cleanup()).ToListAsync();
 
     public async Task<IList<BookUser>> GetRequestersListAsync(Guid bookId) =>
-        await _bookUserRepository.Get()
+        await _repository.Get()
             .Include(x => x.User).ThenInclude(u => u.Address)
             .Include(x => x.User).ThenInclude(u => u.BookUsers)
             .Include(x => x.User).ThenInclude(u => u.BooksDonated)
@@ -79,13 +77,13 @@ public class BookUserService : BaseService<BookUser>, IBookUserService
         if (!await _bookService.AnyAsync(x => x.Id == bookUser.BookId))
             throw new ShareBookException(ShareBookException.Error.NotFound);
 
-        if (await _bookUserRepository.AnyAsync(x => x.UserId == bookUser.UserId && x.BookId == bookUser.BookId))
+        if (await _repository.AnyAsync(x => x.UserId == bookUser.UserId && x.BookId == bookUser.BookId))
             throw new ShareBookException("O usuário já possui uma requisição para o mesmo livro.");
 
         if (bookRequested.Status != BookStatus.Available)
             throw new ShareBookException("Esse livro não está mais disponível para doação.");
 
-        await _bookUserRepository.InsertAsync(bookUser);
+        await _repository.InsertAsync(bookUser);
 
         // Remove da vitrine caso o número de pedidos estiver grande demais.
         await MaxRequestsValidationAsync(bookRequested);
@@ -114,7 +112,7 @@ public class BookUserService : BaseService<BookUser>, IBookUserService
         if (!book.MayChooseWinner())
             throw new ShareBookException(ShareBookException.Error.BadRequest, "Aguarde a data de decisão.");
 
-        var bookUserAccepted = await _bookUserRepository.Get()
+        var bookUserAccepted = await _repository.Get()
             .Include(u => u.Book).ThenInclude(b => b.UserFacilitator)
             .Include(u => u.Book).ThenInclude(b => b.User)
             .Include(u => u.User).ThenInclude(u => u.Address)
@@ -131,7 +129,7 @@ public class BookUserService : BaseService<BookUser>, IBookUserService
 
         bookUserAccepted.UpdateBookUser(DonationStatus.Donated, note);
 
-        await _bookUserRepository.UpdateAsync(bookUserAccepted);
+        await _repository.UpdateAsync(bookUserAccepted);
 
         await DeniedBookUsersAsync(bookId);
 
@@ -168,13 +166,13 @@ public class BookUserService : BaseService<BookUser>, IBookUserService
 
     public async Task DeniedBookUsersAsync(Guid bookId)
     {
-        var bookUsersDenied = await _bookUserRepository.Get().Where(x => x.BookId == bookId
+        var bookUsersDenied = await _repository.Get().Where(x => x.BookId == bookId
         && x.Status == DonationStatus.WaitingAction).ToListAsync();
         foreach (var item in bookUsersDenied)
         {
             string note = string.Empty;
             item.UpdateBookUser(DonationStatus.Denied, note);
-            await _bookUserRepository.UpdateAsync(item);
+            await _repository.UpdateAsync(item);
         }
     }
 
@@ -187,7 +185,7 @@ public class BookUserService : BaseService<BookUser>, IBookUserService
     public async Task<PagedList<BookUser>> GetRequestsByUserAsync(int page, int itemsPerPage)
     {
         var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-        var query = _bookUserRepository.Get()
+        var query = _repository.Get()
             .Include(x => x.Book)
             .Where(x => x.UserId == userId)
             .OrderByDescending(x => x.CreationDate);
@@ -207,7 +205,7 @@ public class BookUserService : BaseService<BookUser>, IBookUserService
     public async Task NotifyInterestedAboutBooksWinnerAsync(Guid bookId)
     {
         //Obter todos os users do livro
-        var bookUsers = await _bookUserRepository.Get()
+        var bookUsers = await _repository.Get()
                                             .Include(u => u.Book)
                                             .Include(u => u.User)
                                             .Where(x => x.BookId == bookId).ToListAsync();
@@ -227,7 +225,7 @@ public class BookUserService : BaseService<BookUser>, IBookUserService
 
     public async Task NotifyUsersBookCanceledAsync(Book book)
     {
-        List<BookUser> bookUsers = await _bookUserRepository.Get()
+        List<BookUser> bookUsers = await _repository.Get()
                                         .Include(u => u.User)
                                         .Where(x => x.BookId == book.Id).ToListAsync();
 
@@ -240,7 +238,7 @@ public class BookUserService : BaseService<BookUser>, IBookUserService
                                   .Include(d => d.User)
                                   .Include(f => f.UserFacilitator)
                                   .FirstOrDefaultAsync(id => id.Id == bookId);
-        var winnerBookUser = await _bookUserRepository
+        var winnerBookUser = await _repository
                                     .Get()
                                     .Include(u => u.User)
                                     .Where(bu => bu.BookId == bookId && bu.Status == DonationStatus.Donated)
@@ -281,7 +279,7 @@ public class BookUserService : BaseService<BookUser>, IBookUserService
         {
             request.UpdateBookUser(DonationStatus.Canceled, String.Empty);
             request.Reason = "Pedido cancelado! Favor ignorar.";
-            await _bookUserRepository.UpdateAsync(request);
+            await _repository.UpdateAsync(request);
 
             return true;
         }
@@ -290,6 +288,6 @@ public class BookUserService : BaseService<BookUser>, IBookUserService
     }
     public async Task<BookUser> GetRequestAsync(Guid requestId)
     {
-        return await _bookUserRepository.FindAsync(new IncludeList<BookUser>(x => x.Book), x => x.Id == requestId);
+        return await _repository.FindAsync(new IncludeList<BookUser>(x => x.Book), x => x.Id == requestId);
     }
 }

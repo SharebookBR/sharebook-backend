@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using ShareBook.Domain;
@@ -49,10 +50,6 @@ public class BookServiceTests
         configurationMock = new Mock<IConfiguration>();
         sqsMock = new Mock<NewBookQueue>();
 
-        bookRepositoryMock.Setup(repo => repo.InsertAsync(It.IsAny<Book>())).ReturnsAsync(() =>
-        {
-            return BookMock.GetLordTheRings();
-        });
         bookRepositoryMock.Setup(repo => repo.Get()).Returns(Array.Empty<Book>().AsQueryable());
         bookRepositoryMock.Setup(repo => repo.GetSlugsStartingWithAsync(It.IsAny<string>()))
             .ReturnsAsync(Array.Empty<string>());
@@ -66,7 +63,7 @@ public class BookServiceTests
     public async Task FullSearch_PublicSearch_ShouldReturnOnlyAvailableBooks()
     {
         await using var context = await CreateSearchContextAsync();
-        var service = CreateService(new BookRepository(context));
+        var service = CreateService(new BookRepository(context), context);
 
         var result = await service.FullSearchAsync("clean", 1, 10, false);
 
@@ -79,7 +76,7 @@ public class BookServiceTests
     public async Task FullSearch_AdminSearch_ShouldReturnBooksFromAllStatuses()
     {
         await using var context = await CreateSearchContextAsync();
-        var service = CreateService(new BookRepository(context));
+        var service = CreateService(new BookRepository(context), context);
 
         var result = await service.FullSearchAsync("clean", 1, 10, true);
 
@@ -100,12 +97,11 @@ public class BookServiceTests
         savedBook.Id = Guid.NewGuid();
         savedBook.ImageSlug = "lotr.png";
 
-        bookRepositoryMock.Setup(repo => repo.FindAsync(It.IsAny<object[]>())).ReturnsAsync(savedBook);
-        bookRepositoryMock.Setup(repo => repo.UpdateAsync(It.IsAny<Book>())).ReturnsAsync((Book book) => book);
+        await using var context = await CreateEmptyContextAsync();
+        context.Books.Add(savedBook);
+        await context.SaveChangesAsync();
 
-        var service = new BookService(bookRepositoryMock.Object,
-            unitOfWorkMock.Object, new BookValidator(),
-            uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
+        var service = CreateService(bookRepositoryMock.Object, context);
 
         Result<Book> result = await service.UpdateAsync(new Book()
         {
@@ -135,12 +131,12 @@ public class BookServiceTests
         categoryRepositoryMock
             .Setup(repo => repo.Get())
             .Returns(new[] { new Category { Id = categoryId, Name = "Leaf" } }.AsQueryable());
-        bookRepositoryMock.Setup(repo => repo.FindAsync(savedBook.Id)).ReturnsAsync(savedBook);
-        bookRepositoryMock.Setup(repo => repo.UpdateAsync(It.IsAny<Book>())).ReturnsAsync((Book book) => book);
 
-        var service = new BookService(bookRepositoryMock.Object,
-            unitOfWorkMock.Object, new BookValidator(),
-            uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
+        await using var context = await CreateEmptyContextAsync();
+        context.Books.Add(savedBook);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(bookRepositoryMock.Object, context);
 
         var result = await service.UpdateAsync(new Book
         {
@@ -161,25 +157,15 @@ public class BookServiceTests
     {
         Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
         var categoryId = Guid.NewGuid();
-        var insertedBooks = new System.Collections.Generic.List<Book>();
 
         categoryRepositoryMock
             .Setup(repo => repo.Get())
             .Returns(new[] { new Category { Id = categoryId, Name = "Leaf" } }.AsQueryable());
-        bookRepositoryMock
-            .Setup(repo => repo.GetSlugsStartingWithAsync(It.IsAny<string>()))
-            .ReturnsAsync(() => insertedBooks.Select(book => book.Slug).ToList());
-        bookRepositoryMock
-            .Setup(repo => repo.InsertAsync(It.IsAny<Book>()))
-            .ReturnsAsync((Book book) =>
-            {
-                insertedBooks.Add(book);
-                return book;
-            });
 
-        var service = new BookService(bookRepositoryMock.Object,
-            unitOfWorkMock.Object, new BookValidator(),
-            uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
+        await using var context = await CreateEmptyContextAsync();
+        // GetSlugsStartingWithAsync precisa refletir o estado real do banco entre as duas
+        // inserções, por isso usamos o BookRepository de verdade (não o mock) aqui.
+        var service = CreateService(new BookRepository(context), context);
 
         var first = new Book
         {
@@ -205,9 +191,10 @@ public class BookServiceTests
         await service.InsertAsync(first);
         await service.InsertAsync(second);
 
-        Assert.Equal(2, insertedBooks.Count);
-        Assert.Equal("o-pequeno-principe", insertedBooks[0].Slug);
-        Assert.Equal("o-pequeno-principe_copy1", insertedBooks[1].Slug);
+        var insertedSlugs = await context.Books.OrderBy(b => b.CreationDate).Select(b => b.Slug).ToListAsync();
+        Assert.Equal(2, insertedSlugs.Count);
+        Assert.Equal("o-pequeno-principe", insertedSlugs[0]);
+        Assert.Equal("o-pequeno-principe_copy1", insertedSlugs[1]);
     }
 
     [Fact]
@@ -215,33 +202,49 @@ public class BookServiceTests
     {
         Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
         var categoryId = Guid.NewGuid();
-        var existingBooks = new System.Collections.Generic.List<Book>();
-        var insertAttempts = 0;
 
         categoryRepositoryMock
             .Setup(repo => repo.Get())
             .Returns(new[] { new Category { Id = categoryId, Name = "Leaf" } }.AsQueryable());
-        bookRepositoryMock
-            .Setup(repo => repo.GetSlugsStartingWithAsync(It.IsAny<string>()))
-            .ReturnsAsync(() => existingBooks.Select(book => book.Slug).ToList());
-        bookRepositoryMock
-            .Setup(repo => repo.InsertAsync(It.IsAny<Book>()))
-            .ReturnsAsync((Book book) =>
-            {
-                insertAttempts++;
-                if (insertAttempts == 1)
-                {
-                    existingBooks.Add(new Book { Slug = book.Slug });
-                    throw new DuplicateBookSlugException(book.Slug, new Exception("simulated race"));
-                }
 
-                existingBooks.Add(book);
-                return book;
-            });
+        // Este teste depende de uma violação REAL de índice único (a mesma forma que o
+        // Postgres/SQLite de produção lança), então usa SQLite de verdade em memória —
+        // o provider InMemory do EF Core não aplica a msma exceção.
+        await using var connection = new SqliteConnection("Data Source=:memory:");
+        connection.Open();
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>().UseSqlite(connection).Options;
+        await using var context = new ApplicationDbContext(options);
+        await context.Database.EnsureCreatedAsync();
 
-        var service = new BookService(bookRepositoryMock.Object,
-            unitOfWorkMock.Object, new BookValidator(),
-            uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
+        // SQLite de verdade aplica foreign keys (diferente do provider InMemory), então
+        // precisamos de Category e User reais pra satisfazer as FKs de Book.
+        var currentUserId = new Guid(Thread.CurrentPrincipal.Identity.Name);
+        context.Categories.Add(new Category { Id = categoryId, Name = "Leaf" });
+        context.Users.Add(new User
+        {
+            Id = currentUserId,
+            Name = "Autor do teste",
+            Email = "concurrent-test@example.com",
+            Password = "x",
+            PasswordSalt = "y"
+        });
+
+        // Simula que outra requisição já ocupou o slug "clean-code" entre o cálculo do
+        // slug disponível e a tentativa de insert desta requisição.
+        context.Books.Add(new Book
+        {
+            Title = "Clean Code",
+            Author = "Robert C. Martin",
+            Slug = "clean-code",
+            ImageSlug = "clean-code-existing.png",
+            FreightOption = FreightOption.City,
+            CategoryId = categoryId,
+            UserId = currentUserId,
+            Type = BookType.Printed
+        });
+        await context.SaveChangesAsync();
+
+        var service = CreateService(new BookRepository(context), context);
 
         var result = await service.InsertAsync(new Book
         {
@@ -255,7 +258,6 @@ public class BookServiceTests
         });
 
         Assert.True(result.Success);
-        Assert.Equal(2, insertAttempts);
         Assert.Equal("clean-code_copy1", result.Value.Slug);
     }
 
@@ -263,9 +265,8 @@ public class BookServiceTests
     public async Task AddBook()
     {
         Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
-        var service = new BookService(bookRepositoryMock.Object,
-            unitOfWorkMock.Object, new BookValidator(),
-            uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
+        await using var context = await CreateEmptyContextAsync();
+        var service = CreateService(bookRepositoryMock.Object, context);
         Result<Book> result = await service.InsertAsync(new Book()
         {
             Title = "Lord of the Rings",
@@ -284,9 +285,8 @@ public class BookServiceTests
     public async Task AddEBookWithPdf()
     {
         Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
-        var service = new BookService(bookRepositoryMock.Object,
-            unitOfWorkMock.Object, new BookValidator(),
-            uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
+        await using var context = await CreateEmptyContextAsync();
+        var service = CreateService(bookRepositoryMock.Object, context);
         Result<Book> result = await service.InsertAsync(new Book()
         {
             Title = "Clean Code",
@@ -305,9 +305,8 @@ public class BookServiceTests
     public async Task AddEBookWithoutPdf_ShouldFail()
     {
         Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
-        var service = new BookService(bookRepositoryMock.Object,
-            unitOfWorkMock.Object, new BookValidator(),
-            uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
+        await using var context = await CreateEmptyContextAsync();
+        var service = CreateService(bookRepositoryMock.Object, context);
         Result<Book> result = await service.InsertAsync(new Book()
         {
             Title = "Clean Code",
@@ -325,9 +324,8 @@ public class BookServiceTests
     public async Task AddPrintedBookWithoutFreight_ShouldFail()
     {
         Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
-        var service = new BookService(bookRepositoryMock.Object,
-            unitOfWorkMock.Object, new BookValidator(),
-            uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
+        await using var context = await CreateEmptyContextAsync();
+        var service = CreateService(bookRepositoryMock.Object, context);
         Result<Book> result = await service.InsertAsync(new Book()
         {
             Title = "Lord of the Rings",
@@ -345,9 +343,8 @@ public class BookServiceTests
     public async Task EBookShouldNotRequireFreight()
     {
         Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
-        var service = new BookService(bookRepositoryMock.Object,
-            unitOfWorkMock.Object, new BookValidator(),
-            uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
+        await using var context = await CreateEmptyContextAsync();
+        var service = CreateService(bookRepositoryMock.Object, context);
         Result<Book> result = await service.InsertAsync(new Book()
         {
             Title = "Clean Code",
@@ -367,14 +364,19 @@ public class BookServiceTests
     {
         Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
 
+        await using var context = await CreateEmptyContextAsync();
         // Simula que já existe um ebook com o mesmo título e autor no banco
-        bookRepositoryMock
-            .Setup(repo => repo.AnyAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Book, bool>>>()))
-            .ReturnsAsync(true);
+        context.Books.Add(new Book
+        {
+            Title = "Clean Code",
+            Author = "Robert C. Martin",
+            ImageSlug = "clean-code-existing.png",
+            Type = BookType.Eletronic,
+            CategoryId = Guid.NewGuid()
+        });
+        await context.SaveChangesAsync();
 
-        var service = new BookService(bookRepositoryMock.Object,
-            unitOfWorkMock.Object, new BookValidator(),
-            uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
+        var service = CreateService(bookRepositoryMock.Object, context);
 
         Result<Book> result = await service.InsertAsync(new Book()
         {
@@ -397,14 +399,8 @@ public class BookServiceTests
     {
         Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
 
-        // AnyAsync nunca deve ser chamado para livros físicos
-        bookRepositoryMock
-            .Setup(repo => repo.AnyAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Book, bool>>>()))
-            .ReturnsAsync(true);
-
-        var service = new BookService(bookRepositoryMock.Object,
-            unitOfWorkMock.Object, new BookValidator(),
-            uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
+        await using var context = await CreateEmptyContextAsync();
+        var service = CreateService(bookRepositoryMock.Object, context);
 
         Result<Book> result = await service.InsertAsync(new Book()
         {
@@ -431,9 +427,8 @@ public class BookServiceTests
             .Setup(repo => repo.Get())
             .Returns(new[] { new Category { Id = Guid.NewGuid(), ParentCategoryId = parentCategoryId } }.AsQueryable());
 
-        var service = new BookService(bookRepositoryMock.Object,
-            unitOfWorkMock.Object, new BookValidator(),
-            uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
+        await using var context = await CreateEmptyContextAsync();
+        var service = CreateService(bookRepositoryMock.Object, context);
 
         Result<Book> result = await service.InsertAsync(new Book()
         {
@@ -456,25 +451,13 @@ public class BookServiceTests
     {
         var parentCategoryId = Guid.NewGuid();
         var bookId = Guid.NewGuid();
-        var savedBook = new Book
-        {
-            Id = bookId,
-            Title = "Livro Original",
-            Author = "Autor",
-            CategoryId = Guid.NewGuid(),
-            Synopsis = "x",
-            Slug = "livro-original"
-        };
 
         categoryRepositoryMock
             .Setup(repo => repo.Get())
             .Returns(new[] { new Category { Id = Guid.NewGuid(), ParentCategoryId = parentCategoryId } }.AsQueryable());
 
-        bookRepositoryMock.Setup(repo => repo.FindAsync(bookId)).ReturnsAsync(savedBook);
-
-        var service = new BookService(bookRepositoryMock.Object,
-            unitOfWorkMock.Object, new BookValidator(),
-            uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
+        await using var context = await CreateEmptyContextAsync();
+        var service = CreateService(bookRepositoryMock.Object, context);
 
         var result = await service.UpdateAsync(new Book
         {
@@ -488,8 +471,8 @@ public class BookServiceTests
         Assert.NotNull(result);
         Assert.False(result.Success);
         Assert.Contains("Selecione uma subcategoria final", result.Messages[0]);
-        bookRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<Book>()), Times.Never);
     }
+
     [Fact]
     public async Task UpdateBook_WhenCoverExtensionChanges_ShouldUploadUsingNewSlugAndDeleteOldFile()
     {
@@ -511,8 +494,9 @@ public class BookServiceTests
             .Setup(repo => repo.Get())
             .Returns(new[] { new Category { Id = categoryId, Name = "Leaf" } }.AsQueryable());
 
-        bookRepositoryMock.Setup(repo => repo.FindAsync(bookId)).ReturnsAsync(savedBook);
-        bookRepositoryMock.Setup(repo => repo.UpdateAsync(It.IsAny<Book>())).ReturnsAsync((Book b) => b);
+        await using var context = await CreateEmptyContextAsync();
+        context.Books.Add(savedBook);
+        await context.SaveChangesAsync();
 
         uploadServiceMock
             .Setup(service => service.UploadImageAsync(It.IsAny<byte[]>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -525,9 +509,7 @@ public class BookServiceTests
                 It.IsAny<string>()))
             .Returns(Task.CompletedTask);
 
-        var service = new BookService(bookRepositoryMock.Object,
-            unitOfWorkMock.Object, new BookValidator(),
-            uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
+        var service = CreateService(bookRepositoryMock.Object, context);
 
         var result = await service.UpdateAsync(new Book
         {
@@ -571,21 +553,21 @@ public class BookServiceTests
             Synopsis = "x"
         };
 
-        bookRepositoryMock.Setup(repo => repo.FindAsync(It.IsAny<object[]>())).ReturnsAsync(savedBook);
-        bookRepositoryMock.Setup(repo => repo.DeleteAsync(It.IsAny<object[]>())).Returns(Task.CompletedTask).Verifiable();
-        uploadServiceMock.Setup(service => service.DeleteFileIfExistsAsync("cloud.jpg", "Books")).Returns(Task.CompletedTask).Verifiable();
-        ebookServiceMock.Setup(service => service.DeletePdfAsync(savedBook)).Returns(Task.CompletedTask).Verifiable();
+        await using var context = await CreateEmptyContextAsync();
+        context.Books.Add(savedBook);
+        await context.SaveChangesAsync();
 
-        var service = new BookService(bookRepositoryMock.Object,
-            unitOfWorkMock.Object, new BookValidator(),
-            uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
+        uploadServiceMock.Setup(service => service.DeleteFileIfExistsAsync("cloud.jpg", "Books")).Returns(Task.CompletedTask).Verifiable();
+        ebookServiceMock.Setup(service => service.DeletePdfAsync(It.IsAny<Book>())).Returns(Task.CompletedTask).Verifiable();
+
+        var service = CreateService(bookRepositoryMock.Object, context);
 
         var result = await service.DeleteAsync(bookId);
 
         Assert.NotNull(result);
-        bookRepositoryMock.Verify(repo => repo.DeleteAsync(It.IsAny<object[]>()), Times.Once);
+        Assert.Null(await context.Books.FindAsync(bookId));
         uploadServiceMock.Verify(service => service.DeleteFileIfExistsAsync("cloud.jpg", "Books"), Times.Once);
-        ebookServiceMock.Verify(service => service.DeletePdfAsync(savedBook), Times.Once);
+        ebookServiceMock.Verify(service => service.DeletePdfAsync(It.Is<Book>(b => b.Id == bookId)), Times.Once);
     }
 
     [Fact]
@@ -604,26 +586,34 @@ public class BookServiceTests
             Synopsis = "x"
         };
 
-        bookRepositoryMock.Setup(repo => repo.FindAsync(It.IsAny<object[]>())).ReturnsAsync(savedBook);
-        bookRepositoryMock.Setup(repo => repo.DeleteAsync(It.IsAny<object[]>())).Returns(Task.CompletedTask).Verifiable();
+        await using var context = await CreateEmptyContextAsync();
+        context.Books.Add(savedBook);
+        await context.SaveChangesAsync();
+
         uploadServiceMock.Setup(service => service.DeleteFileIfExistsAsync(It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(new Exception("img error"));
         ebookServiceMock.Setup(service => service.DeletePdfAsync(It.IsAny<Book>())).ThrowsAsync(new Exception("pdf error"));
 
-        var service = new BookService(bookRepositoryMock.Object,
-            unitOfWorkMock.Object, new BookValidator(),
-            uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
+        var service = CreateService(bookRepositoryMock.Object, context);
 
         var result = await service.DeleteAsync(bookId);
 
         Assert.NotNull(result);
-        bookRepositoryMock.Verify(repo => repo.DeleteAsync(It.IsAny<object[]>()), Times.Once);
+        Assert.Null(await context.Books.FindAsync(bookId));
     }
 
-    private BookService CreateService(IBookRepository repository)
-        => new BookService(repository,
+    private BookService CreateService(IBookRepository repository, ApplicationDbContext context)
+        => new BookService(repository, context,
             unitOfWorkMock.Object, new BookValidator(),
             uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object,
             sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
+
+    private static async Task<ApplicationDbContext> CreateEmptyContextAsync()
+    {
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        return await Task.FromResult(new ApplicationDbContext(options));
+    }
 
     private static async Task<ApplicationDbContext> CreateSearchContextAsync()
     {

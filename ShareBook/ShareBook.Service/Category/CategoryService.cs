@@ -18,11 +18,12 @@ public class CategoryService : BaseService<Category>, ICategoryService
 {
     private readonly IBookRepository _bookRepository;
 
-    public CategoryService(ICategoryRepository categoryRepository, 
+    public CategoryService(
         IBookRepository bookRepository,
-        IUnitOfWork unitOfWork, 
+        ApplicationDbContext context,
+        IUnitOfWork unitOfWork,
         IValidator<Category> validator)
-        : base(categoryRepository, unitOfWork, validator)
+        : base(context, unitOfWork, validator)
     {
         _bookRepository = bookRepository;
     }

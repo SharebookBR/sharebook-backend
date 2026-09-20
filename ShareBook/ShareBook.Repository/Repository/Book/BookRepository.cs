@@ -1,4 +1,3 @@
-﻿using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using NpgsqlTypes;
@@ -6,13 +5,14 @@ using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.Enums;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace ShareBook.Repository;
 
-public class BookRepository : RepositoryGeneric<Book>, IBookRepository
+public class BookRepository : IBookRepository
 {
     // Termos de 1 caractere que representam uma busca real (linguagens de
     // programação). Casam por lexema EXATO (sem prefixo) contra título +
@@ -20,23 +20,24 @@ public class BookRepository : RepositoryGeneric<Book>, IBookRepository
     // (ex.: "J. R. King") e menções soltas no texto.
     private static readonly string[] ExactSingleCharTerms = { "r", "c" };
 
-    public BookRepository(ApplicationDbContext context) : base(context) { }
+    private readonly ApplicationDbContext _context;
+    private readonly EntityCrud<Book> _crud;
 
-    public override async Task<Book> InsertAsync(Book entity)
+    public BookRepository(ApplicationDbContext context)
     {
-        try
-        {
-            return await base.InsertAsync(entity);
-        }
-        catch (Exception exception) when (IsUniqueSlugViolation(exception))
-        {
-            _context.Entry(entity).State = EntityState.Detached;
-            throw new DuplicateBookSlugException(entity.Slug, exception);
-        }
+        _context = context;
+        _crud = new EntityCrud<Book>(context);
     }
 
+    public IQueryable<Book> Get() => _crud.Get();
+
+    public Task<PagedList<Book>> GetAsync<TKey>(Expression<Func<Book, bool>> filter, Expression<Func<Book, TKey>> order)
+        => _crud.GetAsync(filter, order);
+
+    public Task<Book> UpdateAsync(Book entity) => _crud.UpdateAsync(entity);
+
     public async Task<IList<string>> GetSlugsStartingWithAsync(string baseSlug)
-        => await _dbSet
+        => await _context.Books
             .AsNoTracking()
             .Where(book => book.Slug.StartsWith(baseSlug))
             .Select(book => book.Slug)
@@ -45,7 +46,7 @@ public class BookRepository : RepositoryGeneric<Book>, IBookRepository
     public IQueryable<Book> FullTextSearch(string normalizedCriteria, bool includeUnavailable)
     {
         var searchTerm = (normalizedCriteria ?? string.Empty).Trim();
-        var books = _dbSet
+        var books = _context.Books
             .AsNoTracking()
             .Where(book => includeUnavailable || book.Status == BookStatus.Available);
 
@@ -182,74 +183,5 @@ public class BookRepository : RepositoryGeneric<Book>, IBookRepository
                 EF.Functions.ToTsQuery("simple", rankQuery)))
             .ThenByDescending(candidate => candidate.Book.CreationDate)
             .Select(candidate => candidate.Book);
-    }
-
-    public override async Task<Book> UpdateAsync(Book entity)
-    {
-     
-        _context.Update(entity);
-
-        //imagem eh opcional no update
-        if (entity.ImageSlug == null)
-            _context.Entry(entity).Property(x => x.ImageSlug).IsModified = false;
-
-        if(entity.Slug == null)
-            _context.Entry(entity).Property(x => x.Slug).IsModified = false;
-
-        _context.Entry(entity).Property(x => x.UserId).IsModified = false;
- 
-        await _context.SaveChangesAsync();
-
-        return entity;
-    }
-
-    public override async Task<PagedList<Book>> GetAsync<TKey>(
-        Expression<Func<Book, bool>> filter,
-        Expression<Func<Book, TKey>> order,
-        int page,
-        int itemsPerPage,
-        bool descending = false)
-    {
-        var skip = (page - 1) * itemsPerPage;
-        var query = _dbSet.Where(filter);
-        var total = await query.CountAsync();
-        var orderedQuery = descending
-            ? query.Include(x => x.BookUsers).Include(x => x.User).OrderByDescending(order)
-            : query.Include(x => x.BookUsers).Include(x => x.User).OrderBy(order);
-
-        var result = await orderedQuery
-            .Skip(skip)
-            .Take(itemsPerPage)
-            .ToListAsync();
-
-        return new PagedList<Book>()
-        {
-            Page = page,
-            ItemsPerPage = itemsPerPage,
-            TotalItems = total,
-            Items = result
-        };
-    }
-
-    private static bool IsUniqueSlugViolation(Exception exception)
-    {
-        for (var current = exception; current != null; current = current.InnerException)
-        {
-            if (current is PostgresException postgresException
-                && postgresException.SqlState == PostgresErrorCodes.UniqueViolation
-                && postgresException.ConstraintName == "UX_Books_Slug")
-            {
-                return true;
-            }
-
-            if (current is SqliteException sqliteException
-                && sqliteException.SqliteErrorCode == 19
-                && sqliteException.Message.Contains("Books.Slug", StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

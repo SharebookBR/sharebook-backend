@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Moq;
 using ShareBook.Domain;
 using ShareBook.Domain.Validators;
@@ -20,7 +21,6 @@ public class BookUserServiceTests
     private Guid bookId;
 
     readonly Mock<IBookService> bookServiceMock = new();
-    readonly Mock<IBookUserRepository> bookUserRepositoryMock = new();
     readonly Mock<IBooksEmailService> bookEmailService = new();
     readonly Mock<IUnitOfWork> unitOfWorkMock = new();
     readonly Mock<IBookUsersEmailService> bookUsersEmailService = new();
@@ -45,11 +45,20 @@ public class BookUserServiceTests
         });
     }
 
+    private static ApplicationDbContext CreateContext()
+    {
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        return new ApplicationDbContext(options);
+    }
+
     [Fact]
     public async Task RequestBook()
     {
         Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
-        var service = new BookUserService(bookUserRepositoryMock.Object,
+        await using var context = CreateContext();
+        var service = new BookUserService(context,
             bookServiceMock.Object, bookUsersEmailService.Object, muambatorServiceMock.Object, bookRepositoryMock.Object,
             unitOfWorkMock.Object, bookUserValidator.Object, configurationMock.Object);
 
@@ -58,6 +67,8 @@ public class BookUserServiceTests
 
         await service.InsertAsync(bookId, reason);
 
-        // TODO: Verify test and add at least one assertion
+        var insertedRequest = await context.BookUser.SingleOrDefaultAsync(bu => bu.BookId == bookId);
+        Assert.NotNull(insertedRequest);
+        Assert.Equal(reason, insertedRequest.Reason);
     }
 }

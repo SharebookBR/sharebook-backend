@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using ShareBook.Domain.Common;
 using ShareBook.Repository;
@@ -13,13 +13,13 @@ namespace ShareBook.Service.Generic;
 
 public class BaseService<TEntity> : IBaseService<TEntity> where TEntity : class
 {
-    protected readonly IRepositoryGeneric<TEntity> _repository;
+    protected readonly EntityCrud<TEntity> _repository;
     protected readonly IUnitOfWork _unitOfWork;
     protected readonly IValidator<TEntity> _validator;
 
-    public BaseService(IRepositoryGeneric<TEntity> repository, IUnitOfWork unitOfWork, IValidator<TEntity> validator)
+    public BaseService(ApplicationDbContext context, IUnitOfWork unitOfWork, IValidator<TEntity> validator)
     {
-        _repository = repository;
+        _repository = new EntityCrud<TEntity>(context);
         _unitOfWork = unitOfWork;
         _validator = validator;
     }
@@ -42,10 +42,23 @@ public class BaseService<TEntity> : IBaseService<TEntity> where TEntity : class
     public async Task<TEntity> FindAsync(IncludeList<TEntity> includes, Expression<Func<TEntity, bool>> filter) => await _repository.FindAsync(includes, filter);
 
     public async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, IncludeList<TEntity> includes, bool descending = false)
-        => await _repository.GetAsync(order, page, itemsPerPage, includes, descending);
+        => await GetAsync(x => true, order, page, itemsPerPage, includes, descending);
 
     public virtual async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, int page, int itemsPerPage, bool descending = false)
-        => await _repository.GetAsync(filter, order, page, itemsPerPage, descending);
+        => await GetAsync(filter, order, page, itemsPerPage, null, descending);
+
+    /// <summary>
+    /// Implementação padrão de paginação. Serviços com uma regra de ordenação/inclusão diferente da
+    /// genérica (ex: <see cref="MeetupService"/>) sobrescrevem este método.
+    /// </summary>
+    public virtual async Task<PagedList<TEntity>> GetAsync<TKey>(
+        Expression<Func<TEntity, bool>> filter,
+        Expression<Func<TEntity, TKey>> order,
+        int page,
+        int itemsPerPage,
+        IncludeList<TEntity> includes,
+        bool descending = false)
+        => await _repository.GetAsync(filter, order, page, itemsPerPage, includes, descending);
 
     public async Task<PagedList<TEntity>> FormatPagedListAsync(IQueryable<TEntity> query, int page, int itemsPerPage)
     {

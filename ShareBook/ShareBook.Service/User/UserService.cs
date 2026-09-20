@@ -38,11 +38,12 @@ public class UserService : BaseService<User>, IUserService
     #region Public
 
     public UserService(IUserRepository userRepository, IBookRepository bookRepository,
+        ApplicationDbContext context,
         IUnitOfWork unitOfWork,
         IValidator<User> validator,
         IMapper mapper,
         IUserEmailService userEmailService,
-        IRecaptchaService recaptchaService, IConfiguration config) : base(userRepository, unitOfWork, validator)
+        IRecaptchaService recaptchaService, IConfiguration config) : base(context, unitOfWork, validator)
     {
         _userRepository = userRepository;
         _userEmailService = userEmailService;
@@ -76,7 +77,7 @@ public class UserService : BaseService<User>, IUserService
         // persiste última tentativa de login ANTES do SUCESSO ou FALHA pra ter métrica de
         // verificação de brute force.
         user.LastLogin = DateTime.UtcNow;
-        await _userRepository.UpdateAsync(user);
+        await _repository.UpdateAsync(user);
 
         if (!IsValidPassword(user, decryptedPass))
         {
@@ -370,7 +371,7 @@ public class UserService : BaseService<User>, IUserService
 
     public async Task<UserStatsDTO> GetStatsAsync(Guid? userId)
     {
-        var user = await _userRepository.FindAsync(userId);
+        var user = await _repository.FindAsync(userId);
         var books = await _bookRepository.Get().Where(b => b.UserId == userId).ToListAsync();
 
         if (user == null) throw new ShareBookException(ShareBookException.Error.NotFound, "Usuário não encontrado.");
@@ -400,7 +401,7 @@ public class UserService : BaseService<User>, IUserService
             throw new ShareBookException(ShareBookException.Error.NotFound, "O acesso já foi liberado anteriormente. Tudo certo.");
 
         user.ParentAproved = true;
-        await _userRepository.UpdateAsync(user);
+        await _repository.UpdateAsync(user);
 
         await _userEmailService.SendEmailParentAprovedNotifyUserAsync(user);
     }

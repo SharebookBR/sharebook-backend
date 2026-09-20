@@ -54,13 +54,10 @@ public static class ServiceRepositoryCollectionExtensions
         //repositories
         services.AddScoped<IBookRepository, BookRepository>();
         services.AddScoped<IBookDownloadEventRepository, BookDownloadEventRepository>();
-        services.AddScoped<IBookUserRepository, BookUserRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IJobHistoryRepository, JobHistoryRepository>();
         services.AddScoped<IAccessHistoryRepository, AccessHistoryRepository>();
-        services.AddScoped<IMeetupRepository, MeetupRepository>();
-        services.AddScoped<IMeetupParticipantRepository, MeetupParticipantRepository>();
 
         //validators
         services.AddScoped<IValidator<User>, UserValidator>();
