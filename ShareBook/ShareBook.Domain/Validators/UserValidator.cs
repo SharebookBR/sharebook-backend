@@ -64,7 +64,7 @@ public class UserValidator : AbstractValidator<User>
         return true;
     }
 
-    private bool OptionalFieldIsValid(string value)
+    private bool OptionalFieldIsValid(string? value)
     {
         if (value == null || value.Length == 0 || value == string.Empty)
             return true;

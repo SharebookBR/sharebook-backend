@@ -53,7 +53,7 @@ public class AddressValidator : AbstractValidator<Address>
             .WithMessage("Complemento deve ter no máximo 50 caracteres");
     }
 
-    private bool OptionalFieldIsValid(string value, int minimum, int maximum)
+    private bool OptionalFieldIsValid(string? value, int minimum, int maximum)
     {
         if (value == null || value.Length == 0 || value == string.Empty)
             return true;

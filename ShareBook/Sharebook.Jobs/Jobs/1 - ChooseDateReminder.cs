@@ -65,12 +65,12 @@ public class ChooseDateReminder : GenericJob, IJob
             }
 
             var titles = string.Join(", ", donorBooks.Select(b => $"'{b.Title}'"));
-            messages.Add($"Lembrete amigável enviado para '{donorBooks[0].User.Name}' referente a {donorBooks.Count} livro(s): {titles}.");
+            messages.Add($"Lembrete amigável enviado para '{donorBooks[0].User?.Name}' referente a {donorBooks.Count} livro(s): {titles}.");
         }
 
         foreach (var book in booksWithoutInterested)
         {
-            messages.Add($"Lembrete amigável NÃO enviado para '{book.User.Name}' referente ao livro '{book.Title}'. Livro não tem interessados.");
+            messages.Add($"Lembrete amigável NÃO enviado para '{book.User?.Name}' referente ao livro '{book.Title}'. Livro não tem interessados.");
         }
 
         return new JobHistory()
@@ -92,7 +92,7 @@ public class ChooseDateReminder : GenericJob, IJob
         // NullReferenceException em livro sem facilitador, que é opcional.
         var vm = new
         {
-            DonorName = book.User.Name,
+            DonorName = book.User!.Name,
             BookTitle = book.Title
         };
         var emailBodyHTML = await _emailTemplate.GenerateHtmlFromTemplateAsync("ChooseDateReminderTemplate", vm);
@@ -102,7 +102,7 @@ public class ChooseDateReminder : GenericJob, IJob
 
     private async Task SendEmailMultipleAsync(List<Book> books)
     {
-        var donor = books[0].User;
+        var donor = books[0].User!;
         var EmailSubject = "Hoje é dia de escolher quem vai receber";
 
         var bookListHtml = "<ul>";

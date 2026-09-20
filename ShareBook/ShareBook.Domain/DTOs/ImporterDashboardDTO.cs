@@ -8,8 +8,8 @@ public class ImporterDashboardDTO
     public DateTime GeneratedAtUtc { get; set; }
     public int TotalItems { get; set; }
     public DateTime? LastRunAt { get; set; }
-    public string LastRunStatus { get; set; }
-    public string LastRunMessage { get; set; }
+    public string? LastRunStatus { get; set; }
+    public string? LastRunMessage { get; set; }
     public IList<ImporterSourceStatusDTO> Sources { get; set; } = new List<ImporterSourceStatusDTO>();
 }
 
@@ -25,30 +25,30 @@ public class ImporterQueueItemDTO
 {
     public int Id { get; set; }
     public int SourceId { get; set; }
-    public string SourceName { get; set; }
-    public string Title { get; set; }
-    public string Author { get; set; }
-    public string SourceUrl { get; set; }
-    public string Status { get; set; }
-    public string PlannedTitle { get; set; }
-    public string PlannedAuthor { get; set; }
-    public string PlannedCategoryId { get; set; }
-    public string PlannedCategoryName { get; set; }
-    public string PlannedCategoryParentName { get; set; }
+    public string SourceName { get; set; } = string.Empty;
+    public string? Title { get; set; }
+    public string? Author { get; set; }
+    public string? SourceUrl { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public string? PlannedTitle { get; set; }
+    public string? PlannedAuthor { get; set; }
+    public string? PlannedCategoryId { get; set; }
+    public string? PlannedCategoryName { get; set; }
+    public string? PlannedCategoryParentName { get; set; }
     public int TriageAttempts { get; set; }
     public int PublishAttempts { get; set; }
-    public string LastError { get; set; }
-    public string SharebookBookId { get; set; }
-    public string BookSlug { get; set; }
-    public string BookImageSlug { get; set; }
-    public string BookThumbnailUrl { get; set; }
-    public string MetadataJson { get; set; }
-    public string PlannedSynopsis { get; set; }
-    public string PlannedCoverMode { get; set; }
-    public string PlannedCoverUrl { get; set; }
-    public string PlannedBy { get; set; }
+    public string? LastError { get; set; }
+    public string? SharebookBookId { get; set; }
+    public string? BookSlug { get; set; }
+    public string? BookImageSlug { get; set; }
+    public string? BookThumbnailUrl { get; set; }
+    public string? MetadataJson { get; set; }
+    public string? PlannedSynopsis { get; set; }
+    public string? PlannedCoverMode { get; set; }
+    public string? PlannedCoverUrl { get; set; }
+    public string? PlannedBy { get; set; }
     public DateTime? PlannedAt { get; set; }
-    public string AdminNotes { get; set; }
+    public string? AdminNotes { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }
@@ -56,15 +56,15 @@ public class ImporterQueueItemDTO
 public class ImporterQueueItemHistoryEntryDTO
 {
     public DateTime ChangedAt { get; set; }
-    public string FromStatus { get; set; }
-    public string ToStatus { get; set; }
+    public string FromStatus { get; set; } = string.Empty;
+    public string ToStatus { get; set; } = string.Empty;
 }
 
 public class ImporterSourceStatusDTO
 {
     public int SourceId { get; set; }
-    public string SourceName { get; set; }
-    public string SourceUrl { get; set; }
+    public string SourceName { get; set; } = string.Empty;
+    public string? SourceUrl { get; set; }
     public bool Enabled { get; set; }
     public bool RequiresTranslation { get; set; }
     public int TotalItems { get; set; }
@@ -85,11 +85,11 @@ public class ImporterSourceStatusDTO
     public int TriageRejected { get; set; }
     public int WaitingTranslation { get; set; }
     public int Translating { get; set; }
-    public string NextItemTitle { get; set; }
-    public string NextItemStatus { get; set; }
+    public string? NextItemTitle { get; set; }
+    public string? NextItemStatus { get; set; }
     public DateTime? LastRunAt { get; set; }
-    public string LastRunStatus { get; set; }
-    public string LastRunMessage { get; set; }
+    public string? LastRunStatus { get; set; }
+    public string? LastRunMessage { get; set; }
     // D-1 counts (null = sem histórico ainda)
     public int? DoneD1 { get; set; }
     public int? EditorialRejectedD1 { get; set; }

@@ -21,11 +21,11 @@ public class AccessHistory : BaseEntity
 
     public Guid? UserId { get; private set; }
     [ForeignKey("UserId")]
-    public User User { get; private set; } //Visitante do perfil
-    public string VisitorName { get; private set; }
+    public User? User { get; private set; } //Visitante do perfil
+    public string VisitorName { get; private set; } = string.Empty;
     public VisitorProfile Profile { get; private set; }
 
-    public void ChangeVisitorName(string name) 
+    public void ChangeVisitorName(string name)
     {
         if (string.IsNullOrEmpty(name)) return;
 

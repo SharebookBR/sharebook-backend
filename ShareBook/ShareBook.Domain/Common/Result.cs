@@ -13,14 +13,14 @@ public class Result : Result<object>
     }
 }
 
-public class Result<T>(ValidationResult validationResult, T value) where T : class
+public class Result<T>(ValidationResult? validationResult, T? value) where T : class
 {
     public Result(T value) : this(null, value) { }
-    public Result(ValidationResult validationResult) : this(validationResult, null) { }
+    public Result(ValidationResult? validationResult) : this(validationResult, null) { }
 
-    public T Value { get; set; } = value;
+    public T? Value { get; set; } = value;
     public List<string> Messages { get; } = validationResult?.Errors.Select(x => x.ErrorMessage).ToList() ?? new List<string>();
-    public string SuccessMessage { get; set; }
+    public string? SuccessMessage { get; set; }
 
     public bool Success { get { return Messages.Count == 0; } }
 }

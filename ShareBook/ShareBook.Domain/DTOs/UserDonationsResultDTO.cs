@@ -7,8 +7,8 @@ public class UserDonationsResultDTO
     public int Page { get; set; }
     public int ItemsPerPage { get; set; }
     public int TotalItems { get; set; }
-    public UserDonationsSummaryDTO Summary { get; set; }
-    public IList<Book> Items { get; set; }
+    public UserDonationsSummaryDTO Summary { get; set; } = null!;
+    public IList<Book> Items { get; set; } = new List<Book>();
 }
 
 public class UserDonationsSummaryDTO

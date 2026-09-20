@@ -56,7 +56,7 @@ public class BookValidator : AbstractValidator<Book>
     }
 
 
-    private bool HasImageExtension(string image)
+    private bool HasImageExtension(string? image)
     {
         return (!string.IsNullOrEmpty(image) &&
                    (image.ToLower().EndsWith(".png")

@@ -9,5 +9,5 @@ public class CategoryBooksResultDTO
     public int TotalItems { get; set; }
     public int PhysicalBooksCount { get; set; }
     public int EbooksCount { get; set; }
-    public IList<Book> Items { get; set; }
+    public IList<Book> Items { get; set; } = new List<Book>();
 }

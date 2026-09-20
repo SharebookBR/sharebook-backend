@@ -89,7 +89,7 @@ public class RemoveBookFromShowcase : GenericJob, IJob
         // NullReferenceException em livro sem facilitador, que é opcional.
         var vm = new
         {
-            DonorName = book.User.Name,
+            DonorName = book.User!.Name,
             BookTitle = book.Title,
             BookSlug = book.Slug
         };

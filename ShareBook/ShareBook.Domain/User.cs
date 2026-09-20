@@ -10,26 +10,26 @@ namespace ShareBook.Domain;
 
 public class User : BaseEntity
 {
-    public string Name { get; set; }
-    public string Email { get; set; }
-    public string Password { get; set; }
-    public string PasswordSalt { get; set; }
-    public string HashCodePassword { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    public string PasswordSalt { get; set; } = string.Empty;
+    public string? HashCodePassword { get; set; }
     public DateTime HashCodePasswordExpiryDate { get; set; }
     public DateTime LastLogin { get; set; } = DateTime.UtcNow;
-    public string Linkedin { get; set; }
-    public string Instagram { get; set; }
-    public string Phone { get; set; }
+    public string? Linkedin { get; set; }
+    public string? Instagram { get; set; }
+    public string? Phone { get; set; }
     public Profile Profile { get; set; } = Profile.User;
     public bool Active { get; set; } = true;
     public bool AllowSendingEmail { get; set; } = true;
-    public virtual Address Address { get; set; }
-    public virtual ICollection<BookUser> BookUsers { get; set; }
-    public virtual ICollection<Book> BooksDonated { get; set; }
-    public virtual ICollection<AccessHistory> Visitors { get; set; }
+    public virtual Address Address { get; set; } = null!;
+    public virtual ICollection<BookUser> BookUsers { get; set; } = new List<BookUser>();
+    public virtual ICollection<Book> BooksDonated { get; set; } = new List<Book>();
+    public virtual ICollection<AccessHistory> Visitors { get; set; } = new List<AccessHistory>();
 
-    public string ParentEmail { get; set; }
-    public string ParentHashCodeAproval { get; set; }
+    public string? ParentEmail { get; set; }
+    public string? ParentHashCodeAproval { get; set; }
     public bool ParentAproved { get; set; } = true;
 
 
@@ -100,7 +100,7 @@ public class User : BaseEntity
     {
         if (BooksDonated == null) return false;
         var now = DateTime.UtcNow;
-        return BooksDonated.Any(b => b.Status == BookStatus.AwaitingDonorDecision && (now - b.ChooseDate).Value.Days > maxLateDonationDays);
+        return BooksDonated.Any(b => b.Status == BookStatus.AwaitingDonorDecision && b.ChooseDate.HasValue && (now - b.ChooseDate.Value).Days > maxLateDonationDays);
     }
 
     public void Anonymize()

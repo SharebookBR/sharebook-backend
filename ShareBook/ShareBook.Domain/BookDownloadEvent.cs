@@ -9,12 +9,12 @@ public class BookDownloadEvent : BaseEntity
 {
     public Guid BookId { get; set; }
 
-    public Book Book { get; set; }
+    public Book Book { get; set; } = null!;
 
     public Guid? UserId { get; set; }
 
     [ForeignKey("UserId")]
-    public User User { get; set; }
+    public User? User { get; set; }
 
     public DateTime DownloadedAtUtc { get; set; } = DateTime.UtcNow;
 
