@@ -295,7 +295,7 @@ ORDER BY ss.source_id;
         return result;
     }
 
-    public async Task<ImporterQueueItemsPageDTO> GetItemsAsync(int? sourceId, string status, int? id, string title, string sort, int page, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<ImporterQueueItemsPageDTO> GetItemsAsync(int? sourceId, string? status, int? id, string? title, string? sort, int page, int pageSize, CancellationToken cancellationToken = default)
     {
         var connectionString = _configuration.GetConnectionString("ImporterPostgresConnection");
         if (string.IsNullOrWhiteSpace(connectionString))
@@ -486,7 +486,7 @@ LIMIT @limit OFFSET @offset;
         }
     }
 
-    private static void AddItemFilterParameters(NpgsqlCommand command, int? sourceId, string? status, int? id, string title)
+    private static void AddItemFilterParameters(NpgsqlCommand command, int? sourceId, string? status, int? id, string? title)
     {
         if (sourceId.HasValue)
             command.Parameters.AddWithValue("source_id", sourceId.Value);
