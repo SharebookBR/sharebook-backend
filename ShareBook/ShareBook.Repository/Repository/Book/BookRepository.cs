@@ -33,8 +33,8 @@ public class BookRepository(ApplicationDbContext context) : IBookRepository
     public async Task<IList<string>> GetSlugsStartingWithAsync(string baseSlug)
         => await _context.Books
             .AsNoTracking()
-            .Where(book => book.Slug.StartsWith(baseSlug))
-            .Select(book => book.Slug)
+            .Where(book => book.Slug != null && book.Slug.StartsWith(baseSlug))
+            .Select(book => book.Slug!)
             .ToListAsync();
 
     public IQueryable<Book> FullTextSearch(string normalizedCriteria, bool includeUnavailable)

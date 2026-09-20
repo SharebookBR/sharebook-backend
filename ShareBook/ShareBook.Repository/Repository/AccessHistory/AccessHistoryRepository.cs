@@ -12,8 +12,6 @@ public class AccessHistoryRepository(ApplicationDbContext context) : IAccessHist
     private readonly ApplicationDbContext _context = context;
 
     public async Task<IEnumerable<AccessHistory>> GetWhoAccessedMyProfileAsync(Guid userId) {
-        if (userId.Equals(null)) return null;
-
         var list = from u in _context.AccessHistories
             where (u.UserId.Equals(userId))
             select u;

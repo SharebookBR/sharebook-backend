@@ -23,8 +23,9 @@ public static class LoggingContext
         const string idColumn = "Id";
 
         Guid? user = null;
-        if (!string.IsNullOrEmpty(Thread.CurrentPrincipal?.Identity?.Name))
-            user = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+        var currentUserName = Thread.CurrentPrincipal?.Identity?.Name;
+        if (!string.IsNullOrEmpty(currentUserName))
+            user = new Guid(currentUserName);
 
         var changes = context.ChangeTracker.Entries()
             .Where(x => entityStates.Contains(x.State) && x.Entity.GetType().IsSubclassOf(typeof(BaseEntity)))
@@ -60,7 +61,7 @@ public static class LoggingContext
                 var efLog = new EFLog()
                 {
                     EntityName = item.Entity.GetType().Name,
-                    EntityId = new Guid(item.CurrentValues[idColumn].ToString()),
+                    EntityId = new Guid(item.CurrentValues[idColumn]!.ToString()!),
                     LogDateTime = logTime,
                     Operation = item.State.ToString(),
                     UserId = user,

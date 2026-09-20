@@ -30,22 +30,22 @@ public sealed class EntityCrud<TEntity> where TEntity : class
 
     public IQueryable<TEntity> Get() => _dbSet;
 
-    public async Task<TEntity> FindAsync(params object[] keyValues) => await FindAsync(null, keyValues);
+    public async Task<TEntity?> FindAsync(params object[] keyValues) => await FindAsync(null, keyValues);
 
-    public async Task<TEntity> FindAsync(IncludeList<TEntity> includes, params object[] keyValues)
+    public async Task<TEntity?> FindAsync(IncludeList<TEntity>? includes, params object[] keyValues)
     {
         var result = await _dbSet.FindAsync(keyValues);
 
-        if (includes != null)
+        if (includes != null && result != null)
             foreach (var item in includes)
                 await _context.Entry(result).Reference(item).LoadAsync();
 
         return result;
     }
 
-    public async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> filter) => await FindAsync(null, filter);
+    public async Task<TEntity?> FindAsync(Expression<Func<TEntity, bool>> filter) => await FindAsync(null, filter);
 
-    public async Task<TEntity> FindAsync(IncludeList<TEntity> includes, Expression<Func<TEntity, bool>> filter)
+    public async Task<TEntity?> FindAsync(IncludeList<TEntity>? includes, Expression<Func<TEntity, bool>> filter)
     {
         var query = _dbSet.AsQueryable();
 
@@ -86,7 +86,7 @@ public sealed class EntityCrud<TEntity> where TEntity : class
         var builder = new StringBuilder("A DbUpdateException was caught while saving changes.");
         try
         {
-            builder.AppendLine($"Message: {dbUpdate.InnerException.Message}");
+            builder.AppendLine($"Message: {dbUpdate.InnerException?.Message}");
             foreach (var entries in dbUpdate.Entries)
                 builder.AppendLine($"Entity of type {entries.Entity.GetType().Name} in state {entries.State} could not be updated");
         }
@@ -124,7 +124,7 @@ public sealed class EntityCrud<TEntity> where TEntity : class
         Expression<Func<TEntity, TKey>> order,
         int page,
         int itemsPerPage,
-        IncludeList<TEntity> includes,
+        IncludeList<TEntity>? includes,
         bool descending = false)
     {
         var skip = (page - 1) * itemsPerPage;
@@ -157,6 +157,6 @@ public sealed class EntityCrud<TEntity> where TEntity : class
     public async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order)
         => await GetAsync(filter, order, null);
 
-    public async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, IncludeList<TEntity> includes)
+    public async Task<PagedList<TEntity>> GetAsync<TKey>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TKey>> order, IncludeList<TEntity>? includes)
         => await GetAsync(filter, order, 1, int.MaxValue, includes);
 }
