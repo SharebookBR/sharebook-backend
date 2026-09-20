@@ -23,7 +23,7 @@ public partial class BookService
                 .Include(b => b.Category)
                 .ThenInclude(c => c.ParentCategory)
                 .Where(b => b.Status == BookStatus.Available)
-                .OrderBy(x => Guid.NewGuid()) // ordem aleatória
+                .OrderBy(x => EF.Functions.Random()) // ordem aleatória
                 .Take(15) // apenas 15 registros
                 .ToListAsync()
          );
