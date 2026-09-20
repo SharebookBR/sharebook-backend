@@ -46,7 +46,7 @@ public partial class BookService
 
     public async Task<PagedList<Book>> RecentEBooksAsync(int page, int itemsPerPage, int days = 7)
     {
-        var since = DateTime.UtcNow.AddDays(-days);
+        var since = _timeProvider.GetUtcNow().UtcDateTime.AddDays(-days);
 
         return await SearchBooksAsync(
             x => x.Status == BookStatus.Available
@@ -67,7 +67,7 @@ public partial class BookService
 
     public async Task<int> GetRecentEBooksCountAsync(int days = 7)
     {
-        var since = DateTime.UtcNow.AddDays(-days);
+        var since = _timeProvider.GetUtcNow().UtcDateTime.AddDays(-days);
 
         return await _repository.Get()
             .Where(b => b.Status == BookStatus.Available

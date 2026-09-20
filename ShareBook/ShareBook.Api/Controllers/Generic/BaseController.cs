@@ -21,7 +21,6 @@ public class BaseController<T, R>(IBaseService<T> service) : BaseController<T, R
 {
 }
 
-[GetClaimsFilter]
 [EnableCors("AllowAllHeaders")]
 public class BaseController<T, R, A>(IBaseService<T> service) : Controller
     where T : BaseEntity

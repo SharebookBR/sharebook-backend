@@ -10,9 +10,10 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service.EBook;
 
-public class S3Service(IOptions<AwsS3Settings> settings) : IS3Service
+public class S3Service(IOptions<AwsS3Settings> settings, TimeProvider timeProvider) : IS3Service
 {
     private readonly AwsS3Settings _settings = settings.Value;
+    private readonly TimeProvider _timeProvider = timeProvider;
 
     public async Task<string> UploadAsync(Stream content, string key, string contentType)
     {
@@ -45,7 +46,7 @@ public class S3Service(IOptions<AwsS3Settings> settings) : IS3Service
             BucketName = _settings.S3BucketName,
             Key = key,
             Verb = HttpVerb.GET,
-            Expires = DateTime.UtcNow.AddMinutes(expiresInMinutes)
+            Expires = _timeProvider.GetUtcNow().UtcDateTime.AddMinutes(expiresInMinutes)
         };
 
         if (!string.IsNullOrWhiteSpace(fileName))

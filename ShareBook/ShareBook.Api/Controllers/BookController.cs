@@ -31,7 +31,6 @@ using System.Threading.Tasks;
 namespace ShareBook.Api.Controllers;
 
 [Route("api/[controller]")]
-[GetClaimsFilter]
 [EnableCors("AllowAllHeaders")]
 public class BookController(IBookService bookService,
                       IBookUserService bookUserService,
@@ -41,7 +40,8 @@ public class BookController(IBookService bookService,
                       IBookDownloadEventService bookDownloadEventService,
                       IEBookService ebookService,
                       IEBookDownloadRateLimiter ebookDownloadRateLimiter,
-                      ILogger<BookController> logger) : ControllerBase
+                      ILogger<BookController> logger,
+                      ICurrentUserAccessor currentUserAccessor) : ControllerBase
 {
     private readonly IBookUserService _bookUserService = bookUserService;
     private readonly IBookService _service = bookService;
@@ -51,6 +51,7 @@ public class BookController(IBookService bookService,
     private readonly IEBookService _ebookService = ebookService;
     private readonly IEBookDownloadRateLimiter _ebookDownloadRateLimiter = ebookDownloadRateLimiter;
     private readonly ILogger<BookController> _logger = logger;
+    private readonly ICurrentUserAccessor _currentUserAccessor = currentUserAccessor;
     private Expression<Func<Book, object>> _defaultOrder = x => x.Id;
     private readonly IMapper _mapper = mapper;
 
@@ -161,7 +162,7 @@ public class BookController(IBookService bookService,
     [HttpPost("Received/{bookId}")]
     public async Task<Result> ReceivedAsync(string bookId)
     {
-        Guid winnerUserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
+        Guid winnerUserId = _currentUserAccessor.RequireUserId();
         await _service.ReceivedAsync(new Guid(bookId), winnerUserId);
         return new Result("Livro Recebido com sucesso.");
     }
@@ -266,7 +267,7 @@ public class BookController(IBookService bookService,
             Winner = winner
         };
 
-        var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
+        var userId = _currentUserAccessor.RequireUserId();
         var visitor = await _userService.FindAsync(userId);
         if (visitor == null) return Unauthorized();
 
@@ -570,7 +571,7 @@ public class BookController(IBookService bookService,
     [HttpGet("MyDonations")]
     public async Task<IList<BookVMAdm>> MyDonationsAsync()
     {
-        Guid userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
+        Guid userId = _currentUserAccessor.RequireUserId();
         var donations = await _service.GetUserDonationsAsync(userId);
         return _mapper.Map<List<BookVMAdm>>(donations);
     }
@@ -583,7 +584,7 @@ public class BookController(IBookService bookService,
         [FromQuery] string? search = null,
         [FromQuery] string? bucket = null)
     {
-        Guid userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
+        Guid userId = _currentUserAccessor.RequireUserId();
         var donations = await _service.GetUserDonationsAsync(userId, page, pageSize, search, bucket);
 
         return new UserDonationsPagedVM
@@ -805,7 +806,7 @@ public class BookController(IBookService bookService,
 
     private async Task<User?> GetUserAsync()
     {
-        var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
+        var userId = _currentUserAccessor.RequireUserId();
         return await _userService.FindAsync(userId);
     }
 
@@ -821,7 +822,7 @@ public class BookController(IBookService bookService,
         if (await _IsBookOwnerAsync(bookId))
             return true;
 
-        var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
+        var userId = _currentUserAccessor.RequireUserId();
         var book = await _service.GetBookWithAllUsersAsync(bookId);
         if (book == null)
             return false;
@@ -836,7 +837,7 @@ public class BookController(IBookService bookService,
 
     private async Task<User?> GetSessionUserAsync()
     {
-        var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
+        var userId = _currentUserAccessor.RequireUserId();
         return await _userService.FindAsync(userId);
     }
 

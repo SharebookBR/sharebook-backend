@@ -19,7 +19,8 @@ public class CleanupLogsTable : GenericJob, IJob
     public CleanupLogsTable(
         IJobHistoryRepository jobHistoryRepo,
         ILoggerFactory loggerFactory,
-        ApplicationDbContext context) : base(jobHistoryRepo, loggerFactory)
+        TimeProvider timeProvider,
+        ApplicationDbContext context) : base(jobHistoryRepo, loggerFactory, timeProvider)
     {
         JobName = "CleanupLogsTable";
         Description = $"Remove da tabela Logs os eventos com mais de {RetentionDays} dias.";
@@ -32,7 +33,7 @@ public class CleanupLogsTable : GenericJob, IJob
 
     public override async Task<JobHistory> WorkAsync()
     {
-        var cutoffUtc = DateTime.UtcNow.AddDays(-RetentionDays);
+        var cutoffUtc = _timeProvider.GetUtcNow().UtcDateTime.AddDays(-RetentionDays);
 
         var deletedRows = await _context.Database.ExecuteSqlInterpolatedAsync(
             $"DELETE FROM \"Logs\" WHERE \"Timestamp\" < {cutoffUtc}");

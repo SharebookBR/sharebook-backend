@@ -32,7 +32,8 @@ public class NewEbookWeeklyDigest : GenericJob, IJob
         IUserService userService,
         IConfiguration configuration,
         IEmailTemplate emailTemplate,
-        ILoggerFactory loggerFactory) : base(jobHistoryRepo, loggerFactory)
+        ILoggerFactory loggerFactory,
+        TimeProvider timeProvider) : base(jobHistoryRepo, loggerFactory, timeProvider)
     {
         JobName = "NewEbookWeeklyDigest";
         Description = @"Digest semanal de ebooks aprovados nos ultimos 7 dias. Envia UM unico email

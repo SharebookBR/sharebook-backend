@@ -31,7 +31,8 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
         IConfiguration configuration,
         IEmailTemplate emailTemplate,
         ILoggerFactory loggerFactory,
-        IBookRepository bookRepository) : base(jobHistoryRepo, loggerFactory)
+        TimeProvider timeProvider,
+        IBookRepository bookRepository) : base(jobHistoryRepo, loggerFactory, timeProvider)
     {
         JobName = "NewBookGetInterestedUsers";
         Description = @"Digest diário de livros físicos aprovados nas últimas 24h. Agrupa por usuário

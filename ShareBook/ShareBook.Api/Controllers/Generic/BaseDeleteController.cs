@@ -21,7 +21,6 @@ public class BaseDeleteController<T, R>(IBaseService<T> service) : BaseDeleteCon
 {
 }
 
-[GetClaimsFilter]
 [EnableCors("AllowAllHeaders")]
 public class BaseDeleteController<T, R, A>(IBaseService<T> service) : BaseController<T, R, A>(service)
     where T : BaseEntity

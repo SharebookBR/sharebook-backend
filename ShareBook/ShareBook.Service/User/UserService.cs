@@ -29,13 +29,15 @@ public class UserService(IUserRepository userRepository, IBookRepository bookRep
     IValidator<User> validator,
     IMapper mapper,
     IUserEmailService userEmailService,
-    IRecaptchaService recaptchaService, IConfiguration config) : BaseService<User>(context, unitOfWork, validator), IUserService
+    IRecaptchaService recaptchaService, IConfiguration config, TimeProvider timeProvider, ICurrentUserAccessor currentUserAccessor) : BaseService<User>(context, unitOfWork, validator), IUserService
 {
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IBookRepository _bookRepository = bookRepository;
     private readonly IUserEmailService _userEmailService = userEmailService;
     private readonly IRecaptchaService _recaptchaService = recaptchaService;
     private readonly IConfiguration _config = config;
+    private readonly TimeProvider _timeProvider = timeProvider;
+    private readonly ICurrentUserAccessor _currentUserAccessor = currentUserAccessor;
 
     private readonly IMapper _mapper = mapper;
     private const string DuplicateEmailMessage = "Este e-mail já está cadastrado. Tente entrar ou use \"Esqueci minha senha\" para recuperar o acesso.";
@@ -66,7 +68,7 @@ public class UserService(IUserRepository userRepository, IBookRepository bookRep
 
         // persiste última tentativa de login ANTES do SUCESSO ou FALHA pra ter métrica de
         // verificação de brute force.
-        user.LastLogin = DateTime.UtcNow;
+        user.LastLogin = _timeProvider.GetUtcNow().UtcDateTime;
         await _repository.UpdateAsync(user);
 
         if (!IsValidPassword(user, decryptedPass))
@@ -142,9 +144,7 @@ public class UserService(IUserRepository userRepository, IBookRepository bookRep
 
     public override async Task<Result<User>> UpdateAsync(User user)
     {
-        // Name do principal é o Id do usuário autenticado (setado no middleware de auth); se vier nulo,
-        // o comportamento (ArgumentNullException do Guid) é o mesmo de antes do Nullable ser ligado aqui.
-        user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
+        user.Id = _currentUserAccessor.RequireUserId();
         Result<User> result = Validate(user, x =>
            x.Email,
             x => x.Linkedin!,

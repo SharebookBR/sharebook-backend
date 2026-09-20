@@ -19,10 +19,11 @@ public class ChooseDateReminder : GenericJob, IJob
     public ChooseDateReminder(
         IJobHistoryRepository jobHistoryRepo,
         ILoggerFactory loggerFactory,
+        TimeProvider timeProvider,
         IBookService bookService,
         IEmailService emailService,
         IEmailTemplate emailTemplate
-        ) : base(jobHistoryRepo, loggerFactory)
+        ) : base(jobHistoryRepo, loggerFactory, timeProvider)
     {
         JobName = "ChooseDateReminder";
         Description = "Notifica o doador com um lembrete amigável no dia da escolha.";

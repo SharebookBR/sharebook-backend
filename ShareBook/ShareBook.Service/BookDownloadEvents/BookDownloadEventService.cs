@@ -14,11 +14,13 @@ namespace ShareBook.Service.BookDownloadEvents;
 public class BookDownloadEventService(
     IBookDownloadEventRepository downloadEventRepository,
     IBookRepository bookRepository,
-    IUploadService uploadService) : IBookDownloadEventService
+    IUploadService uploadService,
+    TimeProvider timeProvider) : IBookDownloadEventService
 {
     private readonly IBookDownloadEventRepository _downloadEventRepository = downloadEventRepository;
     private readonly IBookRepository _bookRepository = bookRepository;
     private readonly IUploadService _uploadService = uploadService;
+    private readonly TimeProvider _timeProvider = timeProvider;
 
     public async Task RecordAsync(Guid bookId, Guid? userId, BookDownloadEventSource source)
     {
@@ -27,7 +29,7 @@ public class BookDownloadEventService(
             BookId = bookId,
             UserId = userId,
             Source = source,
-            DownloadedAtUtc = DateTime.UtcNow
+            DownloadedAtUtc = _timeProvider.GetUtcNow().UtcDateTime
         });
     }
 
@@ -35,7 +37,7 @@ public class BookDownloadEventService(
     {
         var windowDays = days <= 0 ? 30 : days;
         var take = limit <= 0 ? 15 : limit;
-        var since = DateTime.UtcNow.AddDays(-windowDays);
+        var since = _timeProvider.GetUtcNow().UtcDateTime.AddDays(-windowDays);
 
         var rankedDownloads = await _downloadEventRepository.Get()
             .AsNoTracking()

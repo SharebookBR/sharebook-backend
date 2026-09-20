@@ -14,7 +14,7 @@ public class MeetupSearch : GenericJob, IJob
 {
     private readonly IMeetupService _meetupService;
     private readonly IConfiguration _configuration;
-    public MeetupSearch(IJobHistoryRepository jobHistoryRepo, ILoggerFactory loggerFactory, IMeetupService meetupService, IConfiguration configuration) : base(jobHistoryRepo, loggerFactory)
+    public MeetupSearch(IJobHistoryRepository jobHistoryRepo, ILoggerFactory loggerFactory, TimeProvider timeProvider, IMeetupService meetupService, IConfiguration configuration) : base(jobHistoryRepo, loggerFactory, timeProvider)
     {
         _meetupService = meetupService;
 

@@ -24,13 +24,13 @@ namespace ShareBook.Api.Controllers;
 
 [Route("api/[controller]")]
 [EnableCors("AllowAllHeaders")]
-[GetClaimsFilter]
 public class AccountController(IUserService userService,
     IApplicationSignInManager signManager,
     IMapper mapper,
     IConfiguration configuration,
     IAccessHistoryRepository historyRepository,
-    ILgpdService lgpdService) : ControllerBase 
+    ILgpdService lgpdService,
+    ICurrentUserAccessor currentUserAccessor) : ControllerBase
 {
     private readonly IUserService _userService = userService;
     private readonly IApplicationSignInManager _signManager = signManager;
@@ -38,6 +38,7 @@ public class AccountController(IUserService userService,
     private readonly IConfiguration _configuration = configuration;
     private readonly IAccessHistoryRepository _historyRepository = historyRepository;
     private readonly ILgpdService _lgpdService = lgpdService;
+    private readonly ICurrentUserAccessor _currentUserAccessor = currentUserAccessor;
 
     #region GET
 
@@ -45,7 +46,7 @@ public class AccountController(IUserService userService,
     [Authorize("Bearer")]
     public async Task<UserVM> GetAsync() 
     {
-        var id = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
+        var id = _currentUserAccessor.RequireUserId();
         var user = await _userService.FindAsync(id);
 
         var userVM = _mapper.Map<UserVM>(user);
@@ -56,7 +57,7 @@ public class AccountController(IUserService userService,
     [HttpGet("Profile")]
     public async Task<object> ProfileAsync() 
     {
-        var id = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
+        var id = _currentUserAccessor.RequireUserId();
         var user = await _userService.FindAsync(id);
         if (user == null)
             throw new ShareBookException(ShareBookException.Error.NotFound, "Usuário não encontrado.");
@@ -174,7 +175,7 @@ public class AccountController(IUserService userService,
     [Authorize("Bearer")]
     public async Task<IActionResult> AnonymizeAsync([FromBody] UserAnonymizeDTO dto)
     {
-        var userIdFromSession = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
+        var userIdFromSession = _currentUserAccessor.RequireUserId();
         if(dto.UserId != userIdFromSession)
             throw new ShareBookException(ShareBookException.Error.Forbidden, "Você não tem permissão para remover esse conta.");
 
@@ -197,7 +198,7 @@ public class AccountController(IUserService userService,
 
         var user = _mapper.Map<User>(updateUserVM);
 
-        user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
+        user.Id = _currentUserAccessor.RequireUserId();
 
         var result = await _userService.UpdateAsync(user);
 
@@ -212,7 +213,7 @@ public class AccountController(IUserService userService,
     public async Task<Result<User>> ChangePasswordAsync([FromBody] ChangePasswordUserVM changePasswordUserVM)
     {
         var user = new User() { Password = changePasswordUserVM.OldPassword };
-        user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
+        user.Id = _currentUserAccessor.RequireUserId();
         return await _userService.ValidOldPasswordAndChangeUserPasswordAsync(user, changePasswordUserVM.NewPassword);
     }
 
@@ -275,7 +276,7 @@ public class AccountController(IUserService userService,
 
     private async Task<User?> GetSessionUserAsync()
     {
-        var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
+        var userId = _currentUserAccessor.RequireUserId();
         return await _userService.FindAsync(userId);
     }
 }

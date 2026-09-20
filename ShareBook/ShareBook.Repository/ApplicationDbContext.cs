@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ShareBook.Domain;
+using ShareBook.Domain.Common;
 using ShareBook.Repository.Mapping;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,7 +9,14 @@ namespace ShareBook.Repository;
 
 public class ApplicationDbContext : DbContext
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+    // Opcional: fora de um request HTTP (ex.: jobs em background, tooling de design-time do
+    // `dotnet ef`) não há usuário autenticado pra registrar como autor da mudança no EFLog.
+    private readonly ICurrentUserAccessor? _currentUserAccessor;
+
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, ICurrentUserAccessor? currentUserAccessor = null) : base(options)
+    {
+        _currentUserAccessor = currentUserAccessor;
+    }
     public ApplicationDbContext() { }
 
     public DbSet<Book> Books { get; set; }
@@ -39,7 +47,7 @@ public class ApplicationDbContext : DbContext
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken))
     {
-        await this.LogChanges();
+        await this.LogChanges(_currentUserAccessor?.UserId);
         return await base.SaveChangesAsync(cancellationToken);
     }
 }

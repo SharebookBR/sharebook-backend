@@ -15,7 +15,8 @@ public class MailSupressListUpdate : GenericJob, IJob
     public MailSupressListUpdate(
         IJobHistoryRepository jobHistoryRepo,
         ILoggerFactory loggerFactory,
-        IEmailService emailService) : base(jobHistoryRepo, loggerFactory)
+        TimeProvider timeProvider,
+        IEmailService emailService) : base(jobHistoryRepo, loggerFactory, timeProvider)
     {
 
         JobName = "MailSupressListUpdate";

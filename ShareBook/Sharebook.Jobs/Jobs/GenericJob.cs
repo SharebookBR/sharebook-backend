@@ -22,13 +22,15 @@ public abstract class GenericJob
 
     protected readonly IJobHistoryRepository _jobHistoryRepo;
     protected readonly ILogger Logger;
+    protected readonly TimeProvider _timeProvider;
 
     protected Stopwatch _stopwatch = new();
 
-    protected GenericJob(IJobHistoryRepository jobHistoryRepo, ILoggerFactory loggerFactory)
+    protected GenericJob(IJobHistoryRepository jobHistoryRepo, ILoggerFactory loggerFactory, TimeProvider timeProvider)
     {
         _jobHistoryRepo = jobHistoryRepo;
         Logger = loggerFactory.CreateLogger(GetType().Name);
+        _timeProvider = timeProvider;
     }
 
     public bool HasWork()
@@ -74,7 +76,7 @@ public abstract class GenericJob
 
     public DateTime GetDateLimitByInterval(Interval i)
     {
-        var result = DateTime.UtcNow;
+        var result = _timeProvider.GetUtcNow().UtcDateTime;
 
         switch (i)
         {

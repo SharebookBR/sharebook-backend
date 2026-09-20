@@ -17,8 +17,10 @@ public class ImporterDashboardService(
     IConfiguration configuration,
     IBookRepository bookRepository,
     ICategoryRepository categoryRepository,
-    IUploadService uploadService) : IImporterDashboardService
+    IUploadService uploadService,
+    TimeProvider timeProvider) : IImporterDashboardService
 {
+    private readonly TimeProvider _timeProvider = timeProvider;
     private const string KnownStatusesSql = @"('waiting_triage', 'triaging', 'triage_rejected', 'waiting_translation', 'translating', 'waiting_editorial', 'editing', 'waiting_publish', 'publishing', 'done', 'editorial_rejected', 'triage_retry', 'publish_retry', 'source_blocked', 'duplicate', 'error')";
     private const string ActiveStatusesSql = @"('waiting_triage', 'triaging', 'waiting_translation', 'translating', 'waiting_editorial', 'editing', 'waiting_publish', 'publishing', 'triage_retry', 'publish_retry', 'error')";
 
@@ -220,7 +222,7 @@ ORDER BY ss.source_id;
 
         var result = new ImporterDashboardDTO
         {
-            GeneratedAtUtc = DateTime.UtcNow
+            GeneratedAtUtc = _timeProvider.GetUtcNow().UtcDateTime
         };
 
         await using var conn = new NpgsqlConnection(connectionString);

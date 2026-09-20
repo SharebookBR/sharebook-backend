@@ -37,7 +37,7 @@ public class ChooseDateReminderTests
     [Fact]
     public async Task SendReminderToTheUser()
     {
-        ChooseDateReminder job = new ChooseDateReminder(_mockJobHistoryRepository.Object, _mockLoggerFactory.Object, _mockBookService.Object, _mockEmailService.Object, _mockEmailTemplate.Object);
+        ChooseDateReminder job = new ChooseDateReminder(_mockJobHistoryRepository.Object, _mockLoggerFactory.Object, TimeProvider.System, _mockBookService.Object, _mockEmailService.Object, _mockEmailTemplate.Object);
 
         JobHistory result = await job.WorkAsync();
 
@@ -62,7 +62,7 @@ public class ChooseDateReminderTests
         var bookWithoutFacilitator = BookMock.GetLordTheRings(donor);
         _mockBookService.Setup(s => s.GetBooksChooseDateIsTodayAsync()).ReturnsAsync(new List<Book> { bookWithoutFacilitator });
 
-        ChooseDateReminder job = new ChooseDateReminder(_mockJobHistoryRepository.Object, _mockLoggerFactory.Object, _mockBookService.Object, _mockEmailService.Object, _mockEmailTemplate.Object);
+        ChooseDateReminder job = new ChooseDateReminder(_mockJobHistoryRepository.Object, _mockLoggerFactory.Object, TimeProvider.System, _mockBookService.Object, _mockEmailService.Object, _mockEmailTemplate.Object);
 
         JobHistory result = await job.WorkAsync();
 

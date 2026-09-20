@@ -40,7 +40,7 @@ public class RemoveBookFromShowcaseTests
         book.Status = BookStatus.Available;
         _mockBookService.Setup(s => s.GetBooksChooseDateIsTodayOrLateAsync()).ReturnsAsync(new List<Book> { book });
 
-        RemoveBookFromShowcase job = new RemoveBookFromShowcase(_mockBookService.Object, _mockJobHistoryRepository.Object, _mockEmailService.Object, _mockEmailTemplate.Object, _mockLoggerFactory.Object);
+        RemoveBookFromShowcase job = new RemoveBookFromShowcase(_mockBookService.Object, _mockJobHistoryRepository.Object, TimeProvider.System, _mockEmailService.Object, _mockEmailTemplate.Object, _mockLoggerFactory.Object);
 
         JobHistory result = await job.WorkAsync();
 

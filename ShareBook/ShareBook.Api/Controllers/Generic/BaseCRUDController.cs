@@ -22,7 +22,6 @@ public class BaseCrudController<T, R>(IBaseService<T> service) : BaseDeleteContr
 {
 }
 
-[GetClaimsFilter]
 [EnableCors("AllowAllHeaders")]
 public class BaseCrudController<T, R, A>(IBaseService<T> service, IMapper mapper) : BaseDeleteController<T, R, A>(service)
     where T : BaseEntity

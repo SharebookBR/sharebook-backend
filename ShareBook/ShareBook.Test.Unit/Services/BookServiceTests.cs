@@ -35,6 +35,8 @@ public class BookServiceTests
     readonly Mock<IConfiguration> configurationMock;
 
     readonly Mock<NewBookQueue> sqsMock;
+    readonly Mock<ICurrentUserAccessor> currentUserAccessorMock;
+    readonly Guid _currentUserId;
 
     public BookServiceTests()
     {
@@ -49,6 +51,10 @@ public class BookServiceTests
         bookUserServiceMock = new Mock<IBookUserService>();
         configurationMock = new Mock<IConfiguration>();
         sqsMock = new Mock<NewBookQueue>();
+        _currentUserId = new Guid(new UserMock().GetClaimsUser().Identity!.Name!);
+        currentUserAccessorMock = new Mock<ICurrentUserAccessor>();
+        currentUserAccessorMock.Setup(x => x.UserId).Returns(_currentUserId);
+        currentUserAccessorMock.Setup(x => x.RequireUserId()).Returns(_currentUserId);
 
         bookRepositoryMock.Setup(repo => repo.Get()).Returns(Array.Empty<Book>().AsQueryable());
         bookRepositoryMock.Setup(repo => repo.GetSlugsStartingWithAsync(It.IsAny<string>()))
@@ -92,7 +98,6 @@ public class BookServiceTests
     [Fact]
     public async Task UpdateBookWithoutNewImage_ShouldKeepImageSlug()
     {
-        Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
         var savedBook = BookMock.GetLordTheRings();
         savedBook.Id = Guid.NewGuid();
         savedBook.ImageSlug = "lotr.png";
@@ -155,7 +160,6 @@ public class BookServiceTests
     [Fact]
     public async Task AddBooksWithSameTitle_ShouldUseCopySuffixes()
     {
-        Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
         var categoryId = Guid.NewGuid();
 
         categoryRepositoryMock
@@ -200,7 +204,6 @@ public class BookServiceTests
     [Fact]
     public async Task AddBook_WhenSlugIsTakenConcurrently_ShouldRetryWithNextCopy()
     {
-        Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
         var categoryId = Guid.NewGuid();
 
         categoryRepositoryMock
@@ -218,7 +221,7 @@ public class BookServiceTests
 
         // SQLite de verdade aplica foreign keys (diferente do provider InMemory), então
         // precisamos de Category e User reais pra satisfazer as FKs de Book.
-        var currentUserId = new Guid(Thread.CurrentPrincipal.Identity.Name);
+        var currentUserId = _currentUserId;
         context.Categories.Add(new Category { Id = categoryId, Name = "Leaf" });
         context.Users.Add(new User
         {
@@ -264,7 +267,6 @@ public class BookServiceTests
     [Fact]
     public async Task AddBook()
     {
-        Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
         await using var context = await CreateEmptyContextAsync();
         var service = CreateService(bookRepositoryMock.Object, context);
         Result<Book> result = await service.InsertAsync(new Book()
@@ -284,7 +286,6 @@ public class BookServiceTests
     [Fact]
     public async Task AddEBookWithPdf()
     {
-        Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
         await using var context = await CreateEmptyContextAsync();
         var service = CreateService(bookRepositoryMock.Object, context);
         Result<Book> result = await service.InsertAsync(new Book()
@@ -304,7 +305,6 @@ public class BookServiceTests
     [Fact]
     public async Task AddEBookWithoutPdf_ShouldFail()
     {
-        Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
         await using var context = await CreateEmptyContextAsync();
         var service = CreateService(bookRepositoryMock.Object, context);
         Result<Book> result = await service.InsertAsync(new Book()
@@ -323,7 +323,6 @@ public class BookServiceTests
     [Fact]
     public async Task AddPrintedBookWithoutFreight_ShouldFail()
     {
-        Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
         await using var context = await CreateEmptyContextAsync();
         var service = CreateService(bookRepositoryMock.Object, context);
         Result<Book> result = await service.InsertAsync(new Book()
@@ -342,7 +341,6 @@ public class BookServiceTests
     [Fact]
     public async Task EBookShouldNotRequireFreight()
     {
-        Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
         await using var context = await CreateEmptyContextAsync();
         var service = CreateService(bookRepositoryMock.Object, context);
         Result<Book> result = await service.InsertAsync(new Book()
@@ -362,7 +360,6 @@ public class BookServiceTests
     [Fact]
     public async Task AddDuplicateEBook_ShouldFail()
     {
-        Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
 
         await using var context = await CreateEmptyContextAsync();
         // Simula que já existe um ebook com o mesmo título e autor no banco
@@ -397,7 +394,6 @@ public class BookServiceTests
     [Fact]
     public async Task AddDuplicatePrintedBook_ShouldNotCheckForDuplicateEBook()
     {
-        Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
 
         await using var context = await CreateEmptyContextAsync();
         var service = CreateService(bookRepositoryMock.Object, context);
@@ -420,7 +416,6 @@ public class BookServiceTests
     [Fact]
     public async Task InsertBook_WithParentCategory_ShouldFail()
     {
-        Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
         var parentCategoryId = Guid.NewGuid();
 
         categoryRepositoryMock
@@ -605,7 +600,7 @@ public class BookServiceTests
         => new BookService(repository, context,
             unitOfWorkMock.Object, new BookValidator(),
             uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object,
-            sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
+            sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object, TimeProvider.System, currentUserAccessorMock.Object);
 
     private static async Task<ApplicationDbContext> CreateEmptyContextAsync()
     {

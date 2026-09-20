@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service;
 
-public class BookUserEmailService(IUserService userService, IEmailService emailService, IEmailTemplate emailTemplate, IPushNotificationService notificationService, IMemoryCache memoryCache) : IBookUsersEmailService
+public class BookUserEmailService(IUserService userService, IEmailService emailService, IEmailTemplate emailTemplate, IPushNotificationService notificationService, IMemoryCache memoryCache, TimeProvider timeProvider) : IBookUsersEmailService
 {
     private const string BookNoticeDonorTemplate = "BookNoticeDonorTemplate";
     private const string BookDonatedTemplate = "BookDonatedTemplate";
@@ -31,6 +31,7 @@ public class BookUserEmailService(IUserService userService, IEmailService emailS
     private readonly IEmailTemplate _emailTemplate = emailTemplate;
     private readonly IPushNotificationService _notificationService = notificationService;
     private IMemoryCache _cache = memoryCache;
+    private readonly TimeProvider _timeProvider = timeProvider;
 
     public async Task SendEmailBookDonatedAsync(BookUser bookUser)
     {
@@ -113,7 +114,7 @@ public class BookUserEmailService(IUserService userService, IEmailService emailS
         var html = "<table border=1 cellpadding=3 cellspacing=0>";
         html += "<tr><td bgcolor = '#ffff00'><b> APELIDO </b></td><td bgcolor = '#ffff00'><b> SOLICITAÇÃO </b></td></tr>";
 
-        var threeHoursAgo = DateTime.UtcNow.AddMinutes(-180);
+        var threeHoursAgo = _timeProvider.GetUtcNow().UtcDateTime.AddMinutes(-180);
         var requests = bookRequested.BookUsers.Where(r => r.CreationDate >= threeHoursAgo).OrderByDescending(r => r.CreationDate);
 
         foreach (var request in requests)

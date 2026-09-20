@@ -19,9 +19,10 @@ public class RemoveBookFromShowcase : GenericJob, IJob
     public RemoveBookFromShowcase(
         IBookService bookService, 
         IJobHistoryRepository jobHistoryRepo,
+        TimeProvider timeProvider,
         IEmailService emailService,
         IEmailTemplate emailTemplate,
-        ILoggerFactory loggerFactory) : base(jobHistoryRepo, loggerFactory)
+        ILoggerFactory loggerFactory) : base(jobHistoryRepo, loggerFactory, timeProvider)
     {
 
         JobName     = "RemoveBookFromShowcase";

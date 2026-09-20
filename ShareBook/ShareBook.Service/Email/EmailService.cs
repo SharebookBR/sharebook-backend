@@ -30,13 +30,15 @@ public class EmailService : IEmailService
     private readonly MailSenderHighPriorityQueue _mailSenderHighPriorityQueue;
     private readonly ImapClient _imapClient;
     private readonly ILogger<EmailService> _logger;
+    private readonly TimeProvider _timeProvider;
 
 
     private readonly ApplicationDbContext _ctx;
 
     public EmailService(IOptions<EmailSettings> emailSettings, IUserRepository userRepository,
     IConfiguration configuration, MailSenderLowPriorityQueue mailSenderLowPriorityQueue,
-    MailSenderHighPriorityQueue mailSenderHighPriorityQueue, ApplicationDbContext ctx, ILogger<EmailService> logger)
+    MailSenderHighPriorityQueue mailSenderHighPriorityQueue, ApplicationDbContext ctx, ILogger<EmailService> logger,
+    TimeProvider timeProvider)
     {
         _settings = emailSettings.Value;
         _userRepository = userRepository;
@@ -49,6 +51,7 @@ public class EmailService : IEmailService
         _imapClient.ServerCertificateValidationCallback = (s, c, h, e) => true;
         _ctx = ctx;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task SendToAdminsAsync(string messageText, string subject)
@@ -303,7 +306,7 @@ public class EmailService : IEmailService
 
 
         var hardBounces = bounces.Where(b => !b.IsSoft).ToList();
-        var oneDayAgo = DateTime.UtcNow.AddDays(-1);
+        var oneDayAgo = _timeProvider.GetUtcNow().UtcDateTime.AddDays(-1);
         var softBounces = bounces.Where(b => b.IsSoft && b.CreationDate > oneDayAgo).ToList();
 
         if (hardBounces.Exists(b => b.Email == email))

@@ -6,6 +6,7 @@ using ShareBook.Domain;
 using ShareBook.Domain.Enums;
 using ShareBook.Repository;
 using ShareBook.Service;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
@@ -23,7 +24,7 @@ public class MeetupSearchTests
     public async Task MeetupSettingsDisabled_ShouldReturn_MeetupDisabled()
     {
         _mockConfiguration.SetupGet(s => s[It.IsAny<string>()]).Returns("false");
-        MeetupSearch job = new MeetupSearch(_mockJobHistoryRepository.Object, _mockLoggerFactory.Object, _mockMeetupService.Object, _mockConfiguration.Object);
+        MeetupSearch job = new MeetupSearch(_mockJobHistoryRepository.Object, _mockLoggerFactory.Object, TimeProvider.System, _mockMeetupService.Object, _mockConfiguration.Object);
 
         JobResult result = await job.ExecuteAsync();
         Assert.Equal(JobResult.MeetupDisabled, result);
@@ -37,7 +38,7 @@ public class MeetupSearchTests
         List<string> mockedMeetups = new List<string> { "Meetup Mock 1", "Meetup Mock 2" };
         _mockConfiguration.SetupGet(s => s[It.IsAny<string>()]).Returns("true");
         _mockMeetupService.Setup(s => s.FetchMeetupsAsync()).ReturnsAsync(() => mockedMeetups);
-        MeetupSearch job = new MeetupSearch(_mockJobHistoryRepository.Object, _mockLoggerFactory.Object, _mockMeetupService.Object, _mockConfiguration.Object);
+        MeetupSearch job = new MeetupSearch(_mockJobHistoryRepository.Object, _mockLoggerFactory.Object, TimeProvider.System, _mockMeetupService.Object, _mockConfiguration.Object);
 
         JobHistory result = await job.WorkAsync();
         Assert.Equal("MeetupSearch", result.JobName);

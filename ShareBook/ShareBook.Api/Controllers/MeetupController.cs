@@ -11,15 +11,16 @@ namespace ShareBook.Api.Controllers;
 
 [Route("api/[controller]")]
 [EnableCors("AllowAllHeaders")]
-public class MeetupController(IMeetupService meetupService) : ControllerBase
+public class MeetupController(IMeetupService meetupService, TimeProvider timeProvider) : ControllerBase
 {
     private readonly IMeetupService _meetupService = meetupService;
+    private readonly TimeProvider _timeProvider = timeProvider;
 
     [HttpGet]
 
     public async Task<PagedList<Meetup>> GetAsync(int? page, int? pageSize, bool upcoming = false)
     {
-        var now = DateTime.UtcNow;
+        var now = _timeProvider.GetUtcNow().UtcDateTime;
         return await _meetupService.GetAsync(upcoming ? x => x.Active && x.StartDate > now : x => x.Active && x.StartDate <= now, x => x.StartDate, page ?? 1, pageSize ?? 10);
     }
 

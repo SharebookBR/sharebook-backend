@@ -28,9 +28,10 @@ public class LateDonationNotification : GenericJob, IJob
 
 
     public LateDonationNotification(IJobHistoryRepository jobHistoryRepo,
+        TimeProvider timeProvider,
         IBookService bookService,
         IEmailService emailService,
-        IEmailTemplate emailTemplate, ILoggerFactory loggerFactory, IConfiguration configuration) : base(jobHistoryRepo, loggerFactory)
+        IEmailTemplate emailTemplate, ILoggerFactory loggerFactory, IConfiguration configuration) : base(jobHistoryRepo, loggerFactory, timeProvider)
     {
         JobName = "LateDonationNotification";
         Description = "Notifica administradores e doadores com a lista de doações em atraso " +

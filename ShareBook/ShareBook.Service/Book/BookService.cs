@@ -29,7 +29,8 @@ public partial class BookService(IBookRepository bookRepository,
             ApplicationDbContext context,
             IUnitOfWork unitOfWork, IValidator<Book> validator,
             IUploadService uploadService, IBooksEmailService booksEmailService, IConfiguration configuration,
-            NewBookQueue newBookQueue, IEBookService ebookService, ICategoryRepository categoryRepository) : BaseService<Book>(context, unitOfWork, validator), IBookService
+            NewBookQueue newBookQueue, IEBookService ebookService, ICategoryRepository categoryRepository,
+            TimeProvider timeProvider, ICurrentUserAccessor currentUserAccessor) : BaseService<Book>(context, unitOfWork, validator), IBookService
 {
     private const int MaxSlugInsertAttempts = 5;
     private readonly ApplicationDbContext _context = context;
@@ -39,6 +40,8 @@ public partial class BookService(IBookRepository bookRepository,
     private readonly IConfiguration _configuration = configuration;
     private readonly IEBookService _ebookService = ebookService;
     private readonly ICategoryRepository _categoryRepository = categoryRepository;
+    private readonly TimeProvider _timeProvider = timeProvider;
+    private readonly ICurrentUserAccessor _currentUserAccessor = currentUserAccessor;
 
     private readonly NewBookQueue _newBookQueue = newBookQueue;
 
@@ -120,7 +123,7 @@ public partial class BookService(IBookRepository bookRepository,
             throw new ShareBookException(ShareBookException.Error.NotFound);
 
         book.Status = BookStatus.Available;
-        book.ApprovedAt = DateTime.UtcNow;
+        book.ApprovedAt = _timeProvider.GetUtcNow().UtcDateTime;
         book.ChooseDate = book.IsEbook()
             ? null
             : chooseDate?.Date ?? DateTime.Today.AddDays(daysInShowcase);
@@ -248,8 +251,7 @@ public partial class BookService(IBookRepository bookRepository,
 
     public override async Task<Result<Book>> InsertAsync(Book entity)
     {
-        // Name do principal é o Id do usuário autenticado (setado no middleware de auth).
-        entity.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
+        entity.UserId = _currentUserAccessor.RequireUserId();
 
         if (entity.IsEbook())
             entity.ChooseDate = null;
@@ -429,7 +431,7 @@ public partial class BookService(IBookRepository bookRepository,
 
     public async Task<bool> UserRequestedBookAsync(Guid bookId)
     {
-        var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
+        var userId = _currentUserAccessor.RequireUserId();
         return await _repository.AnyAsync(x =>
                 x.Id == bookId &&
                 x.BookUsers.Any(y => y.UserId == userId));
@@ -491,7 +493,7 @@ public partial class BookService(IBookRepository bookRepository,
         if (book == null)
             throw new ShareBookException(ShareBookException.Error.NotFound);
 
-        var saoPauloNow = DateTimeHelper.ConvertDateTimeSaoPaulo(DateTime.UtcNow);
+        var saoPauloNow = DateTimeHelper.ConvertDateTimeSaoPaulo(_timeProvider.GetUtcNow().UtcDateTime);
         var date = saoPauloNow.ToString("dd/MM/yyyy");
         var lineBreak = (string.IsNullOrEmpty(book.FacilitatorNotes)) ? "" : "\n";
         book.FacilitatorNotes += string.Format("{0}{1} - {2}", lineBreak, date, facilitatorNotes);
@@ -519,7 +521,7 @@ public partial class BookService(IBookRepository bookRepository,
             throw new ShareBookException(ShareBookException.Error.BadRequest, "Aguarde a data de decisão.");
 
         book.Status = BookStatus.Available;
-        book.ChooseDate = DateTime.UtcNow.AddDays(10);
+        book.ChooseDate = _timeProvider.GetUtcNow().UtcDateTime.AddDays(10);
         await PersistBookUpdateAsync(book);
     }
 

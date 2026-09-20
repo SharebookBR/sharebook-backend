@@ -33,6 +33,7 @@ public class UserServiceTests
     readonly Mock<IRecaptchaService> recaptchaServiceMock;
     readonly Mock<ILogger<UserService>> loggerMock;
     readonly Mock<IConfiguration> configMock;
+    readonly Mock<ICurrentUserAccessor> currentUserAccessorMock;
     readonly Guid _currentUserId;
 
     public UserServiceTests()
@@ -51,8 +52,10 @@ public class UserServiceTests
 
         //Simula login do usuario
         var claimsUser = new UserMock().GetClaimsUser();
-        Thread.CurrentPrincipal = claimsUser;
         _currentUserId = new Guid(claimsUser.Identity.Name);
+        currentUserAccessorMock = new Mock<ICurrentUserAccessor>();
+        currentUserAccessorMock.Setup(x => x.UserId).Returns(_currentUserId);
+        currentUserAccessorMock.Setup(x => x.RequireUserId()).Returns(_currentUserId);
 
         userServiceMock.Setup(service => service.InsertAsync(It.IsAny<User>())).Verifiable();
         userServiceMock.Setup(service => service.UpdateAsync(It.IsAny<User>())).Verifiable();
@@ -65,7 +68,7 @@ public class UserServiceTests
 
     private UserService CreateService(ApplicationDbContext context)
         => new UserService(userRepositoryMock.Object, bookRepositoryMock.Object, context, unitOfWorkMock.Object,
-            new UserValidator(), mapperMock.Object, userEmailServiceMock.Object, recaptchaServiceMock.Object, configMock.Object);
+            new UserValidator(), mapperMock.Object, userEmailServiceMock.Object, recaptchaServiceMock.Object, configMock.Object, TimeProvider.System, currentUserAccessorMock.Object);
 
     #region Register User
 

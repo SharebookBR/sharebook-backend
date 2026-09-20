@@ -42,7 +42,7 @@ public class CancelAbandonedDonationsTests
     [Fact]
     public async Task NotCancellingAnyBook()
     {
-        CancelAbandonedDonations job = new CancelAbandonedDonations(_mockJobHistoryRepository.Object, _mockLoggerFactory.Object, _mockBookService.Object, _mockBookUserService.Object, _mockConfiguration.Object);
+        CancelAbandonedDonations job = new CancelAbandonedDonations(_mockJobHistoryRepository.Object, _mockLoggerFactory.Object, TimeProvider.System, _mockBookService.Object, _mockBookUserService.Object, _mockConfiguration.Object);
 
         JobHistory result = await job.WorkAsync();
 
@@ -64,7 +64,7 @@ public class CancelAbandonedDonationsTests
         foreach (var book in booksToCancel)
             book.ChooseDate = DateTime.UtcNow.AddDays((_maxLateDonationDaysAutoCancel + 2) * -1);
 
-        CancelAbandonedDonations job = new CancelAbandonedDonations(_mockJobHistoryRepository.Object, _mockLoggerFactory.Object, _mockBookService.Object, _mockBookUserService.Object, _mockConfiguration.Object);
+        CancelAbandonedDonations job = new CancelAbandonedDonations(_mockJobHistoryRepository.Object, _mockLoggerFactory.Object, TimeProvider.System, _mockBookService.Object, _mockBookUserService.Object, _mockConfiguration.Object);
         
         JobHistory result = await job.WorkAsync();
         

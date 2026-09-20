@@ -18,7 +18,7 @@ public class CancelAbandonedDonations : GenericJob, IJob
     private readonly int _maxLateDonationDaysAutoCancel;
     private readonly IConfiguration _configuration;
 
-    public CancelAbandonedDonations(IJobHistoryRepository jobHistoryRepo, ILoggerFactory loggerFactory, IBookService bookService, IBookUserService bookUserService, IConfiguration configuration) : base(jobHistoryRepo, loggerFactory)
+    public CancelAbandonedDonations(IJobHistoryRepository jobHistoryRepo, ILoggerFactory loggerFactory, TimeProvider timeProvider, IBookService bookService, IBookUserService bookUserService, IConfiguration configuration) : base(jobHistoryRepo, loggerFactory, timeProvider)
     {
         JobName = "CancelAbandonedDonations";
         Description = "Cancela as doações abandonadas.";

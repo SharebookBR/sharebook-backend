@@ -95,10 +95,44 @@ public class GenericJobScheduleTests
         Assert.True(nextExecutionUtc.Value > DateTime.UtcNow);
     }
 
+    [Fact]
+    public void GetDateLimitByInterval_UsesInjectedTimeProvider_NotTheRealClock()
+    {
+        // Prova que dá pra controlar o relógio em teste (Tarefa 10): antes do TimeProvider,
+        // GetDateLimitByInterval usava DateTime.UtcNow direto e não tinha como ser testado
+        // de forma determinística sem depender da hora real da máquina rodando o teste.
+        var fixedNow = new DateTimeOffset(2026, 3, 15, 10, 0, 0, TimeSpan.Zero);
+        var fakeTimeProvider = new FixedTimeProvider(fixedNow);
+
+        var job = new ScheduleAwareFakeJob(_jobHistoryRepo.Object, _loggerFactory.Object, fakeTimeProvider)
+        {
+            Interval = Interval.Hourly
+        };
+
+        var dateLimit = job.GetDateLimitByInterval(Interval.Hourly);
+
+        // GetDateLimitByInterval soma +1 minuto de folga além do intervalo (ver implementação),
+        // pra dar margem ao tempo que o próprio job leva pra rodar.
+        Assert.Equal(fixedNow.UtcDateTime.AddHours(-1).AddMinutes(1), dateLimit);
+    }
+
+    private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => now;
+    }
+
     private class ScheduleAwareFakeJob : GenericJob, IJob
     {
         public ScheduleAwareFakeJob(IJobHistoryRepository jobHistoryRepo, ILoggerFactory loggerFactory)
-            : base(jobHistoryRepo, loggerFactory)
+            : base(jobHistoryRepo, loggerFactory, TimeProvider.System)
+        {
+            JobName = "ScheduleAwareFakeJob";
+            Description = "Fake job para testar agenda.";
+            Active = true;
+        }
+
+        public ScheduleAwareFakeJob(IJobHistoryRepository jobHistoryRepo, ILoggerFactory loggerFactory, TimeProvider timeProvider)
+            : base(jobHistoryRepo, loggerFactory, timeProvider)
         {
             JobName = "ScheduleAwareFakeJob";
             Description = "Fake job para testar agenda.";

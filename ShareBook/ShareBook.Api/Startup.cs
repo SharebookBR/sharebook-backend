@@ -16,6 +16,8 @@ using ShareBook.Api.Configuration;
 using ShareBook.Api.Filters;
 using ShareBook.Api.Middleware;
 using ShareBook.Api.RateLimiting;
+using ShareBook.Api.Security;
+using ShareBook.Domain.Common;
 using ShareBook.Repository;
 using ShareBook.Service;
 using ShareBook.Service.Analytics;
@@ -76,6 +78,7 @@ public class Startup(IConfiguration configuration)
                 "EBookDownloadRateLimit:WindowHours deve ser maior que zero.")
             .ValidateOnStart();
         services.AddSingleton(TimeProvider.System);
+        services.AddScoped<ICurrentUserAccessor, CurrentUserAccessor>();
         services.AddSingleton<IEBookDownloadRateLimiter, EBookDownloadRateLimiter>();
 
         services.Configure<ImageSettings>(options => Configuration.GetSection("ImageSettings").Bind(options));

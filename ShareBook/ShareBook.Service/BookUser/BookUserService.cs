@@ -28,13 +28,14 @@ public class BookUserService(
     IMuambatorService muambatorService,
     IBookRepository bookRepository,
     IUnitOfWork unitOfWork,
-    IValidator<BookUser> validator, IConfiguration configuration, ILogger<BookUserService>? logger = null) : BaseService<BookUser>(context, unitOfWork, validator), IBookUserService
+    IValidator<BookUser> validator, IConfiguration configuration, ICurrentUserAccessor currentUserAccessor, ILogger<BookUserService>? logger = null) : BaseService<BookUser>(context, unitOfWork, validator), IBookUserService
 {
     private readonly IBookService _bookService = bookService;
     private readonly IBookUsersEmailService _bookUsersEmailService = bookUsersEmailService;
     private readonly IMuambatorService _muambatorService = muambatorService;
     private readonly IBookRepository _bookRepository = bookRepository;
     private readonly IConfiguration _configuration = configuration;
+    private readonly ICurrentUserAccessor _currentUserAccessor = currentUserAccessor;
     private readonly ILogger<BookUserService> _logger = logger ?? NullLogger<BookUserService>.Instance;
 
     public async Task<IList<User>> GetGranteeUsersByBookIdAsync(Guid bookId) =>
@@ -61,7 +62,7 @@ public class BookUserService(
         var bookUser = new BookUser()
         {
             BookId = bookId,
-            UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name!),
+            UserId = _currentUserAccessor.RequireUserId(),
             Reason = reason,
             NickName = $"Interessado {bookRequested.TotalInterested() + 1}"
         };
@@ -179,7 +180,7 @@ public class BookUserService(
 
     public async Task<PagedList<BookUser>> GetRequestsByUserAsync(int page, int itemsPerPage)
     {
-        var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
+        var userId = _currentUserAccessor.RequireUserId();
         var query = _repository.Get()
             .Include(x => x.Book)
             .Where(x => x.UserId == userId)

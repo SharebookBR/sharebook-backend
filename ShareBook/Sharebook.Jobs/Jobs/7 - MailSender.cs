@@ -34,11 +34,12 @@ public class MailSender : GenericJob, IJob
     public MailSender(
         IJobHistoryRepository jobHistoryRepo,
         ILoggerFactory loggerFactory,
+        TimeProvider timeProvider,
         IEmailService emailService,
         MailSenderLowPriorityQueue sqsLowPriority,
         MailSenderHighPriorityQueue sqsHighPriority,
         IConfiguration configuration,
-        IMemoryCache cache) : base(jobHistoryRepo, loggerFactory)
+        IMemoryCache cache) : base(jobHistoryRepo, loggerFactory, timeProvider)
     {
 
         JobName = "MailSender";

@@ -7,7 +7,6 @@ using ShareBook.Domain.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace ShareBook.Repository;
@@ -16,16 +15,21 @@ public static class LoggingContext
 {
     private static readonly List<EntityState> entityStates = new List<EntityState>() { EntityState.Added, EntityState.Modified, EntityState.Deleted };
 
-    public static async Task LogChanges(this ApplicationDbContext context)
+    /// <summary>
+    /// Registra as mudanças pendentes no ChangeTracker como EFLog antes do SaveChanges de fato.
+    /// </summary>
+    /// <param name="currentUserId">
+    /// Id do usuário autenticado que causou a mudança, vindo de <see cref="Domain.Common.ICurrentUserAccessor"/>
+    /// (ver <see cref="ApplicationDbContext"/>). Null fora de um request HTTP (job em background,
+    /// tooling de design-time) — o EFLog fica sem autor nesses casos, como sempre foi.
+    /// </param>
+    public static async Task LogChanges(this ApplicationDbContext context, Guid? currentUserId = null)
     {
         var logTime = DateTime.UtcNow;
         const string emptyJson = "{}";
         const string idColumn = "Id";
 
-        Guid? user = null;
-        var currentUserName = Thread.CurrentPrincipal?.Identity?.Name;
-        if (!string.IsNullOrEmpty(currentUserName))
-            user = new Guid(currentUserName);
+        var user = currentUserId;
 
         var changes = context.ChangeTracker.Entries()
             .Where(x => entityStates.Contains(x.State) && x.Entity.GetType().IsSubclassOf(typeof(BaseEntity)))

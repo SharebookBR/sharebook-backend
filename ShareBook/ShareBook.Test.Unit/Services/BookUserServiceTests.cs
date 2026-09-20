@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Moq;
 using ShareBook.Domain;
+using ShareBook.Domain.Common;
 using ShareBook.Domain.Validators;
 using ShareBook.Repository;
 using ShareBook.Repository.UoW;
@@ -28,6 +29,7 @@ public class BookUserServiceTests
     readonly Mock<IMuambatorService> muambatorServiceMock = new();
     readonly Mock<IBookRepository> bookRepositoryMock = new();
     readonly Mock<IConfiguration> configurationMock = new();
+    readonly Mock<ICurrentUserAccessor> currentUserAccessorMock = new();
 
 
     public BookUserServiceTests()
@@ -43,6 +45,10 @@ public class BookUserServiceTests
         {
             return BookMock.GetLordTheRings();
         });
+
+        var currentUserId = new Guid(new UserMock().GetClaimsUser().Identity!.Name!);
+        currentUserAccessorMock.Setup(x => x.UserId).Returns(currentUserId);
+        currentUserAccessorMock.Setup(x => x.RequireUserId()).Returns(currentUserId);
     }
 
     private static ApplicationDbContext CreateContext()
@@ -56,11 +62,10 @@ public class BookUserServiceTests
     [Fact]
     public async Task RequestBook()
     {
-        Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
         await using var context = CreateContext();
         var service = new BookUserService(context,
             bookServiceMock.Object, bookUsersEmailService.Object, muambatorServiceMock.Object, bookRepositoryMock.Object,
-            unitOfWorkMock.Object, bookUserValidator.Object, configurationMock.Object);
+            unitOfWorkMock.Object, bookUserValidator.Object, configurationMock.Object, currentUserAccessorMock.Object);
 
 
         string reason = "I need this book because I'm learning a new programming language.";
