@@ -8,13 +8,8 @@ using System.Linq;
 using System.Threading.Tasks;
 
 namespace ShareBook.Repository;
-public class AccessHistoryRepository : IAccessHistoryRepository {
-    private readonly ApplicationDbContext _context;
-
-    public AccessHistoryRepository(ApplicationDbContext context)
-    {
-        _context = context;
-    }
+public class AccessHistoryRepository(ApplicationDbContext context) : IAccessHistoryRepository {
+    private readonly ApplicationDbContext _context = context;
 
     public async Task<IEnumerable<AccessHistory>> GetWhoAccessedMyProfileAsync(Guid userId) {
         if (userId.Equals(null)) return null;

@@ -4,16 +4,10 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Repository;
 
-public class UserRepository : IUserRepository
+public class UserRepository(ApplicationDbContext context) : IUserRepository
 {
-    private readonly ApplicationDbContext _context;
-    private readonly EntityCrud<User> _crud;
-
-    public UserRepository(ApplicationDbContext context)
-    {
-        _context = context;
-        _crud = new EntityCrud<User>(context);
-    }
+    private readonly ApplicationDbContext _context = context;
+    private readonly EntityCrud<User> _crud = new EntityCrud<User>(context);
 
     public IQueryable<User> Get() => _crud.Get();
 

@@ -7,14 +7,9 @@ using System.Net;
 namespace ShareBook.Test.Integration.Tests.HomeTests;
 
 [Collection(nameof(ShareBookTestsFixture))]
-public class HomeTests
+public class HomeTests(ShareBookTestsFixture fixture)
 {
-    private readonly ShareBookTestsFixture _fixture;
-
-    public HomeTests(ShareBookTestsFixture fixture)
-    {
-        _fixture = fixture;
-    }
+    private readonly ShareBookTestsFixture _fixture = fixture;
 
     [Fact]
     public async Task FeaturedPrintedBooks_ReturnsCompactAvailableList()

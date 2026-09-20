@@ -23,35 +23,24 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service;
 
-public class UserService : BaseService<User>, IUserService
+public class UserService(IUserRepository userRepository, IBookRepository bookRepository,
+    ApplicationDbContext context,
+    IUnitOfWork unitOfWork,
+    IValidator<User> validator,
+    IMapper mapper,
+    IUserEmailService userEmailService,
+    IRecaptchaService recaptchaService, IConfiguration config) : BaseService<User>(context, unitOfWork, validator), IUserService
 {
-    private readonly IUserRepository _userRepository;
-    private readonly IBookRepository _bookRepository;
-    private readonly IUserEmailService _userEmailService;
-    private readonly IRecaptchaService _recaptchaService;
-    private readonly IConfiguration _config;
+    private readonly IUserRepository _userRepository = userRepository;
+    private readonly IBookRepository _bookRepository = bookRepository;
+    private readonly IUserEmailService _userEmailService = userEmailService;
+    private readonly IRecaptchaService _recaptchaService = recaptchaService;
+    private readonly IConfiguration _config = config;
 
-    private readonly IMapper _mapper;
+    private readonly IMapper _mapper = mapper;
     private const string DuplicateEmailMessage = "Este e-mail já está cadastrado. Tente entrar ou use \"Esqueci minha senha\" para recuperar o acesso.";
 
-
     #region Public
-
-    public UserService(IUserRepository userRepository, IBookRepository bookRepository,
-        ApplicationDbContext context,
-        IUnitOfWork unitOfWork,
-        IValidator<User> validator,
-        IMapper mapper,
-        IUserEmailService userEmailService,
-        IRecaptchaService recaptchaService, IConfiguration config) : base(context, unitOfWork, validator)
-    {
-        _userRepository = userRepository;
-        _userEmailService = userEmailService;
-        _bookRepository = bookRepository;
-        _mapper = mapper;
-        _recaptchaService = recaptchaService;
-        _config = config;
-    }
 
     public async Task<Result<User>> AuthenticationByEmailAndPasswordAsync(User user)
     {

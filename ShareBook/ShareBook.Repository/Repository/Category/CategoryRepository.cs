@@ -8,14 +8,9 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Repository;
 
-public class CategoryRepository : ICategoryRepository
+public class CategoryRepository(ApplicationDbContext context) : ICategoryRepository
 {
-    private readonly EntityCrud<Category> _crud;
-
-    public CategoryRepository(ApplicationDbContext context)
-    {
-        _crud = new EntityCrud<Category>(context);
-    }
+    private readonly EntityCrud<Category> _crud = new EntityCrud<Category>(context);
 
     public IQueryable<Category> Get() => _crud.Get();
 

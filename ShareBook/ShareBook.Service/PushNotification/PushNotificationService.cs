@@ -9,18 +9,12 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service.Notification;
 
-public class PushNotificationService : IPushNotificationService
+public class PushNotificationService(IOptions<PushNotificationSettings> pushNotificationSettings, ILogger<PushNotificationService> logger) : IPushNotificationService
 {
     private const string OneSignalApiUrl = "https://onesignal.com/api/v1/notifications";
 
-    private readonly PushNotificationSettings _settings;
-    private readonly ILogger<PushNotificationService> _logger;
-
-    public PushNotificationService(IOptions<PushNotificationSettings> pushNotificationSettings, ILogger<PushNotificationService> logger)
-    {
-        _settings = pushNotificationSettings.Value;
-        _logger = logger;
-    }
+    private readonly PushNotificationSettings _settings = pushNotificationSettings.Value;
+    private readonly ILogger<PushNotificationService> _logger = logger;
 
     public async Task<string> SendNotificationSegmentsAsync(NotificationOnesignal onesignal)
     {

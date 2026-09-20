@@ -11,13 +11,10 @@ namespace ShareBook.Api.Controllers;
 
 [Route("api/[controller]")]
 [EnableCors("AllowAllHeaders")]
-public class MeetupController : ControllerBase
+public class MeetupController(IMeetupService meetupService) : ControllerBase
 {
-    private readonly IMeetupService _meetupService;
-    public MeetupController(IMeetupService meetupService)
-    {
-        _meetupService = meetupService;
-    }
+    private readonly IMeetupService _meetupService = meetupService;
+
     [HttpGet]
 
     public async Task<PagedList<Meetup>> GetAsync(int? page, int? pageSize, bool upcoming = false)

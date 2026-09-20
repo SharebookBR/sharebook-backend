@@ -10,29 +10,24 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Api.Controllers;
 
-public class BaseDeleteController<T> : BaseDeleteController<T, T, T>
+public class BaseDeleteController<T>(IBaseService<T> service) : BaseDeleteController<T, T, T>(service)
     where T : BaseEntity
 {
-    public BaseDeleteController(IBaseService<T> service) : base(service) { }
 }
 
-public class BaseDeleteController<T, R> : BaseDeleteController<T, R, T>
+public class BaseDeleteController<T, R>(IBaseService<T> service) : BaseDeleteController<T, R, T>(service)
    where T : BaseEntity
    where R : BaseViewModel
 {
-    public BaseDeleteController(IBaseService<T> service) : base(service) { }
 }
 
 [GetClaimsFilter]
 [EnableCors("AllowAllHeaders")]
-public class BaseDeleteController<T, R, A> : BaseController<T, R, A>
+public class BaseDeleteController<T, R, A>(IBaseService<T> service) : BaseController<T, R, A>(service)
     where T : BaseEntity
     where R : IIdProperty
     where A : class
 {
-
-    public BaseDeleteController(IBaseService<T> service) : base(service) { }
-
     [Authorize("Bearer")]
     [HttpDelete("{id}")]
     public async Task<Result> Delete(Guid id) => await _service.DeleteAsync(id);

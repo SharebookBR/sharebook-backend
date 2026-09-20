@@ -5,10 +5,10 @@ using System.Linq;
 
 namespace ShareBook.Repository;
 
-public class ShareBookSeeder
+public class ShareBookSeeder(ApplicationDbContext context)
 {
 
-    private readonly ApplicationDbContext _context;
+    private readonly ApplicationDbContext _context = context;
 
     // 123456
     private const string PASSWORD_HASH = "n71pJuPLLg4EJkRBf+SRDXHD3x5f1sNI+3Fi5bSjdx4=";
@@ -16,12 +16,6 @@ public class ShareBookSeeder
 
     // Evita IsBruteForceLogin() bloquear o login logo após o seed
     private static readonly DateTime SEED_LAST_LOGIN = new DateTime(2019, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-
-
-    public ShareBookSeeder(ApplicationDbContext context)
-    {
-        _context = context;
-    }
 
     public void Seed()
     {

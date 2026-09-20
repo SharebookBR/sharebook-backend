@@ -11,18 +11,11 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service.Generic;
 
-public class BaseService<TEntity> : IBaseService<TEntity> where TEntity : class
+public class BaseService<TEntity>(ApplicationDbContext context, IUnitOfWork unitOfWork, IValidator<TEntity> validator) : IBaseService<TEntity> where TEntity : class
 {
-    protected readonly EntityCrud<TEntity> _repository;
-    protected readonly IUnitOfWork _unitOfWork;
-    protected readonly IValidator<TEntity> _validator;
-
-    public BaseService(ApplicationDbContext context, IUnitOfWork unitOfWork, IValidator<TEntity> validator)
-    {
-        _repository = new EntityCrud<TEntity>(context);
-        _unitOfWork = unitOfWork;
-        _validator = validator;
-    }
+    protected readonly EntityCrud<TEntity> _repository = new EntityCrud<TEntity>(context);
+    protected readonly IUnitOfWork _unitOfWork = unitOfWork;
+    protected readonly IValidator<TEntity> _validator = validator;
 
     #region GET
 

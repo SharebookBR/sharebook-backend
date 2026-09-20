@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace ShareBook.Domain.Exceptions;
 
-public class ShareBookException : Exception
+public class ShareBookException(ShareBookException.Error error, string message) : Exception(message)
 {
     public static Dictionary<Error, string> ErrorMessages = new Dictionary<Error, string>()
     {
@@ -22,12 +22,8 @@ public class ShareBookException : Exception
         Conflict = 409
     }
 
-    public Error ErrorType { get; set; }
+    public Error ErrorType { get; set; } = error;
 
     public ShareBookException(string message) : this(Error.BadRequest, message) { }
     public ShareBookException(Error error) : this(error, ErrorMessages[error]) { }
-    public ShareBookException(Error error, string message) : base(message)
-    {
-        ErrorType = error;
-    }
 }

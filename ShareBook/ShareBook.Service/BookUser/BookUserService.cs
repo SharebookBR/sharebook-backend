@@ -21,32 +21,21 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service;
 
-public class BookUserService : BaseService<BookUser>, IBookUserService
+public class BookUserService(
+    ApplicationDbContext context,
+    IBookService bookService,
+    IBookUsersEmailService bookUsersEmailService,
+    IMuambatorService muambatorService,
+    IBookRepository bookRepository,
+    IUnitOfWork unitOfWork,
+    IValidator<BookUser> validator, IConfiguration configuration, ILogger<BookUserService> logger = null) : BaseService<BookUser>(context, unitOfWork, validator), IBookUserService
 {
-    private readonly IBookService _bookService;
-    private readonly IBookUsersEmailService _bookUsersEmailService;
-    private readonly IMuambatorService _muambatorService;
-    private readonly IBookRepository _bookRepository;
-    private readonly IConfiguration _configuration;
-    private readonly ILogger<BookUserService> _logger;
-
-    public BookUserService(
-        ApplicationDbContext context,
-        IBookService bookService,
-        IBookUsersEmailService bookUsersEmailService,
-        IMuambatorService muambatorService,
-        IBookRepository bookRepository,
-        IUnitOfWork unitOfWork,
-        IValidator<BookUser> validator, IConfiguration configuration, ILogger<BookUserService> logger = null)
-        : base(context, unitOfWork, validator)
-    {
-        _bookService = bookService;
-        _bookUsersEmailService = bookUsersEmailService;
-        _muambatorService = muambatorService;
-        _bookRepository = bookRepository;
-        _configuration = configuration;
-        _logger = logger ?? NullLogger<BookUserService>.Instance;
-    }
+    private readonly IBookService _bookService = bookService;
+    private readonly IBookUsersEmailService _bookUsersEmailService = bookUsersEmailService;
+    private readonly IMuambatorService _muambatorService = muambatorService;
+    private readonly IBookRepository _bookRepository = bookRepository;
+    private readonly IConfiguration _configuration = configuration;
+    private readonly ILogger<BookUserService> _logger = logger ?? NullLogger<BookUserService>.Instance;
 
     public async Task<IList<User>> GetGranteeUsersByBookIdAsync(Guid bookId) =>
         await _repository.Get().Include(x => x.User)

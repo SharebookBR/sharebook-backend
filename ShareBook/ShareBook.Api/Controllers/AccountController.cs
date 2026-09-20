@@ -25,29 +25,19 @@ namespace ShareBook.Api.Controllers;
 [Route("api/[controller]")]
 [EnableCors("AllowAllHeaders")]
 [GetClaimsFilter]
-public class AccountController : ControllerBase 
+public class AccountController(IUserService userService,
+    IApplicationSignInManager signManager,
+    IMapper mapper,
+    IConfiguration configuration,
+    IAccessHistoryRepository historyRepository,
+    ILgpdService lgpdService) : ControllerBase 
 {
-    private readonly IUserService _userService;
-    private readonly IApplicationSignInManager _signManager;
-    private readonly IMapper _mapper;
-    private readonly IConfiguration _configuration;
-    private readonly IAccessHistoryRepository _historyRepository;
-    private readonly ILgpdService _lgpdService;
-
-    public AccountController(IUserService userService,
-        IApplicationSignInManager signManager,
-        IMapper mapper,
-        IConfiguration configuration,
-        IAccessHistoryRepository historyRepository,
-        ILgpdService lgpdService) 
-    {
-        _userService = userService;
-        _signManager = signManager;
-        _mapper = mapper;
-        _configuration = configuration;
-        _historyRepository = historyRepository;
-        _lgpdService = lgpdService;
-    }
+    private readonly IUserService _userService = userService;
+    private readonly IApplicationSignInManager _signManager = signManager;
+    private readonly IMapper _mapper = mapper;
+    private readonly IConfiguration _configuration = configuration;
+    private readonly IAccessHistoryRepository _historyRepository = historyRepository;
+    private readonly ILgpdService _lgpdService = lgpdService;
 
     #region GET
 

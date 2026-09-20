@@ -33,39 +33,26 @@ namespace ShareBook.Api.Controllers;
 [Route("api/[controller]")]
 [GetClaimsFilter]
 [EnableCors("AllowAllHeaders")]
-public class BookController : ControllerBase
+public class BookController(IBookService bookService,
+                      IBookUserService bookUserService,
+                      IUserService userService,
+                      IMapper mapper,
+                      IAccessHistoryService accessHistoryService,
+                      IBookDownloadEventService bookDownloadEventService,
+                      IEBookService ebookService,
+                      IEBookDownloadRateLimiter ebookDownloadRateLimiter,
+                      ILogger<BookController> logger) : ControllerBase
 {
-    private readonly IBookUserService _bookUserService;
-    private readonly IBookService _service;
-    private readonly IUserService _userService;
-    private readonly IAccessHistoryService _accessHistoryService;
-    private readonly IBookDownloadEventService _bookDownloadEventService;
-    private readonly IEBookService _ebookService;
-    private readonly IEBookDownloadRateLimiter _ebookDownloadRateLimiter;
-    private readonly ILogger<BookController> _logger;
+    private readonly IBookUserService _bookUserService = bookUserService;
+    private readonly IBookService _service = bookService;
+    private readonly IUserService _userService = userService;
+    private readonly IAccessHistoryService _accessHistoryService = accessHistoryService;
+    private readonly IBookDownloadEventService _bookDownloadEventService = bookDownloadEventService;
+    private readonly IEBookService _ebookService = ebookService;
+    private readonly IEBookDownloadRateLimiter _ebookDownloadRateLimiter = ebookDownloadRateLimiter;
+    private readonly ILogger<BookController> _logger = logger;
     private Expression<Func<Book, object>> _defaultOrder = x => x.Id;
-    private readonly IMapper _mapper;
-
-    public BookController(IBookService bookService,
-                          IBookUserService bookUserService,
-                          IUserService userService,
-                          IMapper mapper,
-                          IAccessHistoryService accessHistoryService,
-                          IBookDownloadEventService bookDownloadEventService,
-                          IEBookService ebookService,
-                          IEBookDownloadRateLimiter ebookDownloadRateLimiter,
-                          ILogger<BookController> logger)
-    {
-        _service = bookService;
-        _bookUserService = bookUserService;
-        _userService = userService;
-        _mapper = mapper;
-        _accessHistoryService = accessHistoryService;
-        _bookDownloadEventService = bookDownloadEventService;
-        _ebookService = ebookService;
-        _ebookDownloadRateLimiter = ebookDownloadRateLimiter;
-        _logger = logger;
-    }
+    private readonly IMapper _mapper = mapper;
 
     protected void SetDefault(Expression<Func<Book, object>> defaultOrder)
     {

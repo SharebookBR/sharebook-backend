@@ -3,23 +3,17 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service;
 
-public class ContactUsEmailService : IContactUsEmailService
+public class ContactUsEmailService(IEmailService emailService, IEmailTemplate emailTemplate) : IContactUsEmailService
 {
     private const string ContactUsTemplate = "ContactUsTemplate";
     public const string ContactUsTitle = "Nova mensagem pelo Fale Conosco";
     private const string ContactUsNotificationTemplate = "ContactUsNotificationTemplate";
     public const string ContactUsNotificationTitle = "Recebemos sua mensagem";
 
-    private readonly IEmailService _emailService;
+    private readonly IEmailService _emailService = emailService;
 
-    private readonly IEmailTemplate _emailTemplate;
+    private readonly IEmailTemplate _emailTemplate = emailTemplate;
 
-
-    public ContactUsEmailService(IEmailService emailService, IEmailTemplate emailTemplate)
-    {
-        _emailService = emailService;
-        _emailTemplate = emailTemplate;
-    }
     public async Task SendEmailContactUsAsync(ContactUs contactUs)
     {
         await SendEmailContactUsToAdministratorAsync(contactUs);

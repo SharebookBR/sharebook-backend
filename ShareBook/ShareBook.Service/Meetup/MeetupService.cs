@@ -22,18 +22,11 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service;
 
-public class MeetupService : BaseService<Meetup>, IMeetupService
+public class MeetupService(IOptions<MeetupSettings> settings, ApplicationDbContext context, IUnitOfWork unitOfWork, IValidator<Meetup> validator, IUploadService uploadService) : BaseService<Meetup>(context, unitOfWork, validator), IMeetupService
 {
-    private readonly MeetupSettings _settings;
-    private readonly IUploadService _uploadService;
-    protected readonly ApplicationDbContext _context;
-
-    public MeetupService(IOptions<MeetupSettings> settings, ApplicationDbContext context, IUnitOfWork unitOfWork, IValidator<Meetup> validator, IUploadService uploadService) : base(context, unitOfWork, validator)
-    {
-        _settings = settings.Value;
-        _uploadService = uploadService;
-        _context = context;
-    }
+    private readonly MeetupSettings _settings = settings.Value;
+    private readonly IUploadService _uploadService = uploadService;
+    protected readonly ApplicationDbContext _context = context;
 
     /// <summary>
     /// Meetup sempre ordena pelos mais recentes primeiro e não usa a lista de includes genérica

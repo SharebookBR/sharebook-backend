@@ -10,14 +10,9 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service.EBook;
 
-public class S3Service : IS3Service
+public class S3Service(IOptions<AwsS3Settings> settings) : IS3Service
 {
-    private readonly AwsS3Settings _settings;
-
-    public S3Service(IOptions<AwsS3Settings> settings)
-    {
-        _settings = settings.Value;
-    }
+    private readonly AwsS3Settings _settings = settings.Value;
 
     public async Task<string> UploadAsync(Stream content, string key, string contentType)
     {

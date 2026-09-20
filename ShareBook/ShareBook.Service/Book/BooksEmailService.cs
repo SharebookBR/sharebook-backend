@@ -8,7 +8,13 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service;
 
-public class BooksEmailService : IBooksEmailService
+public class BooksEmailService(
+    IEmailService emailService,
+    IUserService userService,
+    IEmailTemplate emailTemplate,
+    IOptions<ServerSettings> serverSettings,
+    IConfiguration configuration,
+    MailSenderHighPriorityQueue mailSenderHighPriorityQueue) : IBooksEmailService
 {
     private const string NewBookInsertedTemplate = "NewBookInsertedTemplate";
     private const string NewBookInsertedTitle = "Novo livro para aprovação";
@@ -21,22 +27,9 @@ public class BooksEmailService : IBooksEmailService
     private const string NewBookNotifyTemplate = "NewBookNotifyTemplate";
     private const string BookReceivedTemplate = "BookReceivedTemplate";
 
-    private readonly IEmailService _emailService;
-    private readonly IUserService _userService;
-    private readonly IEmailTemplate _emailTemplate;
-
-    public BooksEmailService(
-        IEmailService emailService,
-        IUserService userService,
-        IEmailTemplate emailTemplate,
-        IOptions<ServerSettings> serverSettings,
-        IConfiguration configuration,
-        MailSenderHighPriorityQueue mailSenderHighPriorityQueue)
-    {
-        _emailService = emailService;
-        _userService = userService;
-        _emailTemplate = emailTemplate;
-    }
+    private readonly IEmailService _emailService = emailService;
+    private readonly IUserService _userService = userService;
+    private readonly IEmailTemplate _emailTemplate = emailTemplate;
 
     public async Task SendEmailBookApprovedAsync(Book book)
     {

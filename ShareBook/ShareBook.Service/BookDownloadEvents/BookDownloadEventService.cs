@@ -11,21 +11,14 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service.BookDownloadEvents;
 
-public class BookDownloadEventService : IBookDownloadEventService
+public class BookDownloadEventService(
+    IBookDownloadEventRepository downloadEventRepository,
+    IBookRepository bookRepository,
+    IUploadService uploadService) : IBookDownloadEventService
 {
-    private readonly IBookDownloadEventRepository _downloadEventRepository;
-    private readonly IBookRepository _bookRepository;
-    private readonly IUploadService _uploadService;
-
-    public BookDownloadEventService(
-        IBookDownloadEventRepository downloadEventRepository,
-        IBookRepository bookRepository,
-        IUploadService uploadService)
-    {
-        _downloadEventRepository = downloadEventRepository;
-        _bookRepository = bookRepository;
-        _uploadService = uploadService;
-    }
+    private readonly IBookDownloadEventRepository _downloadEventRepository = downloadEventRepository;
+    private readonly IBookRepository _bookRepository = bookRepository;
+    private readonly IUploadService _uploadService = uploadService;
 
     public async Task RecordAsync(Guid bookId, Guid? userId, BookDownloadEventSource source)
     {

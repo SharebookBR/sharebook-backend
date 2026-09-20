@@ -4,11 +4,9 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Repository.UoW;
 
-public class UnitOfWork : IUnitOfWork
+public class UnitOfWork(ApplicationDbContext context) : IUnitOfWork
 {
-    private readonly ApplicationDbContext _context;
-
-    public UnitOfWork(ApplicationDbContext context) => _context = context;
+    private readonly ApplicationDbContext _context = context;
 
     public async Task BeginTransactionAsync() => await _context.Database.BeginTransactionAsync();
     public async Task CommitAsync() => await _context.Database.CommitTransactionAsync();

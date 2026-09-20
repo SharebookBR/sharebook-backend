@@ -9,24 +9,16 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service.Lgpd;
 
-public class LgpdService: ILgpdService
+public class LgpdService(
+    IUserService userService,
+    IUserEmailService userEmailService,
+    IBookUserService bookUserService,
+    ApplicationDbContext context) : ILgpdService
 {
-    private readonly IUserService _userService;
-    private readonly IUserEmailService _userEmailService;
-    private readonly IBookUserService _bookUserService;
-    private readonly ApplicationDbContext _ctx;
-
-    public LgpdService(
-        IUserService userService,
-        IUserEmailService userEmailService,
-        IBookUserService bookUserService, 
-        ApplicationDbContext context)
-    {
-        _userService = userService;
-        _userEmailService = userEmailService;
-        _bookUserService = bookUserService;
-        _ctx = context;
-    }
+    private readonly IUserService _userService = userService;
+    private readonly IUserEmailService _userEmailService = userEmailService;
+    private readonly IBookUserService _bookUserService = bookUserService;
+    private readonly ApplicationDbContext _ctx = context;
 
     public async Task AnonymizeAsync(UserAnonymizeDTO dto)
     {

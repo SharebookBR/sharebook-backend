@@ -12,27 +12,19 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service.Analytics;
 
-public class AnalyticsService : IAnalyticsService
+public class AnalyticsService(
+    IOptions<GA4Settings> settings,
+    IMemoryCache cache,
+    ISearchConsoleService searchConsoleService,
+    ILogger<AnalyticsService> logger) : IAnalyticsService
 {
     private const string PropertyId = "386966473";
     private const string CacheKey = "ga4_dashboard";
 
-    private readonly GA4Settings _settings;
-    private readonly IMemoryCache _cache;
-    private readonly ISearchConsoleService _searchConsoleService;
-    private readonly ILogger<AnalyticsService> _logger;
-
-    public AnalyticsService(
-        IOptions<GA4Settings> settings,
-        IMemoryCache cache,
-        ISearchConsoleService searchConsoleService,
-        ILogger<AnalyticsService> logger)
-    {
-        _settings = settings.Value;
-        _cache = cache;
-        _searchConsoleService = searchConsoleService;
-        _logger = logger;
-    }
+    private readonly GA4Settings _settings = settings.Value;
+    private readonly IMemoryCache _cache = cache;
+    private readonly ISearchConsoleService _searchConsoleService = searchConsoleService;
+    private readonly ILogger<AnalyticsService> _logger = logger;
 
     public async Task<AnalyticsDashboardDto> GetDashboardAsync()
     {

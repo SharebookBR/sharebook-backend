@@ -230,15 +230,9 @@ public static class BookRecommendationRanker
     private static string Normalize(string text)
         => (text ?? string.Empty).RemoveAccent().ToLowerInvariant().Trim();
 
-    private sealed class RankedBook
+    private sealed class RankedBook(Book book, double score)
     {
-        public RankedBook(Book book, double score)
-        {
-            Book = book;
-            Score = score;
-        }
-
-        public Book Book { get; }
-        public double Score { get; }
+        public Book Book { get; } = book;
+        public double Score { get; } = score;
     }
 }

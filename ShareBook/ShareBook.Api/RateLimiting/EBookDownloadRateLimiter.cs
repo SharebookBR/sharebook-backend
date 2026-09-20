@@ -4,26 +4,18 @@ using System.Net;
 
 namespace ShareBook.Api.RateLimiting;
 
-public sealed class EBookDownloadRateLimiter : IEBookDownloadRateLimiter
+public sealed class EBookDownloadRateLimiter(
+    IMemoryCache cache,
+    TimeProvider timeProvider,
+    IOptions<EBookDownloadRateLimitOptions> options) : IEBookDownloadRateLimiter
 {
     private const string CacheKeyPrefix = "ebook-download-rate-limit:";
 
-    private readonly IMemoryCache _cache;
-    private readonly TimeProvider _timeProvider;
-    private readonly int _permitLimit;
-    private readonly TimeSpan _window;
+    private readonly IMemoryCache _cache = cache;
+    private readonly TimeProvider _timeProvider = timeProvider;
+    private readonly int _permitLimit = options.Value.PermitLimit;
+    private readonly TimeSpan _window = TimeSpan.FromHours(options.Value.WindowHours);
     private readonly object _sync = new();
-
-    public EBookDownloadRateLimiter(
-        IMemoryCache cache,
-        TimeProvider timeProvider,
-        IOptions<EBookDownloadRateLimitOptions> options)
-    {
-        _cache = cache;
-        _timeProvider = timeProvider;
-        _permitLimit = options.Value.PermitLimit;
-        _window = TimeSpan.FromHours(options.Value.WindowHours);
-    }
 
     public EBookDownloadRateLimitResult TryAcquire(IPAddress clientIp)
     {

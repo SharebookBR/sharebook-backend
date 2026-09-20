@@ -10,19 +10,13 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service.Upload;
 
-public class UploadService : IUploadService
+public class UploadService(IOptions<ImageSettings> imageSettings, IOptions<ServerSettings> serverSettings) : IUploadService
 {
     private const string BooksDirectory = "Books";
     private const string BookThumbnailsDirectory = "Thumbs";
 
-    private readonly ImageSettings _imageSettings;
-    private readonly ServerSettings _serverSettings;
-
-    public UploadService(IOptions<ImageSettings> imageSettings, IOptions<ServerSettings> serverSettings)
-    {
-        _imageSettings = imageSettings.Value;
-        _serverSettings = serverSettings.Value;
-    }
+    private readonly ImageSettings _imageSettings = imageSettings.Value;
+    private readonly ServerSettings _serverSettings = serverSettings.Value;
 
     public string GetImageUrl(string imageName, string lastDirectory)
     {

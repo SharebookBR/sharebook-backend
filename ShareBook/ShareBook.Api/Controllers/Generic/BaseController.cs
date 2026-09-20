@@ -10,38 +10,27 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Api.Controllers;
 
-public class BaseController<T> : BaseController<T, T, T>
+public class BaseController<T>(IBaseService<T> service) : BaseController<T, T, T>(service)
     where T : BaseEntity
 {
-    public BaseController(IBaseService<T> service) : base(service)
-    {
-    }
 }
 
-public class BaseController<T, R> : BaseController<T, R, T>
+public class BaseController<T, R>(IBaseService<T> service) : BaseController<T, R, T>(service)
     where T : BaseEntity
     where R : BaseViewModel
 {
-    public BaseController(IBaseService<T> service) : base(service)
-    {
-    }
 }
 
 [GetClaimsFilter]
 [EnableCors("AllowAllHeaders")]
-public class BaseController<T, R, A> : Controller
+public class BaseController<T, R, A>(IBaseService<T> service) : Controller
     where T : BaseEntity
     where R : IIdProperty
     where A : class
 {
-    protected readonly IBaseService<T> _service;
+    protected readonly IBaseService<T> _service = service;
     private Expression<Func<T, object>> _defaultOrder = x => x.Id;
     protected bool HasRequestViewModel { get { return typeof(R) != typeof(T); } }
-
-    public BaseController(IBaseService<T> service)
-    {
-        _service = service;
-    }
 
     protected void SetDefault(Expression<Func<T, object>> defaultOrder)
     {

@@ -14,19 +14,13 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service;
 
-public class CategoryService : BaseService<Category>, ICategoryService
+public class CategoryService(
+    IBookRepository bookRepository,
+    ApplicationDbContext context,
+    IUnitOfWork unitOfWork,
+    IValidator<Category> validator) : BaseService<Category>(context, unitOfWork, validator), ICategoryService
 {
-    private readonly IBookRepository _bookRepository;
-
-    public CategoryService(
-        IBookRepository bookRepository,
-        ApplicationDbContext context,
-        IUnitOfWork unitOfWork,
-        IValidator<Category> validator)
-        : base(context, unitOfWork, validator)
-    {
-        _bookRepository = bookRepository;
-    }
+    private readonly IBookRepository _bookRepository = bookRepository;
 
     public async Task<PagedList<Category>> GetRootCategoriesAsync(int page, int itemsPerPage)
     {

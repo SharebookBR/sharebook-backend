@@ -6,17 +6,12 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service;
 
-public class ContactUsService : IContactUsService
+public class ContactUsService(IContactUsEmailService contactUsEmailService, IValidator<ContactUs> validator, IRecaptchaService recaptchaService) : IContactUsService
 {
-    readonly IContactUsEmailService _contactUsEmailService;
-    readonly IValidator<ContactUs> _validator;
-    readonly IRecaptchaService _recaptchaService;
-    public ContactUsService(IContactUsEmailService contactUsEmailService, IValidator<ContactUs> validator, IRecaptchaService recaptchaService)
-    {
-        _contactUsEmailService = contactUsEmailService;
-        _validator = validator;
-        _recaptchaService = recaptchaService;
-    }
+    readonly IContactUsEmailService _contactUsEmailService = contactUsEmailService;
+    readonly IValidator<ContactUs> _validator = validator;
+    readonly IRecaptchaService _recaptchaService = recaptchaService;
+
     public async Task<Result<ContactUs>> SendContactUsAsync(ContactUs contactUs, string recaptchaReactive)
     {
 

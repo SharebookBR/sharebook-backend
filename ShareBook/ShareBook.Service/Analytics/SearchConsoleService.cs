@@ -1,6 +1,8 @@
 namespace ShareBook.Service.Analytics;
 
-public class SearchConsoleService : ISearchConsoleService
+public class SearchConsoleService(
+    ISearchConsoleApiClient apiClient,
+    TimeProvider timeProvider) : ISearchConsoleService
 {
     private const int FinalDataLagDays = 3;
     private const int PeriodDays = 28;
@@ -9,16 +11,8 @@ public class SearchConsoleService : ISearchConsoleService
     private const double MaximumOpportunityCtr = 0.05;
     private const double MaximumOpportunityPosition = 20;
 
-    private readonly ISearchConsoleApiClient _apiClient;
-    private readonly TimeProvider _timeProvider;
-
-    public SearchConsoleService(
-        ISearchConsoleApiClient apiClient,
-        TimeProvider timeProvider)
-    {
-        _apiClient = apiClient;
-        _timeProvider = timeProvider;
-    }
+    private readonly ISearchConsoleApiClient _apiClient = apiClient;
+    private readonly TimeProvider _timeProvider = timeProvider;
 
     public async Task<SearchConsoleAnalytics> GetOverviewAsync(
         CancellationToken cancellationToken = default)

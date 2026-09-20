@@ -8,14 +8,9 @@ using System.Threading.Tasks;
 namespace ShareBook.Api.Controllers;
 
 [Route("api/[controller]")]
-public class AnalyticsController : ControllerBase
+public class AnalyticsController(IAnalyticsService analyticsService) : ControllerBase
 {
-    private readonly IAnalyticsService _analyticsService;
-
-    public AnalyticsController(IAnalyticsService analyticsService)
-    {
-        _analyticsService = analyticsService;
-    }
+    private readonly IAnalyticsService _analyticsService = analyticsService;
 
     [HttpGet("dashboard")]
     [Authorize("Bearer")]

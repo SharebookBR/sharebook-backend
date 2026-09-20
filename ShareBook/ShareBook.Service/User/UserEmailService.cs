@@ -7,19 +7,11 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service;
 
-public class UserEmailService : IUserEmailService
+public class UserEmailService(IEmailService emailService, IEmailTemplate emailTemplate, IOptions<ServerSettings> serverSettings) : IUserEmailService
 {
-    private readonly IEmailService _emailService;
-    private readonly IEmailTemplate _emailTemplate;
-    private readonly ServerSettings _serverSettings;
-
-
-    public UserEmailService(IEmailService emailService, IEmailTemplate emailTemplate, IOptions<ServerSettings> serverSettings)
-    {
-        _emailService = emailService;
-        _emailTemplate = emailTemplate;
-        _serverSettings = serverSettings.Value;
-    }
+    private readonly IEmailService _emailService = emailService;
+    private readonly IEmailTemplate _emailTemplate = emailTemplate;
+    private readonly ServerSettings _serverSettings = serverSettings.Value;
 
     public async Task SendEmailForgotMyPasswordToUserAsync(User user)
     {

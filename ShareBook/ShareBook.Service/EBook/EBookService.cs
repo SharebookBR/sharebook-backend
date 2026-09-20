@@ -9,22 +9,15 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service.EBook;
 
-public class EBookService : IEBookService
+public class EBookService(
+    IOptions<ImageSettings> imageSettings,
+    IOptions<AwsS3Settings> storageSettings,
+    IS3Service s3Service) : IEBookService
 {
     private const string S3EbookPrefix = "ebooks/";
-    private readonly ImageSettings _imageSettings;
-    private readonly AwsS3Settings _storageSettings;
-    private readonly IS3Service _s3Service;
-
-    public EBookService(
-        IOptions<ImageSettings> imageSettings,
-        IOptions<AwsS3Settings> storageSettings,
-        IS3Service s3Service)
-    {
-        _imageSettings = imageSettings.Value;
-        _storageSettings = storageSettings.Value;
-        _s3Service = s3Service;
-    }
+    private readonly ImageSettings _imageSettings = imageSettings.Value;
+    private readonly AwsS3Settings _storageSettings = storageSettings.Value;
+    private readonly IS3Service _s3Service = s3Service;
 
     public async Task<string> UploadPdfAsync(Book book)
     {

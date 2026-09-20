@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Repository;
 
-public class BookRepository : IBookRepository
+public class BookRepository(ApplicationDbContext context) : IBookRepository
 {
     // Termos de 1 caractere que representam uma busca real (linguagens de
     // programação). Casam por lexema EXATO (sem prefixo) contra título +
@@ -20,14 +20,8 @@ public class BookRepository : IBookRepository
     // (ex.: "J. R. King") e menções soltas no texto.
     private static readonly string[] ExactSingleCharTerms = { "r", "c" };
 
-    private readonly ApplicationDbContext _context;
-    private readonly EntityCrud<Book> _crud;
-
-    public BookRepository(ApplicationDbContext context)
-    {
-        _context = context;
-        _crud = new EntityCrud<Book>(context);
-    }
+    private readonly ApplicationDbContext _context = context;
+    private readonly EntityCrud<Book> _crud = new EntityCrud<Book>(context);
 
     public IQueryable<Book> Get() => _crud.Get();
 

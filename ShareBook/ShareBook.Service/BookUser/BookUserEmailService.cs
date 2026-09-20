@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service;
 
-public class BookUserEmailService : IBookUsersEmailService
+public class BookUserEmailService(IUserService userService, IEmailService emailService, IEmailTemplate emailTemplate, IPushNotificationService notificationService, IMemoryCache memoryCache) : IBookUsersEmailService
 {
     private const string BookNoticeDonorTemplate = "BookNoticeDonorTemplate";
     private const string BookDonatedTemplate = "BookDonatedTemplate";
@@ -26,21 +26,11 @@ public class BookUserEmailService : IBookUsersEmailService
     private const string BookNoticeInterestedTemplate = "BookNoticeInterestedTemplate";
     private const string BookNoticeInterestedTitle = "Sua solicitação foi registrada";
 
-    private readonly IUserService _userService;
-    private readonly IEmailService _emailService;
-    private readonly IEmailTemplate _emailTemplate;
-    private readonly IPushNotificationService _notificationService;
-    private IMemoryCache _cache;
-
-
-    public BookUserEmailService(IUserService userService, IEmailService emailService, IEmailTemplate emailTemplate, IPushNotificationService notificationService, IMemoryCache memoryCache)
-    {
-        _userService = userService;
-        _emailService = emailService;
-        _emailTemplate = emailTemplate;
-        _notificationService = notificationService;
-        _cache = memoryCache;
-    }
+    private readonly IUserService _userService = userService;
+    private readonly IEmailService _emailService = emailService;
+    private readonly IEmailTemplate _emailTemplate = emailTemplate;
+    private readonly IPushNotificationService _notificationService = notificationService;
+    private IMemoryCache _cache = memoryCache;
 
     public async Task SendEmailBookDonatedAsync(BookUser bookUser)
     {

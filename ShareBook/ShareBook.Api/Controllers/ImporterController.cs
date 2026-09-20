@@ -13,18 +13,12 @@ namespace ShareBook.Api.Controllers;
 
 [Route("api/[controller]")]
 [EnableCors("AllowAllHeaders")]
-public class ImporterController : Controller
+public class ImporterController(
+    IImporterDashboardService importerDashboardService,
+    IUploadService uploadService) : Controller
 {
-    private readonly IImporterDashboardService _importerDashboardService;
-    private readonly IUploadService _uploadService;
-
-    public ImporterController(
-        IImporterDashboardService importerDashboardService,
-        IUploadService uploadService)
-    {
-        _importerDashboardService = importerDashboardService;
-        _uploadService = uploadService;
-    }
+    private readonly IImporterDashboardService _importerDashboardService = importerDashboardService;
+    private readonly IUploadService _uploadService = uploadService;
 
     [HttpGet("ImporterDashboard")]
     [Authorize("Bearer")]

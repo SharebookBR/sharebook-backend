@@ -25,35 +25,22 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service;
 
-public partial class BookService : BaseService<Book>, IBookService
+public partial class BookService(IBookRepository bookRepository,
+            ApplicationDbContext context,
+            IUnitOfWork unitOfWork, IValidator<Book> validator,
+            IUploadService uploadService, IBooksEmailService booksEmailService, IConfiguration configuration,
+            NewBookQueue newBookQueue, IEBookService ebookService, ICategoryRepository categoryRepository) : BaseService<Book>(context, unitOfWork, validator), IBookService
 {
     private const int MaxSlugInsertAttempts = 5;
-    private readonly ApplicationDbContext _context;
-    private readonly IUploadService _uploadService;
-    private readonly IBookRepository _bookRepository;
-    private readonly IBooksEmailService _booksEmailService;
-    private readonly IConfiguration _configuration;
-    private readonly IEBookService _ebookService;
-    private readonly ICategoryRepository _categoryRepository;
+    private readonly ApplicationDbContext _context = context;
+    private readonly IUploadService _uploadService = uploadService;
+    private readonly IBookRepository _bookRepository = bookRepository;
+    private readonly IBooksEmailService _booksEmailService = booksEmailService;
+    private readonly IConfiguration _configuration = configuration;
+    private readonly IEBookService _ebookService = ebookService;
+    private readonly ICategoryRepository _categoryRepository = categoryRepository;
 
-    private readonly NewBookQueue _newBookQueue;
-
-    public BookService(IBookRepository bookRepository,
-                ApplicationDbContext context,
-                IUnitOfWork unitOfWork, IValidator<Book> validator,
-                IUploadService uploadService, IBooksEmailService booksEmailService, IConfiguration configuration,
-                NewBookQueue newBookQueue, IEBookService ebookService, ICategoryRepository categoryRepository)
-                : base(context, unitOfWork, validator)
-    {
-        _context = context;
-        _bookRepository = bookRepository;
-        _uploadService = uploadService;
-        _booksEmailService = booksEmailService;
-        _configuration = configuration;
-        _newBookQueue = newBookQueue;
-        _ebookService = ebookService;
-        _categoryRepository = categoryRepository;
-    }
+    private readonly NewBookQueue _newBookQueue = newBookQueue;
 
     private async Task<Book> PersistBookUpdateAsync(Book entity)
     {

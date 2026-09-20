@@ -11,14 +11,9 @@ namespace ShareBook.Api.Controllers;
 [Route("api/[controller]")]
 [Authorize("Bearer")]
 [AuthorizationFilter(Permissions.Permission.ApproveBook)]
-public class DownloadLogsController : ControllerBase
+public class DownloadLogsController(IDownloadLogsService downloadLogsService) : ControllerBase
 {
-    private readonly IDownloadLogsService _downloadLogsService;
-
-    public DownloadLogsController(IDownloadLogsService downloadLogsService)
-    {
-        _downloadLogsService = downloadLogsService;
-    }
+    private readonly IDownloadLogsService _downloadLogsService = downloadLogsService;
 
     [HttpGet("Summary")]
     public async Task<IActionResult> GetSummaryAsync([FromQuery] DateTime? from, [FromQuery] DateTime? to)

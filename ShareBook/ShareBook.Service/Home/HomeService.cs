@@ -12,29 +12,21 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service.Home;
 
-public class HomeService : IHomeService
+public class HomeService(
+    IBookRepository bookRepository,
+    ICategoryRepository categoryRepository,
+    IUploadService uploadService,
+    IBookDownloadEventService bookDownloadEventService) : IHomeService
 {
     private const int FeaturedPrintedBooks = 15;
     private const int ShowcaseCategories = 3;
     private const int BooksPerCategory = 10;
     private const int TopDownloadedBooks = 15;
 
-    private readonly IBookRepository _bookRepository;
-    private readonly ICategoryRepository _categoryRepository;
-    private readonly IUploadService _uploadService;
-    private readonly IBookDownloadEventService _bookDownloadEventService;
-
-    public HomeService(
-        IBookRepository bookRepository,
-        ICategoryRepository categoryRepository,
-        IUploadService uploadService,
-        IBookDownloadEventService bookDownloadEventService)
-    {
-        _bookRepository = bookRepository;
-        _categoryRepository = categoryRepository;
-        _uploadService = uploadService;
-        _bookDownloadEventService = bookDownloadEventService;
-    }
+    private readonly IBookRepository _bookRepository = bookRepository;
+    private readonly ICategoryRepository _categoryRepository = categoryRepository;
+    private readonly IUploadService _uploadService = uploadService;
+    private readonly IBookDownloadEventService _bookDownloadEventService = bookDownloadEventService;
 
     public async Task<List<HomeShowcaseBookDTO>> GetFeaturedPrintedBooksAsync()
     {

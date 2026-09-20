@@ -5,14 +5,9 @@ using System.Threading.Tasks;
 namespace ShareBook.Api.Controllers;
 
 [Route("api/[controller]")]
-public class HomeController : ControllerBase
+public class HomeController(IHomeService homeService) : ControllerBase
 {
-    private readonly IHomeService _homeService;
-
-    public HomeController(IHomeService homeService)
-    {
-        _homeService = homeService;
-    }
+    private readonly IHomeService _homeService = homeService;
 
     [HttpGet("featured-printed-books")]
     public async Task<IActionResult> GetFeaturedPrintedBooksAsync()

@@ -6,14 +6,9 @@ using System.Security.Claims;
 
 namespace ShareBook.Api.Filters;
 
-public class AuthorizationFilter : ActionFilterAttribute
+public class AuthorizationFilter(params Permissions.Permission[] permissions) : ActionFilterAttribute
 {
-    public Permissions.Permission[] NecessaryPermissions { get; set; }
-
-    public AuthorizationFilter(params Permissions.Permission[] permissions)
-    {
-        NecessaryPermissions = permissions;
-    }
+    public Permissions.Permission[] NecessaryPermissions { get; set; } = permissions;
 
     public override void OnActionExecuting(ActionExecutingContext context)
     {

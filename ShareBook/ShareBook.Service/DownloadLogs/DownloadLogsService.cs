@@ -8,18 +8,13 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service.DownloadLogs;
 
-public class DownloadLogsService : IDownloadLogsService
+public class DownloadLogsService(ApplicationDbContext context) : IDownloadLogsService
 {
     // Mesma categoria emitida pelo BookController/ThrottleFilter ao logar rate limit de download.
     // Filtrar por ela é obrigatório: "Logs" é genérica, outras categorias podem aparecer no futuro.
     private const string Category = "EBookDownload.RateLimit";
 
-    private readonly ApplicationDbContext _ctx;
-
-    public DownloadLogsService(ApplicationDbContext context)
-    {
-        _ctx = context;
-    }
+    private readonly ApplicationDbContext _ctx = context;
 
     public async Task<IList<DownloadLogsSummaryDto>> GetSummaryAsync(DateTime from, DateTime to)
     {

@@ -21,23 +21,16 @@ namespace ShareBook.Api.Controllers;
 /// </summary>
 [Route("api/[controller]")]
 [EnableCors("AllowAllHeaders")]
-public class BounceController : ControllerBase
+public class BounceController(
+    ApplicationDbContext ctx,
+    IOptions<ServerSettings> serverSettings,
+    ILogger<BounceController> logger) : ControllerBase
 {
     private const string WebhookTokenHeader = "X-Sharebook-Webhook-Token";
 
-    private readonly ApplicationDbContext _ctx;
-    private readonly ServerSettings _serverSettings;
-    private readonly ILogger<BounceController> _logger;
-
-    public BounceController(
-        ApplicationDbContext ctx,
-        IOptions<ServerSettings> serverSettings,
-        ILogger<BounceController> logger)
-    {
-        _ctx = ctx;
-        _serverSettings = serverSettings.Value;
-        _logger = logger;
-    }
+    private readonly ApplicationDbContext _ctx = ctx;
+    private readonly ServerSettings _serverSettings = serverSettings.Value;
+    private readonly ILogger<BounceController> _logger = logger;
 
     [HttpPost]
     public async Task<IActionResult> Receive([FromBody] StalwartWebhookVM webhook, CancellationToken cancellationToken)

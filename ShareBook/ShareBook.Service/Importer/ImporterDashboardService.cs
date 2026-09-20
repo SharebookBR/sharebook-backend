@@ -13,15 +13,19 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Service.Importer;
 
-public class ImporterDashboardService : IImporterDashboardService
+public class ImporterDashboardService(
+    IConfiguration configuration,
+    IBookRepository bookRepository,
+    ICategoryRepository categoryRepository,
+    IUploadService uploadService) : IImporterDashboardService
 {
     private const string KnownStatusesSql = @"('waiting_triage', 'triaging', 'triage_rejected', 'waiting_translation', 'translating', 'waiting_editorial', 'editing', 'waiting_publish', 'publishing', 'done', 'editorial_rejected', 'triage_retry', 'publish_retry', 'source_blocked', 'duplicate', 'error')";
     private const string ActiveStatusesSql = @"('waiting_triage', 'triaging', 'waiting_translation', 'translating', 'waiting_editorial', 'editing', 'waiting_publish', 'publishing', 'triage_retry', 'publish_retry', 'error')";
 
-    private readonly IConfiguration _configuration;
-    private readonly IBookRepository _bookRepository;
-    private readonly ICategoryRepository _categoryRepository;
-    private readonly IUploadService _uploadService;
+    private readonly IConfiguration _configuration = configuration;
+    private readonly IBookRepository _bookRepository = bookRepository;
+    private readonly ICategoryRepository _categoryRepository = categoryRepository;
+    private readonly IUploadService _uploadService = uploadService;
 
     private static readonly ISet<string> ValidStatuses = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
@@ -42,18 +46,6 @@ public class ImporterDashboardService : IImporterDashboardService
         "duplicate",
         "error"
     };
-
-    public ImporterDashboardService(
-        IConfiguration configuration,
-        IBookRepository bookRepository,
-        ICategoryRepository categoryRepository,
-        IUploadService uploadService)
-    {
-        _configuration = configuration;
-        _bookRepository = bookRepository;
-        _categoryRepository = categoryRepository;
-        _uploadService = uploadService;
-    }
 
     public async Task<ImporterDashboardDTO> GetDashboardAsync(CancellationToken cancellationToken = default)
     {

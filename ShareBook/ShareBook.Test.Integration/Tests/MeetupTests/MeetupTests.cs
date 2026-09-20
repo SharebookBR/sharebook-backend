@@ -6,14 +6,9 @@ using System.Net;
 namespace ShareBook.Test.Integration.Tests.MeetupTests;
 
 [Collection(nameof(ShareBookTestsFixture))]
-public class MeetupTests
+public class MeetupTests(ShareBookTestsFixture fixture)
 {
-    private readonly ShareBookTestsFixture _fixture;
-
-    public MeetupTests(ShareBookTestsFixture fixture)
-    {
-        _fixture = fixture;
-    }
+    private readonly ShareBookTestsFixture _fixture = fixture;
 
     [Theory]
     [InlineData(1, 1, false, 1)]

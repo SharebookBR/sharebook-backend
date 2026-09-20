@@ -4,14 +4,9 @@ using System.Threading.Tasks;
 
 namespace ShareBook.Repository;
 
-public class JobHistoryRepository : IJobHistoryRepository
+public class JobHistoryRepository(ApplicationDbContext context) : IJobHistoryRepository
 {
-    private readonly EntityCrud<JobHistory> _crud;
-
-    public JobHistoryRepository(ApplicationDbContext context)
-    {
-        _crud = new EntityCrud<JobHistory>(context);
-    }
+    private readonly EntityCrud<JobHistory> _crud = new EntityCrud<JobHistory>(context);
 
     public IQueryable<JobHistory> Get() => _crud.Get();
 
