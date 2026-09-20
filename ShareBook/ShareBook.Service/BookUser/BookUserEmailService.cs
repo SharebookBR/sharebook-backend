@@ -5,6 +5,8 @@ using ShareBook.Service.Notification;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace ShareBook.Service;
@@ -79,11 +81,11 @@ public class BookUserEmailService(IUserService userService, IEmailService emailS
         var donatedUser = await this._userService.FindAsync(bookUser.UserId);
         if (bookRequested.User != null && bookRequested.User.AllowSendingEmail)
         {
-            var htmlTable = GenerateInterestedListHtml(bookRequested);
+            var requestsHtml = GenerateInterestedListHtml(bookRequested);
 
             var vm = new
             {
-                HtmlTable = htmlTable,
+                RequestsHtml = requestsHtml,
                 Donor = new
                 {
                     Name = bookRequested.User.Name,
@@ -111,21 +113,24 @@ public class BookUserEmailService(IUserService userService, IEmailService emailS
 
     private string GenerateInterestedListHtml(Book bookRequested)
     {
-        var html = "<table border=1 cellpadding=3 cellspacing=0>";
-        html += "<tr><td bgcolor = '#ffff00'><b> APELIDO </b></td><td bgcolor = '#ffff00'><b> SOLICITAÇÃO </b></td></tr>";
+        var html = new StringBuilder();
 
         var threeHoursAgo = _timeProvider.GetUtcNow().UtcDateTime.AddMinutes(-180);
         var requests = bookRequested.BookUsers.Where(r => r.CreationDate >= threeHoursAgo).OrderByDescending(r => r.CreationDate);
 
         foreach (var request in requests)
         {
-            html += "<tr><td>" + request.NickName + "</td><td><pre>" + request.Reason + "</pre></td></tr>";
+            html.Append("<div class=\"request-item\">");
+            html.Append("<div class=\"nickname\">").Append(WebUtility.HtmlEncode(request.NickName)).Append("</div>");
+            html.Append("<div class=\"reason\">").Append(WebUtility.HtmlEncode(request.Reason)).Append("</div>");
+            html.Append("</div>");
         }
 
-        html += "<tr><td colspan=\"2\">Veja todas as solicitações: <a href=\"https://www.sharebook.com.br/book/donate/" + bookRequested.Slug + "?returnUrl=book%2Fdonations\">" + bookRequested.Title + "</a>.</td></tr>";
-        html += "</table>";
+        var bookUrl = "https://www.sharebook.com.br/book/donate/" + bookRequested.Slug + "?returnUrl=book%2Fdonations";
+        html.Append("<p class=\"see-all\">Veja todas as solicitações: <a href=\"").Append(bookUrl).Append("\">")
+            .Append(WebUtility.HtmlEncode(bookRequested.Title)).Append("</a>.</p>");
 
-        return html;
+        return html.ToString();
     }
 
     private bool MaxEmailsDonorValid(Book bookRequested)

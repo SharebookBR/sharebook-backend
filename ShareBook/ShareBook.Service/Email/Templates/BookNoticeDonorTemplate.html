@@ -1,31 +1,230 @@
-﻿﻿<!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+﻿<!DOCTYPE html>
+<html lang="pt-br">
 <head>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seu livro recebeu uma solicitação</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.6;
+            color: #555;
+            background-color: #f2f2f2;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            text-align: center;
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #29abe2 0%, #1e8fc4 100%);
+            color: white;
+        }
+
+        .header .wordmark {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 300;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .greeting {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .intro {
+            font-size: 16px;
+            margin-bottom: 25px;
+            line-height: 1.7;
+        }
+
+        .requests-section {
+            margin: 20px 0;
+        }
+
+        .info-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .request-item {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 12px;
+            border-left: 4px solid #29abe2;
+        }
+
+        .request-item .nickname {
+            font-weight: bold;
+            color: #333;
+            font-size: 15px;
+            margin-bottom: 6px;
+        }
+
+        .request-item .reason {
+            font-size: 14px;
+            color: #555;
+            white-space: pre-wrap;
+        }
+
+        .see-all {
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .steps-section {
+            margin: 30px 0;
+        }
+
+        .steps-title {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .steps-list {
+            counter-reset: step-counter;
+            list-style: none;
+        }
+
+        .steps-list li {
+            counter-increment: step-counter;
+            margin-bottom: 15px;
+            padding-left: 40px;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        .steps-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: #29abe2;
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .help-section {
+            background-color: #e8f4fd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+            border-left: 4px solid #29abe2;
+        }
+
+        .footer {
+            background-color: #333;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .signature .team {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                border-radius: 4px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .steps-list li {
+                padding-left: 35px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <p>
-        Olá, {Donor.Name}!
-    </p>
+    <div class="container">
+        <div class="header">
+            <div class="wordmark">Sharebook</div>
+            <h1>Seu livro recebeu uma solicitação</h1>
+        </div>
 
-    <p>
-        Você recebeu uma nova solicitação para o livro <strong>"{Donor.BookTitle}"</strong>.
-    </p>
+        <div class="content">
+            <div class="greeting">
+                Olá, {Donor.Name}!
+            </div>
 
-    {HtmlTable}
+            <div class="intro">
+                Você recebeu uma nova solicitação para o livro <strong>"{Donor.BookTitle}"</strong>.
+            </div>
 
-    <p>
-        <strong>Próximos passos:</strong><br />
-        Até a data de escolha, você pode acompanhar as solicitações no Sharebook.<br />
-        No dia <strong>{Donor.ChooseDate}</strong>, revise as solicitações e escolha o(a) ganhador(a).
-    </p>
+            <div class="requests-section">
+                <div class="info-title">Quem solicitou</div>
+                {RequestsHtml}
+            </div>
 
-    <p>
-        Se precisar de ajuda, <a href="https://www.sharebook.com.br/contact-us">fale com a gente</a>.<br /><br />
-        Um abraço,<br>
-        Equipe Sharebook<br>
-        <small>Compartilhando conhecimento</small>
-    </p>
+            <div class="steps-section">
+                <div class="steps-title">Próximos passos</div>
+                <ol class="steps-list">
+                    <li>Até a data de escolha, acompanhe as solicitações pelo Sharebook.</li>
+                    <li>No dia <strong>{Donor.ChooseDate}</strong>, revise as solicitações e escolha o(a) ganhador(a).</li>
+                </ol>
+            </div>
+
+            <div class="help-section">
+                <div class="info-title">Precisa de ajuda?</div>
+                <p>Se precisar de ajuda, <a href="https://www.sharebook.com.br/contact-us">fale com a gente</a>.</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="signature">
+                Um abraço,<br>
+                <span class="team">Equipe Sharebook</span><br>
+                <small>Compartilhando conhecimento</small>
+            </div>
+        </div>
+    </div>
 </body>
-</html>  
+</html>
