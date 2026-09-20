@@ -4,10 +4,7 @@ using System.Runtime.Serialization;
 namespace ShareBook.Domain.Exceptions;
 
 [Serializable]
-public class AwsSqsDisabledException : Exception
+public class AwsSqsDisabledException(string message) : Exception(message)
 {
-    public AwsSqsDisabledException(string message) : base(message)
-    {
-    }
 }
 

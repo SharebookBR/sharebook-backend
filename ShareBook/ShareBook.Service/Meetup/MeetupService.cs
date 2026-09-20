@@ -4,10 +4,12 @@ using Flurl.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using ShareBook.Domain;
+using ShareBook.Domain.Common;
 using ShareBook.Domain.Exceptions;
 using ShareBook.Helper.Extensions;
 using ShareBook.Helper.Image;
 using ShareBook.Repository;
+using ShareBook.Repository.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service.Dto;
 using ShareBook.Service.Generic;
@@ -15,21 +17,46 @@ using ShareBook.Service.Upload;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace ShareBook.Service;
 
-public class MeetupService : BaseService<Meetup>, IMeetupService
+public class MeetupService(IOptions<MeetupSettings> settings, ApplicationDbContext context, IUnitOfWork unitOfWork, IValidator<Meetup> validator, IUploadService uploadService) : BaseService<Meetup>(context, unitOfWork, validator), IMeetupService
 {
-    private readonly MeetupSettings _settings;
-    private readonly IUploadService _uploadService;
-    protected readonly ApplicationDbContext _context;
+    private readonly MeetupSettings _settings = settings.Value;
+    private readonly IUploadService _uploadService = uploadService;
+    protected readonly ApplicationDbContext _context = context;
 
-    public MeetupService(IOptions<MeetupSettings> settings, IMeetupRepository meetupRepository, ApplicationDbContext context, IUnitOfWork unitOfWork, IValidator<Meetup> validator, IUploadService uploadService) : base(meetupRepository, unitOfWork, validator)
+    /// <summary>
+    /// Meetup sempre ordena pelos mais recentes primeiro e não usa a lista de includes genérica
+    /// (a query já carrega tudo que precisa via LINQ direto) — por isso sobrescreve o comportamento
+    /// padrão de paginação do BaseService.
+    /// </summary>
+    public override async Task<PagedList<Meetup>> GetAsync<TKey>(
+        Expression<Func<Meetup, bool>> filter,
+        Expression<Func<Meetup, TKey>> order,
+        int page,
+        int itemsPerPage,
+        IncludeList<Meetup>? includes,
+        bool descending = false)
     {
-        _settings = settings.Value;
-        _uploadService = uploadService;
-        _context = context;
+        var skip = (page - 1) * itemsPerPage;
+        var query = _repository.Get().Where(filter);
+        var total = await query.CountAsync();
+        var result = await query
+            .OrderByDescending(order)
+            .Skip(skip)
+            .Take(itemsPerPage)
+            .ToListAsync();
+
+        return new PagedList<Meetup>()
+        {
+            Page = page,
+            ItemsPerPage = itemsPerPage,
+            TotalItems = total,
+            Items = result
+        };
     }
 
     public async Task<IList<string>> FetchMeetupsAsync()
@@ -169,7 +196,7 @@ public class MeetupService : BaseService<Meetup>, IMeetupService
     public async Task<IList<Meetup>> SearchAsync(string title)
     {
         return await _repository.Get()
-            .Where(m => m.Active && (m.Title.Contains(title) || m.Description.Contains(title)))
+            .Where(m => m.Active && (m.Title.Contains(title) || (m.Description != null && m.Description.Contains(title))))
             .OrderByDescending(m => m.StartDate)
             .ToListAsync();
     }

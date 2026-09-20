@@ -2,24 +2,24 @@
 
 public class EmailSettings
 {
-    public string Sender { get; set; }
-    public string HostName { get; set; }
-    public string Username { get; set; }
-    public string Password { get; set; }
+    public string Sender { get; set; } = string.Empty;
+    public string HostName { get; set; } = string.Empty;
+    public string Username { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
     public int Port { get; set; }
     public bool UseSSL { get; set; }
-    public string SmtpHostName { get; set; }
-    public string SmtpUsername { get; set; }
-    public string SmtpPassword { get; set; }
+    public string SmtpHostName { get; set; } = string.Empty;
+    public string SmtpUsername { get; set; } = string.Empty;
+    public string SmtpPassword { get; set; } = string.Empty;
     public int SmtpPort { get; set; }
     public bool? SmtpUseSSL { get; set; }
-    public string ReturnPath { get; set; }
-    public string ImapHostName { get; set; }
-    public string ImapUsername { get; set; }
-    public string ImapPassword { get; set; }
+    public string ReturnPath { get; set; } = string.Empty;
+    public string ImapHostName { get; set; } = string.Empty;
+    public string ImapUsername { get; set; } = string.Empty;
+    public string ImapPassword { get; set; } = string.Empty;
     public bool? ImapUseSSL { get; set; }
     public int ImapPort { get; set; }
-    public string BounceFolder { get; set; }
+    public string BounceFolder { get; set; } = string.Empty;
 
     public string EffectiveSmtpHostName => string.IsNullOrWhiteSpace(SmtpHostName) ? HostName : SmtpHostName;
     public string EffectiveSmtpUsername => string.IsNullOrWhiteSpace(SmtpUsername) ? Username : SmtpUsername;

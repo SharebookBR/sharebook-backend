@@ -7,17 +7,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ShareBook.Repository {
-    public class AccessHistoryRepository : RepositoryGeneric<AccessHistory>, IAccessHistoryRepository {
-        public AccessHistoryRepository(ApplicationDbContext context) : base(context) { }
-        public async Task<IEnumerable<AccessHistory>> GetWhoAccessedMyProfileAsync(Guid userId) {
-            if (userId.Equals(null)) return null;
+namespace ShareBook.Repository;
+public class AccessHistoryRepository(ApplicationDbContext context) : IAccessHistoryRepository {
+    private readonly ApplicationDbContext _context = context;
 
-            var list = from u in _context.AccessHistories
-                where (u.UserId.Equals(userId))
-                select u;
+    public async Task<IEnumerable<AccessHistory>> GetWhoAccessedMyProfileAsync(Guid userId) {
+        var list = from u in _context.AccessHistories
+            where (u.UserId.Equals(userId))
+            select u;
 
-            return await list.ToListAsync();
-        }
+        return await list.ToListAsync();
     }
 }

@@ -1,12 +1,11 @@
-﻿using System.Threading.Tasks;
-using ShareBook.Domain;
+﻿using ShareBook.Domain;
+using System.Threading.Tasks;
 
-namespace ShareBook.Service.Muambator
+namespace ShareBook.Service.Muambator;
+
+public interface IMuambatorService
 {
-    public interface IMuambatorService
-    {
-        Task<dynamic> AddPackageToTrackerAsync(Book book, User winner, string packageNumber);
+    Task<dynamic?> AddPackageToTrackerAsync(Book book, User winner, string packageNumber);
 
-        Task<MuambatorDTO> RemovePackageToTrackerAsync(string packageNumber);
-    }
+    Task<MuambatorDTO> RemovePackageToTrackerAsync(string packageNumber);
 }

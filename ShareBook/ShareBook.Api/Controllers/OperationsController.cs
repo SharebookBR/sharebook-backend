@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -13,14 +13,11 @@ using ShareBook.Helper.Extensions;
 using ShareBook.Repository;
 using ShareBook.Service;
 using ShareBook.Service.Authorization;
-using ShareBook.Service.Importer;
 using ShareBook.Service.Server;
-using ShareBook.Service.Upload;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace ShareBook.Api.Controllers;
@@ -35,11 +32,8 @@ public class OperationsController : Controller
     readonly IEmailService _emailService;
     private readonly IWebHostEnvironment _env;
     private readonly IMemoryCache _cache;
-    private readonly IMeetupService _meetupService;
     private readonly IConfiguration _config;
     private readonly IJobHistoryRepository _jobHistoryRepo;
-    private readonly IImporterDashboardService _importerDashboardService;
-    private readonly IUploadService _uploadService;
     private readonly IList<IJob> _jobs;
 
     public OperationsController(
@@ -48,11 +42,8 @@ public class OperationsController : Controller
         IEmailService emailService,
         IWebHostEnvironment env,
         IMemoryCache memoryCache,
-        IMeetupService meetupService,
         IConfiguration config,
         IJobHistoryRepository jobHistoryRepo,
-        IImporterDashboardService importerDashboardService,
-        IUploadService uploadService,
         CancelAbandonedDonations job0,
         ChooseDateReminder job1,
         LateDonationNotification job2,
@@ -68,11 +59,8 @@ public class OperationsController : Controller
         _emailService = emailService;
         _env = env;
         _cache = memoryCache;
-        _meetupService = meetupService;
         _config = config;
         _jobHistoryRepo = jobHistoryRepo;
-        _importerDashboardService = importerDashboardService;
-        _uploadService = uploadService;
         _jobs = new List<IJob> { job0, job1, job2, job3, job4, job5, job6, job7, job8 };
     }
 
@@ -89,12 +77,12 @@ public class OperationsController : Controller
     [HttpGet("Ping")]
     public IActionResult Ping()
     {
-        var ass = Assembly.GetEntryAssembly();
+        var ass = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
         var result = new
         {
             DatabaseProvider = _config["DatabaseProvider"],
-            Service = ass.GetName().Name.ToString(),
-            Version = ass.GetName().Version.ToString(),
+            Service = ass.GetName().Name?.ToString() ?? string.Empty,
+            Version = ass.GetName().Version?.ToString() ?? string.Empty,
             DotNetVersion = System.Environment.Version.ToString(),
             BuildLinkerTime = ass.GetLinkerTime().ToString("dd/MM/yyyy HH:mm:ss:fff z"),
             Env = _env.EnvironmentName,
@@ -134,107 +122,6 @@ public class OperationsController : Controller
     {
         var logs = await _emailService.ProcessBounceMessagesAsync();
         return Ok(logs);
-    }
-
-    [HttpGet("ImporterDashboard")]
-    [Authorize("Bearer")]
-    [AuthorizationFilter(Permissions.Permission.ApproveBook)] // adm
-    public async Task<IActionResult> ImporterDashboardAsync(CancellationToken cancellationToken)
-    {
-        var dashboard = await _importerDashboardService.GetDashboardAsync(cancellationToken);
-        return Ok(dashboard);
-    }
-
-    [HttpPost("BookThumbnails/Backfill")]
-    [Authorize("Bearer")]
-    [AuthorizationFilter(Permissions.Permission.ApproveBook)] // adm
-    public async Task<IActionResult> BackfillBookThumbnailsAsync(
-        [FromQuery] bool overwrite = false,
-        [FromQuery] int offset = 0,
-        [FromQuery] int batchSize = 50,
-        CancellationToken cancellationToken = default)
-    {
-        var result = await _uploadService.BackfillBookThumbnailsAsync(
-            overwrite,
-            offset,
-            batchSize,
-            cancellationToken);
-        return Ok(result);
-    }
-
-    [HttpGet("ImporterEditorialPrompt")]
-    [Authorize("Bearer")]
-    [AuthorizationFilter(Permissions.Permission.ApproveBook)] // adm
-    public async Task<IActionResult> GetImporterEditorialPromptAsync([FromQuery] string sourceName, CancellationToken cancellationToken)
-    {
-        if (string.IsNullOrWhiteSpace(sourceName))
-            return BadRequest("sourceName é obrigatório.");
-
-        var prompt = await _importerDashboardService.GetEditorialPromptAsync(sourceName, cancellationToken);
-        return Ok(new { sourceName, prompt });
-    }
-
-    [HttpPut("ImporterEditorialPrompt")]
-    [Authorize("Bearer")]
-    [AuthorizationFilter(Permissions.Permission.ApproveBook)] // adm
-    public async Task<IActionResult> UpdateImporterEditorialPromptAsync([FromBody] UpdateEditorialPromptVM vm, CancellationToken cancellationToken)
-    {
-        if (string.IsNullOrWhiteSpace(vm?.SourceName))
-            return BadRequest("sourceName é obrigatório.");
-
-        await _importerDashboardService.UpdateEditorialPromptAsync(vm.SourceName, vm.Prompt, cancellationToken);
-        return Ok();
-    }
-
-    [HttpGet("ImporterTranslationPrompt")]
-    [Authorize("Bearer")]
-    [AuthorizationFilter(Permissions.Permission.ApproveBook)] // adm
-    public async Task<IActionResult> GetImporterTranslationPromptAsync([FromQuery] string sourceName, CancellationToken cancellationToken)
-    {
-        if (string.IsNullOrWhiteSpace(sourceName))
-            return BadRequest("sourceName é obrigatório.");
-
-        var prompt = await _importerDashboardService.GetTranslationPromptAsync(sourceName, cancellationToken);
-        return Ok(new { sourceName, prompt });
-    }
-
-    [HttpPut("ImporterTranslationPrompt")]
-    [Authorize("Bearer")]
-    [AuthorizationFilter(Permissions.Permission.ApproveBook)] // adm
-    public async Task<IActionResult> UpdateImporterTranslationPromptAsync([FromBody] UpdateEditorialPromptVM vm, CancellationToken cancellationToken)
-    {
-        if (string.IsNullOrWhiteSpace(vm?.SourceName))
-            return BadRequest("sourceName é obrigatório.");
-
-        await _importerDashboardService.UpdateTranslationPromptAsync(vm.SourceName, vm.Prompt, cancellationToken);
-        return Ok();
-    }
-
-    [HttpPatch("ImporterItems/{id}/AdminNotes")]
-    [Authorize("Bearer")]
-    [AuthorizationFilter(Permissions.Permission.ApproveBook)] // adm
-    public async Task<IActionResult> UpdateImporterItemAdminNotesAsync(int id, [FromBody] UpdateImporterItemNotesVM vm, CancellationToken cancellationToken)
-    {
-        await _importerDashboardService.UpdateAdminNotesAsync(id, vm?.Notes, cancellationToken);
-        return Ok();
-    }
-
-    [HttpGet("ImporterItems/{id}/History")]
-    [Authorize("Bearer")]
-    [AuthorizationFilter(Permissions.Permission.ApproveBook)] // adm
-    public async Task<IActionResult> GetImporterItemHistoryAsync(int id, CancellationToken cancellationToken)
-    {
-        var history = await _importerDashboardService.GetItemHistoryAsync(id, cancellationToken);
-        return Ok(history);
-    }
-
-    [HttpGet("ImporterItems")]
-    [Authorize("Bearer")]
-    [AuthorizationFilter(Permissions.Permission.ApproveBook)] // adm
-    public async Task<IActionResult> ImporterItemsAsync([FromQuery] int? sourceId, [FromQuery] string status, [FromQuery] int? id, [FromQuery] string title, [FromQuery] string sort, [FromQuery] int page = 1, [FromQuery] int pageSize = 50, CancellationToken cancellationToken = default)
-    {
-        var items = await _importerDashboardService.GetItemsAsync(sourceId, status, id, title, sort, page, pageSize, cancellationToken);
-        return Ok(items);
     }
 
     [HttpGet("Jobs")]

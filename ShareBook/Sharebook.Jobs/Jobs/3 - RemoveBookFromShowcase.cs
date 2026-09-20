@@ -8,97 +8,97 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Sharebook.Jobs
+namespace Sharebook.Jobs;
+
+public class RemoveBookFromShowcase : GenericJob, IJob
 {
-    public class RemoveBookFromShowcase : GenericJob, IJob
+    private readonly IBookService _bookService;
+    private readonly IEmailService _emailService;
+    private readonly IEmailTemplate _emailTemplate;
+
+    public RemoveBookFromShowcase(
+        IBookService bookService, 
+        IJobHistoryRepository jobHistoryRepo,
+        TimeProvider timeProvider,
+        IEmailService emailService,
+        IEmailTemplate emailTemplate,
+        ILoggerFactory loggerFactory) : base(jobHistoryRepo, loggerFactory, timeProvider)
     {
-        private readonly IBookService _bookService;
-        private readonly IEmailService _emailService;
-        private readonly IEmailTemplate _emailTemplate;
 
-        public RemoveBookFromShowcase(
-            IBookService bookService, 
-            IJobHistoryRepository jobHistoryRepo,
-            IEmailService emailService,
-            IEmailTemplate emailTemplate,
-            ILoggerFactory loggerFactory) : base(jobHistoryRepo, loggerFactory)
+        JobName     = "RemoveBookFromShowcase";
+        Description = "Remove o livro da vitrine no dia da decisão. " +
+                      "Caso o livro não tenha interessado o mesmo tem a data renovada por mais 10 dias.";
+        Interval    = Interval.Dayly;
+        Active      = true;
+        BestTimeToExecute = new TimeSpan(9, 0, 0);
+
+        _bookService = bookService;
+        _emailService = emailService;
+        _emailTemplate = emailTemplate;
+    }
+
+    public override async Task<JobHistory> WorkAsync()
+    {
+        var messages = new List<string>();
+
+        var books = await _bookService.GetBooksChooseDateIsTodayOrLateAsync();
+
+        if (books.Count == 0) messages.Add("Nenhum livro encontrado.");
+
+        foreach (var book in books)
         {
-
-            JobName     = "RemoveBookFromShowcase";
-            Description = "Remove o livro da vitrine no dia da decisão. " +
-                          "Caso o livro não tenha interessado o mesmo tem a data renovada por mais 10 dias.";
-            Interval    = Interval.Dayly;
-            Active      = true;
-            BestTimeToExecute = new TimeSpan(9, 0, 0);
-
-            _bookService = bookService;
-            _emailService = emailService;
-            _emailTemplate = emailTemplate;
-        }
-
-        public override async Task<JobHistory> WorkAsync()
-        {
-            var messages = new List<string>();
-
-            var books = await _bookService.GetBooksChooseDateIsTodayOrLateAsync();
-
-            if (books.Count == 0) messages.Add("Nenhum livro encontrado.");
-
-            foreach (var book in books)
+            // Só trata livros disponíves
+            if (book.Status != BookStatus.Available)
             {
-                // Só trata livros disponíves
-                if (book.Status != BookStatus.Available)
-                {
-                    messages.Add(string.Format("Livro '{0}' não foi processado porque não está disponível.", book.Title));
-                    continue;
-                }
-
-                var totalPedidosValidos = book.BookUsers.Count(b => b.Status == DonationStatus.WaitingAction);
-
-                if (totalPedidosValidos > 0)
-                {
-                    book.Status = BookStatus.AwaitingDonorDecision;
-                    messages.Add(string.Format("Livro '{0}' removido da vitrine.", book.Title));
-                }
-                else
-                {
-                    book.ChooseDate = DateTime.Today.AddDays(10);
-                    messages.Add(string.Format("Livro '{0}' vai ficar +10 dias na vitrine porque ainda não tem interessados. :/", book.Title));
-                    await SendEmailAsync(book);
-                }
-
-                await _bookService.UpdateAsync(book);
+                messages.Add(string.Format("Livro '{0}' não foi processado porque não está disponível.", book.Title));
+                continue;
             }
 
-            return new JobHistory()
+            var totalPedidosValidos = book.BookUsers.Count(b => b.Status == DonationStatus.WaitingAction);
+
+            if (totalPedidosValidos > 0)
             {
-                JobName = JobName,
-                IsSuccess = true,
-                Details = String.Join("\n", messages.ToArray())
-            };
+                book.Status = BookStatus.AwaitingDonorDecision;
+                messages.Add(string.Format("Livro '{0}' removido da vitrine.", book.Title));
+            }
+            else
+            {
+                book.ChooseDate = DateTime.Today.AddDays(10);
+                messages.Add(string.Format("Livro '{0}' vai ficar +10 dias na vitrine porque ainda não tem interessados. :/", book.Title));
+                await SendEmailAsync(book);
+            }
+
+            await _bookService.UpdateAsync(book);
         }
 
-
-        #region métodos privados de apoio
-
-        private async Task SendEmailAsync(Book book)
+        return new JobHistory()
         {
-            var emailSubject = "A data de escolha do seu livro foi renovada";
-
-            // O template não usa dados do facilitador. Lê-los aqui só criava
-            // NullReferenceException em livro sem facilitador, que é opcional.
-            var vm = new
-            {
-                DonorName = book.User.Name,
-                BookTitle = book.Title,
-                BookSlug = book.Slug
-            };
-            var emailBodyHTML = await _emailTemplate.GenerateHtmlFromTemplateAsync("ChooseDateRenewTemplate", vm);
-
-            await _emailService.SendAsync(book.User.Email, book.User.Name, emailBodyHTML, emailSubject, copyAdmins: false, highPriority: true);
-        }
-
-        #endregion
-
+            JobName = JobName,
+            IsSuccess = true,
+            Details = String.Join("\n", messages.ToArray())
+        };
     }
+
+
+    #region métodos privados de apoio
+
+    private async Task SendEmailAsync(Book book)
+    {
+        var emailSubject = "A data de escolha do seu livro foi renovada";
+
+        // O template não usa dados do facilitador. Lê-los aqui só criava
+        // NullReferenceException em livro sem facilitador, que é opcional.
+        var vm = new
+        {
+            DonorName = book.User!.Name,
+            BookTitle = book.Title,
+            BookSlug = book.Slug
+        };
+        var emailBodyHTML = await _emailTemplate.GenerateHtmlFromTemplateAsync("ChooseDateRenewTemplate", vm);
+
+        await _emailService.SendAsync(book.User.Email, book.User.Name, emailBodyHTML, emailSubject, copyAdmins: false, highPriority: true);
+    }
+
+    #endregion
+
 }

@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 using ShareBook.Domain;
@@ -10,18 +5,29 @@ using ShareBook.Domain.DTOs;
 using ShareBook.Repository;
 using ShareBook.Repository.Repository;
 using ShareBook.Service.Upload;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ShareBook.Service.Importer;
 
-public class ImporterDashboardService : IImporterDashboardService
+public class ImporterDashboardService(
+    IConfiguration configuration,
+    IBookRepository bookRepository,
+    ICategoryRepository categoryRepository,
+    IUploadService uploadService,
+    TimeProvider timeProvider) : IImporterDashboardService
 {
+    private readonly TimeProvider _timeProvider = timeProvider;
     private const string KnownStatusesSql = @"('waiting_triage', 'triaging', 'triage_rejected', 'waiting_translation', 'translating', 'waiting_editorial', 'editing', 'waiting_publish', 'publishing', 'done', 'editorial_rejected', 'triage_retry', 'publish_retry', 'source_blocked', 'duplicate', 'error')";
     private const string ActiveStatusesSql = @"('waiting_triage', 'triaging', 'waiting_translation', 'translating', 'waiting_editorial', 'editing', 'waiting_publish', 'publishing', 'triage_retry', 'publish_retry', 'error')";
 
-    private readonly IConfiguration _configuration;
-    private readonly IBookRepository _bookRepository;
-    private readonly ICategoryRepository _categoryRepository;
-    private readonly IUploadService _uploadService;
+    private readonly IConfiguration _configuration = configuration;
+    private readonly IBookRepository _bookRepository = bookRepository;
+    private readonly ICategoryRepository _categoryRepository = categoryRepository;
+    private readonly IUploadService _uploadService = uploadService;
 
     private static readonly ISet<string> ValidStatuses = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
@@ -42,18 +48,6 @@ public class ImporterDashboardService : IImporterDashboardService
         "duplicate",
         "error"
     };
-
-    public ImporterDashboardService(
-        IConfiguration configuration,
-        IBookRepository bookRepository,
-        ICategoryRepository categoryRepository,
-        IUploadService uploadService)
-    {
-        _configuration = configuration;
-        _bookRepository = bookRepository;
-        _categoryRepository = categoryRepository;
-        _uploadService = uploadService;
-    }
 
     public async Task<ImporterDashboardDTO> GetDashboardAsync(CancellationToken cancellationToken = default)
     {
@@ -228,7 +222,7 @@ ORDER BY ss.source_id;
 
         var result = new ImporterDashboardDTO
         {
-            GeneratedAtUtc = DateTime.UtcNow
+            GeneratedAtUtc = _timeProvider.GetUtcNow().UtcDateTime
         };
 
         await using var conn = new NpgsqlConnection(connectionString);
@@ -438,7 +432,7 @@ LIMIT @limit OFFSET @offset;
     {
         var categoryIds = items
             .Where(x => !string.IsNullOrWhiteSpace(x.PlannedCategoryId))
-            .Select(x => Guid.Parse(x.PlannedCategoryId))
+            .Select(x => Guid.Parse(x.PlannedCategoryId!))
             .Distinct()
             .ToList();
 
@@ -470,7 +464,7 @@ LIMIT @limit OFFSET @offset;
     {
         var bookIds = items
             .Where(x => !string.IsNullOrWhiteSpace(x.SharebookBookId))
-            .Select(x => Guid.Parse(x.SharebookBookId))
+            .Select(x => Guid.Parse(x.SharebookBookId!))
             .Distinct()
             .ToList();
 
@@ -487,12 +481,12 @@ LIMIT @limit OFFSET @offset;
             {
                 item.BookSlug = bookData.Slug;
                 item.BookImageSlug = bookData.ImageSlug;
-                item.BookThumbnailUrl = _uploadService.GetBookThumbnailUrl(bookData.ImageSlug, bookData.ImageVersion);
+                item.BookThumbnailUrl = _uploadService.GetBookThumbnailUrl(bookData.ImageSlug ?? string.Empty, bookData.ImageVersion);
             }
         }
     }
 
-    private static void AddItemFilterParameters(NpgsqlCommand command, int? sourceId, string status, int? id, string title)
+    private static void AddItemFilterParameters(NpgsqlCommand command, int? sourceId, string? status, int? id, string title)
     {
         if (sourceId.HasValue)
             command.Parameters.AddWithValue("source_id", sourceId.Value);
@@ -507,7 +501,7 @@ LIMIT @limit OFFSET @offset;
             command.Parameters.AddWithValue("title", $"%{title.Trim()}%");
     }
 
-    private static string GetUniversalString(NpgsqlDataReader reader, string columnName)
+    private static string? GetUniversalString(NpgsqlDataReader reader, string columnName)
     {
         var ordinal = reader.GetOrdinal(columnName);
         if (reader.IsDBNull(ordinal)) return null;
@@ -516,7 +510,7 @@ LIMIT @limit OFFSET @offset;
         return value?.ToString();
     }
 
-    public async Task<string> GetEditorialPromptAsync(string sourceName, CancellationToken cancellationToken = default)
+    public async Task<string?> GetEditorialPromptAsync(string sourceName, CancellationToken cancellationToken = default)
     {
         var connectionString = _configuration.GetConnectionString("ImporterPostgresConnection");
         await using var conn = new NpgsqlConnection(connectionString);
@@ -538,7 +532,7 @@ LIMIT @limit OFFSET @offset;
         await cmd.ExecuteNonQueryAsync(cancellationToken);
     }
 
-    public async Task<string> GetTranslationPromptAsync(string sourceName, CancellationToken cancellationToken = default)
+    public async Task<string?> GetTranslationPromptAsync(string sourceName, CancellationToken cancellationToken = default)
     {
         var connectionString = _configuration.GetConnectionString("ImporterPostgresConnection");
         await using var conn = new NpgsqlConnection(connectionString);
@@ -571,7 +565,7 @@ LIMIT @limit OFFSET @offset;
         await cmd.ExecuteNonQueryAsync(cancellationToken);
     }
 
-    private static string GetNullableString(NpgsqlDataReader reader, string columnName)
+    private static string? GetNullableString(NpgsqlDataReader reader, string columnName)
     {
         return GetUniversalString(reader, columnName);
     }

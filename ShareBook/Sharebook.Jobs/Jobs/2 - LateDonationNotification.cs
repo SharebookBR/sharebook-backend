@@ -28,9 +28,10 @@ public class LateDonationNotification : GenericJob, IJob
 
 
     public LateDonationNotification(IJobHistoryRepository jobHistoryRepo,
+        TimeProvider timeProvider,
         IBookService bookService,
         IEmailService emailService,
-        IEmailTemplate emailTemplate, ILoggerFactory loggerFactory, IConfiguration configuration) : base(jobHistoryRepo, loggerFactory)
+        IEmailTemplate emailTemplate, ILoggerFactory loggerFactory, IConfiguration configuration) : base(jobHistoryRepo, loggerFactory, timeProvider)
     {
         JobName = "LateDonationNotification";
         Description = "Notifica administradores e doadores com a lista de doações em atraso " +
@@ -44,7 +45,7 @@ public class LateDonationNotification : GenericJob, IJob
         _emailTemplate = emailTemplate;
 
         _configuration = configuration;
-        maxLateDonationDays = int.Parse(_configuration[ConfigMaxLateDonationDaysKey]);
+        maxLateDonationDays = int.Parse(_configuration[ConfigMaxLateDonationDaysKey]!);
 
     }
 
@@ -74,7 +75,7 @@ public class LateDonationNotification : GenericJob, IJob
 
     private List<User> GetDistinctDonators(IList<Book> booksLate)
     {
-        return booksLate.Select(b => b.User).Distinct().ToList();
+        return booksLate.Select(b => b.User).OfType<User>().Distinct().ToList();
     }
 
     private async Task SendEmailAdminAsync(IList<Book> booksLate, BookStatsDTO status)
@@ -85,14 +86,14 @@ public class LateDonationNotification : GenericJob, IJob
         {
             var notes = book.FacilitatorNotes?.Replace("\n", "<BR>");
 
-            var whatsappLink = GetWhatsappLink(book.User.Phone);
+            var whatsappLink = GetWhatsappLink(book.User?.Phone);
 
             htmlTable += string.Format("<TR><TD>{0}<BR>{1}</TD><TD>{2}</TD><TD>{3}</TD><TD>{4}<BR>{5}<BR>{6}<BR>{7}</TD><TD>{8}</TD></TR>",
-                book.Title, 
-                book.Status, 
-                book.DaysLate(), 
+                book.Title,
+                book.Status,
+                book.DaysLate(),
                 book.TotalInterested(),
-                book.User.Name, book.User.Email, whatsappLink, book.User.Linkedin,
+                book.User?.Name, book.User?.Email, whatsappLink, book.User?.Linkedin,
                 notes);
         }
 
@@ -109,7 +110,7 @@ public class LateDonationNotification : GenericJob, IJob
         await _emailService.SendToAdminsAsync(emailBodyHTML, EmailAdminsSubject);
     }
 
-    private string GetWhatsappLink(string phone)
+    private string GetWhatsappLink(string? phone)
     {
         if (string.IsNullOrEmpty(phone)) return "";
 

@@ -1,24 +1,23 @@
 ﻿using System.ComponentModel;
 using System.Text.Json.Serialization;
 
-namespace ShareBook.Domain.Enums
+namespace ShareBook.Domain.Enums;
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum FreightOption
 {
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum FreightOption
-    {
-        [Description("Cidade")]
-        City,
+    [Description("Cidade")]
+    City,
 
-        [Description("Estado")]
-        State,
+    [Description("Estado")]
+    State,
 
-        [Description("País")]
-        Country,
+    [Description("País")]
+    Country,
 
-        [Description("Mundo")]
-        World,
+    [Description("Mundo")]
+    World,
 
-        [Description("Não")]
-        WithoutFreight,
-    }
+    [Description("Não")]
+    WithoutFreight,
 }

@@ -1,11 +1,22 @@
-﻿using ShareBook.Domain;
+using ShareBook.Domain;
+using ShareBook.Domain.Common;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
 
-namespace ShareBook.Repository
+namespace ShareBook.Repository;
+
+public interface IBookRepository
 {
-    public interface IBookRepository : IRepositoryGeneric<Book>
-    {
-        Task<IList<string>> GetSlugsStartingWithAsync(string baseSlug);
+    IQueryable<Book> Get();
 
-        IQueryable<Book> FullTextSearch(string normalizedCriteria, bool includeUnavailable);
-    }
+    Task<PagedList<Book>> GetAsync<TKey>(Expression<Func<Book, bool>> filter, Expression<Func<Book, TKey>> order);
+
+    Task<Book> UpdateAsync(Book entity);
+
+    Task<IList<string>> GetSlugsStartingWithAsync(string baseSlug);
+
+    IQueryable<Book> FullTextSearch(string normalizedCriteria, bool includeUnavailable);
 }

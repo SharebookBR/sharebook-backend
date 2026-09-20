@@ -2,24 +2,23 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ShareBook.Domain;
 
-namespace ShareBook.Repository.Mapping
+namespace ShareBook.Repository.Mapping;
+
+public class CategoryMap : IEntityTypeConfiguration<Category>
 {
-    public class CategoryMap : IEntityTypeConfiguration<Category>
+    public void Configure(EntityTypeBuilder<Category> entityBuilder)
     {
-        public void Configure(EntityTypeBuilder<Category> entityBuilder)
-        {
 
-            entityBuilder.HasKey(t => t.Id);
+        entityBuilder.HasKey(t => t.Id);
 
-            entityBuilder.Property(t => t.Name)
-                .HasMaxLength(100)
-                .IsRequired();
+        entityBuilder.Property(t => t.Name)
+            .HasMaxLength(100)
+            .IsRequired();
 
-            entityBuilder.HasOne(t => t.ParentCategory)
-                .WithMany(t => t.Children)
-                .HasForeignKey(t => t.ParentCategoryId)
-                .OnDelete(DeleteBehavior.Restrict);
+        entityBuilder.HasOne(t => t.ParentCategory)
+            .WithMany(t => t.Children)
+            .HasForeignKey(t => t.ParentCategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-        }
     }
 }

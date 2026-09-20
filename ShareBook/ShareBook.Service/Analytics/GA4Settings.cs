@@ -2,5 +2,5 @@ namespace ShareBook.Service.Analytics;
 
 public class GA4Settings
 {
-    public string CredentialsBase64 { get; set; }
+    public string CredentialsBase64 { get; set; } = string.Empty;
 }

@@ -1,9 +1,8 @@
 ﻿using System.Threading.Tasks;
 
-namespace ShareBook.Service
+namespace ShareBook.Service;
+
+public interface IEmailTemplate
 {
-    public interface IEmailTemplate
-    {
-        Task<string> GenerateHtmlFromTemplateAsync(string template, object model);
-    }
+    Task<string> GenerateHtmlFromTemplateAsync(string template, object model);
 }

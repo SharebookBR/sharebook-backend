@@ -1,11 +1,10 @@
 ﻿using System;
 
-namespace ShareBook.Api.ViewModels
-{
-    public class AddFacilitatorNotesVM
-    {
-        public Guid BookId { get; set; }
+namespace ShareBook.Api.ViewModels;
 
-        public string FacilitatorNotes { get; set; }
-    }
+public class AddFacilitatorNotesVM
+{
+    public Guid BookId { get; set; }
+
+    public required string FacilitatorNotes { get; set; }
 }

@@ -32,7 +32,8 @@ public class NewEbookWeeklyDigest : GenericJob, IJob
         IUserService userService,
         IConfiguration configuration,
         IEmailTemplate emailTemplate,
-        ILoggerFactory loggerFactory) : base(jobHistoryRepo, loggerFactory)
+        ILoggerFactory loggerFactory,
+        TimeProvider timeProvider) : base(jobHistoryRepo, loggerFactory, timeProvider)
     {
         JobName = "NewEbookWeeklyDigest";
         Description = @"Digest semanal de ebooks aprovados nos ultimos 7 dias. Envia UM unico email
@@ -51,7 +52,7 @@ public class NewEbookWeeklyDigest : GenericJob, IJob
 
     public override async Task<JobHistory> WorkAsync()
     {
-        var awsSqsEnabled = bool.Parse(_configuration["AwsSqsSettings:IsActive"]);
+        var awsSqsEnabled = bool.Parse(_configuration["AwsSqsSettings:IsActive"]!);
         if (!awsSqsEnabled) throw new AwsSqsDisabledException("Servico aws sqs esta desabilitado no appsettings.");
 
         var since = DateTime.Today.AddDays(-7);
@@ -128,7 +129,7 @@ public class NewEbookWeeklyDigest : GenericJob, IJob
             };
         }
 
-        var frontendUrl = _configuration["ServerSettings:FrontendUrl"];
+        var frontendUrl = _configuration["ServerSettings:FrontendUrl"]!;
         var totalRecipients = 0;
 
         foreach (var (_, entry) in userEbooks)

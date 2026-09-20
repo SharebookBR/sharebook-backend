@@ -8,86 +8,81 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace ShareBook.Service.EBook
+namespace ShareBook.Service.EBook;
+
+public class S3Service(IOptions<AwsS3Settings> settings, TimeProvider timeProvider) : IS3Service
 {
-    public class S3Service : IS3Service
+    private readonly AwsS3Settings _settings = settings.Value;
+    private readonly TimeProvider _timeProvider = timeProvider;
+
+    public async Task<string> UploadAsync(Stream content, string key, string contentType)
     {
-        private readonly AwsS3Settings _settings;
+        using var client = CreateClient();
+        var transferUtility = new TransferUtility(client);
 
-        public S3Service(IOptions<AwsS3Settings> settings)
+        var uploadRequest = new TransferUtilityUploadRequest
         {
-            _settings = settings.Value;
+            BucketName = _settings.S3BucketName,
+            Key = key,
+            InputStream = content,
+            ContentType = contentType
+        };
+
+        await transferUtility.UploadAsync(uploadRequest);
+
+        return key;
+    }
+
+    public Task<string> GeneratePreSignedDownloadUrlAsync(string key, string fileName)
+    {
+        using var client = CreateClient();
+
+        var expiresInMinutes = _settings.DownloadUrlExpirationMinutes <= 0
+            ? 5
+            : _settings.DownloadUrlExpirationMinutes;
+
+        var request = new GetPreSignedUrlRequest
+        {
+            BucketName = _settings.S3BucketName,
+            Key = key,
+            Verb = HttpVerb.GET,
+            Expires = _timeProvider.GetUtcNow().UtcDateTime.AddMinutes(expiresInMinutes)
+        };
+
+        if (!string.IsNullOrWhiteSpace(fileName))
+        {
+            request.ResponseHeaderOverrides.ContentDisposition = $"inline; filename=\"{fileName}\"";
         }
 
-        public async Task<string> UploadAsync(Stream content, string key, string contentType)
+        request.ResponseHeaderOverrides.ContentType = "application/pdf";
+
+        var preSignedUrl = client.GetPreSignedURL(request);
+        return Task.FromResult(preSignedUrl);
+    }
+
+    public async Task DeleteAsync(string key)
+    {
+        using var client = CreateClient();
+        var request = new DeleteObjectRequest
         {
-            using var client = CreateClient();
-            var transferUtility = new TransferUtility(client);
+            BucketName = _settings.S3BucketName,
+            Key = key,
+        };
 
-            var uploadRequest = new TransferUtilityUploadRequest
-            {
-                BucketName = _settings.S3BucketName,
-                Key = key,
-                InputStream = content,
-                ContentType = contentType
-            };
+        await client.DeleteObjectAsync(request);
+    }
 
-            await transferUtility.UploadAsync(uploadRequest);
+    private AmazonS3Client CreateClient()
+    {
+        var region = RegionEndpoint.GetBySystemName(_settings.S3Region);
 
-            return key;
+        if (!string.IsNullOrEmpty(_settings.S3AccessKey) && !string.IsNullOrEmpty(_settings.S3SecretKey))
+        {
+            var credentials = new BasicAWSCredentials(_settings.S3AccessKey, _settings.S3SecretKey);
+            return new AmazonS3Client(credentials, region);
         }
 
-        public Task<string> GeneratePreSignedDownloadUrlAsync(string key, string fileName)
-        {
-            using var client = CreateClient();
-
-            var expiresInMinutes = _settings.DownloadUrlExpirationMinutes <= 0
-                ? 5
-                : _settings.DownloadUrlExpirationMinutes;
-
-            var request = new GetPreSignedUrlRequest
-            {
-                BucketName = _settings.S3BucketName,
-                Key = key,
-                Verb = HttpVerb.GET,
-                Expires = DateTime.UtcNow.AddMinutes(expiresInMinutes)
-            };
-
-            if (!string.IsNullOrWhiteSpace(fileName))
-            {
-                request.ResponseHeaderOverrides.ContentDisposition = $"inline; filename=\"{fileName}\"";
-            }
-
-            request.ResponseHeaderOverrides.ContentType = "application/pdf";
-
-            var preSignedUrl = client.GetPreSignedURL(request);
-            return Task.FromResult(preSignedUrl);
-        }
-
-        public async Task DeleteAsync(string key)
-        {
-            using var client = CreateClient();
-            var request = new DeleteObjectRequest
-            {
-                BucketName = _settings.S3BucketName,
-                Key = key,
-            };
-
-            await client.DeleteObjectAsync(request);
-        }
-
-        private AmazonS3Client CreateClient()
-        {
-            var region = RegionEndpoint.GetBySystemName(_settings.S3Region);
-
-            if (!string.IsNullOrEmpty(_settings.S3AccessKey) && !string.IsNullOrEmpty(_settings.S3SecretKey))
-            {
-                var credentials = new BasicAWSCredentials(_settings.S3AccessKey, _settings.S3SecretKey);
-                return new AmazonS3Client(credentials, region);
-            }
-
-            // Usa credenciais padrão do ambiente: IAM role, variáveis AWS_* ou ~/.aws/credentials
-            return new AmazonS3Client(region);
-        }
+        // Usa credenciais padrão do ambiente: IAM role, variáveis AWS_* ou ~/.aws/credentials
+        return new AmazonS3Client(region);
     }
 }

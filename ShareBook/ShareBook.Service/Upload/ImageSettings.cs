@@ -1,11 +1,10 @@
-﻿namespace ShareBook.Service.Upload
+﻿namespace ShareBook.Service.Upload;
+
+public class ImageSettings
 {
-    public class ImageSettings
-    {
-        public string BaseDirectory { get; set; }
+    public string BaseDirectory { get; set; } = string.Empty;
 
-        public string ImagePath { get; set; }
+    public string ImagePath { get; set; } = string.Empty;
 
-        public string EBookPdfPath { get; set; }
-    }
+    public string EBookPdfPath { get; set; } = string.Empty;
 }

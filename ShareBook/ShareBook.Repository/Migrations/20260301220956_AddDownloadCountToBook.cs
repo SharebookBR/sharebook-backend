@@ -2,28 +2,27 @@
 
 #nullable disable
 
-namespace ShareBook.Infra.Data.Migrations
+namespace ShareBook.Infra.Data.Migrations;
+
+/// <inheritdoc />
+public partial class AddDownloadCountToBook : Migration
 {
     /// <inheritdoc />
-    public partial class AddDownloadCountToBook : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.AddColumn<int>(
-                name: "DownloadCount",
-                table: "Books",
-                type: "integer",
-                nullable: false,
-                defaultValue: 0);
-        }
+        migrationBuilder.AddColumn<int>(
+            name: "DownloadCount",
+            table: "Books",
+            type: "integer",
+            nullable: false,
+            defaultValue: 0);
+    }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropColumn(
-                name: "DownloadCount",
-                table: "Books");
-        }
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.DropColumn(
+            name: "DownloadCount",
+            table: "Books");
     }
 }

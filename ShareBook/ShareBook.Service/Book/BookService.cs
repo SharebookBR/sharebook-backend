@@ -23,1079 +23,558 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ShareBook.Service
+namespace ShareBook.Service;
+
+public partial class BookService(IBookRepository bookRepository,
+            ApplicationDbContext context,
+            IUnitOfWork unitOfWork, IValidator<Book> validator,
+            IUploadService uploadService, IBooksEmailService booksEmailService, IConfiguration configuration,
+            NewBookQueue newBookQueue, IEBookService ebookService, ICategoryRepository categoryRepository,
+            TimeProvider timeProvider, ICurrentUserAccessor currentUserAccessor) : BaseService<Book>(context, unitOfWork, validator), IBookService
 {
-    public class BookService : BaseService<Book>, IBookService
+    private const int MaxSlugInsertAttempts = 5;
+    private readonly ApplicationDbContext _context = context;
+    private readonly IUploadService _uploadService = uploadService;
+    private readonly IBookRepository _bookRepository = bookRepository;
+    private readonly IBooksEmailService _booksEmailService = booksEmailService;
+    private readonly IConfiguration _configuration = configuration;
+    private readonly IEBookService _ebookService = ebookService;
+    private readonly ICategoryRepository _categoryRepository = categoryRepository;
+    private readonly TimeProvider _timeProvider = timeProvider;
+    private readonly ICurrentUserAccessor _currentUserAccessor = currentUserAccessor;
+
+    private readonly NewBookQueue _newBookQueue = newBookQueue;
+
+    private async Task<Book> PersistBookUpdateAsync(Book entity)
     {
-        private const int MaxSlugInsertAttempts = 5;
-        private readonly IUploadService _uploadService;
-        private readonly IBookRepository _bookRepository;
-        private readonly IBooksEmailService _booksEmailService;
-        private readonly IConfiguration _configuration;
-        private readonly IEBookService _ebookService;
-        private readonly ICategoryRepository _categoryRepository;
+        _context.Update(entity);
 
-        private readonly NewBookQueue _newBookQueue;
+        // imagem e slug são opcionais em alguns fluxos de update; se vierem nulos,
+        // não sobrescrevemos o valor já persistido.
+        if (entity.ImageSlug == null)
+            _context.Entry(entity).Property(x => x.ImageSlug).IsModified = false;
 
-        public BookService(IBookRepository bookRepository,
-                    IUnitOfWork unitOfWork, IValidator<Book> validator,
-                    IUploadService uploadService, IBooksEmailService booksEmailService, IConfiguration configuration,
-                    NewBookQueue newBookQueue, IEBookService ebookService, ICategoryRepository categoryRepository)
-                    : base(bookRepository, unitOfWork, validator)
+        if (entity.Slug == null)
+            _context.Entry(entity).Property(x => x.Slug).IsModified = false;
+
+        _context.Entry(entity).Property(x => x.UserId).IsModified = false;
+
+        await _context.SaveChangesAsync();
+
+        return entity;
+    }
+
+    private static bool IsUniqueSlugViolation(Exception exception)
+    {
+        for (var current = exception; current != null; current = current.InnerException)
         {
-            _bookRepository = bookRepository;
-            _uploadService = uploadService;
-            _booksEmailService = booksEmailService;
-            _configuration = configuration;
-            _newBookQueue = newBookQueue;
-            _ebookService = ebookService;
-            _categoryRepository = categoryRepository;
-        }
-
-        public async Task ApproveAsync(Guid bookId, DateTime? chooseDate = null)
-        {
-            var daysInShowcase = int.Parse(_configuration["SharebookSettings:DaysInShowcase"]);
-
-            var book = await _repository.Get().Include(b => b.Category).FirstOrDefaultAsync(b => b.Id == bookId);
-            if (book == null)
-                throw new ShareBookException(ShareBookException.Error.NotFound);
-
-            book.Status = BookStatus.Available;
-            book.ApprovedAt = DateTime.UtcNow;
-            book.ChooseDate = book.IsEbook()
-                ? null
-                : chooseDate?.Date ?? DateTime.Today.AddDays(daysInShowcase);
-            await _repository.UpdateAsync(book);
-
-            // notifica o doador
-            await _booksEmailService.SendEmailBookApprovedAsync(book);
-
-            // notifica possíveis interessados.
-            var message = new NewBookBody
+            if (current is Npgsql.PostgresException postgresException
+                && postgresException.SqlState == Npgsql.PostgresErrorCodes.UniqueViolation
+                && postgresException.ConstraintName == "UX_Books_Slug")
             {
-                BookId = book.Id,
-                BookTitle = book.Title,
-                CategoryId = book.CategoryId
-            };
-            await _newBookQueue.SendMessageAsync(message);
-
-        }
-
-        public async Task MarkAsDeliveredAsync(Guid bookId)
-        {
-            var book = await _repository.FindAsync(bookId);
-            if (book == null)
-                throw new ShareBookException(ShareBookException.Error.NotFound);
-
-            book.Status = BookStatus.Received;
-            await _repository.UpdateAsync(book);
-        }
-
-        public async Task ReceivedAsync(Guid bookId, Guid winnerUserId)
-        {
-            var book = await _repository.Get().Include(f => f.BookUsers)
-                .ThenInclude(bu => bu.User)
-                .FirstOrDefaultAsync(f => f.Id == bookId);
-
-            if (book == null)
-                throw new ShareBookException(ShareBookException.Error.NotFound);
-
-            // Verifica se o usuario é realmente o ganhador do livro
-            var winner = book.WinnerUser();
-            if (winner == null || winner.Id != winnerUserId)
-                throw new ShareBookException(ShareBookException.Error.Forbidden);
-
-            book.Status = BookStatus.Received;
-            await _repository.UpdateAsync(book);
-
-            await _booksEmailService.SendEmailBookReceivedAsync(book);
-        }
-
-        public async Task UpdateBookStatusAsync(Guid bookId, BookStatus bookStatus)
-        {
-            var book = await _repository.FindAsync(bookId);
-            if (book == null)
-                throw new ShareBookException(ShareBookException.Error.NotFound);
-
-            book.Status = bookStatus;
-            await _repository.UpdateAsync(book);
-        }
-
-        public IList<dynamic> FreightOptions()
-        {
-            var enumValues = new List<dynamic>();
-            foreach (FreightOption freightOption in Enum.GetValues(typeof(FreightOption)))
-            {
-                enumValues.Add(new
-                {
-                    Value = freightOption.ToString(),
-                    Text = freightOption.Description()
-                });
-            }
-            return enumValues;
-        }
-
-        public async Task<IList<Book>> Random15BooksAsync()
-        {
-            return SetImageUrls(
-                await _repository.Get()
-                    .Include(b => b.User)
-                    .ThenInclude(u => u.Address)
-                    .Include(b => b.Category)
-                    .ThenInclude(c => c.ParentCategory)
-                    .Where(b => b.Status == BookStatus.Available)
-                    .OrderBy(x => Guid.NewGuid()) // ordem aleatória
-                    .Take(15) // apenas 15 registros
-                    .ToListAsync()
-             );
-        }
-
-        public async Task<IList<Book>> GetNewest15EBooksAsync()
-        {
-            return SetImageUrls(
-                await _repository.Get()
-                    .Include(b => b.User)
-                    .ThenInclude(u => u.Address)
-                    .Include(b => b.Category)
-                    .ThenInclude(c => c.ParentCategory)
-                    .Where(b => b.Status == BookStatus.Available && b.Type == BookType.Eletronic)
-                    .OrderByDescending(x => x.CreationDate) // os mais novos primeiro
-                    .Take(15) // apenas 15 registros
-                    .ToListAsync()
-             );
-        }
-
-        public async Task<PagedList<Book>> RecentEBooksAsync(int page, int itemsPerPage, int days = 7)
-        {
-            var since = DateTime.UtcNow.AddDays(-days);
-
-            return await SearchBooksAsync(
-                x => x.Status == BookStatus.Available
-                    && x.Type == BookType.Eletronic
-                    && x.ApprovedAt.HasValue
-                    && x.ApprovedAt.Value >= since,
-                page,
-                itemsPerPage,
-                x => x.ApprovedAt ?? x.CreationDate);
-        }
-
-        public async Task<int> GetAvailableEBooksCountAsync()
-        {
-            return await _repository.Get()
-                .Where(b => b.Status == BookStatus.Available && b.Type == BookType.Eletronic)
-                .CountAsync();
-        }
-
-        public async Task<int> GetRecentEBooksCountAsync(int days = 7)
-        {
-            var since = DateTime.UtcNow.AddDays(-days);
-
-            return await _repository.Get()
-                .Where(b => b.Status == BookStatus.Available 
-                    && b.Type == BookType.Eletronic
-                    && b.ApprovedAt.HasValue
-                    && b.ApprovedAt.Value >= since)
-                .CountAsync();
-        }
-
-        public async Task<IList<SitemapBookDTO>> GetSitemapBooksAsync()
-        {
-            return await _repository.Get()
-                .AsNoTracking()
-                .Where(b => b.Status != BookStatus.WaitingApproval
-                    && b.Status != BookStatus.Canceled
-                    && !string.IsNullOrWhiteSpace(b.Slug))
-                .OrderBy(b => b.Slug)
-                .Select(b => new SitemapBookDTO
-                {
-                    Slug = b.Slug,
-                    LastModifiedAt = b.ApprovedAt ?? b.CreationDate
-                })
-                .ToListAsync();
-        }
-
-        public async Task<AdminBooksResultDTO> GetAdminBooksAsync(
-            int page,
-            int itemsPerPage,
-            string search = null,
-            string status = null,
-            string bucket = null,
-            string type = null)
-        {
-            var normalizedPage = page <= 0 ? 1 : page;
-            var normalizedItemsPerPage = itemsPerPage <= 0 ? 24 : Math.Min(itemsPerPage, 100);
-
-            var baseQuery = BuildAdminBooksQuery();
-            var summary = await BuildAdminSummaryAsync(baseQuery);
-
-            var filteredQuery = ApplyAdminBooksFilters(baseQuery, search, status, bucket, type);
-            var totalItems = await filteredQuery.CountAsync();
-            var totalPages = Math.Max((int)Math.Ceiling(totalItems / (double)normalizedItemsPerPage), 1);
-            var effectivePage = Math.Min(normalizedPage, totalPages);
-            var skip = (effectivePage - 1) * normalizedItemsPerPage;
-
-            var books = await filteredQuery
-                .OrderByDescending(x => x.CreationDate)
-                .ThenByDescending(x => x.Id)
-                .Skip(skip)
-                .Take(normalizedItemsPerPage)
-                .ToListAsync();
-
-            return new AdminBooksResultDTO
-            {
-                Page = effectivePage,
-                ItemsPerPage = normalizedItemsPerPage,
-                TotalItems = totalItems,
-                Summary = summary,
-                Items = SetImageUrls(books)
-            };
-        }
-
-        private IList<Book> SetImageUrls(IList<Book> books)
-        {
-            return books.Select(book =>
-            {
-                SetImageUrls(book);
-                return book;
-            }).ToList();
-        }
-
-        private void SetImageUrls(Book book)
-        {
-            book.ImageUrl = _uploadService.GetImageUrl(book.ImageSlug, "Books", book.ImageVersion);
-            book.ThumbnailUrl = _uploadService.GetBookThumbnailUrl(book.ImageSlug, book.ImageVersion);
-        }
-
-        private IQueryable<Book> BuildAdminBooksQuery()
-        {
-            return _repository.Get()
-                .Include(b => b.User)
-                    .ThenInclude(u => u.Address)
-                .Include(b => b.BookUsers)
-                    .ThenInclude(bu => bu.User)
-                .Include(b => b.UserFacilitator)
-                .Include(b => b.Category)
-                    .ThenInclude(c => c.ParentCategory);
-        }
-
-        private async Task<AdminBooksSummaryDTO> BuildAdminSummaryAsync(IQueryable<Book> query)
-        {
-            var totalItems = await query.CountAsync();
-            var statusCounts = await query
-                .GroupBy(x => x.Status)
-                .Select(x => new { Status = x.Key, Count = x.Count() })
-                .ToListAsync();
-            var typeCounts = await query
-                .GroupBy(x => x.Type)
-                .Select(x => new { Type = x.Key, Count = x.Count() })
-                .ToListAsync();
-
-            int GetStatusCount(BookStatus status) => statusCounts.FirstOrDefault(x => x.Status == status)?.Count ?? 0;
-            int GetTypeCount(BookType bookType) => typeCounts.FirstOrDefault(x => x.Type == bookType)?.Count ?? 0;
-
-            return new AdminBooksSummaryDTO
-            {
-                All = totalItems,
-                NeedsAction = GetStatusCount(BookStatus.WaitingApproval) + GetStatusCount(BookStatus.AwaitingDonorDecision),
-                Shipping = GetStatusCount(BookStatus.WaitingSend) + GetStatusCount(BookStatus.Sent),
-                Physical = GetTypeCount(BookType.Printed),
-                Ebooks = GetTypeCount(BookType.Eletronic),
-                Finished = GetStatusCount(BookStatus.Received) + GetStatusCount(BookStatus.Canceled),
-                Available = GetStatusCount(BookStatus.Available)
-            };
-        }
-
-        private IQueryable<Book> ApplyAdminBooksFilters(
-            IQueryable<Book> query,
-            string search,
-            string status,
-            string bucket,
-            string type)
-        {
-            var normalizedSearch = (search ?? string.Empty).Trim().ToLower();
-            if (!string.IsNullOrWhiteSpace(normalizedSearch))
-            {
-                query = query.Where(x =>
-                    (x.Title != null && x.Title.ToLower().Contains(normalizedSearch))
-                    || (x.Author != null && x.Author.ToLower().Contains(normalizedSearch))
-                    || (x.User != null && x.User.Name != null && x.User.Name.ToLower().Contains(normalizedSearch))
-                    || (x.UserFacilitator != null && x.UserFacilitator.Name != null && x.UserFacilitator.Name.ToLower().Contains(normalizedSearch))
-                    || x.BookUsers.Any(bu =>
-                        bu.Status == DonationStatus.Donated
-                        && bu.User != null
-                        && bu.User.Name != null
-                        && bu.User.Name.ToLower().Contains(normalizedSearch))
-                );
+                return true;
             }
 
-            if (TryParseBookStatus(status, out var parsedStatus))
-                query = query.Where(x => x.Status == parsedStatus);
-
-            if (TryParseBookType(type, out var parsedType))
-                query = query.Where(x => x.Type == parsedType);
-
-            if (!string.IsNullOrWhiteSpace(bucket))
-                query = ApplyAdminBucket(query, bucket);
-
-            return query;
-        }
-
-        private IQueryable<Book> ApplyAdminBucket(IQueryable<Book> query, string bucket)
-        {
-            switch ((bucket ?? string.Empty).Trim().ToLower())
+            if (current is Microsoft.Data.Sqlite.SqliteException sqliteException
+                && sqliteException.SqliteErrorCode == 19
+                && sqliteException.Message.Contains("Books.Slug", StringComparison.OrdinalIgnoreCase))
             {
-                case "needsaction":
-                    return query.Where(x => x.Status == BookStatus.WaitingApproval || x.Status == BookStatus.AwaitingDonorDecision);
-                case "shipping":
-                    return query.Where(x => x.Status == BookStatus.WaitingSend || x.Status == BookStatus.Sent);
-                case "finished":
-                    return query.Where(x => x.Status == BookStatus.Received || x.Status == BookStatus.Canceled);
-                case "ebooks":
-                    return query.Where(x => x.Type == BookType.Eletronic);
-                case "physical":
-                    return query.Where(x => x.Type == BookType.Printed);
-                case "available":
-                    return query.Where(x => x.Status == BookStatus.Available);
-                default:
-                    return query;
+                return true;
             }
         }
 
-        private bool TryParseBookStatus(string status, out BookStatus parsedStatus)
+        return false;
+    }
+
+    public override async Task<PagedList<Book>> GetAsync<TKey>(
+        Expression<Func<Book, bool>> filter,
+        Expression<Func<Book, TKey>> order,
+        int page,
+        int itemsPerPage,
+        bool descending = false)
+    {
+        var skip = (page - 1) * itemsPerPage;
+        var query = _repository.Get().Where(filter);
+        var total = await query.CountAsync();
+        var orderedQuery = descending
+            ? query.Include(x => x.BookUsers).Include(x => x.User).OrderByDescending(order)
+            : query.Include(x => x.BookUsers).Include(x => x.User).OrderBy(order);
+
+        var result = await orderedQuery
+            .Skip(skip)
+            .Take(itemsPerPage)
+            .ToListAsync();
+
+        return new PagedList<Book>()
         {
-            parsedStatus = default;
-            return !string.IsNullOrWhiteSpace(status)
-                && Enum.TryParse(status.Trim(), true, out parsedStatus);
+            Page = page,
+            ItemsPerPage = itemsPerPage,
+            TotalItems = total,
+            Items = result
+        };
+    }
+
+    public async Task ApproveAsync(Guid bookId, DateTime? chooseDate = null)
+    {
+        var daysInShowcase = int.Parse(_configuration["SharebookSettings:DaysInShowcase"]!);
+
+        var book = await _repository.Get().Include(b => b.Category).FirstOrDefaultAsync(b => b.Id == bookId);
+        if (book == null)
+            throw new ShareBookException(ShareBookException.Error.NotFound);
+
+        book.Status = BookStatus.Available;
+        book.ApprovedAt = _timeProvider.GetUtcNow().UtcDateTime;
+        book.ChooseDate = book.IsEbook()
+            ? null
+            : chooseDate?.Date ?? DateTime.Today.AddDays(daysInShowcase);
+        await PersistBookUpdateAsync(book);
+
+        // notifica o doador
+        await _booksEmailService.SendEmailBookApprovedAsync(book);
+
+        // notifica possíveis interessados.
+        var message = new NewBookBody
+        {
+            BookId = book.Id,
+            BookTitle = book.Title,
+            CategoryId = book.CategoryId
+        };
+        await _newBookQueue.SendMessageAsync(message);
+
+    }
+
+    public async Task MarkAsDeliveredAsync(Guid bookId)
+    {
+        var book = await _repository.FindAsync(bookId);
+        if (book == null)
+            throw new ShareBookException(ShareBookException.Error.NotFound);
+
+        book.Status = BookStatus.Received;
+        await PersistBookUpdateAsync(book);
+    }
+
+    public async Task ReceivedAsync(Guid bookId, Guid winnerUserId)
+    {
+        var book = await _repository.Get().Include(f => f.BookUsers)
+            .ThenInclude(bu => bu.User)
+            .FirstOrDefaultAsync(f => f.Id == bookId);
+
+        if (book == null)
+            throw new ShareBookException(ShareBookException.Error.NotFound);
+
+        // Verifica se o usuario é realmente o ganhador do livro
+        var winner = book.WinnerUser();
+        if (winner == null || winner.Id != winnerUserId)
+            throw new ShareBookException(ShareBookException.Error.Forbidden);
+
+        book.Status = BookStatus.Received;
+        await PersistBookUpdateAsync(book);
+
+        await _booksEmailService.SendEmailBookReceivedAsync(book);
+    }
+
+    public async Task UpdateBookStatusAsync(Guid bookId, BookStatus bookStatus)
+    {
+        var book = await _repository.FindAsync(bookId);
+        if (book == null)
+            throw new ShareBookException(ShareBookException.Error.NotFound);
+
+        book.Status = bookStatus;
+        await PersistBookUpdateAsync(book);
+    }
+
+    public IList<dynamic> FreightOptions()
+    {
+        var enumValues = new List<dynamic>();
+        foreach (FreightOption freightOption in Enum.GetValues(typeof(FreightOption)))
+        {
+            enumValues.Add(new
+            {
+                Value = freightOption.ToString(),
+                Text = freightOption.Description()
+            });
         }
+        return enumValues;
+    }
 
-        private bool TryParseBookType(string type, out BookType parsedType)
+    private IList<Book> SetImageUrls(IList<Book> books)
+    {
+        return books.Select(book =>
         {
-            parsedType = default;
+            SetImageUrls(book);
+            return book;
+        }).ToList();
+    }
 
-            switch ((type ?? string.Empty).Trim().ToLower())
-            {
-                case "printed":
-                case "physical":
-                    parsedType = BookType.Printed;
-                    return true;
-                case "eletronic":
-                case "ebook":
-                case "ebooks":
-                case "digital":
-                    parsedType = BookType.Eletronic;
-                    return true;
-                default:
-                    return false;
-            }
-        }
+    private void SetImageUrls(Book book)
+    {
+        // ImageSlug é opcional no domínio (nem todo fluxo tem imagem persistida ainda),
+        // mas os dois métodos abaixo só são chamados após o book já ter uma imagem/slug definidos.
+        book.ImageUrl = _uploadService.GetImageUrl(book.ImageSlug ?? string.Empty, "Books", book.ImageVersion);
+        book.ThumbnailUrl = _uploadService.GetBookThumbnailUrl(book.ImageSlug ?? string.Empty, book.ImageVersion);
+    }
 
-        private async Task<UserDonationsSummaryDTO> BuildUserDonationsSummaryAsync(IQueryable<Book> query)
+    private bool IsLeafCategory(Guid categoryId)
+    {
+        var hasChildren = _categoryRepository
+            .Get()
+            .Any(c => c.ParentCategoryId == categoryId);
+
+        return !hasChildren;
+    }
+
+    public async Task<IList<Book>> GetAllAsync(int page, int items)
+        => await _repository.Get()
+            .Include(b => b.User)
+            .Include(b => b.BookUsers)
+            .OrderBy(b => b.Id)
+            .Skip((page - 1) * items)
+            .Take(items).ToListAsync();
+
+    public override async Task<Book?> FindAsync(object keyValue)
+    {
+        var result = await _repository.Get()
+            .Include(b => b.User)
+            .ThenInclude(u => u!.Address)
+            .Include(b => b.Category)
+            .Include(b => b.UserFacilitator)
+            .Where(b => b.Id == (Guid)keyValue)
+            .FirstOrDefaultAsync();
+
+        if (result == null)
+            throw new ShareBookException(ShareBookException.Error.NotFound);
+
+        SetImageUrls(result);
+
+        return result;
+    }
+
+    public override async Task<Result<Book>> InsertAsync(Book entity)
+    {
+        entity.UserId = _currentUserAccessor.RequireUserId();
+
+        if (entity.IsEbook())
+            entity.ChooseDate = null;
+
+        var result = await ValidateAsync(entity);
+        if (result.Success)
         {
-            var statusCounts = await query
-                .GroupBy(x => x.Status)
-                .Select(x => new { Status = x.Key, Count = x.Count() })
-                .ToListAsync();
-            var ebookDownloadsTotal = await query
-                .Where(x => x.Type == BookType.Eletronic)
-                .SumAsync(x => (int?)x.DownloadCount) ?? 0;
-
-            int GetStatusCount(BookStatus status) => statusCounts.FirstOrDefault(x => x.Status == status)?.Count ?? 0;
-
-            return new UserDonationsSummaryDTO
-            {
-                WaitingDecision = GetStatusCount(BookStatus.AwaitingDonorDecision),
-                WaitingSend = GetStatusCount(BookStatus.WaitingSend),
-                Finished = GetStatusCount(BookStatus.Received) + GetStatusCount(BookStatus.Canceled),
-                EbookDownloadsTotal = ebookDownloadsTotal
-            };
-        }
-
-        private IQueryable<Book> ApplyUserDonationsFilters(IQueryable<Book> query, string search, string bucket)
-        {
-            if (!string.IsNullOrWhiteSpace(bucket))
-            {
-                switch (bucket.Trim().ToLower())
-                {
-                    case "needsaction":
-                        query = query.Where(x => x.Status == BookStatus.AwaitingDonorDecision || x.Status == BookStatus.WaitingSend);
-                        break;
-                    case "physical":
-                        query = query.Where(x => x.Type == BookType.Printed);
-                        break;
-                    case "digital":
-                        query = query.Where(x => x.Type == BookType.Eletronic);
-                        break;
-                    case "finished":
-                        query = query.Where(x => x.Status == BookStatus.Received || x.Status == BookStatus.Canceled);
-                        break;
-                }
-            }
-
-            var normalizedSearch = (search ?? string.Empty).Trim().ToLower();
-            if (!string.IsNullOrWhiteSpace(normalizedSearch))
-            {
-                query = query.Where(x =>
-                    (x.Title != null && x.Title.ToLower().Contains(normalizedSearch))
-                    || (x.Author != null && x.Author.ToLower().Contains(normalizedSearch))
-                    || x.Status.ToString().ToLower().Contains(normalizedSearch)
-                    || (normalizedSearch.Contains("digital") && x.Type == BookType.Eletronic)
-                    || (normalizedSearch.Contains("fisico") && x.Type == BookType.Printed)
-                    || (normalizedSearch.Contains("físico") && x.Type == BookType.Printed)
-                );
-            }
-
-            return query;
-        }
-
-        private bool IsLeafCategory(Guid categoryId)
-        {
-            var hasChildren = _categoryRepository
-                .Get()
-                .Any(c => c.ParentCategoryId == categoryId);
-
-            return !hasChildren;
-        }
-
-
-        public async Task<IList<Book>> GetAllAsync(int page, int items)
-            => await _repository.Get()
-                .Include(b => b.User)
-                .Include(b => b.BookUsers)
-                .OrderBy(b => b.Id)
-                .Skip((page - 1) * items)
-                .Take(items).ToListAsync();
-
-        public override async Task<Book> FindAsync(object keyValue)
-        {
-            var result = await _repository.Get()
-                .Include(b => b.User)
-                .ThenInclude(u => u.Address)
-                .Include(b => b.Category)
-                .Include(b => b.UserFacilitator)
-                .Where(b => b.Id == (Guid)keyValue)
-                .FirstOrDefaultAsync();
-
-            if (result == null)
-                throw new ShareBookException(ShareBookException.Error.NotFound);
-
-            SetImageUrls(result);
-
-            return result;
-        }
-
-        public override async Task<Result<Book>> InsertAsync(Book entity)
-        {
-            entity.UserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-
-            if (entity.IsEbook())
-                entity.ChooseDate = null;
-
-            var result = await ValidateAsync(entity);
-            if (result.Success)
-            {
-                var isLeafCategory = IsLeafCategory(entity.CategoryId);
-                if (!isLeafCategory)
-                {
-                    result.Messages.Add("Selecione uma subcategoria final (categoria folha). Categorias-pai não são permitidas para cadastro.");
-                    return result;
-                }
-            }
-
-            if (result.Success && entity.IsEbook())
-            {
-                var isDuplicate = await _repository.AnyAsync(b =>
-                    b.Type == BookType.Eletronic &&
-                    b.Title.ToLower().Trim() == entity.Title.ToLower().Trim() &&
-                    b.Author.ToLower().Trim() == entity.Author.ToLower().Trim());
-
-                if (isDuplicate)
-                {
-                    result.Messages.Add("Já existe um e-book com este título e autor no catálogo.");
-                    return result;
-                }
-            }
-
-            if (result.Success)
-            {
-                for (var attempt = 1; attempt <= MaxSlugInsertAttempts; attempt++)
-                {
-                    entity.Slug = await GetAvailableSlugAsync(entity.Title);
-                    entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, entity.Slug);
-
-                    var uploadedPdf = entity.HasPdfToUpload();
-                    if (uploadedPdf)
-                        entity.EBookPdfPath = await _ebookService.UploadPdfAsync(entity);
-
-                    try
-                    {
-                        result.Value = await _repository.InsertAsync(entity);
-                        break;
-                    }
-                    catch (DuplicateBookSlugException) when (attempt < MaxSlugInsertAttempts)
-                    {
-                        await DeleteUploadedPdfAfterSlugConflictAsync(entity, uploadedPdf);
-                    }
-                    catch (DuplicateBookSlugException)
-                    {
-                        await DeleteUploadedPdfAfterSlugConflictAsync(entity, uploadedPdf);
-                        throw;
-                    }
-                }
-
-                await _uploadService.UploadImageAsync(entity.ImageBytes, entity.ImageSlug, "Books");
-                SetImageUrls(result.Value);
-
-                result.Value.ImageBytes = null;
-                result.Value.PdfBytes = null;
-
-                await _booksEmailService.SendEmailNewBookInsertedAsync(entity);
-            }
-            return result;
-        }
-
-        public override async Task<Result> DeleteAsync(params object[] keyValues)
-        {
-            var book = await _repository.FindAsync(keyValues);
-            if (book == null)
-                throw new ShareBookException(ShareBookException.Error.NotFound);
-
-            if (!string.IsNullOrWhiteSpace(book.ImageSlug))
-            {
-                try
-                {
-                    await _uploadService.DeleteFileIfExistsAsync(book.ImageSlug, "Books");
-                }
-                catch
-                {
-                    // limpeza de arquivo não deve bloquear remoção do registro no banco
-                }
-            }
-
-            if (book.IsEbook() && !string.IsNullOrWhiteSpace(book.EBookPdfPath))
-            {
-                try
-                {
-                    await _ebookService.DeletePdfAsync(book);
-                }
-                catch
-                {
-                    // limpeza de arquivo não deve bloquear remoção do registro no banco
-                }
-            }
-
-            return await base.DeleteAsync(keyValues);
-        }
-
-        public override async Task<Result<Book>> UpdateAsync(Book entity)
-        {
-            Result<Book> result = Validate(entity, x =>
-                x.Title,
-                x => x.Author,
-                x => x.Id);
-
-            var bookId = entity.Id;
-
-            if (!result.Success) return result;
-
             var isLeafCategory = IsLeafCategory(entity.CategoryId);
             if (!isLeafCategory)
             {
                 result.Messages.Add("Selecione uma subcategoria final (categoria folha). Categorias-pai não são permitidas para cadastro.");
                 return result;
             }
+        }
 
-            //buscar o book no banco para obter um objeto para ser re-hidratado
-            var savedBook = await this._repository.FindAsync(bookId);
+        if (result.Success && entity.IsEbook())
+        {
+            var isDuplicate = await _repository.AnyAsync(b =>
+                b.Type == BookType.Eletronic &&
+                b.Title.ToLower().Trim() == entity.Title.ToLower().Trim() &&
+                b.Author.ToLower().Trim() == entity.Author.ToLower().Trim());
 
-            if (savedBook == null)
-                throw new ShareBookException(ShareBookException.Error.NotFound);
-
-            //imagem eh opcional no update
-            if (!string.IsNullOrEmpty(entity.ImageName) && entity.ImageBytes.Length > 0)
+            if (isDuplicate)
             {
-                entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, savedBook.Slug);
+                result.Messages.Add("Já existe um e-book com este título e autor no catálogo.");
+                return result;
+            }
+        }
 
-                await _uploadService.UploadImageAsync(entity.ImageBytes, entity.ImageSlug, "Books");
+        if (result.Success)
+        {
+            for (var attempt = 1; attempt <= MaxSlugInsertAttempts; attempt++)
+            {
+                entity.Slug = await GetAvailableSlugAsync(entity.Title);
+                // ImageName é obrigatório no Insert (BookValidator.ImageName.NotEmpty()), então result.Success
+                // já garante que não é nulo/vazio neste ponto.
+                entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName!, entity.Slug!);
 
-                if (!string.IsNullOrWhiteSpace(savedBook.ImageSlug)
-                    && !savedBook.ImageSlug.Equals(entity.ImageSlug, StringComparison.OrdinalIgnoreCase))
+                var uploadedPdf = entity.HasPdfToUpload();
+                if (uploadedPdf)
+                    entity.EBookPdfPath = await _ebookService.UploadPdfAsync(entity);
+
+                try
                 {
-                    await _uploadService.DeleteReplacedImageAsync(
-                        savedBook.ImageSlug,
-                        entity.ImageSlug,
-                        "Books");
+                    result.Value = await _repository.InsertAsync(entity);
+                    break;
                 }
-
-                savedBook.ImageVersion++;
+                catch (Exception exception) when (IsUniqueSlugViolation(exception) && attempt < MaxSlugInsertAttempts)
+                {
+                    _context.Entry(entity).State = EntityState.Detached;
+                    await DeleteUploadedPdfAfterSlugConflictAsync(entity, uploadedPdf);
+                }
+                catch (Exception exception) when (IsUniqueSlugViolation(exception))
+                {
+                    _context.Entry(entity).State = EntityState.Detached;
+                    await DeleteUploadedPdfAfterSlugConflictAsync(entity, uploadedPdf);
+                    throw new DuplicateBookSlugException(entity.Slug, exception);
+                }
             }
 
-            //preparar o book para atualização
-            savedBook.Author = entity.Author;
-            savedBook.FreightOption = entity.FreightOption;
-            savedBook.Author = entity.Author;
+            // ImageBytes é obrigatório no Insert (BookValidator.ImageBytes.NotEmpty()).
+            await _uploadService.UploadImageAsync(entity.ImageBytes!, entity.ImageSlug!, "Books");
+            SetImageUrls(result.Value!);
 
-            // Imagem é opcional no update e o UpdateBookVM não carrega ImageSlug.
-            // Copiar cegamente apagava a capa de quem só quis editar texto.
-            if (!string.IsNullOrWhiteSpace(entity.ImageSlug))
-                savedBook.ImageSlug = entity.ImageSlug;
+            result.Value!.ImageBytes = null;
+            result.Value.PdfBytes = null;
 
-            savedBook.Title = entity.Title;
-            savedBook.CategoryId = entity.CategoryId;
-
-            savedBook.Synopsis = entity.Synopsis;
-            savedBook.TrackingNumber = entity.TrackingNumber;
-            savedBook.ChooseDate = savedBook.IsEbook()
-                ? null
-                : entity.ChooseDate?.Date;
-
-            if (entity.UserIdFacilitator.HasValue && entity.UserIdFacilitator != Guid.Empty)
-                savedBook.UserIdFacilitator = entity.UserIdFacilitator;
-
-            result.Value = await _repository.UpdateAsync(savedBook);
-            result.Value.ImageBytes = null;
-            SetImageUrls(result.Value);
-
-            return result;
+            await _booksEmailService.SendEmailNewBookInsertedAsync(entity);
         }
+        return result;
+    }
 
-        public async Task<PagedList<Book>> FullSearchAsync(string criteria, int page, int itemsPerPage, bool isAdmin)
+    public override async Task<Result> DeleteAsync(params object[] keyValues)
+    {
+        var book = await _repository.FindAsync(keyValues);
+        if (book == null)
+            throw new ShareBookException(ShareBookException.Error.NotFound);
+
+        if (!string.IsNullOrWhiteSpace(book.ImageSlug))
         {
-            var normalizedCriteria = criteria.ToNormalizedSearchText();
-            var query = _bookRepository
-                .FullTextSearch(normalizedCriteria, includeUnavailable: isAdmin)
-                .Select(book => new Book
-                {
-                    Id = book.Id,
-                    Title = book.Title,
-                    Author = book.Author,
-                    Status = book.Status,
-                    DownloadCount = book.DownloadCount,
-                    FreightOption = book.FreightOption,
-                    ImageSlug = book.ImageSlug,
-                    ImageVersion = book.ImageVersion,
-                    ImageUrl = _uploadService.GetImageUrl(book.ImageSlug, "Books", book.ImageVersion),
-                    ThumbnailUrl = _uploadService.GetBookThumbnailUrl(book.ImageSlug, book.ImageVersion),
-                    Slug = book.Slug,
-                    CreationDate = book.CreationDate,
-                    Synopsis = book.Synopsis,
-                    ChooseDate = book.ChooseDate,
-                    User = new User
-                    {
-                        Id = book.User.Id,
-                        Email = book.User.Email,
-                        Name = book.User.Name,
-                        Linkedin = book.User.Linkedin,
-                        Address = new Address
-                        {
-                            City = book.User.Address.City,
-                            State = book.User.Address.State,
-                            Country = book.User.Address.Country,
-                            UserId = book.User.Address.UserId,
-                            Id = book.User.Address.Id,
-                            CreationDate = book.User.Address.CreationDate,
-                        }
-                    },
-                    CategoryId = book.CategoryId,
-                    Category = new Category
-                    {
-                        Id = book.Category.Id,
-                        Name = book.Category.Name,
-                        ParentCategoryId = book.Category.ParentCategoryId,
-                        ParentCategory = book.Category.ParentCategory == null
-                            ? null
-                            : new Category
-                            {
-                                Id = book.Category.ParentCategory.Id,
-                                Name = book.Category.ParentCategory.Name
-                            }
-                    },
-                    Type = book.Type,
-                    EBookPdfPath = book.EBookPdfPath
-                });
-
-            return await FormatPagedListAsync(query, page, itemsPerPage);
-        }
-
-        public async Task<CategoryBooksResultDTO> ByCategoryIdAsync(Guid categoryId, int page, int itemsPerPage)
-        {
-            var query = _repository.Get()
-                .Where(x => x.Status == BookStatus.Available && x.CategoryId == categoryId);
-
-            return await FormatCategoryBooksResultAsync(query, page, itemsPerPage);
-        }
-
-        public async Task<CategoryBooksResultDTO> ByCategoryTreeIdAsync(Guid categoryId, int page, int itemsPerPage)
-        {
-            var query = _repository.Get()
-                .Where(x => x.Status == BookStatus.Available
-                    && (x.CategoryId == categoryId || x.Category.ParentCategoryId == categoryId));
-
-            return await FormatCategoryBooksResultAsync(query, page, itemsPerPage);
-        }
-
-        private async Task<CategoryBooksResultDTO> FormatCategoryBooksResultAsync(IQueryable<Book> query, int page, int itemsPerPage)
-        {
-            var totalItems = await query.CountAsync();
-            var physicalCount = await query.CountAsync(x => x.Type == BookType.Printed);
-            var ebooksCount = await query.CountAsync(x => x.Type == BookType.Eletronic);
-
-            var items = await query
-                .OrderByDescending(x => x.CreationDate)
-                .Skip((page - 1) * itemsPerPage)
-                .Take(itemsPerPage)
-                .ToListAsync();
-
-            return new CategoryBooksResultDTO
-            {
-                Page = page,
-                ItemsPerPage = itemsPerPage,
-                TotalItems = totalItems,
-                PhysicalBooksCount = physicalCount,
-                EbooksCount = ebooksCount,
-                Items = SetImageUrls(items)
-            };
-        }
-
-        public async Task<Book> BySlugAsync(string slug)
-        {
-            var pagedBook = await SearchBooksAsync(x => (x.Slug.Equals(slug)), 1, 1);
-            return pagedBook.Items.FirstOrDefault();
-        }
-
-        public async Task<IList<Book>> GetRecommendationsAsync(Guid bookId, int limit = 6)
-        {
-            var normalizedLimit = Math.Min(Math.Max(limit, 1), 6);
-            var source = await _repository.Get()
-                .AsNoTracking()
-                .Include(book => book.Category)
-                    .ThenInclude(category => category.ParentCategory)
-                .FirstOrDefaultAsync(book => book.Id == bookId);
-
-            if (source == null)
-                throw new ShareBookException(ShareBookException.Error.NotFound);
-
-            var candidates = await _repository.Get()
-                .AsNoTracking()
-                .Include(book => book.Category)
-                    .ThenInclude(category => category.ParentCategory)
-                .Where(book => book.Status == BookStatus.Available && book.Id != bookId)
-                .ToListAsync();
-
-            var rankedIds = BookRecommendationRanker
-                .Rank(source, candidates, normalizedLimit)
-                .Select(book => book.Id)
-                .ToList();
-
-            if (rankedIds.Count == 0)
-                return Array.Empty<Book>();
-
-            var books = await _repository.Get()
-                .AsNoTracking()
-                .Include(book => book.User)
-                    .ThenInclude(user => user.Address)
-                .Include(book => book.Category)
-                    .ThenInclude(category => category.ParentCategory)
-                .Where(book => rankedIds.Contains(book.Id))
-                .ToListAsync();
-
-            var booksById = books.ToDictionary(book => book.Id);
-            var orderedBooks = rankedIds
-                .Where(booksById.ContainsKey)
-                .Select(id => booksById[id])
-                .ToList();
-
-            return SetImageUrls(orderedBooks);
-        }
-
-        public async Task<bool> UserRequestedBookAsync(Guid bookId)
-        {
-            var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-            return await _repository.AnyAsync(x =>
-                    x.Id == bookId &&
-                    x.BookUsers.Any(y => y.UserId == userId));
-        }
-
-        public override async Task<PagedList<Book>> GetAsync<TKey>(
-            Expression<Func<Book, bool>> filter,
-            Expression<Func<Book, TKey>> order,
-            int page,
-            int itemsPerPage,
-            bool descending = false)
-            => await base.GetAsync(filter, order, page, itemsPerPage, descending);
-
-        public async Task<IList<Book>> GetUserDonationsAsync(Guid userId)
-        {
-            return await _repository.Get()
-                .Include(b => b.BookUsers)
-                .Where(b => b.UserId == userId)
-                .OrderByDescending(b => b.CreationDate)
-                .ToListAsync();
-        }
-
-        public async Task<UserDonationsResultDTO> GetUserDonationsAsync(
-            Guid userId,
-            int page,
-            int itemsPerPage,
-            string search = null,
-            string bucket = null)
-        {
-            var normalizedPage = page <= 0 ? 1 : page;
-            var normalizedItemsPerPage = itemsPerPage <= 0 ? 24 : Math.Min(itemsPerPage, 100);
-
-            var baseQuery = _repository.Get()
-                .Include(b => b.BookUsers)
-                    .ThenInclude(bu => bu.User)
-                .Include(b => b.Category)
-                    .ThenInclude(c => c.ParentCategory)
-                .Where(b => b.UserId == userId);
-
-            var summary = await BuildUserDonationsSummaryAsync(baseQuery);
-            var filteredQuery = ApplyUserDonationsFilters(baseQuery, search, bucket);
-            var totalItems = await filteredQuery.CountAsync();
-            var totalPages = Math.Max((int)Math.Ceiling(totalItems / (double)normalizedItemsPerPage), 1);
-            var effectivePage = Math.Min(normalizedPage, totalPages);
-            var skip = (effectivePage - 1) * normalizedItemsPerPage;
-
-            var items = await filteredQuery
-                .OrderByDescending(x => x.CreationDate)
-                .ThenByDescending(x => x.Id)
-                .Skip(skip)
-                .Take(normalizedItemsPerPage)
-                .ToListAsync();
-
-            return new UserDonationsResultDTO
-            {
-                Page = effectivePage,
-                ItemsPerPage = normalizedItemsPerPage,
-                TotalItems = totalItems,
-                Summary = summary,
-                Items = SetImageUrls(items)
-            };
-        }
-
-        public async Task<IList<Book>> GetBooksChooseDateIsTodayAsync()
-        {
-            // limite é o dia de hoje.
-            DateTime startDateTime = DateTime.Today; //Today at 00:00:00
-            DateTime endDateTime = DateTime.Today.AddDays(1).AddTicks(-1); //Today at 23:59:59
-
-            // livros em que o choosedate é hoje.
-            var books = await _repository
-                .Get().Include(x => x.User).Include(x => x.BookUsers).Include(x => x.UserFacilitator)
-                .Where(x =>
-                    x.ChooseDate >= startDateTime &&
-                    x.ChooseDate <= endDateTime
-                ).ToListAsync();
-
-            return books;
-        }
-
-        public async Task<IList<Book>> GetBooksChooseDateIsLateAsync()
-        {
-            DateTime today = DateTime.Today;
-
-            var booksLate = await _repository
-                .Get().Include(x => x.User).Include(x => x.BookUsers).Include(x => x.UserFacilitator)
-                .Where(x => x.ChooseDate < today && x.Status == BookStatus.AwaitingDonorDecision)
-                .OrderBy(x => x.ChooseDate)
-                .ToListAsync();
-
-            return booksLate;
-        }
-
-        /// <summary>
-        /// Bom para remover o livro da vitrine.
-        /// </summary>
-        /// <returns></returns>
-        public async Task<IList<Book>> GetBooksChooseDateIsTodayOrLateAsync()
-        {
-            // limite é o dia de hoje.
-            DateTime endDateTime = DateTime.Today.AddDays(1).AddTicks(-1); //Today at 23:59:59
-
-            // livros em que o choosedate é hoje.
-            var books = await _repository
-                .Get().Include(x => x.User).Include(x => x.BookUsers).Include(x => x.UserFacilitator)
-                .Where(x =>
-                    x.ChooseDate <= endDateTime && x.Status == BookStatus.Available
-                ).ToListAsync();
-
-            return books;
-        }
-
-        public async Task AddFacilitatorNotesAsync(Guid bookId, string facilitatorNotes)
-        {
-            var book = await _repository.FindAsync(bookId);
-            if (book == null)
-                throw new ShareBookException(ShareBookException.Error.NotFound);
-
-            var saoPauloNow = DateTimeHelper.ConvertDateTimeSaoPaulo(DateTime.UtcNow);
-            var date = saoPauloNow.ToString("dd/MM/yyyy");
-            var lineBreak = (string.IsNullOrEmpty(book.FacilitatorNotes)) ? "" : "\n";
-            book.FacilitatorNotes += string.Format("{0}{1} - {2}", lineBreak, date, facilitatorNotes);
-
-            await _repository.UpdateAsync(book);
-        }
-
-        public async Task<Book> GetBookWithAllUsersAsync(Guid bookId)
-        {
-            return await _repository
-                .Get().Include(x => x.User).ThenInclude(u => u.Address)
-                .Include(x => x.UserFacilitator).ThenInclude(u => u.Address)
-                .Include(x => x.BookUsers).ThenInclude(bu => bu.User).ThenInclude(u => u.Address)
-                .Where(x => x.Id == bookId)
-                .FirstOrDefaultAsync();
-        }
-
-        public async Task RenewChooseDateAsync(Guid bookId)
-        {
-            var book = await _repository.FindAsync(bookId);
-            if (book == null)
-                throw new ShareBookException(ShareBookException.Error.NotFound);
-
-            if (!book.MayChooseWinner())
-                throw new ShareBookException(ShareBookException.Error.BadRequest, "Aguarde a data de decisão.");
-
-            book.Status = BookStatus.Available;
-            book.ChooseDate = DateTime.UtcNow.AddDays(10);
-            await _repository.UpdateAsync(book);
-        }
-
-        public async Task ReportCopyrightAsync(string slug)
-        {
-            var book = await BySlugAsync(slug);
-            if (book == null)
-                throw new ShareBookException(ShareBookException.Error.NotFound);
-
-            if (!book.IsEbook())
-                throw new ShareBookException(ShareBookException.Error.BadRequest, "Report de direitos autorais é aplicável apenas a e-books.");
-
-            await _booksEmailService.SendEmailCopyrightReportAsync(book);
-        }
-
-        #region Private
-
-        private async Task<string> GetAvailableSlugAsync(string title)
-        {
-            var baseSlug = title.GenerateSlug();
-            var existingSlugs = await _bookRepository.GetSlugsStartingWithAsync(baseSlug);
-
-            return baseSlug.NextAvailableCopySlug(existingSlugs);
-        }
-
-        private async Task DeleteUploadedPdfAfterSlugConflictAsync(Book entity, bool uploadedPdf)
-        {
-            if (!uploadedPdf || string.IsNullOrWhiteSpace(entity.EBookPdfPath))
-                return;
-
             try
             {
-                await _ebookService.DeletePdfAsync(entity);
+                await _uploadService.DeleteFileIfExistsAsync(book.ImageSlug, "Books");
             }
             catch
             {
-                // A disputa de slug não deve impedir a nova tentativa de persistência.
+                // limpeza de arquivo não deve bloquear remoção do registro no banco
             }
-            finally
+        }
+
+        if (book.IsEbook() && !string.IsNullOrWhiteSpace(book.EBookPdfPath))
+        {
+            try
             {
-                entity.EBookPdfPath = null;
+                await _ebookService.DeletePdfAsync(book);
+            }
+            catch
+            {
+                // limpeza de arquivo não deve bloquear remoção do registro no banco
             }
         }
 
-        private async Task<PagedList<Book>> SearchBooksAsync(Expression<Func<Book, bool>> filter, int page, int itemsPerPage)
-            => await SearchBooksAsync(filter, page, itemsPerPage, x => x.CreationDate);
-
-        private async Task<PagedList<Book>> SearchBooksAsync<TKey>(Expression<Func<Book, bool>> filter, int page, int itemsPerPage, Expression<Func<Book, TKey>> expression)
-        {
-            var query = _repository.Get()
-                .Where(filter)
-                .OrderByDescending(expression)
-                .Select(u => new Book
-                {
-                    Id = u.Id,
-                    Title = u.Title,
-                    Author = u.Author,
-                    Status = u.Status,
-                    DownloadCount = u.DownloadCount,
-                    FreightOption = u.FreightOption,
-                    ImageSlug = u.ImageSlug,
-                    ImageVersion = u.ImageVersion,
-                    ImageUrl = _uploadService.GetImageUrl(u.ImageSlug, "Books", u.ImageVersion),
-                    ThumbnailUrl = _uploadService.GetBookThumbnailUrl(u.ImageSlug, u.ImageVersion),
-                    Slug = u.Slug,
-                    CreationDate = u.CreationDate,
-                    Synopsis = u.Synopsis,
-                    ChooseDate = u.ChooseDate,
-                    User = new User()
-                    {
-                        Id = u.User.Id,
-                        Email = u.User.Email,
-                        Name = u.User.Name,
-                        Linkedin = u.User.Linkedin,
-                        Address = new Address()
-                        {
-                            City = u.User.Address.City,
-                            State = u.User.Address.State,
-                            Country = u.User.Address.Country,
-                            UserId = u.User.Address.UserId,
-                            Id = u.User.Address.Id,
-                            CreationDate = u.User.Address.CreationDate,
-                        }
-                    },
-                    CategoryId = u.CategoryId,
-                    Category = new Category()
-                    {
-                        Id = u.Category.Id,
-                        Name = u.Category.Name,
-                        ParentCategoryId = u.Category.ParentCategoryId,
-                        ParentCategory = u.Category.ParentCategory == null
-                            ? null
-                            : new Category()
-                            {
-                                Id = u.Category.ParentCategory.Id,
-                                Name = u.Category.ParentCategory.Name
-                            }
-                    },
-                    Type = u.Type,
-                    EBookPdfPath = u.EBookPdfPath
-                });
-
-            return await FormatPagedListAsync(query, page, itemsPerPage);
-        }
-
-        public async Task<BookStatsDTO> GetStatsAsync()
-        {
-            var groupedStatus = await _repository.Get()
-                .GroupBy(b => b.Status)
-                .Select(g => new
-                {
-                    Status = g.Key,
-                    Total = g.Count()
-                })
-                .ToListAsync();
-
-            var status = new BookStatsDTO();
-
-            status.TotalWaitingApproval = groupedStatus.Exists(g => g.Status == BookStatus.WaitingApproval)
-                ? groupedStatus.Find(g => g.Status == BookStatus.WaitingApproval).Total
-                : 0;
-
-            status.TotalOk = groupedStatus
-                .Where(g => g.Status == BookStatus.WaitingSend || g.Status == BookStatus.Sent || g.Status == BookStatus.Received)
-                .Sum(g => g.Total);
-
-            return status;
-        }
-
-        public async Task IncrementDownloadCountAsync(Guid bookId)
-        {
-            var book = await _repository.FindAsync(bookId);
-            if (book == null)
-                throw new ShareBookException(ShareBookException.Error.NotFound);
-
-            book.DownloadCount++;
-            await _repository.UpdateAsync(book);
-        }
-
-        #endregion Private
+        return await base.DeleteAsync(keyValues);
     }
+
+    public override async Task<Result<Book>> UpdateAsync(Book entity)
+    {
+        Result<Book> result = Validate(entity, x =>
+            x.Title,
+            x => x.Author,
+            x => x.Id);
+
+        var bookId = entity.Id;
+
+        if (!result.Success) return result;
+
+        var isLeafCategory = IsLeafCategory(entity.CategoryId);
+        if (!isLeafCategory)
+        {
+            result.Messages.Add("Selecione uma subcategoria final (categoria folha). Categorias-pai não são permitidas para cadastro.");
+            return result;
+        }
+
+        //buscar o book no banco para obter um objeto para ser re-hidratado
+        var savedBook = await this._repository.FindAsync(bookId);
+
+        if (savedBook == null)
+            throw new ShareBookException(ShareBookException.Error.NotFound);
+
+        //imagem eh opcional no update
+        if (!string.IsNullOrEmpty(entity.ImageName) && entity.ImageBytes?.Length > 0)
+        {
+            entity.ImageSlug = ImageHelper.FormatImageName(entity.ImageName, savedBook.Slug ?? string.Empty);
+
+            await _uploadService.UploadImageAsync(entity.ImageBytes, entity.ImageSlug, "Books");
+
+            if (!string.IsNullOrWhiteSpace(savedBook.ImageSlug)
+                && !savedBook.ImageSlug.Equals(entity.ImageSlug, StringComparison.OrdinalIgnoreCase))
+            {
+                await _uploadService.DeleteReplacedImageAsync(
+                    savedBook.ImageSlug,
+                    entity.ImageSlug,
+                    "Books");
+            }
+
+            savedBook.ImageVersion++;
+        }
+
+        //preparar o book para atualização
+        savedBook.Author = entity.Author;
+        savedBook.FreightOption = entity.FreightOption;
+        savedBook.Author = entity.Author;
+
+        // Imagem é opcional no update e o UpdateBookVM não carrega ImageSlug.
+        // Copiar cegamente apagava a capa de quem só quis editar texto.
+        if (!string.IsNullOrWhiteSpace(entity.ImageSlug))
+            savedBook.ImageSlug = entity.ImageSlug;
+
+        savedBook.Title = entity.Title;
+        savedBook.CategoryId = entity.CategoryId;
+
+        savedBook.Synopsis = entity.Synopsis;
+        savedBook.TrackingNumber = entity.TrackingNumber;
+        savedBook.ChooseDate = savedBook.IsEbook()
+            ? null
+            : entity.ChooseDate?.Date;
+
+        if (entity.UserIdFacilitator.HasValue && entity.UserIdFacilitator != Guid.Empty)
+            savedBook.UserIdFacilitator = entity.UserIdFacilitator;
+
+        result.Value = await PersistBookUpdateAsync(savedBook);
+        result.Value!.ImageBytes = null;
+        SetImageUrls(result.Value);
+
+        return result;
+    }
+
+    public async Task<bool> UserRequestedBookAsync(Guid bookId)
+    {
+        var userId = _currentUserAccessor.RequireUserId();
+        return await _repository.AnyAsync(x =>
+                x.Id == bookId &&
+                x.BookUsers.Any(y => y.UserId == userId));
+    }
+
+
+    public async Task<IList<Book>> GetBooksChooseDateIsTodayAsync()
+    {
+        // limite é o dia de hoje.
+        DateTime startDateTime = DateTime.Today; //Today at 00:00:00
+        DateTime endDateTime = DateTime.Today.AddDays(1).AddTicks(-1); //Today at 23:59:59
+
+        // livros em que o choosedate é hoje.
+        var books = await _repository
+            .Get().Include(x => x.User).Include(x => x.BookUsers).Include(x => x.UserFacilitator)
+            .Where(x =>
+                x.ChooseDate >= startDateTime &&
+                x.ChooseDate <= endDateTime
+            ).ToListAsync();
+
+        return books;
+    }
+
+    public async Task<IList<Book>> GetBooksChooseDateIsLateAsync()
+    {
+        DateTime today = DateTime.Today;
+
+        var booksLate = await _repository
+            .Get().Include(x => x.User).Include(x => x.BookUsers).Include(x => x.UserFacilitator)
+            .Where(x => x.ChooseDate < today && x.Status == BookStatus.AwaitingDonorDecision)
+            .OrderBy(x => x.ChooseDate)
+            .ToListAsync();
+
+        return booksLate;
+    }
+
+    /// <summary>
+    /// Bom para remover o livro da vitrine.
+    /// </summary>
+    /// <returns></returns>
+    public async Task<IList<Book>> GetBooksChooseDateIsTodayOrLateAsync()
+    {
+        // limite é o dia de hoje.
+        DateTime endDateTime = DateTime.Today.AddDays(1).AddTicks(-1); //Today at 23:59:59
+
+        // livros em que o choosedate é hoje.
+        var books = await _repository
+            .Get().Include(x => x.User).Include(x => x.BookUsers).Include(x => x.UserFacilitator)
+            .Where(x =>
+                x.ChooseDate <= endDateTime && x.Status == BookStatus.Available
+            ).ToListAsync();
+
+        return books;
+    }
+
+    public async Task AddFacilitatorNotesAsync(Guid bookId, string facilitatorNotes)
+    {
+        var book = await _repository.FindAsync(bookId);
+        if (book == null)
+            throw new ShareBookException(ShareBookException.Error.NotFound);
+
+        var saoPauloNow = DateTimeHelper.ConvertDateTimeSaoPaulo(_timeProvider.GetUtcNow().UtcDateTime);
+        var date = saoPauloNow.ToString("dd/MM/yyyy");
+        var lineBreak = (string.IsNullOrEmpty(book.FacilitatorNotes)) ? "" : "\n";
+        book.FacilitatorNotes += string.Format("{0}{1} - {2}", lineBreak, date, facilitatorNotes);
+
+        await PersistBookUpdateAsync(book);
+    }
+
+    public async Task<Book?> GetBookWithAllUsersAsync(Guid bookId)
+    {
+        return await _repository
+            .Get().Include(x => x.User).ThenInclude(u => u!.Address)
+            .Include(x => x.UserFacilitator).ThenInclude(u => u!.Address)
+            .Include(x => x.BookUsers).ThenInclude(bu => bu.User).ThenInclude(u => u!.Address)
+            .Where(x => x.Id == bookId)
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task RenewChooseDateAsync(Guid bookId)
+    {
+        var book = await _repository.FindAsync(bookId);
+        if (book == null)
+            throw new ShareBookException(ShareBookException.Error.NotFound);
+
+        if (!book.MayChooseWinner())
+            throw new ShareBookException(ShareBookException.Error.BadRequest, "Aguarde a data de decisão.");
+
+        book.Status = BookStatus.Available;
+        book.ChooseDate = _timeProvider.GetUtcNow().UtcDateTime.AddDays(10);
+        await PersistBookUpdateAsync(book);
+    }
+
+    public async Task ReportCopyrightAsync(string slug)
+    {
+        var book = await BySlugAsync(slug);
+        if (book == null)
+            throw new ShareBookException(ShareBookException.Error.NotFound);
+
+        if (!book.IsEbook())
+            throw new ShareBookException(ShareBookException.Error.BadRequest, "Report de direitos autorais é aplicável apenas a e-books.");
+
+        await _booksEmailService.SendEmailCopyrightReportAsync(book);
+    }
+
+    public async Task IncrementDownloadCountAsync(Guid bookId)
+    {
+        var book = await _repository.FindAsync(bookId);
+        if (book == null)
+            throw new ShareBookException(ShareBookException.Error.NotFound);
+
+        book.DownloadCount++;
+        await PersistBookUpdateAsync(book);
+    }
+
+    #region Private
+
+    private async Task<string> GetAvailableSlugAsync(string title)
+    {
+        var baseSlug = title.GenerateSlug();
+        var existingSlugs = await _bookRepository.GetSlugsStartingWithAsync(baseSlug);
+
+        return baseSlug.NextAvailableCopySlug(existingSlugs);
+    }
+
+    private async Task DeleteUploadedPdfAfterSlugConflictAsync(Book entity, bool uploadedPdf)
+    {
+        if (!uploadedPdf || string.IsNullOrWhiteSpace(entity.EBookPdfPath))
+            return;
+
+        try
+        {
+            await _ebookService.DeletePdfAsync(entity);
+        }
+        catch
+        {
+            // A disputa de slug não deve impedir a nova tentativa de persistência.
+        }
+        finally
+        {
+            entity.EBookPdfPath = null;
+        }
+    }
+
+    #endregion Private
 }

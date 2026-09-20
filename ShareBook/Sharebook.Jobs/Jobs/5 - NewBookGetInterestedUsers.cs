@@ -31,7 +31,8 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
         IConfiguration configuration,
         IEmailTemplate emailTemplate,
         ILoggerFactory loggerFactory,
-        IBookRepository bookRepository) : base(jobHistoryRepo, loggerFactory)
+        TimeProvider timeProvider,
+        IBookRepository bookRepository) : base(jobHistoryRepo, loggerFactory, timeProvider)
     {
         JobName = "NewBookGetInterestedUsers";
         Description = @"Digest diário de livros físicos aprovados nas últimas 24h. Agrupa por usuário
@@ -49,7 +50,7 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
 
     public override async Task<JobHistory> WorkAsync()
     {
-        var awsSqsEnabled = bool.Parse(_configuration["AwsSqsSettings:IsActive"]);
+        var awsSqsEnabled = bool.Parse(_configuration["AwsSqsSettings:IsActive"]!);
         if (!awsSqsEnabled) throw new AwsSqsDisabledException("Serviço aws sqs está desabilitado no appsettings.");
 
         var since = DateTime.Today.AddDays(-1);
@@ -96,7 +97,7 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
             };
         }
 
-        var frontendUrl = _configuration["ServerSettings:FrontendUrl"];
+        var frontendUrl = _configuration["ServerSettings:FrontendUrl"]!;
         var totalEmailsQueued = 0;
 
         foreach (var (userId, entry) in userBooks)

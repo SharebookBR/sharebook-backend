@@ -1,8 +1,12 @@
 using ShareBook.Domain;
+using System.Linq;
+using System.Threading.Tasks;
 
-namespace ShareBook.Repository
+namespace ShareBook.Repository;
+
+public interface IBookDownloadEventRepository
 {
-    public interface IBookDownloadEventRepository : IRepositoryGeneric<BookDownloadEvent>
-    {
-    }
+    IQueryable<BookDownloadEvent> Get();
+
+    Task<BookDownloadEvent> InsertAsync(BookDownloadEvent entity);
 }

@@ -1,24 +1,19 @@
-using System;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ShareBook.Api.Filters;
 using ShareBook.Service.Authorization;
 using ShareBook.Service.DownloadLogs;
+using System;
+using System.Threading.Tasks;
 
 namespace ShareBook.Api.Controllers;
 
 [Route("api/[controller]")]
 [Authorize("Bearer")]
 [AuthorizationFilter(Permissions.Permission.ApproveBook)]
-public class DownloadLogsController : ControllerBase
+public class DownloadLogsController(IDownloadLogsService downloadLogsService) : ControllerBase
 {
-    private readonly IDownloadLogsService _downloadLogsService;
-
-    public DownloadLogsController(IDownloadLogsService downloadLogsService)
-    {
-        _downloadLogsService = downloadLogsService;
-    }
+    private readonly IDownloadLogsService _downloadLogsService = downloadLogsService;
 
     [HttpGet("Summary")]
     public async Task<IActionResult> GetSummaryAsync([FromQuery] DateTime? from, [FromQuery] DateTime? to)
@@ -34,8 +29,8 @@ public class DownloadLogsController : ControllerBase
         [FromQuery] DateTime? to,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 100,
-        [FromQuery] string ip = null,
-        [FromQuery] string outcome = null)
+        [FromQuery] string? ip = null,
+        [FromQuery] string? outcome = null)
     {
         var (rangeFrom, rangeTo) = ResolveRange(from, to);
         var paged = await _downloadLogsService.GetEventsAsync(rangeFrom, rangeTo, page, pageSize, ip, outcome);

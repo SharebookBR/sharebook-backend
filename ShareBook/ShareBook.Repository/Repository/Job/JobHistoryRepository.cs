@@ -1,12 +1,14 @@
-﻿using ShareBook.Domain;
+using ShareBook.Domain;
+using System.Linq;
 using System.Threading.Tasks;
 
-namespace ShareBook.Repository
+namespace ShareBook.Repository;
+
+public class JobHistoryRepository(ApplicationDbContext context) : IJobHistoryRepository
 {
-    public class JobHistoryRepository : RepositoryGeneric<JobHistory>, IJobHistoryRepository
-    {
-        public JobHistoryRepository(ApplicationDbContext context) : base(context)
-        {
-        }
-    }
+    private readonly EntityCrud<JobHistory> _crud = new EntityCrud<JobHistory>(context);
+
+    public IQueryable<JobHistory> Get() => _crud.Get();
+
+    public Task<JobHistory> InsertAsync(JobHistory entity) => _crud.InsertAsync(entity);
 }

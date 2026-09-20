@@ -1,12 +1,11 @@
 ﻿using ShareBook.Domain.Common;
 
-namespace ShareBook.Domain
+namespace ShareBook.Domain;
+
+public class ContactUs : BaseEntity
 {
-    public class ContactUs : BaseEntity
-    {
-        public string Name { get; set; }
-        public string Email { get; set; }
-        public string Phone { get; set; }
-        public string Message { get; set; }
-    }
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string? Phone { get; set; }
+    public string Message { get; set; } = string.Empty;
 }

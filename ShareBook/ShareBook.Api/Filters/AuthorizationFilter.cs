@@ -4,31 +4,25 @@ using ShareBook.Service.Authorization;
 using System.Linq;
 using System.Security.Claims;
 
-namespace ShareBook.Api.Filters
+namespace ShareBook.Api.Filters;
+
+public class AuthorizationFilter(params Permissions.Permission[] permissions) : ActionFilterAttribute
 {
-    public class AuthorizationFilter : ActionFilterAttribute
+    public Permissions.Permission[] NecessaryPermissions { get; set; } = permissions;
+
+    public override void OnActionExecuting(ActionExecutingContext context)
     {
-        public Permissions.Permission[] NecessaryPermissions { get; set; }
+        var user = context.HttpContext.User;
 
-        public AuthorizationFilter(params Permissions.Permission[] permissions)
-        {
-            NecessaryPermissions = permissions;
-        }
+        if (user?.Identity == null)
+            throw new ShareBookException(ShareBookException.Error.NotAuthorized);
 
-        public override void OnActionExecuting(ActionExecutingContext context)
-        {
-            var user = context.HttpContext.User;
+        var isAdministrator = ((ClaimsIdentity)user.Identity).Claims
+            .Any(x => x.Type == ClaimsIdentity.DefaultRoleClaimType.ToString() && x.Value == Domain.Enums.Profile.Administrator.ToString());
 
-            if (user == null)
-                throw new ShareBookException(ShareBookException.Error.NotAuthorized);
+        if (NecessaryPermissions.Any(x => Permissions.AdminPermissions.Contains(x)) && !isAdministrator)
+            throw new ShareBookException(ShareBookException.Error.Forbidden);
 
-            var isAdministrator = ((ClaimsIdentity)user.Identity).Claims
-                .Any(x => x.Type == ClaimsIdentity.DefaultRoleClaimType.ToString() && x.Value == Domain.Enums.Profile.Administrator.ToString());
-
-            if (NecessaryPermissions.Any(x => Permissions.AdminPermissions.Contains(x)) && !isAdministrator)
-                throw new ShareBookException(ShareBookException.Error.Forbidden);
-
-            base.OnActionExecuting(context);
-        }
+        base.OnActionExecuting(context);
     }
 }

@@ -9,76 +9,69 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace ShareBook.Api.Middleware
+namespace ShareBook.Api.Middleware;
+
+public class ExceptionHandlerMiddleware(RequestDelegate next, ILogger<ExceptionHandlerMiddleware> logger)
 {
-    public class ExceptionHandlerMiddleware
+    private readonly RequestDelegate _next = next;
+    private readonly ILogger<ExceptionHandlerMiddleware> _logger = logger;
+
+    public async Task Invoke(HttpContext httpContext)
     {
-        private readonly RequestDelegate _next;
-        private readonly ILogger<ExceptionHandlerMiddleware> _logger;
-
-        public ExceptionHandlerMiddleware(RequestDelegate next, ILogger<ExceptionHandlerMiddleware> logger)
+        try
         {
-            _next = next;
-            _logger = logger;
+            await _next(httpContext);
         }
-
-        public async Task Invoke(HttpContext httpContext)
+        catch (ShareBookException ex)
         {
-            try
-            {
-                await _next(httpContext);
-            }
-            catch (ShareBookException ex)
-            {
-                var result = new Result();
-                result.Messages.Add(ex.Message);
-                var jsonResponse = ToJson(result);
+            var result = new Result();
+            result.Messages.Add(ex.Message);
+            var jsonResponse = ToJson(result);
 
-                httpContext.Response.Clear();
-                httpContext.Response.StatusCode = (int)ex.ErrorType;
-                httpContext.Response.Headers.TryAdd("Content-Type", "application/json");
-                await httpContext.Response.WriteAsync(jsonResponse);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unhandled exception");
-
-                var result = new Result();
-                result.Messages.Add(ex.ToString());
-
-                // detalhes do erro real pra facilitar o desenvolvimento.
-                if (ex is AggregateException)
-                    result.Messages.Add(ex.InnerException.ToString());
-
-                var jsonResponse = ToJson(result);
-
-                httpContext.Response.Clear();
-                httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
-                httpContext.Response.Headers.TryAdd("Content-Type", "application/json");
-                await httpContext.Response.WriteAsync(jsonResponse);
-            }
+            httpContext.Response.Clear();
+            httpContext.Response.StatusCode = (int)ex.ErrorType;
+            httpContext.Response.Headers.TryAdd("Content-Type", "application/json");
+            await httpContext.Response.WriteAsync(jsonResponse);
         }
-
-        private string ToJson(Object obj)
+        catch (Exception ex)
         {
-            DefaultContractResolver contractResolver = new DefaultContractResolver
-            {
-                NamingStrategy = new CamelCaseNamingStrategy()
-            };
+            _logger.LogError(ex, "Unhandled exception");
 
-            string json = JsonConvert.SerializeObject(obj, new JsonSerializerSettings
-            {
-                ContractResolver = contractResolver,
-                Formatting = Formatting.Indented
-            });
+            var result = new Result();
+            result.Messages.Add(ex.ToString());
 
-            return json;
+            // detalhes do erro real pra facilitar o desenvolvimento.
+            if (ex is AggregateException)
+                result.Messages.Add(ex.InnerException?.ToString() ?? ex.ToString());
+
+            var jsonResponse = ToJson(result);
+
+            httpContext.Response.Clear();
+            httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            httpContext.Response.Headers.TryAdd("Content-Type", "application/json");
+            await httpContext.Response.WriteAsync(jsonResponse);
         }
     }
 
-    // Extension method used to add the middleware to the HTTP request pipeline.
-    public static class ExceptionHandlerMiddlewareExtensions
+    private string ToJson(Object obj)
     {
-        public static IApplicationBuilder UseExceptionHandlerMiddleware(this IApplicationBuilder builder) => builder.UseMiddleware<ExceptionHandlerMiddleware>();
+        DefaultContractResolver contractResolver = new DefaultContractResolver
+        {
+            NamingStrategy = new CamelCaseNamingStrategy()
+        };
+
+        string json = JsonConvert.SerializeObject(obj, new JsonSerializerSettings
+        {
+            ContractResolver = contractResolver,
+            Formatting = Formatting.Indented
+        });
+
+        return json;
     }
+}
+
+// Extension method used to add the middleware to the HTTP request pipeline.
+public static class ExceptionHandlerMiddlewareExtensions
+{
+    public static IApplicationBuilder UseExceptionHandlerMiddleware(this IApplicationBuilder builder) => builder.UseMiddleware<ExceptionHandlerMiddleware>();
 }

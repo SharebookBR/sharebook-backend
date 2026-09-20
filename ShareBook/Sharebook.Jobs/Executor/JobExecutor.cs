@@ -18,7 +18,7 @@ public class JobExecutor : IJobExecutor
     private readonly IList<IJob> _jobs;
     private readonly IJobHistoryRepository _jobHistoryRepo;
     private readonly ILogger<JobExecutor> _logger;
-    private Stopwatch _stopwatch;
+    private Stopwatch _stopwatch = new();
 
     public JobExecutor(IJobHistoryRepository jobHistoryRepo,
                         ILogger<JobExecutor> logger,

@@ -1,11 +1,14 @@
 using ShareBook.Domain;
+using System.Linq;
+using System.Threading.Tasks;
 
-namespace ShareBook.Repository
+namespace ShareBook.Repository;
+
+public class BookDownloadEventRepository(ApplicationDbContext context) : IBookDownloadEventRepository
 {
-    public class BookDownloadEventRepository : RepositoryGeneric<BookDownloadEvent>, IBookDownloadEventRepository
-    {
-        public BookDownloadEventRepository(ApplicationDbContext context) : base(context)
-        {
-        }
-    }
+    private readonly EntityCrud<BookDownloadEvent> _crud = new EntityCrud<BookDownloadEvent>(context);
+
+    public IQueryable<BookDownloadEvent> Get() => _crud.Get();
+
+    public Task<BookDownloadEvent> InsertAsync(BookDownloadEvent entity) => _crud.InsertAsync(entity);
 }

@@ -3,26 +3,25 @@ using ShareBook.Domain.DTOs;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace ShareBook.Service
+namespace ShareBook.Service;
+
+public interface IBookUsersEmailService
 {
-    public interface IBookUsersEmailService
-    {
-        Task SendEmailBookDonatedAsync(BookUser bookUser);
+    Task SendEmailBookDonatedAsync(BookUser bookUser);
 
-        Task SendEmailBookDonatedNotifyDonorAsync(Book book, User winner);
+    Task SendEmailBookDonatedNotifyDonorAsync(Book book, User winner);
 
-        Task SendEmailBookDonorAsync(BookUser bookUser, Book bookRequested);
+    Task SendEmailBookDonorAsync(BookUser bookUser, Book bookRequested);
 
-        Task SendEmailBookInterestedAsync(BookUser bookUser, Book book);
+    Task SendEmailBookInterestedAsync(BookUser bookUser, Book book);
 
-        Task SendEmailDonationDeclinedAsync(Book book, BookUser bookUserWinner, List<BookUser> bookUsersDeclined);
+    Task SendEmailDonationDeclinedAsync(Book book, BookUser bookUserWinner, List<BookUser> bookUsersDeclined);
 
-        Task SendEmailDonationCanceledAsync(Book book, List<BookUser> bookUsers);
+    Task SendEmailDonationCanceledAsync(Book book, List<BookUser> bookUsers);
 
-        Task SendEmailBookCanceledToAdminsAndDonorAsync(BookCancelationDTO dto);
+    Task SendEmailBookCanceledToAdminsAndDonorAsync(BookCancelationDTO dto);
 
-        Task SendEmailTrackingNumberInformedAsync(BookUser bookUserWinner, Book book);
+    Task SendEmailTrackingNumberInformedAsync(BookUser bookUserWinner, Book book);
 
-        Task SendEmailMaxRequestsAsync(Book bookRequested);
-    }
+    Task SendEmailMaxRequestsAsync(Book bookRequested);
 }

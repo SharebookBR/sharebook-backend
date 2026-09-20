@@ -1,10 +1,12 @@
-﻿using ShareBook.Domain;
+using ShareBook.Domain;
+using System.Linq;
 using System.Threading.Tasks;
 
-namespace ShareBook.Repository
+namespace ShareBook.Repository;
+
+public interface IUserRepository
 {
-    public interface IUserRepository : IRepositoryGeneric<User>
-    {
-        Task<User> UpdatePasswordAsync(User user);
-    }
+    IQueryable<User> Get();
+
+    Task<User> UpdatePasswordAsync(User user);
 }

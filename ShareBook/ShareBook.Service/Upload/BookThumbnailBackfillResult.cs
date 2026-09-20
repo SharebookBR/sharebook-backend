@@ -17,6 +17,6 @@ public class BookThumbnailBackfillResult
 
 public class BookThumbnailBackfillFailure
 {
-    public string FileName { get; set; }
-    public string Error { get; set; }
+    public string FileName { get; set; } = string.Empty;
+    public string Error { get; set; } = string.Empty;
 }

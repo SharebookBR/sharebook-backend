@@ -23,20 +23,20 @@ public class AnalyticsDashboardDto
 
 public class WeeklyPoint
 {
-    public string Label { get; set; }
+    public string Label { get; set; } = string.Empty;
     public int Value { get; set; }
 }
 
 public class BookMetric
 {
-    public string Path { get; set; }
-    public string Title { get; set; }
+    public string Path { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
     public int Count { get; set; }
 }
 
 public class EventMetric
 {
-    public string EventName { get; set; }
+    public string EventName { get; set; } = string.Empty;
     public int Count { get; set; }
     public int Users { get; set; }
 }
@@ -52,14 +52,14 @@ public class SearchAnalytics
 
 public class SearchTermMetric
 {
-    public string Term { get; set; }
+    public string Term { get; set; } = string.Empty;
     public int Count { get; set; }
     public int Users { get; set; }
 }
 
 public class SearchDeviceMetric
 {
-    public string Device { get; set; }
+    public string Device { get; set; } = string.Empty;
     public int Count { get; set; }
     public int Users { get; set; }
 }
@@ -67,8 +67,8 @@ public class SearchDeviceMetric
 public class SearchConsoleAnalytics
 {
     public bool Available { get; set; }
-    public string StartDate { get; set; }
-    public string EndDate { get; set; }
+    public string StartDate { get; set; } = string.Empty;
+    public string EndDate { get; set; } = string.Empty;
     public SearchConsoleMetricSummary Current { get; set; } = new();
     public SearchConsoleMetricSummary Previous { get; set; } = new();
     public List<SearchConsoleDailyMetric> Daily { get; set; } = [];
@@ -85,13 +85,13 @@ public class SearchConsoleMetricSummary
 
 public class SearchConsoleDailyMetric
 {
-    public string Date { get; set; }
+    public string Date { get; set; } = string.Empty;
     public double Clicks { get; set; }
     public double Impressions { get; set; }
 }
 
 public class SearchConsoleOpportunity : SearchConsoleMetricSummary
 {
-    public string Query { get; set; }
-    public string Page { get; set; }
+    public string Query { get; set; } = string.Empty;
+    public string Page { get; set; } = string.Empty;
 }

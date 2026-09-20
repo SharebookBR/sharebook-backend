@@ -6,14 +6,9 @@ using System.Net;
 namespace ShareBook.Test.Integration.Tests.CategoryTests;
 
 [Collection(nameof(ShareBookTestsFixture))]
-public class CategoryTests
+public class CategoryTests(ShareBookTestsFixture fixture)
 {
-    private readonly ShareBookTestsFixture _fixture;
-
-    public CategoryTests(ShareBookTestsFixture fixture)
-    {
-        _fixture = fixture;
-    }
+    private readonly ShareBookTestsFixture _fixture = fixture;
 
     [Fact]
     public async Task GetCategories()

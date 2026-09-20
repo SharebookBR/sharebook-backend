@@ -1,5 +1,6 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Moq;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
@@ -19,658 +20,641 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace ShareBook.Test.Unit.Services
+namespace ShareBook.Test.Unit.Services;
+
+public class BookServiceTests
 {
-    public class BookServiceTests
+    readonly Mock<IBookService> bookServiceMock;
+    readonly Mock<IUploadService> uploadServiceMock;
+    readonly Mock<IEBookService> ebookServiceMock;
+    readonly Mock<IBookRepository> bookRepositoryMock;
+    readonly Mock<ICategoryRepository> categoryRepositoryMock;
+    readonly Mock<IBooksEmailService> bookEmailService;
+    readonly Mock<IUnitOfWork> unitOfWorkMock;
+    readonly Mock<IBookUserService> bookUserServiceMock;
+    readonly Mock<IConfiguration> configurationMock;
+
+    readonly Mock<NewBookQueue> sqsMock;
+    readonly Mock<ICurrentUserAccessor> currentUserAccessorMock;
+    readonly Guid _currentUserId;
+
+    public BookServiceTests()
     {
-        readonly Mock<IBookService> bookServiceMock;
-        readonly Mock<IUploadService> uploadServiceMock;
-        readonly Mock<IEBookService> ebookServiceMock;
-        readonly Mock<IBookRepository> bookRepositoryMock;
-        readonly Mock<ICategoryRepository> categoryRepositoryMock;
-        readonly Mock<IBooksEmailService> bookEmailService;
-        readonly Mock<IUnitOfWork> unitOfWorkMock;
-        readonly Mock<IBookUserService> bookUserServiceMock;
-        readonly Mock<IConfiguration> configurationMock;
+        // Definindo quais serão as classes mockadas
+        bookServiceMock = new Mock<IBookService>();
+        uploadServiceMock = new Mock<IUploadService>();
+        ebookServiceMock = new Mock<IEBookService>();
+        unitOfWorkMock = new Mock<IUnitOfWork>();
+        bookRepositoryMock = new Mock<IBookRepository>();
+        categoryRepositoryMock = new Mock<ICategoryRepository>();
+        bookEmailService = new Mock<IBooksEmailService>();
+        bookUserServiceMock = new Mock<IBookUserService>();
+        configurationMock = new Mock<IConfiguration>();
+        sqsMock = new Mock<NewBookQueue>();
+        _currentUserId = new Guid(new UserMock().GetClaimsUser().Identity!.Name!);
+        currentUserAccessorMock = new Mock<ICurrentUserAccessor>();
+        currentUserAccessorMock.Setup(x => x.UserId).Returns(_currentUserId);
+        currentUserAccessorMock.Setup(x => x.RequireUserId()).Returns(_currentUserId);
 
-        readonly Mock<NewBookQueue> sqsMock;
+        bookRepositoryMock.Setup(repo => repo.Get()).Returns(Array.Empty<Book>().AsQueryable());
+        bookRepositoryMock.Setup(repo => repo.GetSlugsStartingWithAsync(It.IsAny<string>()))
+            .ReturnsAsync(Array.Empty<string>());
+        uploadServiceMock.Setup(service => service.UploadImageAsync(It.IsAny<byte[]>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync("Ok Mocked");
+        ebookServiceMock.Setup(service => service.UploadPdfAsync(It.IsAny<Book>())).ReturnsAsync("EBooks/test-book.pdf");
+        categoryRepositoryMock.Setup(repo => repo.Get()).Returns(new[] { new Category { Id = Guid.NewGuid(), Name = "Leaf" } }.AsQueryable());
+        bookServiceMock.Setup(service => service.InsertAsync(It.IsAny<Book>())).ReturnsAsync(() => new Result<Book>(new Book())).Verifiable();
+    }
 
-        public BookServiceTests()
+    [Fact]
+    public async Task FullSearch_PublicSearch_ShouldReturnOnlyAvailableBooks()
+    {
+        await using var context = await CreateSearchContextAsync();
+        var service = CreateService(new BookRepository(context), context);
+
+        var result = await service.FullSearchAsync("clean", 1, 10, false);
+
+        var book = Assert.Single(result.Items);
+        Assert.Equal(BookStatus.Available, book.Status);
+        Assert.Equal(1, result.TotalItems);
+    }
+
+    [Fact]
+    public async Task FullSearch_AdminSearch_ShouldReturnBooksFromAllStatuses()
+    {
+        await using var context = await CreateSearchContextAsync();
+        var service = CreateService(new BookRepository(context), context);
+
+        var result = await service.FullSearchAsync("clean", 1, 10, true);
+
+        Assert.Equal(2, result.Items.Count);
+        Assert.Equal(2, result.TotalItems);
+        Assert.Contains(result.Items, book => book.Status == BookStatus.Available);
+        Assert.Contains(result.Items, book => book.Status == BookStatus.WaitingSend);
+    }
+
+    // O UpdateBookVM nao carrega ImageSlug, entao um PUT sem imagem nova chega
+    // ao service com ImageSlug nulo. Se o service copiar isso cegamente, o livro
+    // perde a capa. Investigado a partir do incidente de 20/08/2026.
+    [Fact]
+    public async Task UpdateBookWithoutNewImage_ShouldKeepImageSlug()
+    {
+        var savedBook = BookMock.GetLordTheRings();
+        savedBook.Id = Guid.NewGuid();
+        savedBook.ImageSlug = "lotr.png";
+
+        await using var context = await CreateEmptyContextAsync();
+        context.Books.Add(savedBook);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(bookRepositoryMock.Object, context);
+
+        Result<Book> result = await service.UpdateAsync(new Book()
         {
-            // Definindo quais serão as classes mockadas
-            bookServiceMock = new Mock<IBookService>();
-            uploadServiceMock = new Mock<IUploadService>();
-            ebookServiceMock = new Mock<IEBookService>();
-            unitOfWorkMock = new Mock<IUnitOfWork>();
-            bookRepositoryMock = new Mock<IBookRepository>();
-            categoryRepositoryMock = new Mock<ICategoryRepository>();
-            bookEmailService = new Mock<IBooksEmailService>();
-            bookUserServiceMock = new Mock<IBookUserService>();
-            configurationMock = new Mock<IConfiguration>();
-            sqsMock = new Mock<NewBookQueue>();
+            Id = savedBook.Id,
+            Title = savedBook.Title,
+            Author = savedBook.Author,
+            CategoryId = savedBook.CategoryId,
+            Synopsis = savedBook.Synopsis,
+            FreightOption = FreightOption.City,
+            ImageName = "",
+            ImageBytes = null
+        });
 
-            bookRepositoryMock.Setup(repo => repo.InsertAsync(It.IsAny<Book>())).ReturnsAsync(() =>
+        Assert.Equal("lotr.png", result.Value.ImageSlug);
+        Assert.Equal(1, result.Value.ImageVersion);
+    }
+
+    [Fact]
+    public async Task UpdateBook_WhenTitleChanges_ShouldKeepPublicSlug()
+    {
+        var categoryId = Guid.NewGuid();
+        var savedBook = BookMock.GetLordTheRings();
+        savedBook.Id = Guid.NewGuid();
+        savedBook.CategoryId = categoryId;
+        savedBook.Slug = "lord-of-the-rings";
+
+        categoryRepositoryMock
+            .Setup(repo => repo.Get())
+            .Returns(new[] { new Category { Id = categoryId, Name = "Leaf" } }.AsQueryable());
+
+        await using var context = await CreateEmptyContextAsync();
+        context.Books.Add(savedBook);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(bookRepositoryMock.Object, context);
+
+        var result = await service.UpdateAsync(new Book
+        {
+            Id = savedBook.Id,
+            Title = "The Lord of the Rings",
+            Author = savedBook.Author,
+            CategoryId = categoryId,
+            Synopsis = savedBook.Synopsis,
+            FreightOption = FreightOption.City
+        });
+
+        Assert.True(result.Success);
+        Assert.Equal("lord-of-the-rings", result.Value.Slug);
+    }
+
+    [Fact]
+    public async Task AddBooksWithSameTitle_ShouldUseCopySuffixes()
+    {
+        var categoryId = Guid.NewGuid();
+
+        categoryRepositoryMock
+            .Setup(repo => repo.Get())
+            .Returns(new[] { new Category { Id = categoryId, Name = "Leaf" } }.AsQueryable());
+
+        await using var context = await CreateEmptyContextAsync();
+        // GetSlugsStartingWithAsync precisa refletir o estado real do banco entre as duas
+        // inserções, por isso usamos o BookRepository de verdade (não o mock) aqui.
+        var service = CreateService(new BookRepository(context), context);
+
+        var first = new Book
+        {
+            Title = "O Pequeno Príncipe",
+            Author = "Antoine de Saint-Exupéry",
+            ImageName = "first.png",
+            ImageBytes = Encoding.UTF8.GetBytes("FIRST"),
+            FreightOption = FreightOption.City,
+            CategoryId = categoryId,
+            Type = BookType.Printed
+        };
+        var second = new Book
+        {
+            Title = first.Title,
+            Author = first.Author,
+            ImageName = "second.png",
+            ImageBytes = Encoding.UTF8.GetBytes("SECOND"),
+            FreightOption = FreightOption.City,
+            CategoryId = categoryId,
+            Type = BookType.Printed
+        };
+
+        await service.InsertAsync(first);
+        await service.InsertAsync(second);
+
+        var insertedSlugs = await context.Books.OrderBy(b => b.CreationDate).Select(b => b.Slug).ToListAsync();
+        Assert.Equal(2, insertedSlugs.Count);
+        Assert.Equal("o-pequeno-principe", insertedSlugs[0]);
+        Assert.Equal("o-pequeno-principe_copy1", insertedSlugs[1]);
+    }
+
+    [Fact]
+    public async Task AddBook_WhenSlugIsTakenConcurrently_ShouldRetryWithNextCopy()
+    {
+        var categoryId = Guid.NewGuid();
+
+        categoryRepositoryMock
+            .Setup(repo => repo.Get())
+            .Returns(new[] { new Category { Id = categoryId, Name = "Leaf" } }.AsQueryable());
+
+        // Este teste depende de uma violação REAL de índice único (a mesma forma que o
+        // Postgres/SQLite de produção lança), então usa SQLite de verdade em memória —
+        // o provider InMemory do EF Core não aplica a msma exceção.
+        await using var connection = new SqliteConnection("Data Source=:memory:");
+        connection.Open();
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>().UseSqlite(connection).Options;
+        await using var context = new ApplicationDbContext(options);
+        await context.Database.EnsureCreatedAsync();
+
+        // SQLite de verdade aplica foreign keys (diferente do provider InMemory), então
+        // precisamos de Category e User reais pra satisfazer as FKs de Book.
+        var currentUserId = _currentUserId;
+        context.Categories.Add(new Category { Id = categoryId, Name = "Leaf" });
+        context.Users.Add(new User
+        {
+            Id = currentUserId,
+            Name = "Autor do teste",
+            Email = "concurrent-test@example.com",
+            Password = "x",
+            PasswordSalt = "y"
+        });
+
+        // Simula que outra requisição já ocupou o slug "clean-code" entre o cálculo do
+        // slug disponível e a tentativa de insert desta requisição.
+        context.Books.Add(new Book
+        {
+            Title = "Clean Code",
+            Author = "Robert C. Martin",
+            Slug = "clean-code",
+            ImageSlug = "clean-code-existing.png",
+            FreightOption = FreightOption.City,
+            CategoryId = categoryId,
+            UserId = currentUserId,
+            Type = BookType.Printed
+        });
+        await context.SaveChangesAsync();
+
+        var service = CreateService(new BookRepository(context), context);
+
+        var result = await service.InsertAsync(new Book
+        {
+            Title = "Clean Code",
+            Author = "Robert C. Martin",
+            ImageName = "clean-code.png",
+            ImageBytes = Encoding.UTF8.GetBytes("IMAGE"),
+            FreightOption = FreightOption.City,
+            CategoryId = categoryId,
+            Type = BookType.Printed
+        });
+
+        Assert.True(result.Success);
+        Assert.Equal("clean-code_copy1", result.Value.Slug);
+    }
+
+    [Fact]
+    public async Task AddBook()
+    {
+        await using var context = await CreateEmptyContextAsync();
+        var service = CreateService(bookRepositoryMock.Object, context);
+        Result<Book> result = await service.InsertAsync(new Book()
+        {
+            Title = "Lord of the Rings",
+            Author = "J. R. R. Tolkien",
+            ImageName = "lotr.png",
+            ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
+            FreightOption = FreightOption.City,
+            CategoryId = Guid.NewGuid(),
+            Type = BookType.Printed
+        });
+        Assert.NotNull(result);
+        Assert.True(result.Success);
+    }
+
+    [Fact]
+    public async Task AddEBookWithPdf()
+    {
+        await using var context = await CreateEmptyContextAsync();
+        var service = CreateService(bookRepositoryMock.Object, context);
+        Result<Book> result = await service.InsertAsync(new Book()
+        {
+            Title = "Clean Code",
+            Author = "Robert C. Martin",
+            ImageName = "clean-code.png",
+            ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
+            CategoryId = Guid.NewGuid(),
+            Type = BookType.Eletronic,
+            PdfBytes = Encoding.UTF8.GetBytes("PDF_CONTENT_BASE64")
+        });
+        Assert.NotNull(result);
+        Assert.True(result.Success);
+    }
+
+    [Fact]
+    public async Task AddEBookWithoutPdf_ShouldFail()
+    {
+        await using var context = await CreateEmptyContextAsync();
+        var service = CreateService(bookRepositoryMock.Object, context);
+        Result<Book> result = await service.InsertAsync(new Book()
+        {
+            Title = "Clean Code",
+            Author = "Robert C. Martin",
+            ImageName = "clean-code.png",
+            ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
+            CategoryId = Guid.NewGuid(),
+            Type = BookType.Eletronic
+        });
+        Assert.NotNull(result);
+        Assert.False(result.Success);
+    }
+
+    [Fact]
+    public async Task AddPrintedBookWithoutFreight_ShouldFail()
+    {
+        await using var context = await CreateEmptyContextAsync();
+        var service = CreateService(bookRepositoryMock.Object, context);
+        Result<Book> result = await service.InsertAsync(new Book()
+        {
+            Title = "Lord of the Rings",
+            Author = "J. R. R. Tolkien",
+            ImageName = "lotr.png",
+            ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
+            CategoryId = Guid.NewGuid(),
+            Type = BookType.Printed
+        });
+        Assert.NotNull(result);
+        Assert.False(result.Success);
+    }
+
+    [Fact]
+    public async Task EBookShouldNotRequireFreight()
+    {
+        await using var context = await CreateEmptyContextAsync();
+        var service = CreateService(bookRepositoryMock.Object, context);
+        Result<Book> result = await service.InsertAsync(new Book()
+        {
+            Title = "Clean Code",
+            Author = "Robert C. Martin",
+            ImageName = "clean-code.png",
+            ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
+            CategoryId = Guid.NewGuid(),
+            Type = BookType.Eletronic,
+            PdfBytes = Encoding.UTF8.GetBytes("PDF_CONTENT_BASE64")
+        });
+        Assert.NotNull(result);
+        Assert.True(result.Success);
+    }
+
+    [Fact]
+    public async Task AddDuplicateEBook_ShouldFail()
+    {
+
+        await using var context = await CreateEmptyContextAsync();
+        // Simula que já existe um ebook com o mesmo título e autor no banco
+        context.Books.Add(new Book
+        {
+            Title = "Clean Code",
+            Author = "Robert C. Martin",
+            ImageSlug = "clean-code-existing.png",
+            Type = BookType.Eletronic,
+            CategoryId = Guid.NewGuid()
+        });
+        await context.SaveChangesAsync();
+
+        var service = CreateService(bookRepositoryMock.Object, context);
+
+        Result<Book> result = await service.InsertAsync(new Book()
+        {
+            Title = "Clean Code",
+            Author = "Robert C. Martin",
+            ImageName = "clean-code.png",
+            ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
+            CategoryId = Guid.NewGuid(),
+            Type = BookType.Eletronic,
+            PdfBytes = Encoding.UTF8.GetBytes("PDF_CONTENT_BASE64")
+        });
+
+        Assert.NotNull(result);
+        Assert.False(result.Success);
+        Assert.Contains("Já existe um e-book com este título e autor no catálogo.", result.Messages);
+    }
+
+    [Fact]
+    public async Task AddDuplicatePrintedBook_ShouldNotCheckForDuplicateEBook()
+    {
+
+        await using var context = await CreateEmptyContextAsync();
+        var service = CreateService(bookRepositoryMock.Object, context);
+
+        Result<Book> result = await service.InsertAsync(new Book()
+        {
+            Title = "Lord of the Rings",
+            Author = "J. R. R. Tolkien",
+            ImageName = "lotr.png",
+            ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
+            FreightOption = FreightOption.City,
+            CategoryId = Guid.NewGuid(),
+            Type = BookType.Printed
+        });
+
+        Assert.NotNull(result);
+        Assert.True(result.Success);
+    }
+
+    [Fact]
+    public async Task InsertBook_WithParentCategory_ShouldFail()
+    {
+        var parentCategoryId = Guid.NewGuid();
+
+        categoryRepositoryMock
+            .Setup(repo => repo.Get())
+            .Returns(new[] { new Category { Id = Guid.NewGuid(), ParentCategoryId = parentCategoryId } }.AsQueryable());
+
+        await using var context = await CreateEmptyContextAsync();
+        var service = CreateService(bookRepositoryMock.Object, context);
+
+        Result<Book> result = await service.InsertAsync(new Book()
+        {
+            Title = "Livro Teste",
+            Author = "Autor Teste",
+            ImageName = "teste.png",
+            ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
+            CategoryId = parentCategoryId,
+            FreightOption = FreightOption.City,
+            Type = BookType.Printed
+        });
+
+        Assert.NotNull(result);
+        Assert.False(result.Success);
+        Assert.Contains("Selecione uma subcategoria final", result.Messages[0]);
+    }
+
+    [Fact]
+    public async Task UpdateBook_WithParentCategory_ShouldFail()
+    {
+        var parentCategoryId = Guid.NewGuid();
+        var bookId = Guid.NewGuid();
+
+        categoryRepositoryMock
+            .Setup(repo => repo.Get())
+            .Returns(new[] { new Category { Id = Guid.NewGuid(), ParentCategoryId = parentCategoryId } }.AsQueryable());
+
+        await using var context = await CreateEmptyContextAsync();
+        var service = CreateService(bookRepositoryMock.Object, context);
+
+        var result = await service.UpdateAsync(new Book
+        {
+            Id = bookId,
+            Title = "Livro Original",
+            Author = "Autor",
+            CategoryId = parentCategoryId,
+            Synopsis = "x"
+        });
+
+        Assert.NotNull(result);
+        Assert.False(result.Success);
+        Assert.Contains("Selecione uma subcategoria final", result.Messages[0]);
+    }
+
+    [Fact]
+    public async Task UpdateBook_WhenCoverExtensionChanges_ShouldUploadUsingNewSlugAndDeleteOldFile()
+    {
+        var bookId = Guid.NewGuid();
+        var categoryId = Guid.NewGuid();
+
+        var savedBook = new Book
+        {
+            Id = bookId,
+            Title = "Livro Original",
+            Author = "Autor",
+            CategoryId = categoryId,
+            Synopsis = "x",
+            Slug = "livro-original",
+            ImageSlug = "livro-original.jpg"
+        };
+
+        categoryRepositoryMock
+            .Setup(repo => repo.Get())
+            .Returns(new[] { new Category { Id = categoryId, Name = "Leaf" } }.AsQueryable());
+
+        await using var context = await CreateEmptyContextAsync();
+        context.Books.Add(savedBook);
+        await context.SaveChangesAsync();
+
+        uploadServiceMock
+            .Setup(service => service.UploadImageAsync(It.IsAny<byte[]>(), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync("Ok Mocked");
+
+        uploadServiceMock
+            .Setup(service => service.DeleteReplacedImageAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+
+        var service = CreateService(bookRepositoryMock.Object, context);
+
+        var result = await service.UpdateAsync(new Book
+        {
+            Id = bookId,
+            Title = "Livro Original",
+            Author = "Autor",
+            CategoryId = categoryId,
+            Synopsis = "x",
+            ImageName = "nova-capa.png",
+            ImageBytes = Encoding.UTF8.GetBytes("PNG_BYTES")
+        });
+
+        Assert.NotNull(result);
+        Assert.True(result.Success);
+        Assert.Equal(2, result.Value.ImageVersion);
+
+        uploadServiceMock.Verify(service => service.UploadImageAsync(
+            It.IsAny<byte[]>(),
+            "livro-original.png",
+            "Books"), Times.Once);
+
+        uploadServiceMock.Verify(service => service.DeleteReplacedImageAsync(
+            "livro-original.jpg",
+            "livro-original.png",
+            "Books"), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteEBook_ShouldTryDeleteAssetsAndDeleteDbRecord()
+    {
+        var bookId = Guid.NewGuid();
+        var savedBook = new Book
+        {
+            Id = bookId,
+            Title = "Cloud",
+            Author = "Sharebook",
+            Type = BookType.Eletronic,
+            ImageSlug = "cloud.jpg",
+            EBookPdfPath = "ebooks/cloud.pdf",
+            CategoryId = Guid.NewGuid(),
+            Synopsis = "x"
+        };
+
+        await using var context = await CreateEmptyContextAsync();
+        context.Books.Add(savedBook);
+        await context.SaveChangesAsync();
+
+        uploadServiceMock.Setup(service => service.DeleteFileIfExistsAsync("cloud.jpg", "Books")).Returns(Task.CompletedTask).Verifiable();
+        ebookServiceMock.Setup(service => service.DeletePdfAsync(It.IsAny<Book>())).Returns(Task.CompletedTask).Verifiable();
+
+        var service = CreateService(bookRepositoryMock.Object, context);
+
+        var result = await service.DeleteAsync(bookId);
+
+        Assert.NotNull(result);
+        Assert.Null(await context.Books.FindAsync(bookId));
+        uploadServiceMock.Verify(service => service.DeleteFileIfExistsAsync("cloud.jpg", "Books"), Times.Once);
+        ebookServiceMock.Verify(service => service.DeletePdfAsync(It.Is<Book>(b => b.Id == bookId)), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteBook_ShouldDeleteDbRecordEvenWhenAssetCleanupFails()
+    {
+        var bookId = Guid.NewGuid();
+        var savedBook = new Book
+        {
+            Id = bookId,
+            Title = "Cloud",
+            Author = "Sharebook",
+            Type = BookType.Eletronic,
+            ImageSlug = "cloud.jpg",
+            EBookPdfPath = "ebooks/cloud.pdf",
+            CategoryId = Guid.NewGuid(),
+            Synopsis = "x"
+        };
+
+        await using var context = await CreateEmptyContextAsync();
+        context.Books.Add(savedBook);
+        await context.SaveChangesAsync();
+
+        uploadServiceMock.Setup(service => service.DeleteFileIfExistsAsync(It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(new Exception("img error"));
+        ebookServiceMock.Setup(service => service.DeletePdfAsync(It.IsAny<Book>())).ThrowsAsync(new Exception("pdf error"));
+
+        var service = CreateService(bookRepositoryMock.Object, context);
+
+        var result = await service.DeleteAsync(bookId);
+
+        Assert.NotNull(result);
+        Assert.Null(await context.Books.FindAsync(bookId));
+    }
+
+    private BookService CreateService(IBookRepository repository, ApplicationDbContext context)
+        => new BookService(repository, context,
+            unitOfWorkMock.Object, new BookValidator(),
+            uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object,
+            sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object, TimeProvider.System, currentUserAccessorMock.Object);
+
+    private static async Task<ApplicationDbContext> CreateEmptyContextAsync()
+    {
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        return await Task.FromResult(new ApplicationDbContext(options));
+    }
+
+    private static async Task<ApplicationDbContext> CreateSearchContextAsync()
+    {
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        var context = new ApplicationDbContext(options);
+
+        var user = new User
+        {
+            Name = "Search Donor",
+            Email = "search@example.com",
+            Password = "password",
+            PasswordSalt = "salt",
+            Address = new Address
             {
-                return BookMock.GetLordTheRings();
+                City = "Sao Paulo",
+                State = "SP",
+                Country = "Brasil"
+            }
+        };
+        var category = new Category { Name = "Software" };
+
+        context.Books.AddRange(
+            new Book
+            {
+                Title = "Clean Code Available",
+                Author = "Robert Martin",
+                ImageSlug = "clean-code-available.png",
+                Slug = "clean-code-available",
+                Status = BookStatus.Available,
+                User = user,
+                Category = category
+            },
+            new Book
+            {
+                Title = "Clean Code Waiting Send",
+                Author = "Robert Martin",
+                ImageSlug = "clean-code-waiting-send.png",
+                Slug = "clean-code-waiting-send",
+                Status = BookStatus.WaitingSend,
+                User = user,
+                Category = category
             });
-            bookRepositoryMock.Setup(repo => repo.Get()).Returns(Array.Empty<Book>().AsQueryable());
-            bookRepositoryMock.Setup(repo => repo.GetSlugsStartingWithAsync(It.IsAny<string>()))
-                .ReturnsAsync(Array.Empty<string>());
-            uploadServiceMock.Setup(service => service.UploadImageAsync(It.IsAny<byte[]>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync("Ok Mocked");
-            ebookServiceMock.Setup(service => service.UploadPdfAsync(It.IsAny<Book>())).ReturnsAsync("EBooks/test-book.pdf");
-            categoryRepositoryMock.Setup(repo => repo.Get()).Returns(new[] { new Category { Id = Guid.NewGuid(), Name = "Leaf" } }.AsQueryable());
-            bookServiceMock.Setup(service => service.InsertAsync(It.IsAny<Book>())).ReturnsAsync(() => new Result<Book>(new Book())).Verifiable();
-        }
+        await context.SaveChangesAsync();
 
-        [Fact]
-        public async Task FullSearch_PublicSearch_ShouldReturnOnlyAvailableBooks()
-        {
-            await using var context = await CreateSearchContextAsync();
-            var service = CreateService(new BookRepository(context));
-
-            var result = await service.FullSearchAsync("clean", 1, 10, false);
-
-            var book = Assert.Single(result.Items);
-            Assert.Equal(BookStatus.Available, book.Status);
-            Assert.Equal(1, result.TotalItems);
-        }
-
-        [Fact]
-        public async Task FullSearch_AdminSearch_ShouldReturnBooksFromAllStatuses()
-        {
-            await using var context = await CreateSearchContextAsync();
-            var service = CreateService(new BookRepository(context));
-
-            var result = await service.FullSearchAsync("clean", 1, 10, true);
-
-            Assert.Equal(2, result.Items.Count);
-            Assert.Equal(2, result.TotalItems);
-            Assert.Contains(result.Items, book => book.Status == BookStatus.Available);
-            Assert.Contains(result.Items, book => book.Status == BookStatus.WaitingSend);
-        }
-
-        // O UpdateBookVM nao carrega ImageSlug, entao um PUT sem imagem nova chega
-        // ao service com ImageSlug nulo. Se o service copiar isso cegamente, o livro
-        // perde a capa. Investigado a partir do incidente de 20/08/2026.
-        [Fact]
-        public async Task UpdateBookWithoutNewImage_ShouldKeepImageSlug()
-        {
-            Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
-            var savedBook = BookMock.GetLordTheRings();
-            savedBook.Id = Guid.NewGuid();
-            savedBook.ImageSlug = "lotr.png";
-
-            bookRepositoryMock.Setup(repo => repo.FindAsync(It.IsAny<object[]>())).ReturnsAsync(savedBook);
-            bookRepositoryMock.Setup(repo => repo.UpdateAsync(It.IsAny<Book>())).ReturnsAsync((Book book) => book);
-
-            var service = new BookService(bookRepositoryMock.Object,
-                unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
-
-            Result<Book> result = await service.UpdateAsync(new Book()
-            {
-                Id = savedBook.Id,
-                Title = savedBook.Title,
-                Author = savedBook.Author,
-                CategoryId = savedBook.CategoryId,
-                Synopsis = savedBook.Synopsis,
-                FreightOption = FreightOption.City,
-                ImageName = "",
-                ImageBytes = null
-            });
-
-            Assert.Equal("lotr.png", result.Value.ImageSlug);
-            Assert.Equal(1, result.Value.ImageVersion);
-        }
-
-        [Fact]
-        public async Task UpdateBook_WhenTitleChanges_ShouldKeepPublicSlug()
-        {
-            var categoryId = Guid.NewGuid();
-            var savedBook = BookMock.GetLordTheRings();
-            savedBook.Id = Guid.NewGuid();
-            savedBook.CategoryId = categoryId;
-            savedBook.Slug = "lord-of-the-rings";
-
-            categoryRepositoryMock
-                .Setup(repo => repo.Get())
-                .Returns(new[] { new Category { Id = categoryId, Name = "Leaf" } }.AsQueryable());
-            bookRepositoryMock.Setup(repo => repo.FindAsync(savedBook.Id)).ReturnsAsync(savedBook);
-            bookRepositoryMock.Setup(repo => repo.UpdateAsync(It.IsAny<Book>())).ReturnsAsync((Book book) => book);
-
-            var service = new BookService(bookRepositoryMock.Object,
-                unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
-
-            var result = await service.UpdateAsync(new Book
-            {
-                Id = savedBook.Id,
-                Title = "The Lord of the Rings",
-                Author = savedBook.Author,
-                CategoryId = categoryId,
-                Synopsis = savedBook.Synopsis,
-                FreightOption = FreightOption.City
-            });
-
-            Assert.True(result.Success);
-            Assert.Equal("lord-of-the-rings", result.Value.Slug);
-        }
-
-        [Fact]
-        public async Task AddBooksWithSameTitle_ShouldUseCopySuffixes()
-        {
-            Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
-            var categoryId = Guid.NewGuid();
-            var insertedBooks = new System.Collections.Generic.List<Book>();
-
-            categoryRepositoryMock
-                .Setup(repo => repo.Get())
-                .Returns(new[] { new Category { Id = categoryId, Name = "Leaf" } }.AsQueryable());
-            bookRepositoryMock
-                .Setup(repo => repo.GetSlugsStartingWithAsync(It.IsAny<string>()))
-                .ReturnsAsync(() => insertedBooks.Select(book => book.Slug).ToList());
-            bookRepositoryMock
-                .Setup(repo => repo.InsertAsync(It.IsAny<Book>()))
-                .ReturnsAsync((Book book) =>
-                {
-                    insertedBooks.Add(book);
-                    return book;
-                });
-
-            var service = new BookService(bookRepositoryMock.Object,
-                unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
-
-            var first = new Book
-            {
-                Title = "O Pequeno Príncipe",
-                Author = "Antoine de Saint-Exupéry",
-                ImageName = "first.png",
-                ImageBytes = Encoding.UTF8.GetBytes("FIRST"),
-                FreightOption = FreightOption.City,
-                CategoryId = categoryId,
-                Type = BookType.Printed
-            };
-            var second = new Book
-            {
-                Title = first.Title,
-                Author = first.Author,
-                ImageName = "second.png",
-                ImageBytes = Encoding.UTF8.GetBytes("SECOND"),
-                FreightOption = FreightOption.City,
-                CategoryId = categoryId,
-                Type = BookType.Printed
-            };
-
-            await service.InsertAsync(first);
-            await service.InsertAsync(second);
-
-            Assert.Equal(2, insertedBooks.Count);
-            Assert.Equal("o-pequeno-principe", insertedBooks[0].Slug);
-            Assert.Equal("o-pequeno-principe_copy1", insertedBooks[1].Slug);
-        }
-
-        [Fact]
-        public async Task AddBook_WhenSlugIsTakenConcurrently_ShouldRetryWithNextCopy()
-        {
-            Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
-            var categoryId = Guid.NewGuid();
-            var existingBooks = new System.Collections.Generic.List<Book>();
-            var insertAttempts = 0;
-
-            categoryRepositoryMock
-                .Setup(repo => repo.Get())
-                .Returns(new[] { new Category { Id = categoryId, Name = "Leaf" } }.AsQueryable());
-            bookRepositoryMock
-                .Setup(repo => repo.GetSlugsStartingWithAsync(It.IsAny<string>()))
-                .ReturnsAsync(() => existingBooks.Select(book => book.Slug).ToList());
-            bookRepositoryMock
-                .Setup(repo => repo.InsertAsync(It.IsAny<Book>()))
-                .ReturnsAsync((Book book) =>
-                {
-                    insertAttempts++;
-                    if (insertAttempts == 1)
-                    {
-                        existingBooks.Add(new Book { Slug = book.Slug });
-                        throw new DuplicateBookSlugException(book.Slug, new Exception("simulated race"));
-                    }
-
-                    existingBooks.Add(book);
-                    return book;
-                });
-
-            var service = new BookService(bookRepositoryMock.Object,
-                unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
-
-            var result = await service.InsertAsync(new Book
-            {
-                Title = "Clean Code",
-                Author = "Robert C. Martin",
-                ImageName = "clean-code.png",
-                ImageBytes = Encoding.UTF8.GetBytes("IMAGE"),
-                FreightOption = FreightOption.City,
-                CategoryId = categoryId,
-                Type = BookType.Printed
-            });
-
-            Assert.True(result.Success);
-            Assert.Equal(2, insertAttempts);
-            Assert.Equal("clean-code_copy1", result.Value.Slug);
-        }
-
-        [Fact]
-        public async Task AddBook()
-        {
-            Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
-            var service = new BookService(bookRepositoryMock.Object,
-                unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
-            Result<Book> result = await service.InsertAsync(new Book()
-            {
-                Title = "Lord of the Rings",
-                Author = "J. R. R. Tolkien",
-                ImageName = "lotr.png",
-                ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
-                FreightOption = FreightOption.City,
-                CategoryId = Guid.NewGuid(),
-                Type = BookType.Printed
-            });
-            Assert.NotNull(result);
-            Assert.True(result.Success);
-        }
-
-        [Fact]
-        public async Task AddEBookWithPdf()
-        {
-            Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
-            var service = new BookService(bookRepositoryMock.Object,
-                unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
-            Result<Book> result = await service.InsertAsync(new Book()
-            {
-                Title = "Clean Code",
-                Author = "Robert C. Martin",
-                ImageName = "clean-code.png",
-                ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
-                CategoryId = Guid.NewGuid(),
-                Type = BookType.Eletronic,
-                PdfBytes = Encoding.UTF8.GetBytes("PDF_CONTENT_BASE64")
-            });
-            Assert.NotNull(result);
-            Assert.True(result.Success);
-        }
-
-        [Fact]
-        public async Task AddEBookWithoutPdf_ShouldFail()
-        {
-            Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
-            var service = new BookService(bookRepositoryMock.Object,
-                unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
-            Result<Book> result = await service.InsertAsync(new Book()
-            {
-                Title = "Clean Code",
-                Author = "Robert C. Martin",
-                ImageName = "clean-code.png",
-                ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
-                CategoryId = Guid.NewGuid(),
-                Type = BookType.Eletronic
-            });
-            Assert.NotNull(result);
-            Assert.False(result.Success);
-        }
-
-        [Fact]
-        public async Task AddPrintedBookWithoutFreight_ShouldFail()
-        {
-            Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
-            var service = new BookService(bookRepositoryMock.Object,
-                unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
-            Result<Book> result = await service.InsertAsync(new Book()
-            {
-                Title = "Lord of the Rings",
-                Author = "J. R. R. Tolkien",
-                ImageName = "lotr.png",
-                ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
-                CategoryId = Guid.NewGuid(),
-                Type = BookType.Printed
-            });
-            Assert.NotNull(result);
-            Assert.False(result.Success);
-        }
-
-        [Fact]
-        public async Task EBookShouldNotRequireFreight()
-        {
-            Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
-            var service = new BookService(bookRepositoryMock.Object,
-                unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
-            Result<Book> result = await service.InsertAsync(new Book()
-            {
-                Title = "Clean Code",
-                Author = "Robert C. Martin",
-                ImageName = "clean-code.png",
-                ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
-                CategoryId = Guid.NewGuid(),
-                Type = BookType.Eletronic,
-                PdfBytes = Encoding.UTF8.GetBytes("PDF_CONTENT_BASE64")
-            });
-            Assert.NotNull(result);
-            Assert.True(result.Success);
-        }
-
-        [Fact]
-        public async Task AddDuplicateEBook_ShouldFail()
-        {
-            Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
-
-            // Simula que já existe um ebook com o mesmo título e autor no banco
-            bookRepositoryMock
-                .Setup(repo => repo.AnyAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Book, bool>>>()))
-                .ReturnsAsync(true);
-
-            var service = new BookService(bookRepositoryMock.Object,
-                unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
-
-            Result<Book> result = await service.InsertAsync(new Book()
-            {
-                Title = "Clean Code",
-                Author = "Robert C. Martin",
-                ImageName = "clean-code.png",
-                ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
-                CategoryId = Guid.NewGuid(),
-                Type = BookType.Eletronic,
-                PdfBytes = Encoding.UTF8.GetBytes("PDF_CONTENT_BASE64")
-            });
-
-            Assert.NotNull(result);
-            Assert.False(result.Success);
-            Assert.Contains("Já existe um e-book com este título e autor no catálogo.", result.Messages);
-        }
-
-        [Fact]
-        public async Task AddDuplicatePrintedBook_ShouldNotCheckForDuplicateEBook()
-        {
-            Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
-
-            // AnyAsync nunca deve ser chamado para livros físicos
-            bookRepositoryMock
-                .Setup(repo => repo.AnyAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Book, bool>>>()))
-                .ReturnsAsync(true);
-
-            var service = new BookService(bookRepositoryMock.Object,
-                unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
-
-            Result<Book> result = await service.InsertAsync(new Book()
-            {
-                Title = "Lord of the Rings",
-                Author = "J. R. R. Tolkien",
-                ImageName = "lotr.png",
-                ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
-                FreightOption = FreightOption.City,
-                CategoryId = Guid.NewGuid(),
-                Type = BookType.Printed
-            });
-
-            Assert.NotNull(result);
-            Assert.True(result.Success);
-        }
-
-        [Fact]
-        public async Task InsertBook_WithParentCategory_ShouldFail()
-        {
-            Thread.CurrentPrincipal = new UserMock().GetClaimsUser();
-            var parentCategoryId = Guid.NewGuid();
-
-            categoryRepositoryMock
-                .Setup(repo => repo.Get())
-                .Returns(new[] { new Category { Id = Guid.NewGuid(), ParentCategoryId = parentCategoryId } }.AsQueryable());
-
-            var service = new BookService(bookRepositoryMock.Object,
-                unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
-
-            Result<Book> result = await service.InsertAsync(new Book()
-            {
-                Title = "Livro Teste",
-                Author = "Autor Teste",
-                ImageName = "teste.png",
-                ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
-                CategoryId = parentCategoryId,
-                FreightOption = FreightOption.City,
-                Type = BookType.Printed
-            });
-
-            Assert.NotNull(result);
-            Assert.False(result.Success);
-            Assert.Contains("Selecione uma subcategoria final", result.Messages[0]);
-        }
-
-        [Fact]
-        public async Task UpdateBook_WithParentCategory_ShouldFail()
-        {
-            var parentCategoryId = Guid.NewGuid();
-            var bookId = Guid.NewGuid();
-            var savedBook = new Book
-            {
-                Id = bookId,
-                Title = "Livro Original",
-                Author = "Autor",
-                CategoryId = Guid.NewGuid(),
-                Synopsis = "x",
-                Slug = "livro-original"
-            };
-
-            categoryRepositoryMock
-                .Setup(repo => repo.Get())
-                .Returns(new[] { new Category { Id = Guid.NewGuid(), ParentCategoryId = parentCategoryId } }.AsQueryable());
-
-            bookRepositoryMock.Setup(repo => repo.FindAsync(bookId)).ReturnsAsync(savedBook);
-
-            var service = new BookService(bookRepositoryMock.Object,
-                unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
-
-            var result = await service.UpdateAsync(new Book
-            {
-                Id = bookId,
-                Title = "Livro Original",
-                Author = "Autor",
-                CategoryId = parentCategoryId,
-                Synopsis = "x"
-            });
-
-            Assert.NotNull(result);
-            Assert.False(result.Success);
-            Assert.Contains("Selecione uma subcategoria final", result.Messages[0]);
-            bookRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<Book>()), Times.Never);
-        }
-        [Fact]
-        public async Task UpdateBook_WhenCoverExtensionChanges_ShouldUploadUsingNewSlugAndDeleteOldFile()
-        {
-            var bookId = Guid.NewGuid();
-            var categoryId = Guid.NewGuid();
-
-            var savedBook = new Book
-            {
-                Id = bookId,
-                Title = "Livro Original",
-                Author = "Autor",
-                CategoryId = categoryId,
-                Synopsis = "x",
-                Slug = "livro-original",
-                ImageSlug = "livro-original.jpg"
-            };
-
-            categoryRepositoryMock
-                .Setup(repo => repo.Get())
-                .Returns(new[] { new Category { Id = categoryId, Name = "Leaf" } }.AsQueryable());
-
-            bookRepositoryMock.Setup(repo => repo.FindAsync(bookId)).ReturnsAsync(savedBook);
-            bookRepositoryMock.Setup(repo => repo.UpdateAsync(It.IsAny<Book>())).ReturnsAsync((Book b) => b);
-
-            uploadServiceMock
-                .Setup(service => service.UploadImageAsync(It.IsAny<byte[]>(), It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync("Ok Mocked");
-
-            uploadServiceMock
-                .Setup(service => service.DeleteReplacedImageAsync(
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string>()))
-                .Returns(Task.CompletedTask);
-
-            var service = new BookService(bookRepositoryMock.Object,
-                unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
-
-            var result = await service.UpdateAsync(new Book
-            {
-                Id = bookId,
-                Title = "Livro Original",
-                Author = "Autor",
-                CategoryId = categoryId,
-                Synopsis = "x",
-                ImageName = "nova-capa.png",
-                ImageBytes = Encoding.UTF8.GetBytes("PNG_BYTES")
-            });
-
-            Assert.NotNull(result);
-            Assert.True(result.Success);
-            Assert.Equal(2, result.Value.ImageVersion);
-
-            uploadServiceMock.Verify(service => service.UploadImageAsync(
-                It.IsAny<byte[]>(),
-                "livro-original.png",
-                "Books"), Times.Once);
-
-            uploadServiceMock.Verify(service => service.DeleteReplacedImageAsync(
-                "livro-original.jpg",
-                "livro-original.png",
-                "Books"), Times.Once);
-        }
-
-        [Fact]
-        public async Task DeleteEBook_ShouldTryDeleteAssetsAndDeleteDbRecord()
-        {
-            var bookId = Guid.NewGuid();
-            var savedBook = new Book
-            {
-                Id = bookId,
-                Title = "Cloud",
-                Author = "Sharebook",
-                Type = BookType.Eletronic,
-                ImageSlug = "cloud.jpg",
-                EBookPdfPath = "ebooks/cloud.pdf",
-                CategoryId = Guid.NewGuid(),
-                Synopsis = "x"
-            };
-
-            bookRepositoryMock.Setup(repo => repo.FindAsync(It.IsAny<object[]>())).ReturnsAsync(savedBook);
-            bookRepositoryMock.Setup(repo => repo.DeleteAsync(It.IsAny<object[]>())).Returns(Task.CompletedTask).Verifiable();
-            uploadServiceMock.Setup(service => service.DeleteFileIfExistsAsync("cloud.jpg", "Books")).Returns(Task.CompletedTask).Verifiable();
-            ebookServiceMock.Setup(service => service.DeletePdfAsync(savedBook)).Returns(Task.CompletedTask).Verifiable();
-
-            var service = new BookService(bookRepositoryMock.Object,
-                unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
-
-            var result = await service.DeleteAsync(bookId);
-
-            Assert.NotNull(result);
-            bookRepositoryMock.Verify(repo => repo.DeleteAsync(It.IsAny<object[]>()), Times.Once);
-            uploadServiceMock.Verify(service => service.DeleteFileIfExistsAsync("cloud.jpg", "Books"), Times.Once);
-            ebookServiceMock.Verify(service => service.DeletePdfAsync(savedBook), Times.Once);
-        }
-
-        [Fact]
-        public async Task DeleteBook_ShouldDeleteDbRecordEvenWhenAssetCleanupFails()
-        {
-            var bookId = Guid.NewGuid();
-            var savedBook = new Book
-            {
-                Id = bookId,
-                Title = "Cloud",
-                Author = "Sharebook",
-                Type = BookType.Eletronic,
-                ImageSlug = "cloud.jpg",
-                EBookPdfPath = "ebooks/cloud.pdf",
-                CategoryId = Guid.NewGuid(),
-                Synopsis = "x"
-            };
-
-            bookRepositoryMock.Setup(repo => repo.FindAsync(It.IsAny<object[]>())).ReturnsAsync(savedBook);
-            bookRepositoryMock.Setup(repo => repo.DeleteAsync(It.IsAny<object[]>())).Returns(Task.CompletedTask).Verifiable();
-            uploadServiceMock.Setup(service => service.DeleteFileIfExistsAsync(It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(new Exception("img error"));
-            ebookServiceMock.Setup(service => service.DeletePdfAsync(It.IsAny<Book>())).ThrowsAsync(new Exception("pdf error"));
-
-            var service = new BookService(bookRepositoryMock.Object,
-                unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object, sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
-
-            var result = await service.DeleteAsync(bookId);
-
-            Assert.NotNull(result);
-            bookRepositoryMock.Verify(repo => repo.DeleteAsync(It.IsAny<object[]>()), Times.Once);
-        }
-
-        private BookService CreateService(IBookRepository repository)
-            => new BookService(repository,
-                unitOfWorkMock.Object, new BookValidator(),
-                uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object,
-                sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object);
-
-        private static async Task<ApplicationDbContext> CreateSearchContextAsync()
-        {
-            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString())
-                .Options;
-            var context = new ApplicationDbContext(options);
-
-            var user = new User
-            {
-                Name = "Search Donor",
-                Email = "search@example.com",
-                Password = "password",
-                PasswordSalt = "salt",
-                Address = new Address
-                {
-                    City = "Sao Paulo",
-                    State = "SP",
-                    Country = "Brasil"
-                }
-            };
-            var category = new Category { Name = "Software" };
-
-            context.Books.AddRange(
-                new Book
-                {
-                    Title = "Clean Code Available",
-                    Author = "Robert Martin",
-                    ImageSlug = "clean-code-available.png",
-                    Slug = "clean-code-available",
-                    Status = BookStatus.Available,
-                    User = user,
-                    Category = category
-                },
-                new Book
-                {
-                    Title = "Clean Code Waiting Send",
-                    Author = "Robert Martin",
-                    ImageSlug = "clean-code-waiting-send.png",
-                    Slug = "clean-code-waiting-send",
-                    Status = BookStatus.WaitingSend,
-                    User = user,
-                    Category = category
-                });
-            await context.SaveChangesAsync();
-
-            return context;
-        }
+        return context;
     }
 }

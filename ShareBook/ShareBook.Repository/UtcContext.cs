@@ -2,37 +2,36 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System;
 
-namespace ShareBook.Repository
+namespace ShareBook.Repository;
+
+public static class UtcContext
 {
-    public static class UtcContext
+    public static void SetUtcOnDatabase(this ApplicationDbContext context, ModelBuilder builder)
     {
-        public static void SetUtcOnDatabase(this ApplicationDbContext context, ModelBuilder builder)
+        var dateTimeConverter = new ValueConverter<DateTime, DateTime>(
+            v => v.ToUniversalTime(),
+            v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+
+        var nullableDateTimeConverter = new ValueConverter<DateTime?, DateTime?>(
+            v => v.HasValue ? v.Value.ToUniversalTime() : v,
+            v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v);
+
+        foreach (var entityType in builder.Model.GetEntityTypes())
         {
-            var dateTimeConverter = new ValueConverter<DateTime, DateTime>(
-                v => v.ToUniversalTime(),
-                v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
-
-            var nullableDateTimeConverter = new ValueConverter<DateTime?, DateTime?>(
-                v => v.HasValue ? v.Value.ToUniversalTime() : v,
-                v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v);
-
-            foreach (var entityType in builder.Model.GetEntityTypes())
+            if (entityType.IsKeyless)
             {
-                if (entityType.IsKeyless)
-                {
-                    continue;
-                }
+                continue;
+            }
 
-                foreach (var property in entityType.GetProperties())
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.ClrType == typeof(DateTime))
                 {
-                    if (property.ClrType == typeof(DateTime))
-                    {
-                        property.SetValueConverter(dateTimeConverter);
-                    }
-                    else if (property.ClrType == typeof(DateTime?))
-                    {
-                        property.SetValueConverter(nullableDateTimeConverter);
-                    }
+                    property.SetValueConverter(dateTimeConverter);
+                }
+                else if (property.ClrType == typeof(DateTime?))
+                {
+                    property.SetValueConverter(nullableDateTimeConverter);
                 }
             }
         }

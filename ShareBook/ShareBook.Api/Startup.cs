@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Builder;
-using Serilog;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -10,11 +9,15 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 using ShareBook.Api.Configuration;
 using ShareBook.Api.Filters;
-using ShareBook.Api.RateLimiting;
 using ShareBook.Api.Middleware;
+using ShareBook.Api.RateLimiting;
+using ShareBook.Api.Security;
+using ShareBook.Domain.Common;
 using ShareBook.Repository;
 using ShareBook.Service;
 using ShareBook.Service.Analytics;
@@ -27,182 +30,178 @@ using ShareBook.Service.Upload;
 using System;
 using System.IO;
 using System.Text.Json.Serialization;
-using Microsoft.Extensions.FileProviders;
 
 
-namespace ShareBook.Api
+namespace ShareBook.Api;
+
+public class Startup(IConfiguration configuration)
 {
-    public class Startup
+    /// <summary>
+    /// Only should be used for integration tests
+    /// </summary>
+    public static bool IgnoreMigrations = false;
+
+    public IConfiguration Configuration { get; } = configuration;
+
+    public void ConfigureServices(IServiceCollection services)
     {
-        /// <summary>
-        /// Only should be used for integration tests
-        /// </summary>
-        public static bool IgnoreMigrations = false;
+        services.AddDatabaseConfiguration(Configuration);
 
-        public Startup(IConfiguration configuration)
+        services.RegisterRepositoryServices();
+        services.AddAutoMapper(cfg => cfg.LicenseKey = Environment.GetEnvironmentVariable("AUTOMAPPER_LICENSE_KEY"), typeof(Startup).Assembly);
+        services.AddLogging();
+
+        services
+            .AddControllers(x =>
+            {
+                x.Filters.Add(typeof(ValidateModelStateFilterAttribute));
+            })
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            }).AddNewtonsoftJson();
+
+        services.Configure<ApiBehaviorOptions>(options =>
         {
-            Configuration = configuration;
-        }
+            options.SuppressModelStateInvalidFilter = true;
+        });
 
-        public IConfiguration Configuration { get; }
+        services.AddHttpContextAccessor();
+        services.AddShareBookForwardedHeaders(Configuration);
+        services
+            .AddOptions<EBookDownloadRateLimitOptions>()
+            .Bind(Configuration.GetSection(EBookDownloadRateLimitOptions.SectionName))
+            .Validate(options => options.PermitLimit > 0,
+                "EBookDownloadRateLimit:PermitLimit deve ser maior que zero.")
+            .Validate(options => options.WindowHours > 0,
+                "EBookDownloadRateLimit:WindowHours deve ser maior que zero.")
+            .ValidateOnStart();
+        services.AddSingleton(TimeProvider.System);
+        services.AddScoped<ICurrentUserAccessor, CurrentUserAccessor>();
+        services.AddSingleton<IEBookDownloadRateLimiter, EBookDownloadRateLimiter>();
 
-        public void ConfigureServices(IServiceCollection services)
+        services.Configure<ImageSettings>(options => Configuration.GetSection("ImageSettings").Bind(options));
+
+        services.Configure<EmailSettings>(options => Configuration.GetSection("EmailSettings").Bind(options));
+
+        services.Configure<ServerSettings>(options => Configuration.GetSection("ServerSettings").Bind(options));
+
+        services.Configure<PushNotificationSettings>(options => Configuration.GetSection("PushNotificationSettings").Bind(options));
+
+        services.Configure<AwsSqsSettings>(options => Configuration.GetSection("AWSSQSSettings").Bind(options));
+
+        services.Configure<AwsS3Settings>(options =>
         {
-            services.AddDatabaseConfiguration(Configuration);
+            Configuration.GetSection("AwsS3Settings").Bind(options);
+            // Retrocompatibilidade temporária para ambientes com chave antiga.
+            Configuration.GetSection("EBookStorage").Bind(options);
+        });
 
-            services.RegisterRepositoryServices();
-            services.AddAutoMapper(cfg => cfg.LicenseKey = Environment.GetEnvironmentVariable("AUTOMAPPER_LICENSE_KEY"), typeof(Startup).Assembly);
-            services.AddLogging();
+        services.Configure<MeetupSettings>(options => Configuration.GetSection("MeetupSettings").Bind(options));
 
-            services
-                .AddControllers(x =>
-                {
-                    x.Filters.Add(typeof(ValidateModelStateFilterAttribute));
-                })
-                .AddJsonOptions(options =>
-                {
-                    options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-                }).AddNewtonsoftJson();
+        services.Configure<GA4Settings>(options => Configuration.GetSection("GA4").Bind(options));
 
-            services.Configure<ApiBehaviorOptions>(options =>
-            {
-                options.SuppressModelStateInvalidFilter = true;
-            });
+        services.AddHttpContextAccessor();
 
-            services.AddHttpContextAccessor();
-            services.AddShareBookForwardedHeaders(Configuration);
-            services
-                .AddOptions<EBookDownloadRateLimitOptions>()
-                .Bind(Configuration.GetSection(EBookDownloadRateLimitOptions.SectionName))
-                .Validate(options => options.PermitLimit > 0,
-                    "EBookDownloadRateLimit:PermitLimit deve ser maior que zero.")
-                .Validate(options => options.WindowHours > 0,
-                    "EBookDownloadRateLimit:WindowHours deve ser maior que zero.")
-                .ValidateOnStart();
-            services.AddSingleton(TimeProvider.System);
-            services.AddSingleton<IEBookDownloadRateLimiter, EBookDownloadRateLimiter>();
+        JWTConfig.RegisterJWT(services, Configuration);
 
-            services.Configure<ImageSettings>(options => Configuration.GetSection("ImageSettings").Bind(options));
+        services.RegisterSwagger();
 
-            services.Configure<EmailSettings>(options => Configuration.GetSection("EmailSettings").Bind(options));
-
-            services.Configure<ServerSettings>(options => Configuration.GetSection("ServerSettings").Bind(options));
-
-            services.Configure<PushNotificationSettings>(options => Configuration.GetSection("PushNotificationSettings").Bind(options));
-
-            services.Configure<AwsSqsSettings>(options => Configuration.GetSection("AWSSQSSettings").Bind(options));
-
-            services.Configure<AwsS3Settings>(options =>
-            {
-                Configuration.GetSection("AwsS3Settings").Bind(options);
-                // Retrocompatibilidade temporária para ambientes com chave antiga.
-                Configuration.GetSection("EBookStorage").Bind(options);
-            });
-
-            services.Configure<MeetupSettings>(options => Configuration.GetSection("MeetupSettings").Bind(options));
-
-            services.Configure<GA4Settings>(options => Configuration.GetSection("GA4").Bind(options));
-
-            services.AddHttpContextAccessor();
-
-            JWTConfig.RegisterJWT(services, Configuration);
-
-            services.RegisterSwagger();
-
-            services.AddCors(options =>
-            {
-                options.AddPolicy("AllowAllHeaders",
-                    builder =>
-                    {
-                        builder.AllowAnyOrigin()
-                            .AllowAnyHeader()
-                            .AllowAnyMethod();
-                    });
-            });
-
-
-            MuambatorConfigurator.Configure(Configuration.GetSection("Muambator:Token").Value, Configuration.GetSection("Muambator:IsActive").Value);
-
-            services.AddMemoryCache();
-        }
-
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        services.AddCors(options =>
         {
-            app.UseForwardedHeaders();
-            app.UseSerilogRequestLogging();
-
-            app.UseHealthChecks("/hc");
-            app.UseExceptionHandlerMiddleware();
-
-            var staticFileOptions = new StaticFileOptions()
-            {
-                OnPrepareResponse = (context) =>
+            options.AddPolicy("AllowAllHeaders",
+                builder =>
                 {
-                    // Enable cors
-                    context.Context.Response.Headers["Access-Control-Allow-Origin"] = "*";
-
-                    if (context.Context.Request.Path.StartsWithSegments("/Images/Books"))
-                    {
-                        context.Context.Response.Headers["Cache-Control"] = "public,max-age=86400";
-                    }
-                }
-            };
-
-            // Em desenvolvimento, servir arquivos do diretório de execução (bin/Debug)
-            if (env.IsDevelopment())
-            {
-                var wwwrootPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wwwroot");
-                if (Directory.Exists(wwwrootPath))
-                {
-                    staticFileOptions.FileProvider = new PhysicalFileProvider(wwwrootPath);
-                }
-            }
-
-            app.UseStaticFiles(staticFileOptions);
-
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "SHAREBOOK API V1");
-            });
-
-            app.UseRouting();
-
-            app.UseCors("AllowAllHeaders");
-            app.UseAuthorization();
-
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllerRoute(
-                    name: "default",
-                    pattern: "{controller=Book}/{action=Index}/{id?}");
-
-                endpoints.MapHealthChecks("/health", new HealthCheckOptions()
-                {
-                    AllowCachingResponses = false,
-                    ResultStatusCodes =
-                    {
-                        [HealthStatus.Healthy] = StatusCodes.Status200OK,
-                        [HealthStatus.Degraded] = StatusCodes.Status200OK,
-                        [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
-                    }
+                    builder.AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
                 });
-            });
+        });
 
-            if (!IgnoreMigrations)
+
+        MuambatorConfigurator.Configure(
+            Configuration.GetSection("Muambator:Token").Value ?? string.Empty,
+            Configuration.GetSection("Muambator:IsActive").Value ?? string.Empty);
+
+        services.AddMemoryCache();
+    }
+
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+        app.UseForwardedHeaders();
+        app.UseSerilogRequestLogging();
+
+        app.UseHealthChecks("/hc");
+        app.UseExceptionHandlerMiddleware();
+
+        var staticFileOptions = new StaticFileOptions()
+        {
+            OnPrepareResponse = (context) =>
             {
-                DatabaseConfiguration.EnsureDatabaseCreated(app.ApplicationServices, Configuration);
+                // Enable cors
+                context.Context.Response.Headers["Access-Control-Allow-Origin"] = "*";
 
-                if (env.IsDevelopment() || env.IsStaging())
+                if (context.Context.Request.Path.StartsWithSegments("/Images/Books"))
                 {
-                    using var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
-                    var context = serviceScope.ServiceProvider.GetService<ApplicationDbContext>();
-                    var sharebookSeeder = new ShareBookSeeder(context);
-                    sharebookSeeder.Seed();
+                    context.Context.Response.Headers["Cache-Control"] = "public,max-age=86400";
                 }
+            }
+        };
+
+        // Em desenvolvimento, servir arquivos do diretório de execução (bin/Debug)
+        if (env.IsDevelopment())
+        {
+            var wwwrootPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wwwroot");
+            if (Directory.Exists(wwwrootPath))
+            {
+                staticFileOptions.FileProvider = new PhysicalFileProvider(wwwrootPath);
             }
         }
 
+        app.UseStaticFiles(staticFileOptions);
+
+        app.UseSwagger();
+        app.UseSwaggerUI(c =>
+        {
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "SHAREBOOK API V1");
+        });
+
+        app.UseRouting();
+
+        app.UseCors("AllowAllHeaders");
+        app.UseAuthorization();
+
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapControllerRoute(
+                name: "default",
+                pattern: "{controller=Book}/{action=Index}/{id?}");
+
+            endpoints.MapHealthChecks("/health", new HealthCheckOptions()
+            {
+                AllowCachingResponses = false,
+                ResultStatusCodes =
+                {
+                    [HealthStatus.Healthy] = StatusCodes.Status200OK,
+                    [HealthStatus.Degraded] = StatusCodes.Status200OK,
+                    [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+                }
+            });
+        });
+
+        if (!IgnoreMigrations)
+        {
+            DatabaseConfiguration.EnsureDatabaseCreated(app.ApplicationServices, Configuration);
+
+            if (env.IsDevelopment() || env.IsStaging())
+            {
+                using var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
+                var context = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                var sharebookSeeder = new ShareBookSeeder(context);
+                sharebookSeeder.Seed();
+            }
+        }
     }
+
 }

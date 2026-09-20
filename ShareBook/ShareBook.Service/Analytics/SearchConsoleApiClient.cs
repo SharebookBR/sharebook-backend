@@ -1,8 +1,8 @@
+using Google.Apis.Auth.OAuth2;
+using Microsoft.Extensions.Options;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
-using Google.Apis.Auth.OAuth2;
-using Microsoft.Extensions.Options;
 
 namespace ShareBook.Service.Analytics;
 

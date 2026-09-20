@@ -1,11 +1,11 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using ShareBook.Domain;
+using ShareBook.Domain.Enums;
+using ShareBook.Domain.Exceptions;
 using ShareBook.Repository;
 using ShareBook.Service;
-using ShareBook.Domain.Enums;
 using System;
-using ShareBook.Domain;
-using ShareBook.Domain.Exceptions;
-using Microsoft.Extensions.Configuration;
 using System.Threading.Tasks;
 
 namespace Sharebook.Jobs;
@@ -14,7 +14,7 @@ public class MeetupSearch : GenericJob, IJob
 {
     private readonly IMeetupService _meetupService;
     private readonly IConfiguration _configuration;
-    public MeetupSearch(IJobHistoryRepository jobHistoryRepo, ILoggerFactory loggerFactory, IMeetupService meetupService, IConfiguration configuration) : base(jobHistoryRepo, loggerFactory)
+    public MeetupSearch(IJobHistoryRepository jobHistoryRepo, ILoggerFactory loggerFactory, TimeProvider timeProvider, IMeetupService meetupService, IConfiguration configuration) : base(jobHistoryRepo, loggerFactory, timeProvider)
     {
         _meetupService = meetupService;
 
@@ -28,7 +28,7 @@ public class MeetupSearch : GenericJob, IJob
 
     public override async Task<JobHistory> WorkAsync()
     {
-        var meetupEnabled = bool.Parse(_configuration["MeetupSettings:IsActive"]);
+        var meetupEnabled = bool.Parse(_configuration["MeetupSettings:IsActive"]!);
         if(!meetupEnabled) throw new MeetupDisabledException("Serviço Meetup está desabilitado no appsettings.");
         
         var jobResult = await _meetupService.FetchMeetupsAsync();

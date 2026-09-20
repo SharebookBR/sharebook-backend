@@ -2,20 +2,19 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace ShareBook.Infra.CrossCutting.Identity
+namespace ShareBook.Infra.CrossCutting.Identity;
+
+public class SigningConfigurations
 {
-    public class SigningConfigurations
+    public SecurityKey Key { get; }
+    public SigningCredentials SigningCredentials { get; }
+
+    public SigningConfigurations(string secretJwtKey)
     {
-        public SecurityKey Key { get; }
-        public SigningCredentials SigningCredentials { get; }
+        Key = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(secretJwtKey));            
 
-        public SigningConfigurations(string secretJwtKey)
-        {
-            Key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(secretJwtKey));            
-
-            SigningCredentials = new SigningCredentials(
-                Key, SecurityAlgorithms.HmacSha256Signature);
-        }
+        SigningCredentials = new SigningCredentials(
+            Key, SecurityAlgorithms.HmacSha256Signature);
     }
 }

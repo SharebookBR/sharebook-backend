@@ -4,10 +4,7 @@ using System.Runtime.Serialization;
 namespace ShareBook.Domain.Exceptions;
 
 [Serializable]
-public class MeetupDisabledException : Exception
+public class MeetupDisabledException(string message) : Exception(message)
 {
-    public MeetupDisabledException(string message) : base(message)
-    {
-    }
 }
 

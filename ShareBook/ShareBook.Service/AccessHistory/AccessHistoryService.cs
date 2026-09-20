@@ -8,21 +8,13 @@ using ShareBook.Service.Generic;
 
 using System.Threading.Tasks;
 
-namespace ShareBook.Service {
-    public class AccessHistoryService : BaseService<AccessHistory>, IAccessHistoryService {
-        private readonly IAccessHistoryRepository _accessHistoryRepository;
+namespace ShareBook.Service; 
+public class AccessHistoryService(ApplicationDbContext context,
+    IUnitOfWork unitOfWork,
+    IValidator<AccessHistory> validator) : BaseService<AccessHistory>(context, unitOfWork, validator), IAccessHistoryService {
+    public async Task InsertVisitorAsync(User user, User visitor, VisitorProfile profile) {
+        var visitorProfile = new AccessHistory(user.Id, visitor.Name, profile);
 
-        public AccessHistoryService(IAccessHistoryRepository repository,
-            IUnitOfWork unitOfWork,
-            IValidator<AccessHistory> validator) : base(repository, unitOfWork, validator) 
-        {
-            _accessHistoryRepository = repository;
-        }
-
-        public async Task InsertVisitorAsync(User user, User visitor, VisitorProfile profile) {
-            var visitorProfile = new AccessHistory(user.Id, visitor.Name, profile);
-
-            await _accessHistoryRepository.InsertAsync(visitorProfile);
-        }
+        await _repository.InsertAsync(visitorProfile);
     }
 }

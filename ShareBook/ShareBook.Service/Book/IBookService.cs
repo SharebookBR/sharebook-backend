@@ -7,74 +7,73 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace ShareBook.Service
+namespace ShareBook.Service;
+
+public interface IBookService : IBaseService<Book>
 {
-    public interface IBookService : IBaseService<Book>
-    {
-        Task ApproveAsync(Guid bookId, DateTime? chooseDate);
+    Task ApproveAsync(Guid bookId, DateTime? chooseDate);
 
-        Task MarkAsDeliveredAsync(Guid bookId);
+    Task MarkAsDeliveredAsync(Guid bookId);
 
-        Task ReceivedAsync(Guid bookId, Guid winnerUserId);
-        Task UpdateBookStatusAsync(Guid bookId, BookStatus bookStatus);
+    Task ReceivedAsync(Guid bookId, Guid winnerUserId);
+    Task UpdateBookStatusAsync(Guid bookId, BookStatus bookStatus);
 
-        IList<dynamic> FreightOptions();
+    IList<dynamic> FreightOptions();
 
-        Task<IList<Book>> Random15BooksAsync();
+    Task<IList<Book>> Random15BooksAsync();
 
-        Task<IList<Book>> GetNewest15EBooksAsync();
+    Task<IList<Book>> GetNewest15EBooksAsync();
 
-        Task<PagedList<Book>> RecentEBooksAsync(int page, int itemsPerPage, int days = 7);
+    Task<PagedList<Book>> RecentEBooksAsync(int page, int itemsPerPage, int days = 7);
 
-        Task<int> GetAvailableEBooksCountAsync();
+    Task<int> GetAvailableEBooksCountAsync();
 
-        Task<int> GetRecentEBooksCountAsync(int days = 7);
+    Task<int> GetRecentEBooksCountAsync(int days = 7);
 
-        Task<IList<SitemapBookDTO>> GetSitemapBooksAsync();
+    Task<IList<SitemapBookDTO>> GetSitemapBooksAsync();
 
-        Task<AdminBooksResultDTO> GetAdminBooksAsync(
-            int page,
-            int itemsPerPage,
-            string search = null,
-            string status = null,
-            string bucket = null,
-            string type = null);
+    Task<AdminBooksResultDTO> GetAdminBooksAsync(
+        int page,
+        int itemsPerPage,
+        string? search = null,
+        string? status = null,
+        string? bucket = null,
+        string? type = null);
 
-        Task<PagedList<Book>> FullSearchAsync(string criteria, int page, int itemsPerPage, bool isAdmin = false);
+    Task<PagedList<Book>> FullSearchAsync(string criteria, int page, int itemsPerPage, bool isAdmin = false);
 
-        Task<CategoryBooksResultDTO> ByCategoryIdAsync(Guid categoryId, int page, int items);
+    Task<CategoryBooksResultDTO> ByCategoryIdAsync(Guid categoryId, int page, int items);
 
-        Task<CategoryBooksResultDTO> ByCategoryTreeIdAsync(Guid categoryId, int page, int items);
+    Task<CategoryBooksResultDTO> ByCategoryTreeIdAsync(Guid categoryId, int page, int items);
 
-        Task<IList<Book>> GetAllAsync(int page, int items);
+    Task<IList<Book>> GetAllAsync(int page, int items);
 
-        Task<Book> BySlugAsync(string slug);
+    Task<Book?> BySlugAsync(string slug);
 
-        Task<IList<Book>> GetRecommendationsAsync(Guid bookId, int limit = 6);
+    Task<IList<Book>> GetRecommendationsAsync(Guid bookId, int limit = 6);
 
-        Task<bool> UserRequestedBookAsync(Guid bookId);
+    Task<bool> UserRequestedBookAsync(Guid bookId);
 
-        Task<IList<Book>> GetUserDonationsAsync(Guid userId);
-        Task<UserDonationsResultDTO> GetUserDonationsAsync(
-            Guid userId,
-            int page,
-            int itemsPerPage,
-            string search = null,
-            string bucket = null);
+    Task<IList<Book>> GetUserDonationsAsync(Guid userId);
+    Task<UserDonationsResultDTO> GetUserDonationsAsync(
+        Guid userId,
+        int page,
+        int itemsPerPage,
+        string? search = null,
+        string? bucket = null);
 
-        Task<IList<Book>> GetBooksChooseDateIsTodayAsync();
+    Task<IList<Book>> GetBooksChooseDateIsTodayAsync();
 
-        Task<IList<Book>> GetBooksChooseDateIsLateAsync();
+    Task<IList<Book>> GetBooksChooseDateIsLateAsync();
 
-        Task<IList<Book>> GetBooksChooseDateIsTodayOrLateAsync();
+    Task<IList<Book>> GetBooksChooseDateIsTodayOrLateAsync();
 
-        Task AddFacilitatorNotesAsync(Guid bookId, string facilitatorNotes);
+    Task AddFacilitatorNotesAsync(Guid bookId, string facilitatorNotes);
 
-        Task<Book> GetBookWithAllUsersAsync(Guid bookId);
+    Task<Book?> GetBookWithAllUsersAsync(Guid bookId);
 
-        Task RenewChooseDateAsync(Guid bookId);
-        Task<BookStatsDTO> GetStatsAsync();
-        Task ReportCopyrightAsync(string slug);
-        Task IncrementDownloadCountAsync(Guid bookId);
-    }
+    Task RenewChooseDateAsync(Guid bookId);
+    Task<BookStatsDTO> GetStatsAsync();
+    Task ReportCopyrightAsync(string slug);
+    Task IncrementDownloadCountAsync(Guid bookId);
 }

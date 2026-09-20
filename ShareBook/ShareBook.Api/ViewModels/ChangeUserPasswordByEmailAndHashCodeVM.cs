@@ -1,9 +1,8 @@
-﻿namespace ShareBook.Api.ViewModels
-{
-    public class ChangeUserPasswordByHashCodeVM
-    {
-        public string HashCodePassword { get; set; }
+﻿namespace ShareBook.Api.ViewModels;
 
-        public string NewPassword { get; set; }
-    }
+public class ChangeUserPasswordByHashCodeVM
+{
+    public required string HashCodePassword { get; set; }
+
+    public required string NewPassword { get; set; }
 }

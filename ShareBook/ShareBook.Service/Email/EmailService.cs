@@ -30,13 +30,15 @@ public class EmailService : IEmailService
     private readonly MailSenderHighPriorityQueue _mailSenderHighPriorityQueue;
     private readonly ImapClient _imapClient;
     private readonly ILogger<EmailService> _logger;
+    private readonly TimeProvider _timeProvider;
 
 
     private readonly ApplicationDbContext _ctx;
 
     public EmailService(IOptions<EmailSettings> emailSettings, IUserRepository userRepository,
     IConfiguration configuration, MailSenderLowPriorityQueue mailSenderLowPriorityQueue,
-    MailSenderHighPriorityQueue mailSenderHighPriorityQueue, ApplicationDbContext ctx, ILogger<EmailService> logger)
+    MailSenderHighPriorityQueue mailSenderHighPriorityQueue, ApplicationDbContext ctx, ILogger<EmailService> logger,
+    TimeProvider timeProvider)
     {
         _settings = emailSettings.Value;
         _userRepository = userRepository;
@@ -49,11 +51,17 @@ public class EmailService : IEmailService
         _imapClient.ServerCertificateValidationCallback = (s, c, h, e) => true;
         _ctx = ctx;
         _logger = logger;
+        _timeProvider = timeProvider;
     }
 
     public async Task SendToAdminsAsync(string messageText, string subject)
     {
         var firstAdm = await _userRepository.Get().Where(u => u.Profile == Domain.Enums.Profile.Administrator).FirstOrDefaultAsync();
+        if (firstAdm == null)
+        {
+            _logger.LogWarning("Nenhum administrador cadastrado. Não foi possível enviar o email '{Subject}'.", subject);
+            return;
+        }
         await SendAsync(firstAdm.Email, firstAdm.Name, messageText, subject, copyAdmins: true, highPriority: true);
     }
 
@@ -75,7 +83,7 @@ public class EmailService : IEmailService
             return;
         }
 
-        var sqsEnabled = bool.Parse(_configuration["AwsSqsSettings:IsActive"]);
+        var sqsEnabled = bool.Parse(_configuration["AwsSqsSettings:IsActive"] ?? "false");
 
         if (!sqsEnabled)
         {
@@ -249,7 +257,7 @@ public class EmailService : IEmailService
         {
             var message = await bounceFolder.GetMessageAsync(item.UniqueId);
             var body = message.TextBody ?? message.HtmlBody ?? message.Body?.ToString() ?? string.Empty;
-            var bounce = new MailBounce(message.Subject, body);
+            var bounce = new MailBounce(message.Subject ?? string.Empty, body);
 
             if (bounce.IsBounce)
             {
@@ -274,7 +282,7 @@ public class EmailService : IEmailService
         return log;
     }
 
-    private async Task<IMailFolder> GetBounceFolderAsync()
+    private async Task<IMailFolder?> GetBounceFolderAsync()
     {
         if (string.Equals(_settings.BounceFolder, "INBOX", StringComparison.OrdinalIgnoreCase))
             return _imapClient.Inbox;
@@ -289,7 +297,7 @@ public class EmailService : IEmailService
 
     public async Task<IList<MailBounce>> GetBouncesAsync(string email)
     {
-        return await _ctx.MailBounces.Where(m => email.Contains(m.Email)).ToListAsync();
+        return await _ctx.MailBounces.Where(m => m.Email != null && email.Contains(m.Email)).ToListAsync();
     }
 
     public async Task<bool> IsBounceAsync(string email)
@@ -298,7 +306,7 @@ public class EmailService : IEmailService
 
 
         var hardBounces = bounces.Where(b => !b.IsSoft).ToList();
-        var oneDayAgo = DateTime.UtcNow.AddDays(-1);
+        var oneDayAgo = _timeProvider.GetUtcNow().UtcDateTime.AddDays(-1);
         var softBounces = bounces.Where(b => b.IsSoft && b.CreationDate > oneDayAgo).ToList();
 
         if (hardBounces.Exists(b => b.Email == email))
