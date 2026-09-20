@@ -49,7 +49,7 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
 
     public override async Task<JobHistory> WorkAsync()
     {
-        var awsSqsEnabled = bool.Parse(_configuration["AwsSqsSettings:IsActive"]);
+        var awsSqsEnabled = bool.Parse(_configuration["AwsSqsSettings:IsActive"]!);
         if (!awsSqsEnabled) throw new AwsSqsDisabledException("Serviço aws sqs está desabilitado no appsettings.");
 
         var since = DateTime.Today.AddDays(-1);
@@ -96,7 +96,7 @@ public class NewBookGetInterestedUsers : GenericJob, IJob
             };
         }
 
-        var frontendUrl = _configuration["ServerSettings:FrontendUrl"];
+        var frontendUrl = _configuration["ServerSettings:FrontendUrl"]!;
         var totalEmailsQueued = 0;
 
         foreach (var (userId, entry) in userBooks)

@@ -44,7 +44,7 @@ public class LateDonationNotification : GenericJob, IJob
         _emailTemplate = emailTemplate;
 
         _configuration = configuration;
-        maxLateDonationDays = int.Parse(_configuration[ConfigMaxLateDonationDaysKey]);
+        maxLateDonationDays = int.Parse(_configuration[ConfigMaxLateDonationDaysKey]!);
 
     }
 

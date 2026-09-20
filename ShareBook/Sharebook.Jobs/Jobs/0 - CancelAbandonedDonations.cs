@@ -30,7 +30,7 @@ public class CancelAbandonedDonations : GenericJob, IJob
         _bookUserService = bookUserService;
 
         _configuration = configuration;
-        _maxLateDonationDaysAutoCancel = int.Parse(_configuration["SharebookSettings:MaxLateDonationDaysAutoCancel"]);
+        _maxLateDonationDaysAutoCancel = int.Parse(_configuration["SharebookSettings:MaxLateDonationDaysAutoCancel"]!);
     }
 
     public override async Task<JobHistory> WorkAsync()

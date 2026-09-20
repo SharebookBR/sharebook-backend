@@ -28,7 +28,7 @@ public class MailSender : GenericJob, IJob
     private readonly MailSenderLowPriorityQueue _sqsLowPriority;
     private readonly IConfiguration _configuration;
     private readonly IMemoryCache _cache;
-    private string _lastQueue;
+    private string _lastQueue = string.Empty;
     private IList<string> _log;
 
     public MailSender(
@@ -169,7 +169,7 @@ public class MailSender : GenericJob, IJob
         return nameParts[0];
     }
 
-    private async Task<SharebookMessage<MailSenderbody>> GetSqsMessageAsync()
+    private async Task<SharebookMessage<MailSenderbody>?> GetSqsMessageAsync()
     {
         var sqsMessage = await _sqsHighPriority.GetMessageAsync();
         _lastQueue = "HighPriority";
@@ -199,13 +199,13 @@ public class MailSender : GenericJob, IJob
 
     private int GetMaxEmailsToSend()
     {
-        var maxEmailsPerHour = int.Parse(_configuration["EmailSettings:MaxEmailsPerHour"]);
+        var maxEmailsPerHour = int.Parse(_configuration["EmailSettings:MaxEmailsPerHour"]!);
         return maxEmailsPerHour / 12;
     }
 
     private void AwsSqsEnabledValidation()
     {
-        var awsSqsEnabled = bool.Parse(_configuration["AwsSqsSettings:IsActive"]);
+        var awsSqsEnabled = bool.Parse(_configuration["AwsSqsSettings:IsActive"]!);
         if(!awsSqsEnabled) throw new AwsSqsDisabledException("Serviço aws sqs está desabilitado no appsettings.");
     }
 }

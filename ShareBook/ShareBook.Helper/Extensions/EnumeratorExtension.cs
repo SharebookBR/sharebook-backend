@@ -7,13 +7,13 @@ public static class EnumeratorExtension
 {
     public static string Description(this Enum value)
     {
-        // get attributes  
+        // get attributes
         var field = value.GetType().GetField(value.ToString());
-        var attributes = field.GetCustomAttributes(false);
+        var attributes = field?.GetCustomAttributes(false) ?? Array.Empty<object>();
 
         // Description is in a hidden Attribute class called DisplayAttribute
         // Not to be confused with DisplayNameAttribute
-        dynamic displayAttribute = null;
+        dynamic? displayAttribute = null;
 
         if (attributes.Any())
         {

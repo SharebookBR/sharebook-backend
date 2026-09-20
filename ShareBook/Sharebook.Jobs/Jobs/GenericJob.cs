@@ -13,8 +13,8 @@ namespace Sharebook.Jobs;
 
 public abstract class GenericJob
 {
-    public string JobName { get; set; }
-    public string Description { get; set; }
+    public string JobName { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
     public Interval Interval { get; set; }
     public bool Active { get; set; }
     public DayOfWeek? BestDayOfWeek { get; set; }
@@ -23,7 +23,7 @@ public abstract class GenericJob
     protected readonly IJobHistoryRepository _jobHistoryRepo;
     protected readonly ILogger Logger;
 
-    protected Stopwatch _stopwatch;
+    protected Stopwatch _stopwatch = new();
 
     protected GenericJob(IJobHistoryRepository jobHistoryRepo, ILoggerFactory loggerFactory)
     {

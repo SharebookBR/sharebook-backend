@@ -21,7 +21,7 @@ public static class ImageHelper
         return serverUrl + directory.Replace("wwwroot", "") + "/" + imageName;
     }
 
-    public static string FormatThumbnailName(string imageName)
+    public static string? FormatThumbnailName(string imageName)
     {
         if (string.IsNullOrWhiteSpace(imageName))
         {
