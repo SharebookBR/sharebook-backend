@@ -20,15 +20,15 @@ public static class DatabaseConfiguration
             switch (dbProvider)
             {
                 case "postgres":
-                    healthChecksBuilder.AddNpgSql(config.GetConnectionString("PostgresConnection"));
+                    healthChecksBuilder.AddNpgSql(config.GetConnectionString("PostgresConnection") ?? string.Empty);
                     break;
 
                 case "sqlite":
-                    healthChecksBuilder.AddSqlite(config.GetConnectionString("SqliteConnection"));
+                    healthChecksBuilder.AddSqlite(config.GetConnectionString("SqliteConnection") ?? string.Empty);
                     break;
 
                 default:
-                    healthChecksBuilder.AddSqlServer(config.GetConnectionString("DefaultConnection"));
+                    healthChecksBuilder.AddSqlServer(config.GetConnectionString("DefaultConnection") ?? string.Empty);
                     break;
             }
         }

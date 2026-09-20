@@ -22,6 +22,6 @@ public class ContactUsController(IContactUsService contactUsService,
     {
         var contactUS = _mapper.Map<ContactUs>(contactUsVM);
 
-        return await _contactUsService.SendContactUsAsync(contactUS, contactUsVM?.RecaptchaReactive);
+        return await _contactUsService.SendContactUsAsync(contactUS, contactUsVM.RecaptchaReactive ?? string.Empty);
     }
 }

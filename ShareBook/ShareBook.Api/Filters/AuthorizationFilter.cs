@@ -14,7 +14,7 @@ public class AuthorizationFilter(params Permissions.Permission[] permissions) : 
     {
         var user = context.HttpContext.User;
 
-        if (user == null)
+        if (user?.Identity == null)
             throw new ShareBookException(ShareBookException.Error.NotAuthorized);
 
         var isAdministrator = ((ClaimsIdentity)user.Identity).Claims

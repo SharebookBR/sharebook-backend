@@ -2,7 +2,7 @@
 
 public class ChangeUserPasswordByHashCodeVM
 {
-    public string HashCodePassword { get; set; }
+    public required string HashCodePassword { get; set; }
 
-    public string NewPassword { get; set; }
+    public required string NewPassword { get; set; }
 }

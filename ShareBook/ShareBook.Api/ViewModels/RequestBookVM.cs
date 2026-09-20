@@ -5,5 +5,5 @@ public class RequestBookVM
 {
     public Guid BookId { get; set; }
 
-    public string Reason { get; set; }
+    public string? Reason { get; set; }
 }

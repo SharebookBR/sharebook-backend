@@ -2,5 +2,5 @@
 
 public class ParentAprovalVM
 {
-    public string ParentHashCodeAproval { get; set; }
+    public required string ParentHashCodeAproval { get; set; }
 }

@@ -5,5 +5,5 @@ namespace ShareBook.Api.ViewModels;
 public class ForgotMyPasswordVM
 {
     [Required]
-    public string Email { get; set; }
+    public required string Email { get; set; }
 }

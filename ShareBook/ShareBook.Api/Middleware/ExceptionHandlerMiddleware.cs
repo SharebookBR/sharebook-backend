@@ -42,7 +42,7 @@ public class ExceptionHandlerMiddleware(RequestDelegate next, ILogger<ExceptionH
 
             // detalhes do erro real pra facilitar o desenvolvimento.
             if (ex is AggregateException)
-                result.Messages.Add(ex.InnerException.ToString());
+                result.Messages.Add(ex.InnerException?.ToString() ?? ex.ToString());
 
             var jsonResponse = ToJson(result);
 

@@ -12,9 +12,9 @@ namespace ShareBook.Api.Filters;
 [AttributeUsage(AttributeTargets.Method)]
 public class ThrottleAttribute : ActionFilterAttribute
 {
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
     public int Seconds { get; set; }
-    public string Message { get; set; }
+    public string Message { get; set; } = string.Empty;
     public bool VaryByIp { get; set; }
 
     // Só marca no radar da tabela "Logs" quando fizer sentido pro chamador (hoje: download de ebook).

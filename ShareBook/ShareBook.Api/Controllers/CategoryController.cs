@@ -27,7 +27,7 @@ public class CategoryController : BaseCrudController<Category, CategoryVM, Categ
     public override Task<PagedList<Category>> PagedAsync(int page, int items) => base.PagedAsync(page, items);
 
     [NonAction]
-    public override Task<Category> GetByIdAsync(string id) => base.GetByIdAsync(id);
+    public override Task<Category?> GetByIdAsync(string id) => base.GetByIdAsync(id);
 
     [HttpGet]
     public async Task<PagedList<CategoryVM>> GetTreeAsync() => await GetTreePagedAsync(1, 50);

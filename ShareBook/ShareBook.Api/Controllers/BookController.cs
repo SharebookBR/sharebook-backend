@@ -161,7 +161,7 @@ public class BookController(IBookService bookService,
     [HttpPost("Received/{bookId}")]
     public async Task<Result> ReceivedAsync(string bookId)
     {
-        Guid winnerUserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+        Guid winnerUserId = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
         await _service.ReceivedAsync(new Guid(bookId), winnerUserId);
         return new Result("Livro Recebido com sucesso.");
     }
@@ -185,8 +185,10 @@ public class BookController(IBookService bookService,
 
         var cancelationDTO = new BookCancelationDTO
         {
-            Book = await _service.FindAsync(new Guid(id)),
-            CanceledBy = (await GetSessionUserAsync()).Name,
+            // BookUserService.CancelAsync valida dto.Book == null e lança NotFound; o "!" só
+            // silencia o compilador, não muda o comportamento de defesa em profundidade.
+            Book = (await _service.FindAsync(new Guid(id)))!,
+            CanceledBy = (await GetSessionUserAsync())?.Name ?? string.Empty,
             Reason = reason
         };
 
@@ -203,7 +205,7 @@ public class BookController(IBookService bookService,
     {
         if (!await _IsBookOwnerAsync(bookId)) return Unauthorized();
 
-        await _bookUserService.DonateBookAsync(bookId, donateBookUserVM.UserId, donateBookUserVM.Note);
+        await _bookUserService.DonateBookAsync(bookId, donateBookUserVM.UserId, donateBookUserVM.Note ?? string.Empty);
 
         var result = new Result
         {
@@ -251,6 +253,7 @@ public class BookController(IBookService bookService,
         if (!await _IsBookMainUserAsync(bookId)) return Unauthorized();
 
         var book = await _service.GetBookWithAllUsersAsync(bookId);
+        if (book == null) return NotFound();
 
         var donor = _mapper.Map<UserVM>(book.User);
         var facilitator = _mapper.Map<UserVM>(book.UserFacilitator);
@@ -263,11 +266,13 @@ public class BookController(IBookService bookService,
             Winner = winner
         };
 
-        var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+        var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
         var visitor = await _userService.FindAsync(userId);
+        if (visitor == null) return Unauthorized();
+
         var visitorProfile = GetVisitorProfile(result);
 
-        await _accessHistoryService.InsertVisitorAsync(book.User, visitor, visitorProfile);
+        await _accessHistoryService.InsertVisitorAsync(book.User!, visitor, visitorProfile);
 
         return Ok(result);
 
@@ -441,10 +446,10 @@ public class BookController(IBookService bookService,
     public async Task<AdminBooksPagedVM> GetAdminBooksAsync(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 24,
-        [FromQuery] string search = null,
-        [FromQuery] string status = null,
-        [FromQuery] string bucket = null,
-        [FromQuery] string type = null)
+        [FromQuery] string? search = null,
+        [FromQuery] string? status = null,
+        [FromQuery] string? bucket = null,
+        [FromQuery] string? type = null)
     {
         var books = await _service.GetAdminBooksAsync(page, pageSize, search, status, bucket, type);
 
@@ -495,11 +500,14 @@ public class BookController(IBookService bookService,
     [ProducesResponseType(typeof(Result), 200)]
     public async Task<IActionResult> RequestBookAsync([FromBody] RequestBookVM requestBookVM)
     {
-        User user = await GetUserAsync();
+        User? user = await GetUserAsync();
+        if (user == null)
+            return Unauthorized();
+
         if (await _IsDonatorAsync(requestBookVM.BookId, user) && !_IsAdmin(user)) //Permitido solicitar o próprio livro somente para Admin
             throw new ShareBookException("Não é possível solicitar este livro porque você é o doador.");
 
-        await _bookUserService.InsertAsync(requestBookVM.BookId, requestBookVM.Reason);
+        await _bookUserService.InsertAsync(requestBookVM.BookId, requestBookVM.Reason ?? string.Empty);
         return Ok(new Result { SuccessMessage = "Solicitação realizada com sucesso!" });
     }
 
@@ -513,6 +521,8 @@ public class BookController(IBookService bookService,
             return NotFound();
 
         var user = await GetUserAsync();
+        if (user == null)
+            return Unauthorized();
 
         if (request.UserId != user.Id)
             return Forbid();
@@ -560,7 +570,7 @@ public class BookController(IBookService bookService,
     [HttpGet("MyDonations")]
     public async Task<IList<BookVMAdm>> MyDonationsAsync()
     {
-        Guid userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+        Guid userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
         var donations = await _service.GetUserDonationsAsync(userId);
         return _mapper.Map<List<BookVMAdm>>(donations);
     }
@@ -570,10 +580,10 @@ public class BookController(IBookService bookService,
     public async Task<UserDonationsPagedVM> MyDonationsPagedAsync(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 24,
-        [FromQuery] string search = null,
-        [FromQuery] string bucket = null)
+        [FromQuery] string? search = null,
+        [FromQuery] string? bucket = null)
     {
-        Guid userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+        Guid userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
         var donations = await _service.GetUserDonationsAsync(userId, page, pageSize, search, bucket);
 
         return new UserDonationsPagedVM
@@ -633,7 +643,7 @@ public class BookController(IBookService bookService,
         if (!string.IsNullOrEmpty(downloadUrl))
         {
             var rateLimitResult = _ebookDownloadRateLimiter.TryAcquire(
-                HttpContext.Connection.RemoteIpAddress);
+                HttpContext.Connection.RemoteIpAddress ?? IPAddress.None);
 
             LogRateLimitOutcome(book, slug, rateLimitResult);
 
@@ -662,7 +672,7 @@ public class BookController(IBookService bookService,
             return NotFound(new { message = "Arquivo PDF não encontrado." });
 
         var localRateLimitResult = _ebookDownloadRateLimiter.TryAcquire(
-            HttpContext.Connection.RemoteIpAddress);
+            HttpContext.Connection.RemoteIpAddress ?? IPAddress.None);
 
         LogRateLimitOutcome(book, slug, localRateLimitResult);
 
@@ -712,7 +722,7 @@ public class BookController(IBookService bookService,
         }
 
         var rateLimitResult = _ebookDownloadRateLimiter.TryAcquire(
-            HttpContext.Connection.RemoteIpAddress);
+            HttpContext.Connection.RemoteIpAddress ?? IPAddress.None);
 
         LogRateLimitOutcome(book, slug, rateLimitResult);
 
@@ -773,7 +783,7 @@ public class BookController(IBookService bookService,
     // apenas doador e adm
     private async Task<bool> _IsBookOwnerAsync(Guid bookId)
     {
-        User user = await GetUserAsync();
+        User? user = await GetUserAsync();
         if (user == null)
             return false;
 
@@ -787,15 +797,15 @@ public class BookController(IBookService bookService,
     private async Task<bool> _IsDonatorAsync(Guid bookId, User user)
     {
         if (user == null || user.Id == Guid.Empty) return false;
-        Book book = await _service.GetBookWithAllUsersAsync(bookId);
+        Book? book = await _service.GetBookWithAllUsersAsync(bookId);
         if (book == null || book.Id == Guid.Empty) return false;
 
         return book.UserId == user.Id;
     }
 
-    private async Task<User> GetUserAsync()
+    private async Task<User?> GetUserAsync()
     {
-        var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+        var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
         return await _userService.FindAsync(userId);
     }
 
@@ -811,20 +821,22 @@ public class BookController(IBookService bookService,
         if (await _IsBookOwnerAsync(bookId))
             return true;
 
-        var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+        var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
         var book = await _service.GetBookWithAllUsersAsync(bookId);
+        if (book == null)
+            return false;
 
         // Ganhador
         var winner = book.WinnerUser();
-        if (winner.Id == userId)
+        if (winner != null && winner.Id == userId)
             return true;
 
         return false;
     }
 
-    private async Task<User> GetSessionUserAsync()
+    private async Task<User?> GetSessionUserAsync()
     {
-        var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+        var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
         return await _userService.FindAsync(userId);
     }
 

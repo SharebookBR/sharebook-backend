@@ -45,7 +45,7 @@ public class AccountController(IUserService userService,
     [Authorize("Bearer")]
     public async Task<UserVM> GetAsync() 
     {
-        var id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+        var id = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
         var user = await _userService.FindAsync(id);
 
         var userVM = _mapper.Map<UserVM>(user);
@@ -56,8 +56,11 @@ public class AccountController(IUserService userService,
     [HttpGet("Profile")]
     public async Task<object> ProfileAsync() 
     {
-        var id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
-        return new { profile = (await _userService.FindAsync(id)).Profile.ToString() };
+        var id = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
+        var user = await _userService.FindAsync(id);
+        if (user == null)
+            throw new ShareBookException(ShareBookException.Error.NotFound, "Usuário não encontrado.");
+        return new { profile = user.Profile.ToString() };
     }
 
     [Authorize("Bearer")]
@@ -111,7 +114,7 @@ public class AccountController(IUserService userService,
         if (result.Success)
         {
             if (registerUserDto.Age > 12)
-                return Ok(_signManager.GenerateTokenAndSetIdentity(result.Value, signingConfigurations, tokenConfigurations));
+                return Ok(_signManager.GenerateTokenAndSetIdentity(result.Value!, signingConfigurations, tokenConfigurations));
             else
                 return Ok(new Result(SuccessMessage: "Seu cadastro foi realizado com sucesso. Foi enviado um e-mail para os pais solicitando o consentimento. Vamos avisar por e-mail quando seu acesso for liberado. Obrigado."));
         }
@@ -145,7 +148,7 @@ public class AccountController(IUserService userService,
         {
             var response = new Result
             {
-                Value = _signManager.GenerateTokenAndSetIdentity(result.Value, signingConfigurations, tokenConfigurations)
+                Value = _signManager.GenerateTokenAndSetIdentity(result.Value!, signingConfigurations, tokenConfigurations)
             };
 
             return Ok(response);
@@ -171,7 +174,7 @@ public class AccountController(IUserService userService,
     [Authorize("Bearer")]
     public async Task<IActionResult> AnonymizeAsync([FromBody] UserAnonymizeDTO dto)
     {
-        var userIdFromSession = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+        var userIdFromSession = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
         if(dto.UserId != userIdFromSession)
             throw new ShareBookException(ShareBookException.Error.Forbidden, "Você não tem permissão para remover esse conta.");
 
@@ -194,14 +197,14 @@ public class AccountController(IUserService userService,
 
         var user = _mapper.Map<User>(updateUserVM);
 
-        user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+        user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
 
         var result = await _userService.UpdateAsync(user);
 
         if (!result.Success)
             return Conflict(result);
 
-        return Ok(_signManager.GenerateTokenAndSetIdentity(result.Value, signingConfigurations, tokenConfigurations));
+        return Ok(_signManager.GenerateTokenAndSetIdentity(result.Value!, signingConfigurations, tokenConfigurations));
     }
 
     [Authorize("Bearer")]
@@ -209,7 +212,7 @@ public class AccountController(IUserService userService,
     public async Task<Result<User>> ChangePasswordAsync([FromBody] ChangePasswordUserVM changePasswordUserVM)
     {
         var user = new User() { Password = changePasswordUserVM.OldPassword };
-        user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+        user.Id = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
         return await _userService.ValidOldPasswordAndChangeUserPasswordAsync(user, changePasswordUserVM.NewPassword);
     }
 
@@ -222,7 +225,13 @@ public class AccountController(IUserService userService,
         if (!result.Success)
             return NotFound(result);
         var newPassword = changeUserPasswordByHashCodeVM.NewPassword;
-        var user = await _userService.FindAsync((result.Value as User).Id);
+        var confirmedUser = result.Value as User;
+        if (confirmedUser == null)
+            return NotFound(result);
+
+        var user = await _userService.FindAsync(confirmedUser.Id);
+        if (user == null)
+            return NotFound(result);
         user.Password = newPassword;
 
         var resultChangePasswordUser = await _userService.ChangeUserPasswordAsync(user, newPassword);
@@ -256,7 +265,7 @@ public class AccountController(IUserService userService,
 
             // mobile android
             case "com.makeztec.sharebook":
-                var minVersion = _configuration["ClientSettings:AndroidMinVersion"];
+                var minVersion = _configuration["ClientSettings:AndroidMinVersion"] ?? string.Empty;
                 return Helper.ClientVersionValidation.IsValidVersion(clientVersion, minVersion);
 
             default:
@@ -264,9 +273,9 @@ public class AccountController(IUserService userService,
         }
     }
 
-    private async Task<User> GetSessionUserAsync()
+    private async Task<User?> GetSessionUserAsync()
     {
-        var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name);
+        var userId = new Guid(Thread.CurrentPrincipal?.Identity?.Name!);
         return await _userService.FindAsync(userId);
     }
 }

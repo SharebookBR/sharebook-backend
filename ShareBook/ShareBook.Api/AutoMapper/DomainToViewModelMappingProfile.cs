@@ -25,12 +25,12 @@ public class DomainToViewModelMappingProfile : Profile
         #region [ Book ]
 
         CreateMap<Book, BookVMAdm>()
-             .ForMember(dest => dest.Donor, opt => opt.MapFrom(src => src.User.Name))
-             .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.User.Address.City))
-             .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.User.Address.State))
-             .ForMember(dest => dest.Facilitator, opt => opt.MapFrom(src => src.UserFacilitator.Name))
+             .ForMember(dest => dest.Donor, opt => opt.MapFrom(src => src.User!.Name))
+             .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.User!.Address!.City))
+             .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.User!.Address!.State))
+             .ForMember(dest => dest.Facilitator, opt => opt.MapFrom(src => src.UserFacilitator != null ? src.UserFacilitator.Name : null))
              .ForMember(dest => dest.FacilitatorNotes, opt => opt.MapFrom(src => src.FacilitatorNotes))
-             .ForMember(dest => dest.PhoneDonor, opt => opt.MapFrom(src => src.User.Phone))
+             .ForMember(dest => dest.PhoneDonor, opt => opt.MapFrom(src => src.User!.Phone))
              .ForMember(dest => dest.DaysInShowcase, opt => opt.MapFrom(src => src.DaysInShowcase()))
              .ForMember(dest => dest.DaysLate, opt => opt.MapFrom(src => src.DaysLate()))
              .ForMember(dest => dest.TotalInterested, opt => opt.MapFrom(src => src.TotalInterested()))
@@ -45,8 +45,8 @@ public class DomainToViewModelMappingProfile : Profile
              .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()));
 
         CreateMap<Book, BookVM>()
-             .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.User.Address.City))
-             .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.User.Address.State))
+             .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.User!.Address!.City))
+             .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.User!.Address!.State))
              .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
              .ForMember(dest => dest.FreightOption, opt => opt.MapFrom(src => src.FreightOption.HasValue ? src.FreightOption.ToString() : null))
              .ForMember(dest => dest.CreationDate, opt => opt.MapFrom(src => src.CreationDate))
@@ -96,7 +96,7 @@ public class DomainToViewModelMappingProfile : Profile
         #endregion [ BookUser ]
     }
 
-    private static BookDonorVM BuildPublicDonor(User user)
+    private static BookDonorVM? BuildPublicDonor(User? user)
     {
         if (user == null)
         {
@@ -110,7 +110,7 @@ public class DomainToViewModelMappingProfile : Profile
         };
     }
 
-    private static string AbbreviateName(string fullName)
+    private static string? AbbreviateName(string fullName)
     {
         if (string.IsNullOrWhiteSpace(fullName))
         {
@@ -139,7 +139,7 @@ public class DomainToViewModelMappingProfile : Profile
         return $"{parts[0]} {string.Join(" ", abbreviatedTail)}";
     }
 
-    private static string ToTitleCase(string value)
+    private static string? ToTitleCase(string? value)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
@@ -163,7 +163,7 @@ public class DomainToViewModelMappingProfile : Profile
         return string.Join(" ", normalizedParts);
     }
 
-    private static string NormalizeLinkedinUrl(string linkedin)
+    private static string? NormalizeLinkedinUrl(string? linkedin)
     {
         if (string.IsNullOrWhiteSpace(linkedin))
         {

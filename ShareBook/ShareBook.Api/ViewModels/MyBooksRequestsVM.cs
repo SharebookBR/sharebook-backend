@@ -6,21 +6,21 @@ public class MyBookRequestVM
 {
     public Guid RequestId { get; set; }
 
-    public string Title { get; set; }
+    public string Title { get; set; } = string.Empty;
 
-    public string Author { get; set; }
+    public string Author { get; set; } = string.Empty;
 
     // status da solicitação. (ex.: aguardando decisão, negado, doado)
     // apenas pra saber se ganhou ou não.
-    public string Status { get; set; }
+    public string Status { get; set; } = string.Empty;
 
     // status da doação. (ex: aguardando envio, enviado, recebido)
     // para saber sobre o envio.
-    public string BookStatus { get; set; }
+    public string BookStatus { get; set; } = string.Empty;
 
-    public string TrackingNumber { get; set; }
+    public string? TrackingNumber { get; set; }
 
     public Guid BookId { get; set; }
 
-    public string Slug { get; set; }
+    public string? Slug { get; set; }
 }

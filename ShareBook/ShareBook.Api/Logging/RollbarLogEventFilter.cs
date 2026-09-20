@@ -22,10 +22,11 @@ public static class RollbarLogEventFilter
             return true;
 
         return sourceContext == EfUpdateSource &&
+               logEvent.Exception != null &&
                DuplicateEmailExceptionDetector.IsDuplicateEmail(logEvent.Exception);
     }
 
-    private static string GetSourceContext(LogEvent logEvent)
+    private static string? GetSourceContext(LogEvent logEvent)
     {
         if (!logEvent.Properties.TryGetValue(SourceContextProperty, out var value) ||
             value is not ScalarValue scalarValue)

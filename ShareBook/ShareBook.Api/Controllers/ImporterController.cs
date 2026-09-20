@@ -99,7 +99,7 @@ public class ImporterController(
     [AuthorizationFilter(Permissions.Permission.ApproveBook)] // adm
     public async Task<IActionResult> UpdateImporterItemAdminNotesAsync(int id, [FromBody] UpdateImporterItemNotesVM vm, CancellationToken cancellationToken)
     {
-        await _importerDashboardService.UpdateAdminNotesAsync(id, vm?.Notes, cancellationToken);
+        await _importerDashboardService.UpdateAdminNotesAsync(id, vm?.Notes ?? string.Empty, cancellationToken);
         return Ok();
     }
 

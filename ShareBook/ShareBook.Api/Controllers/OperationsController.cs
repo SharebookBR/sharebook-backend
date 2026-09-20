@@ -77,12 +77,12 @@ public class OperationsController : Controller
     [HttpGet("Ping")]
     public IActionResult Ping()
     {
-        var ass = Assembly.GetEntryAssembly();
+        var ass = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
         var result = new
         {
             DatabaseProvider = _config["DatabaseProvider"],
-            Service = ass.GetName().Name.ToString(),
-            Version = ass.GetName().Version.ToString(),
+            Service = ass.GetName().Name?.ToString() ?? string.Empty,
+            Version = ass.GetName().Version?.ToString() ?? string.Empty,
             DotNetVersion = System.Environment.Version.ToString(),
             BuildLinkerTime = ass.GetLinkerTime().ToString("dd/MM/yyyy HH:mm:ss:fff z"),
             Env = _env.EnvironmentName,

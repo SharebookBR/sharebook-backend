@@ -117,7 +117,9 @@ public class Startup(IConfiguration configuration)
         });
 
 
-        MuambatorConfigurator.Configure(Configuration.GetSection("Muambator:Token").Value, Configuration.GetSection("Muambator:IsActive").Value);
+        MuambatorConfigurator.Configure(
+            Configuration.GetSection("Muambator:Token").Value ?? string.Empty,
+            Configuration.GetSection("Muambator:IsActive").Value ?? string.Empty);
 
         services.AddMemoryCache();
     }
@@ -192,7 +194,7 @@ public class Startup(IConfiguration configuration)
             if (env.IsDevelopment() || env.IsStaging())
             {
                 using var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
-                var context = serviceScope.ServiceProvider.GetService<ApplicationDbContext>();
+                var context = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 var sharebookSeeder = new ShareBookSeeder(context);
                 sharebookSeeder.Seed();
             }

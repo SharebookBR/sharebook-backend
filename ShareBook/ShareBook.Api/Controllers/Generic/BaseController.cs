@@ -44,5 +44,5 @@ public class BaseController<T, R, A>(IBaseService<T> service) : Controller
     public virtual async Task<PagedList<T>> PagedAsync(int page, int items) => await _service.GetAsync(x => true, _defaultOrder, page, items);
 
     [HttpGet("{id}")]
-    public virtual async Task<T> GetByIdAsync(string id) => await _service.FindAsync(new Guid(id));
+    public virtual async Task<T?> GetByIdAsync(string id) => await _service.FindAsync(new Guid(id));
 }

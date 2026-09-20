@@ -93,7 +93,7 @@ public class BounceController(
         return string.Equals(token.ToString(), _serverSettings.JobExecutorToken, StringComparison.Ordinal);
     }
 
-    private static MailBounce BuildBounce(StalwartWebhookEventVM item)
+    private static MailBounce? BuildBounce(StalwartWebhookEventVM item)
     {
         var email = GetFirstString(item.Data, "to", "rcptTo", "recipient", "recipients", "address", "email");
         if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
@@ -125,7 +125,7 @@ public class BounceController(
         };
     }
 
-    private static string InferCode(string eventType, string reason, string details)
+    private static string? InferCode(string eventType, string? reason, string? details)
     {
         var text = $"{eventType} {reason} {details}";
 
@@ -144,7 +144,7 @@ public class BounceController(
         return null;
     }
 
-    private static string ExtractStatusCode(params string[] values)
+    private static string? ExtractStatusCode(params string?[] values)
     {
         foreach (var value in values)
         {
@@ -159,7 +159,7 @@ public class BounceController(
         return null;
     }
 
-    private static string GetFirstString(JsonElement data, params string[] propertyNames)
+    private static string? GetFirstString(JsonElement data, params string[] propertyNames)
     {
         foreach (var propertyName in propertyNames)
         {
@@ -171,7 +171,7 @@ public class BounceController(
         return null;
     }
 
-    private static string GetStringRecursive(JsonElement data, string propertyName)
+    private static string? GetStringRecursive(JsonElement data, string propertyName)
     {
         if (data.ValueKind == JsonValueKind.Object)
         {
@@ -202,7 +202,7 @@ public class BounceController(
         return null;
     }
 
-    private static string ScalarString(JsonElement value)
+    private static string? ScalarString(JsonElement value)
     {
         return value.ValueKind switch
         {

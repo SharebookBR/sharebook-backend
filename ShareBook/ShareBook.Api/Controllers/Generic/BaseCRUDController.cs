@@ -36,7 +36,7 @@ public class BaseCrudController<T, R, A>(IBaseService<T> service, IMapper mapper
     public virtual async Task<Result<A>> CreateAsync([FromBody] R viewModel)
     {
         if (!HasRequestViewModel)
-            return _mapper.Map<Result<A>>(await _service.InsertAsync(viewModel as T));
+            return _mapper.Map<Result<A>>(await _service.InsertAsync((viewModel as T)!));
 
         var entity = _mapper.Map<T>(viewModel);
         var result = await _service.InsertAsync(entity);
@@ -52,11 +52,11 @@ public class BaseCrudController<T, R, A>(IBaseService<T> service, IMapper mapper
         viewModel.Id = id;
 
         if (!HasRequestViewModel)
-            return _mapper.Map<Result<A>>(await _service.UpdateAsync(viewModel as T));
-        
+            return _mapper.Map<Result<A>>(await _service.UpdateAsync((viewModel as T)!));
+
         var entity = _mapper.Map<T>(viewModel);
         var result = await _service.UpdateAsync(entity);
-        var resultVM = new Result<A>(result.Value == null ? null : _mapper.Map<A>(result.Value))
+        var resultVM = new Result<A>(null, result.Value == null ? null : _mapper.Map<A>(result.Value))
         {
             SuccessMessage = result.SuccessMessage
         };

@@ -6,5 +6,5 @@ public class AddFacilitatorNotesVM
 {
     public Guid BookId { get; set; }
 
-    public string FacilitatorNotes { get; set; }
+    public required string FacilitatorNotes { get; set; }
 }

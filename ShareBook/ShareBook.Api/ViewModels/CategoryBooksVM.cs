@@ -10,5 +10,5 @@ public class CategoryBooksVM
     public int TotalItems { get; set; }
     public int PhysicalBooksCount { get; set; }
     public int EbooksCount { get; set; }
-    public IList<BookVM> Items { get; set; }
+    public IList<BookVM> Items { get; set; } = new List<BookVM>();
 }

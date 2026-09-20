@@ -30,7 +30,7 @@ public static class JWTConfig
 
     private static SigningConfigurations ConfigureSigning(IServiceCollection services, IConfiguration configuration)
     {
-        var signingConfigurations = new SigningConfigurations(configuration["TokenConfigurations:SecretJwtKey"]);
+        var signingConfigurations = new SigningConfigurations(configuration["TokenConfigurations:SecretJwtKey"] ?? string.Empty);
         services.AddSingleton(signingConfigurations);
 
         return signingConfigurations;
