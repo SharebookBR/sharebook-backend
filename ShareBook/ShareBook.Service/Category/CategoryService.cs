@@ -44,10 +44,12 @@ public class CategoryService(
     public async Task<IEnumerable<Category>> GetCategoriesWithCountsAsync()
     {
         var categories = await _repository.Get()
+            .AsNoTracking()
             .Include(x => x.Children)
             .ToListAsync();
 
         var bookCounts = await _bookRepository.Get()
+            .AsNoTracking()
             .Where(b => b.Status == Domain.Enums.BookStatus.Available)
             .GroupBy(b => b.CategoryId)
             .Select(g => new { CategoryId = g.Key, Count = g.Count() })
