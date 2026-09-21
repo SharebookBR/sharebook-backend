@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.DTOs;
@@ -10,17 +11,23 @@ using ShareBook.Service.Generic;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ShareBook.Service;
 
 public class CategoryService(
     IBookRepository bookRepository,
+    IMemoryCache cache,
     ApplicationDbContext context,
     IUnitOfWork unitOfWork,
     IValidator<Category> validator) : BaseService<Category>(context, unitOfWork, validator), ICategoryService
 {
+    private const string CategoriesWithCountsCacheKey = "category:counts:v1";
+    private static readonly SemaphoreSlim CategoriesWithCountsCacheLock = new(1, 1);
+
     private readonly IBookRepository _bookRepository = bookRepository;
+    private readonly IMemoryCache _cache = cache;
 
     public async Task<PagedList<Category>> GetRootCategoriesAsync(int page, int itemsPerPage)
     {
@@ -43,6 +50,34 @@ public class CategoryService(
 
     public async Task<IEnumerable<Category>> GetCategoriesWithCountsAsync()
     {
+        if (_cache.TryGetValue(CategoriesWithCountsCacheKey, out IReadOnlyList<Category>? cachedCategories)
+            && cachedCategories is not null)
+        {
+            return cachedCategories;
+        }
+
+        await CategoriesWithCountsCacheLock.WaitAsync();
+        try
+        {
+            if (_cache.TryGetValue(CategoriesWithCountsCacheKey, out cachedCategories)
+                && cachedCategories is not null)
+            {
+                return cachedCategories;
+            }
+
+            var categories = await LoadCategoriesWithCountsAsync();
+            _cache.Set(CategoriesWithCountsCacheKey, categories, TimeSpan.FromMinutes(30));
+
+            return categories;
+        }
+        finally
+        {
+            CategoriesWithCountsCacheLock.Release();
+        }
+    }
+
+    private async Task<IReadOnlyList<Category>> LoadCategoriesWithCountsAsync()
+    {
         var categories = await _repository.Get()
             .AsNoTracking()
             .Include(x => x.Children)
@@ -60,7 +95,7 @@ public class CategoryService(
             category.TotalBooks = CalculateTotalBooks(category, categories, bookCounts);
         }
 
-        return categories.Where(x => x.ParentCategoryId == null).OrderBy(x => x.Name);
+        return categories.Where(x => x.ParentCategoryId == null).OrderBy(x => x.Name).ToList();
     }
 
     public async Task<IList<SitemapCategoryDTO>> GetSitemapCategoriesAsync()
