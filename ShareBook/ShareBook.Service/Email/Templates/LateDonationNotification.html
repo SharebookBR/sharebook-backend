@@ -1,29 +1,60 @@
-﻿<!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="utf-8" />
-        <title>Status diário das doações</title>
-    </head>
-    <body>
-        <p>
-            Olá! Este é o resumo das doações de hoje:
-        </p>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status diário das doações</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #555; background-color: #f2f2f2; padding: 20px; }
+        .container { max-width: 680px; margin: 0 auto; background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { text-align: center; padding: 30px 20px; background: linear-gradient(135deg, #29abe2 0%, #1e8fc4 100%); color: white; }
+        .wordmark { font-size: 18px; font-weight: 600; letter-spacing: 0.5px; opacity: 0.9; margin-bottom: 10px; }
+        .header h1 { font-size: 22px; font-weight: 300; }
+        .content { padding: 30px; }
+        .intro { font-size: 16px; margin-bottom: 25px; line-height: 1.7; }
+        .summary { background-color: #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #29abe2; }
+        .summary ul { list-style: none; }
+        .summary li { margin-bottom: 8px; font-size: 15px; }
+        .summary strong { color: #333; }
+        .info-title { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .table-section { overflow-x: auto; margin: 20px 0; }
+        .footer { background-color: #333; color: white; padding: 24px 30px; text-align: center; }
+        @media only screen and (max-width: 600px) { body { padding: 10px; } .container { border-radius: 4px; } .content { padding: 20px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="wordmark">Sharebook</div>
+            <h1>Status diário das doações</h1>
+        </div>
 
-        <ul>
-            <li><b>Aguardando aprovação:</b> {totalWaitingApproval}</li>
-            <li><b>Em atraso:</b> {totalLate}</li>
-            <li><b>Concluídas:</b> {totalOk}</li>
-        </ul>
+        <div class="content">
+            <div class="intro">Resumo operacional das doações de hoje.</div>
 
-        <p>As doações em atraso precisam de uma decisão: escolher o(a) ganhador(a) ou cancelar.</p>
+            <div class="summary">
+                <div class="info-title">Resumo</div>
+                <ul>
+                    <li><strong>Aguardando aprovação:</strong> {totalWaitingApproval}</li>
+                    <li><strong>Em atraso:</strong> {totalLate}</li>
+                    <li><strong>Concluídas:</strong> {totalOk}</li>
+                </ul>
+            </div>
 
-        {htmlTable}
+            <p>As doações em atraso precisam de uma decisão: escolher o(a) ganhador(a) ou cancelar.</p>
 
-        <p>Quando necessário, use os dados da tabela para ajudar o(a) doador(a) a concluir ou cancelar a doação.</p>
+            <div class="table-section">
+                {htmlTable}
+            </div>
 
-        <p>
+            <p>Quando necessário, use os dados da tabela para ajudar o(a) doador(a) a concluir ou cancelar a doação.</p>
+        </div>
+
+        <div class="footer">
             Equipe Sharebook<br>
             <small>Compartilhando conhecimento</small>
-        </p>
-    </body>
+        </div>
+    </div>
+</body>
 </html>
