@@ -61,17 +61,13 @@ public class LateDonationNotificationTests
 
         _mockEmailService.Verify(c => c.SendToAdminsAsync(HtmlMock, LateDonationNotification.EmailAdminsSubject), Times.Once);
         Assert.Equal("Só falta escolher quem vai receber", LateDonationNotification.EmailDonatorSoftSubject);
+        _mockEmailTemplate.Verify(c => c.GenerateHtmlFromTemplateAsync(
+            LateDonationNotification.EmailDonatorSoftTemplateName,
+            It.Is<object>(vm => BookListOf(vm).Contains("Lord of the Rings"))), Times.Once);
         _mockEmailService.Verify(c => c.SendAsync(
             _softUser.Email,
             _softUser.Name,
-            It.Is<string>(html =>
-                html.Contains("Tem gente interessada em receber um livro") &&
-                html.Contains("Escolher ganhador(a)") &&
-                html.Contains("fale com a gente") &&
-                html.Contains("Equipe Sharebook") &&
-                html.Contains("Compartilhando conhecimento") &&
-                !html.Contains("Para sua conveniência") &&
-                !html.Contains("=)")),
+            HtmlMock,
             LateDonationNotification.EmailDonatorSoftSubject,
             false,
             true), Times.Once);
@@ -102,18 +98,13 @@ public class LateDonationNotificationTests
 
         _mockEmailService.Verify(c => c.SendToAdminsAsync(HtmlMock, LateDonationNotification.EmailAdminsSubject), Times.Once);
         Assert.Equal("Último aviso sobre sua doação", LateDonationNotification.EmailDonatorHardSubject);
+        _mockEmailTemplate.Verify(c => c.GenerateHtmlFromTemplateAsync(
+            LateDonationNotification.EmailDonatorHardTemplateName,
+            It.Is<object>(vm => BookListOf(vm).Contains("Lord of the Rings"))), Times.Once);
         _mockEmailService.Verify(c => c.SendAsync(
             _hardUser.Email,
             _hardUser.Name,
-            It.Is<string>(html =>
-                html.Contains($"mais de {_maxLateDonationDays} dias") &&
-                html.Contains("escolher o(a) ganhador(a) ou cancelar") &&
-                html.Contains("Resolver minha doação") &&
-                html.Contains("Este é o último aviso") &&
-                html.Contains("sua conta será bloqueada") &&
-                !html.Contains("Pessoas humildes") &&
-                !html.Contains(" vc ") &&
-                !html.Contains("Para sua conveniência")),
+            HtmlMock,
             LateDonationNotification.EmailDonatorHardSubject,
             true,
             true), Times.Once);
@@ -137,7 +128,7 @@ public class LateDonationNotificationTests
         object adminVm = null;
         _mockEmailTemplate
             .Setup(s => s.GenerateHtmlFromTemplateAsync(It.IsAny<string>(), It.IsAny<object>()))
-            .Callback<string, object>((_, vm) => adminVm = vm)
+            .Callback<string, object>((template, vm) => { if (template == LateDonationNotification.EmailTemplateName) adminVm = vm; })
             .ReturnsAsync(HtmlMock);
 
         LateDonationNotification job = new LateDonationNotification(_mockJobHistoryRepository.Object, TimeProvider.System, _mockBookService.Object, _mockEmailService.Object, _mockEmailTemplate.Object, _mockLoggerFactory.Object, _mockConfiguration.Object);
@@ -176,4 +167,7 @@ public class LateDonationNotificationTests
         _mockBookService.VerifyNoOtherCalls();
         _mockEmailService.VerifyNoOtherCalls();
     }
+
+    private static string BookListOf(object vm) =>
+        vm.GetType().GetProperty("BookListHtml")?.GetValue(vm)?.ToString() ?? string.Empty;
 }

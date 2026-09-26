@@ -24,6 +24,8 @@
   <ItemGroup>
     <None Remove="Email\Templates\ChooseDateRenewTemplate.html" />
     <None Remove="Email\Templates\LateDonationNotification.html" />
+    <None Remove="Email\Templates\LateDonationDonorSoftTemplate.html" />
+    <None Remove="Email\Templates\LateDonationDonorHardTemplate.html" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Email\Templates\NewBookNotifyTemplate.html">
@@ -105,6 +107,12 @@
 
   <ItemGroup>
     <Content Include="Email\Templates\LateDonationNotification.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Email\Templates\LateDonationDonorSoftTemplate.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Email\Templates\LateDonationDonorHardTemplate.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Email\Templates\ChooseDateRenewTemplate.html">

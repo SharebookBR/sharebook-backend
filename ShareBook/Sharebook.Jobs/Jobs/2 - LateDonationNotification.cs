@@ -20,6 +20,8 @@ public class LateDonationNotification : GenericJob, IJob
     private readonly IConfiguration _configuration;
 
     public const string EmailTemplateName = "LateDonationNotification";
+    public const string EmailDonatorSoftTemplateName = "LateDonationDonorSoftTemplate";
+    public const string EmailDonatorHardTemplateName = "LateDonationDonorHardTemplate";
     public const string EmailAdminsSubject = "Status diário das doações";
     public const string EmailDonatorHardSubject = "Último aviso sobre sua doação";
     public const string EmailDonatorSoftSubject = "Só falta escolher quem vai receber";
@@ -58,7 +60,7 @@ public class LateDonationNotification : GenericJob, IJob
         var details = $"Encontradas {booksLate.Count} doações em atraso de {donators.Count} doadores distintos.";
         if (booksLate.Count > 0){
             await SendEmailAdminAsync(booksLate, status);
-            details += await SendEmailDonatorsAsync(donators);
+            details += await SendEmailDonatorsAsync(donators, booksLate);
         }
 
         return new JobHistory()
@@ -120,7 +122,7 @@ public class LateDonationNotification : GenericJob, IJob
         return link;
     }
 
-    private async Task<string> SendEmailDonatorsAsync(IList<User> donators)
+    private async Task<string> SendEmailDonatorsAsync(IList<User> donators, IList<Book> booksLate)
     {
         string details = string.Empty;
         foreach (var donator in donators)
@@ -131,38 +133,39 @@ public class LateDonationNotification : GenericJob, IJob
                 continue;
             }
 
+            var donatorBooksLate = booksLate.Where(b => b.User?.Id == donator.Id).ToList();
+
             if (donator.HasAbandonedDonation(maxLateDonationDays))
-                await SendEmailDonatorHardAsync(donator);
+                await SendEmailDonatorHardAsync(donator, donatorBooksLate);
             else
-                await SendEmailDonatorSoftAsync(donator);
+                await SendEmailDonatorSoftAsync(donator, donatorBooksLate);
                 
             details += "E-mail enviado para o usuário: " + donator.Name;
         }
         return details;
     }
 
-    private async Task SendEmailDonatorHardAsync(User donator)
+    private async Task SendEmailDonatorHardAsync(User donator, IList<Book> booksLate)
     {
-        var html = "<p>Olá!</p>";
-        html += $"<p>Sua doação está há mais de {maxLateDonationDays} dias aguardando uma decisão.</p>";
-        html += "<p>Entre no Sharebook para escolher o(a) ganhador(a) ou cancelar a doação.</p>";
-        html += "<p><a href='https://www.sharebook.com.br/book/donations' target='_blank'><strong>Resolver minha doação</strong></a></p>";
-        html += "<p>Este é o último aviso. Se não houver uma resposta, a doação será considerada abandonada e sua conta será bloqueada.</p>";
-            
-        html += "<p>Se precisar de ajuda, <a href='https://www.sharebook.com.br/contact-us' target='_blank'>fale com a gente</a>.</p>";
-        html += "<p>Um abraço,<br>Equipe Sharebook<br><small>Compartilhando conhecimento</small></p>";
+        var vm = new
+        {
+            DonorName = donator.FirstName,
+            MaxLateDonationDays = maxLateDonationDays,
+            BookListHtml = EmailText.BookRequestsListHtml(booksLate)
+        };
+        var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(EmailDonatorHardTemplateName, vm);
 
         await _emailService.SendAsync(donator.Email, donator.Name, html, EmailDonatorHardSubject, copyAdmins: true, highPriority: true);
     }
 
-    private async Task SendEmailDonatorSoftAsync(User donator)
+    private async Task SendEmailDonatorSoftAsync(User donator, IList<Book> booksLate)
     {
-        var html = "<p>Olá!</p>";
-        html += "<p>Tem gente interessada em receber um livro que você colocou para doação. Agora só falta fazer sua escolha.</p>";
-        html += "<p><a href='https://www.sharebook.com.br/book/donations' target='_blank'><strong>Escolher ganhador(a)</strong></a></p>";
-        html += "<p>Se precisar de ajuda, <a href='https://www.sharebook.com.br/contact-us' target='_blank'>fale com a gente</a>.</p>";
-        html += "<p>Valeu por fazer os livros seguirem adiante.</p>";
-        html += "<p>Um abraço,<br>Equipe Sharebook<br><small>Compartilhando conhecimento</small></p>";
+        var vm = new
+        {
+            DonorName = donator.FirstName,
+            BookListHtml = EmailText.BookRequestsListHtml(booksLate)
+        };
+        var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(EmailDonatorSoftTemplateName, vm);
 
         await _emailService.SendAsync(donator.Email, donator.Name, html, EmailDonatorSoftSubject, copyAdmins: false, highPriority: true);
     }

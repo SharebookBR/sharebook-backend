@@ -182,6 +182,38 @@ public class EmailTemplateTests
     }
 
     [Fact]
+    public async Task VerifyEmailLateDonationDonorSoftParse()
+    {
+        var vm = new { DonorName = "Rodrigo", BookListHtml = EmailText.BookRequestsListHtml(new[] { book }) };
+
+        var result = await emailTemplate.GenerateHtmlFromTemplateAsync("LateDonationDonorSoftTemplate", vm);
+
+        Assert.Contains("<title>Só falta escolher quem vai receber</title>", result);
+        Assert.Contains("Olá, Rodrigo!", result);
+        Assert.Contains("<li><strong>Lord of the Rings</strong>: 1 solicitação</li>", result);
+        Assert.Contains("href=\"https://www.sharebook.com.br/book/donations\"", result);
+        Assert.Contains("você também pode cancelar a doação", result);
+        Assert.Contains("fale com a gente", result);
+    }
+
+    [Fact]
+    public async Task VerifyEmailLateDonationDonorHardParse()
+    {
+        var vm = new { DonorName = "Rodrigo", MaxLateDonationDays = 5, BookListHtml = EmailText.BookRequestsListHtml(new[] { book }) };
+
+        var result = await emailTemplate.GenerateHtmlFromTemplateAsync("LateDonationDonorHardTemplate", vm);
+
+        Assert.Contains("<title>Último aviso sobre sua doação</title>", result);
+        Assert.Contains("Olá, Rodrigo!", result);
+        Assert.Contains("Faz mais de 5 dias que a data de escolha passou", result);
+        Assert.Contains("<li><strong>Lord of the Rings</strong>: 1 solicitação</li>", result);
+        Assert.Contains("a doação será cancelada automaticamente", result);
+        Assert.Contains("Resolver minha doação", result);
+        Assert.DoesNotContain("bloquead", result);
+        Assert.Contains("fale com a gente", result);
+    }
+
+    [Fact]
     public async Task VerifyEmailContactUsNotificationParse()
     {
 
@@ -230,6 +262,8 @@ public class EmailTemplateTests
             "ChooseDateReminderMultipleTemplate.html",
             "ChooseDateReminderTemplate.html",
             "ChooseDateRenewTemplate.html",
+            "LateDonationDonorSoftTemplate.html",
+            "LateDonationDonorHardTemplate.html",
             "ContactUsNotificationTemplate.html",
             "EbookApprovedTemplate.html",
             "EbookWaitingApprovalTemplate.html",
