@@ -6,6 +6,7 @@ using ShareBook.Service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace Sharebook.Jobs;
@@ -94,7 +95,8 @@ public class ChooseDateReminder : GenericJob, IJob
         var vm = new
         {
             DonorName = book.User!.FirstName,
-            BookTitle = book.Title
+            BookTitle = book.Title,
+            RequestsText = RequestsText(book.TotalInterested())
         };
         var emailBodyHTML = await _emailTemplate.GenerateHtmlFromTemplateAsync("ChooseDateReminderTemplate", vm);
 
@@ -109,8 +111,7 @@ public class ChooseDateReminder : GenericJob, IJob
         var bookListHtml = "<ul>";
         foreach (var book in books)
         {
-            var interestedCount = book.TotalInterested();
-            bookListHtml += $"<li><strong>{book.Title}</strong> — {interestedCount} interessado(s)</li>";
+            bookListHtml += $"<li><strong>{WebUtility.HtmlEncode(book.Title)}</strong>: {RequestsText(book.TotalInterested())}</li>";
         }
         bookListHtml += "</ul>";
 
@@ -123,6 +124,9 @@ public class ChooseDateReminder : GenericJob, IJob
 
         await _emailService.SendAsync(donor.Email, donor.Name, emailBodyHTML, EmailSubject, copyAdmins: false, highPriority: true);
     }
+
+    private static string RequestsText(int count) =>
+        count == 1 ? "1 solicitação" : $"{count} solicitações";
 
     #endregion
 

@@ -140,6 +140,34 @@ public class EmailTemplateTests
     }
 
     [Fact]
+    public async Task VerifyEmailChooseDateReminderParse()
+    {
+        var vm = new { DonorName = "Rodrigo", BookTitle = "Lord of the Rings", RequestsText = "3 solicitações" };
+
+        var result = await emailTemplate.GenerateHtmlFromTemplateAsync("ChooseDateReminderTemplate", vm);
+
+        Assert.Contains("Olá, Rodrigo!", result);
+        Assert.Contains("<strong>Lord of the Rings</strong> recebeu 3 solicitações, e hoje é você quem escolhe quem vai ganhar.", result);
+        Assert.Contains("href=\"https://www.sharebook.com.br/book/donations\"", result);
+        Assert.Contains("você recebe por e-mail os dados do(a) ganhador(a)", result);
+        Assert.DoesNotContain("Entre em contato", result);
+    }
+
+    [Fact]
+    public async Task VerifyEmailChooseDateReminderMultipleParse()
+    {
+        var vm = new { DonorName = "Rodrigo", BookListHtml = "<ul><li><strong>Lord of the Rings</strong>: 1 solicitação</li></ul>" };
+
+        var result = await emailTemplate.GenerateHtmlFromTemplateAsync("ChooseDateReminderMultipleTemplate", vm);
+
+        Assert.Contains("Olá, Rodrigo!", result);
+        Assert.Contains("hoje é a data de escolha dos livros abaixo", result);
+        Assert.Contains("<li><strong>Lord of the Rings</strong>: 1 solicitação</li>", result);
+        Assert.Contains("Depois de cada escolha, você recebe por e-mail os dados do(a) ganhador(a)", result);
+        Assert.DoesNotContain("Entre em contato", result);
+    }
+
+    [Fact]
     public async Task VerifyEmailContactUsNotificationParse()
     {
 

@@ -13,18 +13,14 @@
         .header h1 { font-size: 22px; font-weight: 300; }
         .content { padding: 30px; }
         .greeting { font-size: 18px; color: #333; margin-bottom: 20px; }
+        .cta-wrap { text-align: center; margin: 30px 0; }
         .intro { font-size: 16px; margin-bottom: 25px; line-height: 1.7; }
         .cta { display: inline-block; background-color: #29abe2; color: white; text-decoration: none; font-weight: bold; padding: 12px 22px; border-radius: 4px; margin: 10px 0 25px; }
-        .steps-section { margin: 30px 0; }
-        .steps-title { font-size: 18px; color: #333; margin-bottom: 15px; font-weight: 500; }
-        .steps-list { counter-reset: step-counter; list-style: none; }
-        .steps-list li { counter-increment: step-counter; margin-bottom: 15px; padding-left: 40px; position: relative; line-height: 1.6; }
-        .steps-list li::before { content: counter(step-counter); position: absolute; left: 0; top: 0; background: #29abe2; color: white; width: 25px; height: 25px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
         .help-section { background-color: #e8f4fd; border-radius: 8px; padding: 20px; margin: 25px 0; border-left: 4px solid #29abe2; }
         .info-title { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
         .footer { background-color: #333; color: white; padding: 30px; text-align: center; }
         .signature .team { font-weight: bold; margin-bottom: 10px; }
-        @media only screen and (max-width: 600px) { body { padding: 10px; } .container { border-radius: 4px; } .content { padding: 20px; } .steps-list li { padding-left: 35px; } }
+        @media only screen and (max-width: 600px) { body { padding: 10px; } .container { border-radius: 4px; } .content { padding: 20px; } }
     </style>
 </head>
 <body>
@@ -35,22 +31,20 @@
         </div>
 
         <div class="content">
-            <div class="greeting">Olá, {DonorName},</div>
+            <div class="greeting">Olá, {DonorName}!</div>
 
             <div class="intro">
-                Hoje é a data de escolha do(a) ganhador(a) do livro <strong>"{BookTitle}"</strong>.
-                Acesse suas doações para fazer a escolha.
+                Chegou o dia: <strong>{BookTitle}</strong> recebeu {RequestsText}, e hoje é você quem escolhe quem vai ganhar.
             </div>
 
-            <a href="https://sharebook.com.br/book/donations" class="cta">Escolher ganhador(a)</a>
+            <p>Leia as solicitações com calma. Por trás de cada uma tem alguém torcendo para ser a pessoa escolhida.</p>
 
-            <div class="steps-section">
-                <div class="steps-title">Depois da escolha</div>
-                <ol class="steps-list">
-                    <li>Entre em contato com o(a) ganhador(a).</li>
-                    <li>Confirme os dados e combine o envio ou a entrega em mãos.</li>
-                </ol>
+            <div class="cta-wrap">
+                <a href="https://www.sharebook.com.br/book/donations" class="cta">Escolher ganhador(a)</a>
             </div>
+
+            <p>Depois da escolha, você recebe por e-mail os dados do(a) ganhador(a) para combinar o envio.</p>
+            <p><strong>Obrigado por compartilhar conhecimento.</strong></p>
 
             <div class="help-section">
                 <div class="info-title">Precisa de ajuda?</div>
