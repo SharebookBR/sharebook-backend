@@ -21,6 +21,7 @@ public class BooksEmailService(
     private const string BookApprovedTemplate = "BookApprovedTemplate";
     private const string EbookApprovedTemplate = "EbookApprovedTemplate";
     private const string BookApprovedTitle = "Seu livro foi aprovado";
+    private const string EbookApprovedTitle = "Seu livro digital está no ar!";
     private const string NewBookNotifyTemplate = "NewBookNotifyTemplate";
     private const string BookReceivedTemplate = "BookReceivedTemplate";
 
@@ -42,8 +43,9 @@ public class BooksEmailService(
                 ChooseDate = book.ChooseDate?.ToString("dd/MM/yyyy")
             };
             var templateName = book.IsEbook() ? EbookApprovedTemplate : BookApprovedTemplate;
+            var title = book.IsEbook() ? EbookApprovedTitle : BookApprovedTitle;
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(templateName, vm);
-            await _emailService.SendAsync(book.User.Email, book.User.Name, html, BookApprovedTitle, copyAdmins: true, highPriority: true);
+            await _emailService.SendAsync(book.User.Email, book.User.Name, html, title, copyAdmins: true, highPriority: true);
         }
     }
 

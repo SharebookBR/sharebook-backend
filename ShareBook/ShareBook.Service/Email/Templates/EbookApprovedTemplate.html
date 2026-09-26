@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seu livro digital foi aprovado</title>
+    <title>Seu livro digital está no ar!</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #555; background-color: #f2f2f2; padding: 20px; }
@@ -13,12 +13,10 @@
         .header h1 { font-size: 22px; font-weight: 300; }
         .content { padding: 30px; }
         .greeting { font-size: 18px; color: #333; margin-bottom: 20px; }
+        .cta-wrap { text-align: center; margin: 30px 0; }
+        .cta { display: inline-block; background-color: #29abe2; color: white; text-decoration: none; font-weight: bold; padding: 12px 22px; border-radius: 4px; }
         .intro { font-size: 16px; margin-bottom: 25px; line-height: 1.7; }
-        .info-card { background-color: #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #29abe2; }
         .info-title { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .info-list { list-style: none; }
-        .info-list li { margin-bottom: 8px; font-size: 15px; }
-        .info-list li strong { color: #333; }
         .help-section { background-color: #e8f4fd; border-radius: 8px; padding: 20px; margin: 25px 0; border-left: 4px solid #29abe2; }
         .footer { background-color: #333; color: white; padding: 30px; text-align: center; }
         .signature .team { font-weight: bold; margin-bottom: 10px; }
@@ -29,26 +27,23 @@
     <div class="container">
         <div class="header">
             <div class="wordmark">Sharebook</div>
-            <h1>Seu livro digital foi aprovado</h1>
+            <h1>Seu livro digital está no ar!</h1>
         </div>
 
         <div class="content">
             <div class="greeting">Olá, {User.FirstName}!</div>
 
             <div class="intro">
-                Seu livro digital {Book.Title} foi aprovado e já está disponível no Sharebook.
-                Leitores já podem acessar e baixar sua obra.
+                Boa notícia: <strong>{Book.Title}</strong>, de {Book.Author}, já está disponível no Sharebook. A partir de agora, qualquer pessoa pode encontrar e baixar esse livro, de graça.
             </div>
 
-            <div class="info-card">
-                <div class="info-title">Detalhes do livro</div>
-                <ul class="info-list">
-                    <li><strong>Livro: </strong>{Book.Title}</li>
-                    <li><strong>Autor: </strong>{Book.Author}</li>
-                </ul>
+            <p>Ele pode chegar a quem estava procurando por ele há tempos, ou a alguém que nem sabia que precisava. É isso que a sua doação faz.</p>
+
+            <div class="cta-wrap">
+                <a href="https://www.sharebook.com.br/livros/{Book.Slug}" class="cta">Ver livro no Sharebook</a>
             </div>
 
-            <p>Não é preciso fazer mais nada. Valeu por compartilhar sua obra e ampliar o acervo do Sharebook.</p>
+            <p><strong>Obrigado por compartilhar conhecimento.</strong></p>
 
             <div class="help-section">
                 <div class="info-title">Precisa de ajuda?</div>

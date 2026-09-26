@@ -80,6 +80,7 @@ public class EmailTemplateTests
     public async Task VerifyEmailEbookApprovedParse()
     {
         book.Type = global::ShareBook.Domain.Enums.BookType.Eletronic;
+        book.Slug = "lord-of-the-rings";
 
         var vm = new
         {
@@ -90,10 +91,13 @@ public class EmailTemplateTests
 
         var result = await emailTemplate.GenerateHtmlFromTemplateAsync("EbookApprovedTemplate", vm);
 
-        Assert.Contains("<title>Seu livro digital foi aprovado</title>", result);
-        Assert.Contains("Olá, Rodrigo", result);
-        Assert.Contains("Seu livro digital Lord of the Rings foi aprovado e já está disponível no Sharebook.", result);
-        Assert.Contains("Leitores já podem acessar e baixar sua obra.", result);
+        Assert.Contains("<title>Seu livro digital está no ar!</title>", result);
+        Assert.Contains("Olá, Rodrigo!", result);
+        Assert.Contains("<strong>Lord of the Rings</strong>, de J. R. R. Tolkien, já está disponível no Sharebook.", result);
+        Assert.Contains("href=\"https://www.sharebook.com.br/livros/lord-of-the-rings\"", result);
+        Assert.Contains("Obrigado por compartilhar conhecimento.", result);
+        Assert.DoesNotContain("sua obra", result);
+        Assert.DoesNotContain("Detalhes do livro", result);
         Assert.DoesNotContain("ganhador", result);
         Assert.DoesNotContain("vitrine para doação", result);
     }
