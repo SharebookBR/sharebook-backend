@@ -84,7 +84,7 @@ public class RemoveBookFromShowcase : GenericJob, IJob
 
     private async Task SendEmailAsync(Book book)
     {
-        var emailSubject = "A data de escolha do seu livro foi renovada";
+        var emailSubject = "Seu livro ganhou mais 10 dias na vitrine";
 
         // O template não usa dados do facilitador. Lê-los aqui só criava
         // NullReferenceException em livro sem facilitador, que é opcional.
@@ -92,7 +92,8 @@ public class RemoveBookFromShowcase : GenericJob, IJob
         {
             DonorName = book.User!.FirstName,
             BookTitle = book.Title,
-            BookSlug = book.Slug
+            BookSlug = book.Slug,
+            ChooseDate = book.ChooseDate?.ToString("dd/MM/yyyy")
         };
         var emailBodyHTML = await _emailTemplate.GenerateHtmlFromTemplateAsync("ChooseDateRenewTemplate", vm);
 

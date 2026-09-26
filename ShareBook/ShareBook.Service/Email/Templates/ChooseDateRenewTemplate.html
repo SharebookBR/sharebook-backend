@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A data de escolha foi renovada</title>
+    <title>Mais 10 dias na vitrine</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #555; background-color: #f2f2f2; padding: 20px; }
@@ -27,22 +27,25 @@
     <div class="container">
         <div class="header">
             <div class="wordmark">Sharebook</div>
-            <h1>A data de escolha foi renovada</h1>
+            <h1>Mais 10 dias na vitrine</h1>
         </div>
 
         <div class="content">
-            <div class="greeting">Olá, {DonorName},</div>
+            <div class="greeting">Olá, {DonorName}!</div>
 
             <div class="intro">
-                Hoje seria a data de escolha do(a) ganhador(a) do livro <strong>"{BookTitle}"</strong>.
-                Como ainda não houve solicitações, renovamos a data de escolha por mais 10 dias.
+                <strong>{BookTitle}</strong> ainda não recebeu solicitações, então demos mais 10 dias de vitrine para ele. A nova data de escolha é <strong>{ChooseDate}</strong>.
             </div>
 
+            <p>Tem livro que demora um pouco mais para encontrar a pessoa certa.</p>
+
             <div class="info-card">
-                <div class="info-title">Ajude a doação a circular</div>
-                <p>Você pode compartilhar o livro para que mais pessoas conheçam a doação.</p>
-                <a href="https://sharebook.com.br/livros/{BookSlug}" class="cta">Ver livro no Sharebook</a>
+                <div class="info-title">Quer dar uma força?</div>
+                <p>Compartilhe o link do livro com amigos, grupos ou nas redes sociais. Às vezes quem mais precisa dele só não sabe ainda que ele está aqui.</p>
+                <a href="https://www.sharebook.com.br/livros/{BookSlug}" class="cta">Ver livro no Sharebook</a>
             </div>
+
+            <p><strong>Obrigado por compartilhar conhecimento.</strong></p>
 
             <div class="help-section">
                 <div class="info-title">Precisa de ajuda?</div>

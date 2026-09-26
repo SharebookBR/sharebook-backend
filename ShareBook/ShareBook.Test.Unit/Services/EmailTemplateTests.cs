@@ -168,6 +168,20 @@ public class EmailTemplateTests
     }
 
     [Fact]
+    public async Task VerifyEmailChooseDateRenewParse()
+    {
+        var vm = new { DonorName = "Rodrigo", BookTitle = "Lord of the Rings", BookSlug = "lord-of-the-rings", ChooseDate = "05/10/2026" };
+
+        var result = await emailTemplate.GenerateHtmlFromTemplateAsync("ChooseDateRenewTemplate", vm);
+
+        Assert.Contains("<title>Mais 10 dias na vitrine</title>", result);
+        Assert.Contains("Olá, Rodrigo!", result);
+        Assert.Contains("<strong>Lord of the Rings</strong> ainda não recebeu solicitações", result);
+        Assert.Contains("A nova data de escolha é <strong>05/10/2026</strong>.", result);
+        Assert.Contains("href=\"https://www.sharebook.com.br/livros/lord-of-the-rings\"", result);
+    }
+
+    [Fact]
     public async Task VerifyEmailContactUsNotificationParse()
     {
 
