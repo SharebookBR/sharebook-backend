@@ -126,6 +126,20 @@ public class EmailTemplateTests
     }
 
     [Fact]
+    public async Task VerifyEmailWaitingApprovalParse()
+    {
+        var result = await emailTemplate.GenerateHtmlFromTemplateAsync("WaitingApprovalTemplate", book);
+
+        Assert.Contains("<title>Recebemos seu livro para revisão</title>", result);
+        Assert.Contains("Olá, Rodrigo!", result);
+        Assert.Contains("Que alegria receber <strong>Lord of the Rings</strong>, de J. R. R. Tolkien.", result);
+        Assert.Contains("Quando terminarmos, você recebe outro e-mail.", result);
+        Assert.Contains("Na data de escolha, é você quem decide quem vai ganhar.", result);
+        Assert.Contains("Obrigado por compartilhar conhecimento.", result);
+        Assert.DoesNotContain("Detalhes do livro", result);
+    }
+
+    [Fact]
     public async Task VerifyEmailContactUsNotificationParse()
     {
 
