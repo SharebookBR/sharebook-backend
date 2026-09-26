@@ -1,6 +1,7 @@
 ﻿using ShareBook.Domain.Common;
 using ShareBook.Domain.Enums;
 using ShareBook.Helper.Crypto;
+using ShareBook.Helper.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,7 @@ namespace ShareBook.Domain;
 public class User : BaseEntity
 {
     public string Name { get; set; } = string.Empty;
+    public string FirstName => Name.ToFirstName();
     public string Email { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
     public string PasswordSalt { get; set; } = string.Empty;

@@ -93,7 +93,7 @@ public class ChooseDateReminder : GenericJob, IJob
         // NullReferenceException em livro sem facilitador, que é opcional.
         var vm = new
         {
-            DonorName = book.User!.Name,
+            DonorName = book.User!.FirstName,
             BookTitle = book.Title
         };
         var emailBodyHTML = await _emailTemplate.GenerateHtmlFromTemplateAsync("ChooseDateReminderTemplate", vm);
@@ -116,7 +116,7 @@ public class ChooseDateReminder : GenericJob, IJob
 
         var vm = new
         {
-            DonorName = donor.Name,
+            DonorName = donor.FirstName,
             BookListHtml = bookListHtml
         };
         var emailBodyHTML = await _emailTemplate.GenerateHtmlFromTemplateAsync("ChooseDateReminderMultipleTemplate", vm);

@@ -174,7 +174,7 @@ public class NewEbookWeeklyDigest : GenericJob, IJob
                 BodyHTML = bodyHtml,
                 Destinations = new List<Destination>
                 {
-                    new Destination { Name = entry.User.Name, Email = entry.User.Email }
+                    new Destination { Name = entry.User.FirstName, Email = entry.User.Email }
                 }
             };
 

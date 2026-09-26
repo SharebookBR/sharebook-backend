@@ -14,11 +14,7 @@
         .content { padding: 30px; }
         .greeting { font-size: 18px; color: #333; margin-bottom: 20px; }
         .intro { font-size: 16px; margin-bottom: 25px; line-height: 1.7; }
-        .info-card { background-color: #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #29abe2; }
         .info-title { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .info-list { list-style: none; }
-        .info-list li { margin-bottom: 8px; font-size: 15px; }
-        .info-list li strong { color: #333; }
         .help-section { background-color: #e8f4fd; border-radius: 8px; padding: 20px; margin: 25px 0; border-left: 4px solid #29abe2; }
         .footer { background-color: #333; color: white; padding: 30px; text-align: center; }
         .signature .team { font-weight: bold; margin-bottom: 10px; }
@@ -33,22 +29,14 @@
         </div>
 
         <div class="content">
-            <div class="greeting">Olá, {User.Name}.</div>
+            <div class="greeting">Olá, {User.FirstName}!</div>
 
             <div class="intro">
-                Recebemos o livro digital {Title}. Nossa equipe está revisando o arquivo e as informações do cadastro.
+                Que alegria receber <strong>{Title}</strong>, de {Author}. Cada livro digital compartilhado aqui abre uma porta para alguém que talvez nunca chegasse até ele.
             </div>
 
-            <div class="info-card">
-                <div class="info-title">Detalhes do livro</div>
-                <ul class="info-list">
-                    <li><strong>Livro: </strong>{Title}</li>
-                    <li><strong>Autor: </strong>{Author}</li>
-                </ul>
-            </div>
-
-            <p>Você receberá outro e-mail quando a revisão terminar. Se for aprovado, o livro ficará disponível no Sharebook na mesma hora.</p>
-            <p>Por enquanto, não é preciso fazer nada.</p>
+            <p>Agora nossa equipe dá uma olhada no arquivo e no cadastro, só para garantir que tudo chegue certinho a quem for ler. Quando terminarmos, você recebe outro e-mail. Se estiver tudo certo, o livro entra no ar na mesma hora.</p>
+            <p><strong>Obrigado por compartilhar conhecimento.</strong></p>
 
             <div class="help-section">
                 <div class="info-title">Precisa de ajuda?</div>

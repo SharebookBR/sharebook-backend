@@ -60,7 +60,7 @@ public class BookUserEmailService(IUserService userService, IEmailService emailS
             var vm = new
             {
                 BookTitle = book.Title,
-                DonorName = book.User.Name,
+                DonorName = book.User.FirstName,
                 Facilitator = book.UserFacilitator,
                 Winner = winner
             };
@@ -88,7 +88,7 @@ public class BookUserEmailService(IUserService userService, IEmailService emailS
                 RequestsHtml = requestsHtml,
                 Donor = new
                 {
-                    Name = bookRequested.User.Name,
+                    Name = bookRequested.User.FirstName,
                     ChooseDate = string.Format("{0:dd/MM/yyyy}", bookRequested.ChooseDate ?? DateTime.Today.AddDays(30)),
                     BookTitle = bookRequested.Title,
                 },

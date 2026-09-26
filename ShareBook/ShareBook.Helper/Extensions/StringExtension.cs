@@ -81,6 +81,15 @@ public static class StringExtension
     }
 
 
+    public static string ToFirstName(this string? fullName)
+    {
+        if (string.IsNullOrWhiteSpace(fullName))
+            return string.Empty;
+
+        var firstName = fullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries)[0];
+        return CultureInfo.GetCultureInfo("pt-BR").TextInfo.ToTitleCase(firstName.ToLower());
+    }
+
     public static string AddIncremental(this string text)
     {
 

@@ -70,7 +70,7 @@ public class EmailTemplateTests
         var result = await emailTemplate.GenerateHtmlFromTemplateAsync("BookApprovedTemplate", vm);
 
         Assert.Contains("<title>Seu livro foi aprovado</title>", result);
-        Assert.Contains("Olá Rodrigo", result);
+        Assert.Contains("Olá, Rodrigo!", result);
         Assert.Contains("O livro Lord of the Rings foi aprovado e já está na nossa vitrine para doação.", result);
         Assert.Contains("<li><strong>Livro: </strong>Lord of the Rings</li>", result);
         Assert.Contains("<li><strong>Autor: </strong>J. R. R. Tolkien</li>", result);
@@ -106,8 +106,12 @@ public class EmailTemplateTests
         var result = await emailTemplate.GenerateHtmlFromTemplateAsync("EbookWaitingApprovalTemplate", book);
 
         Assert.Contains("<title>Recebemos seu livro digital para revisão</title>", result);
-        Assert.Contains("Recebemos o livro digital Lord of the Rings", result);
-        Assert.Contains("Você receberá outro e-mail quando a revisão terminar.", result);
+        Assert.Contains("Olá, Rodrigo!", result);
+        Assert.Contains("Que alegria receber <strong>Lord of the Rings</strong>, de J. R. R. Tolkien.", result);
+        Assert.Contains("Quando terminarmos, você recebe outro e-mail.", result);
+        Assert.Contains("Obrigado por compartilhar conhecimento.", result);
+        Assert.DoesNotContain("Detalhes do livro", result);
+        Assert.DoesNotContain("não é preciso fazer nada", result);
         Assert.DoesNotContain("vitrine", result);
         Assert.DoesNotContain("outras pessoas possam visualizar", result);
     }
@@ -124,7 +128,7 @@ public class EmailTemplateTests
       
 
         var result = await emailTemplate.GenerateHtmlFromTemplateAsync("ContactUsNotificationTemplate", contactUs);
-        Assert.Contains("Olá, Rafael Rocha", result);
+        Assert.Contains("Olá, Rafael.", result);
 
     }
 

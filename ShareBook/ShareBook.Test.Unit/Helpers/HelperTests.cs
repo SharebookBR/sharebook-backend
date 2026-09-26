@@ -61,6 +61,18 @@ public class HelperTests
     }
 
     [Theory]
+    [InlineData("RAFFAELLO DAMGAARD NEVES", "Raffaello")]
+    [InlineData("  maria   da silva ", "Maria")]
+    [InlineData("ANA-MARIA SOUZA", "Ana-Maria")]
+    [InlineData("Élida", "Élida")]
+    [InlineData("", "")]
+    [InlineData(null, "")]
+    public void ToFirstName_ShouldReturnCapitalizedFirstName(string? fullName, string expected)
+    {
+        Assert.Equal(expected, fullName.ToFirstName());
+    }
+
+    [Theory]
     [InlineData("  Ação__em C# -- 2026! ", "acao em csharp 2026")]
     [InlineData("Odisséia", "odisseia")]
     [InlineData("caverna   de   sangue", "caverna de sangue")]
