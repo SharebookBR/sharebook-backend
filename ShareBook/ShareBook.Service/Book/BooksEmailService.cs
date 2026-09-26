@@ -20,7 +20,7 @@ public class BooksEmailService(
     private const string WaitingApprovalTitle = "Recebemos seu livro para revisão";
     private const string BookApprovedTemplate = "BookApprovedTemplate";
     private const string EbookApprovedTemplate = "EbookApprovedTemplate";
-    private const string BookApprovedTitle = "Seu livro foi aprovado";
+    private const string BookApprovedTitle = "Seu livro está na vitrine!";
     private const string EbookApprovedTitle = "Seu livro digital está no ar!";
     private const string NewBookNotifyTemplate = "NewBookNotifyTemplate";
     private const string BookReceivedTemplate = "BookReceivedTemplate";

@@ -60,6 +60,8 @@ public class EmailTemplateTests
     [Fact]
     public async Task VerifyEmailBookApprovedParse()
     {
+        book.Slug = "lord-of-the-rings";
+        book.ChooseDate = new System.DateTime(2026, 10, 26);
         var vm = new
         {
             Book = book,
@@ -69,11 +71,14 @@ public class EmailTemplateTests
 
         var result = await emailTemplate.GenerateHtmlFromTemplateAsync("BookApprovedTemplate", vm);
 
-        Assert.Contains("<title>Seu livro foi aprovado</title>", result);
+        Assert.Contains("<title>Seu livro está na vitrine!</title>", result);
         Assert.Contains("Olá, Rodrigo!", result);
-        Assert.Contains("O livro Lord of the Rings foi aprovado e já está na nossa vitrine para doação.", result);
-        Assert.Contains("<li><strong>Livro: </strong>Lord of the Rings</li>", result);
-        Assert.Contains("<li><strong>Autor: </strong>J. R. R. Tolkien</li>", result);
+        Assert.Contains("<strong>Lord of the Rings</strong>, de J. R. R. Tolkien, já está na vitrine do Sharebook.", result);
+        Assert.Contains("Sempre que chegar uma nova solicitação, a gente te avisa por e-mail.", result);
+        Assert.Contains("Data de escolha: 26/10/2026", result);
+        Assert.Contains("href=\"https://www.sharebook.com.br/livros/lord-of-the-rings\"", result);
+        Assert.Contains("Obrigado por compartilhar conhecimento.", result);
+        Assert.DoesNotContain("Detalhes do livro", result);
     }
 
     [Fact]
