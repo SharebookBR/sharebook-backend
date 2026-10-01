@@ -222,11 +222,14 @@ public class EmailTemplateTests
 
         Assert.Contains("<title>Outra pessoa receberá este livro</title>", result);
         Assert.Contains("A escolha da doação do livro <strong>Lord of the Rings</strong> foi concluída", result);
-        Assert.Contains("Sua solicitação importou", result);
+        Assert.Contains("Sua solicitação ajuda", result);
+        Assert.Contains("aquele livro encontrou leitores interessados", result);
         Assert.Contains("solicitar outros livros disponíveis", result);
         Assert.Contains("Ver vitrine do Sharebook", result);
         Assert.Contains("href=\"https://www.sharebook.com.br\"", result);
         Assert.DoesNotContain("lang=\"en\"", result);
+        Assert.DoesNotContain("doador(a)", result);
+        Assert.DoesNotContain("ganhador(a)", result);
     }
 
     [Fact]
