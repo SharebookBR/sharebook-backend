@@ -12,7 +12,7 @@ public enum BookStatus
     [Description("Disponível")]
     Available,// Status é usado quando o admin aprova o livro
 
-    [Description("Aguardando decisão do doador")]
+    [Description("Aguardando decisão da pessoa doadora")]
     AwaitingDonorDecision,// Status para quando já expirou a qt de dias que o livro pode ficar na vitrine tendo pessoas ja interessadas em ganha-lo e o doador ainda nao escolheu o ganhador
 
     [Description("Aguardando envio")]

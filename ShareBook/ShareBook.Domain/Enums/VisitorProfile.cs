@@ -2,8 +2,8 @@
 
 namespace ShareBook.Domain.Enums; 
 public enum VisitorProfile {
-    [Description("Doador")] Donor,
-    [Description("Ganhador")] Winner,
+    [Description("Pessoa doadora")] Donor,
+    [Description("Pessoa ganhadora")] Winner,
     [Description("Indefinido")] Undefined,
     [Description("Facilitador")] Facilitator
 }

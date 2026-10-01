@@ -149,7 +149,7 @@ public class EmailTemplateTests
         Assert.Contains("Olá, Rodrigo!", result);
         Assert.Contains("<strong>Lord of the Rings</strong> recebeu 3 solicitações, e hoje é você quem escolhe quem vai ganhar.", result);
         Assert.Contains("href=\"https://www.sharebook.com.br/book/donations\"", result);
-        Assert.Contains("você recebe por e-mail os dados do(a) ganhador(a)", result);
+        Assert.Contains("você recebe por e-mail os dados da pessoa ganhadora", result);
         Assert.DoesNotContain("Entre em contato", result);
     }
 
@@ -163,7 +163,7 @@ public class EmailTemplateTests
         Assert.Contains("Olá, Rodrigo!", result);
         Assert.Contains("hoje é a data de escolha dos livros abaixo", result);
         Assert.Contains("<li><strong>Lord of the Rings</strong>: 1 solicitação</li>", result);
-        Assert.Contains("Depois de cada escolha, você recebe por e-mail os dados do(a) ganhador(a)", result);
+        Assert.Contains("Depois de cada escolha, você recebe por e-mail os dados da pessoa ganhadora", result);
         Assert.DoesNotContain("Entre em contato", result);
     }
 

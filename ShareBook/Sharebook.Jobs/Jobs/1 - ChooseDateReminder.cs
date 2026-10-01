@@ -26,7 +26,7 @@ public class ChooseDateReminder : GenericJob, IJob
         ) : base(jobHistoryRepo, loggerFactory, timeProvider)
     {
         JobName = "ChooseDateReminder";
-        Description = "Notifica o doador com um lembrete amigável no dia da escolha.";
+        Description = "Notifica a pessoa doadora com um lembrete amigável no dia da escolha.";
         Interval = Interval.Dayly;
         Active = true;
         BestTimeToExecute = new TimeSpan(9, 0, 0);

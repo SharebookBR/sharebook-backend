@@ -506,7 +506,7 @@ public class BookController(IBookService bookService,
             return Unauthorized();
 
         if (await _IsDonatorAsync(requestBookVM.BookId, user) && !_IsAdmin(user)) //Permitido solicitar o próprio livro somente para Admin
-            throw new ShareBookException("Não é possível solicitar este livro porque você é o doador.");
+            throw new ShareBookException("Não é possível solicitar este livro porque ele foi cadastrado por você.");
 
         await _bookUserService.InsertAsync(requestBookVM.BookId, requestBookVM.Reason ?? string.Empty);
         return Ok(new Result { SuccessMessage = "Solicitação realizada com sucesso!" });

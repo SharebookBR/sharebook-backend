@@ -121,7 +121,7 @@ public class BookUserService(
             throw new ShareBookException("Não existe a relação de usuário e livro para a doação.");
 
         if (bookUserAccepted.Status == DonationStatus.Canceled)
-            throw new ShareBookException("O solicitante desistiu do seu pedido. Por favor escolha outro ganhador.");
+            throw new ShareBookException("A pessoa solicitante desistiu do pedido. Escolha outra pessoa para receber o livro.");
 
         bookUserAccepted.UpdateBookUser(DonationStatus.Donated, note);
 
@@ -209,7 +209,7 @@ public class BookUserService(
         //obter apenas o ganhador
         var winnerBookUser = bookUsers.FirstOrDefault(bu => bu.Status == DonationStatus.Donated);
         if (winnerBookUser == null)
-            throw new ShareBookException(ShareBookException.Error.NotFound, "Nenhum ganhador encontrado para este livro.");
+            throw new ShareBookException(ShareBookException.Error.NotFound, "Nenhuma pessoa ganhadora encontrada para este livro.");
 
         //Book
         var book = winnerBookUser.Book;
@@ -243,7 +243,7 @@ public class BookUserService(
                                     .FirstOrDefaultAsync();
 
         if (winnerBookUser == null)
-            throw new ShareBookException("Vencedor ainda não foi escolhido");
+            throw new ShareBookException("A pessoa ganhadora ainda não foi escolhida.");
 
         if (book == null)
             throw new ShareBookException(ShareBookException.Error.NotFound);
