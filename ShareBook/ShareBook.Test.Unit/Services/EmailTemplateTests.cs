@@ -214,6 +214,22 @@ public class EmailTemplateTests
     }
 
     [Fact]
+    public async Task VerifyEmailBookNoticeDeclinedUsersParse()
+    {
+        var vm = new { BookTitle = "Lord of the Rings" };
+
+        var result = await emailTemplate.GenerateHtmlFromTemplateAsync("BookNoticeDeclinedUsersTemplate", vm);
+
+        Assert.Contains("<title>Outra pessoa receberá este livro</title>", result);
+        Assert.Contains("A escolha da doação do livro <strong>Lord of the Rings</strong> foi concluída", result);
+        Assert.Contains("Sua solicitação importou", result);
+        Assert.Contains("solicitar outros livros disponíveis", result);
+        Assert.Contains("Ver vitrine do Sharebook", result);
+        Assert.Contains("href=\"https://www.sharebook.com.br\"", result);
+        Assert.DoesNotContain("lang=\"en\"", result);
+    }
+
+    [Fact]
     public async Task VerifyEmailContactUsNotificationParse()
     {
 
