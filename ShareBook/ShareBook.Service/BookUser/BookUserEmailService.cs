@@ -275,8 +275,19 @@ public class BookUserEmailService(IUserService userService, IEmailService emailS
 
     public async Task SendEmailMaxRequestsAsync(Book bookRequested)
     {
-        var subject = "Livro atingiu o limite de solicitações";
-        var body = $"O livro <b>{bookRequested.Title}</b> atingiu o limite de solicitações e foi removido automaticamente da vitrine. A data de escolha foi definida para amanhã.";
-        await _emailService.SendToAdminsAsync(body, subject);
+        if (bookRequested.User == null && bookRequested.UserId != null)
+            bookRequested.User = await _userService.FindAsync(bookRequested.UserId.Value);
+
+        if (bookRequested.User == null || !bookRequested.User.AllowSendingEmail)
+            return;
+
+        var subject = "Sua doação foi um sucesso";
+        var body = $@"
+            <p>Olá!</p>
+            <p>Que notícia boa: o livro <b>{bookRequested.Title}</b> fez sucesso no Sharebook.</p>
+            <p>Ele recebeu o número máximo de solicitações e, por isso, saiu automaticamente da vitrine. Poucos livros chegam a esse ponto. Isso mostra que sua doação despertou bastante interesse.</p>
+            <p>A data da decisão foi antecipada para <b>amanhã</b>. Você receberá um e-mail com todas as informações.</p>
+            <p>Obrigado por ajudar esse livro a encontrar uma nova casa.</p>";
+        await _emailService.SendAsync(bookRequested.User.Email, bookRequested.User.Name, body, subject, copyAdmins: true, highPriority: true);
     }
 }
