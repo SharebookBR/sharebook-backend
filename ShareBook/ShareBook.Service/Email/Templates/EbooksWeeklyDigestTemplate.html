@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Novos livros digitais esta semana</title>
+    <title>Novos livros digitais para ler esta semana</title>
     <style>
         * {
             margin: 0;
@@ -39,6 +39,19 @@
         .message {
             font-size: 18px;
             margin-bottom: 20px;
+        }
+
+        .button {
+            display: block;
+            background-color: #009FC7;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 18px;
+            padding: 18px;
+            text-align: center;
+            border-radius: 3px;
+            margin: 30px 0;
         }
 
         .footer {
@@ -88,17 +101,24 @@
             .message {
                 font-size: 16px;
             }
+
+            .button {
+                font-size: 16px;
+                padding: 15px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="main-content">
-            <h2>Livros digitais novos esta semana</h2>
+            <h2>Novos livros digitais para ler esta semana</h2>
 
             <div class="message">
                 Olá, {Name}.<br><br>
-                {EbookCountMessage}
+                A biblioteca digital do Sharebook ganhou novidades esta semana.<br><br>
+                {EbookCountMessage}<br><br>
+                Escolha um título, abra a página e comece a leitura quando quiser.
             </div>
 
             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 24px 0;">
@@ -108,7 +128,7 @@
             {AdditionalEbooksMessage}
 
             <a href="{FrontendUrl}/livros-digitais/novidades" class="button" target="_blank">
-                Ver livros digitais
+                Ver novidades digitais
             </a>
 
         </div>

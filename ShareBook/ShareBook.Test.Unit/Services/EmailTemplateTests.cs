@@ -133,6 +133,34 @@ public class EmailTemplateTests
     }
 
     [Fact]
+    public async Task VerifyEmailEbooksWeeklyDigestParse()
+    {
+        var vm = new
+        {
+            Name = "Maria",
+            EbookCountMessage = "Esta semana chegaram 5 livros digitais.",
+            EbookListHtml = "<tr><td>Memórias Póstumas de Brás Cubas</td></tr>",
+            AdditionalEbooksMessage = "<p>Tem mais títulos esperando por você.</p>",
+            FrontendUrl = "https://www.sharebook.com.br",
+            UnsubscribeUrl = "https://www.sharebook.com.br/unsubscribe/token"
+        };
+
+        var result = await emailTemplate.GenerateHtmlFromTemplateAsync("EbooksWeeklyDigestTemplate", vm);
+
+        Assert.Contains("<title>Novos livros digitais para ler esta semana</title>", result);
+        Assert.Contains("<h2>Novos livros digitais para ler esta semana</h2>", result);
+        Assert.Contains("Olá, Maria.", result);
+        Assert.Contains("A biblioteca digital do Sharebook ganhou novidades esta semana.", result);
+        Assert.Contains("Esta semana chegaram 5 livros digitais.", result);
+        Assert.Contains("Escolha um título, abra a página e comece a leitura quando quiser.", result);
+        Assert.Contains("<tr><td>Memórias Póstumas de Brás Cubas</td></tr>", result);
+        Assert.Contains("<p>Tem mais títulos esperando por você.</p>", result);
+        Assert.Contains("href=\"https://www.sharebook.com.br/livros-digitais/novidades\" class=\"button\"", result);
+        Assert.Contains("Ver novidades digitais", result);
+        Assert.DoesNotContain("Livros digitais novos esta semana", result);
+    }
+
+    [Fact]
     public async Task VerifyEmailBookApprovedParse()
     {
         book.Slug = "lord-of-the-rings";
