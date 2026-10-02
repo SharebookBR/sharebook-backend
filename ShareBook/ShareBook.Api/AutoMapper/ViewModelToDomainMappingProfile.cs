@@ -59,6 +59,20 @@ public class ViewModelToDomainMappingProfile : Profile
         CreateMap<NotificationOnesignalVM, NotificationOnesignal>();
 
         #endregion [ Notification ]
+
+        #region [ Tag ]
+
+        CreateMap<UpsertTagVM, Tag>()
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => ParseTagStatus(src.Status)));
+
+        #endregion [ Tag ]
+    }
+
+    private static TagStatus ParseTagStatus(string status)
+    {
+        if (Enum.TryParse<TagStatus>(status, true, out var result))
+            return result;
+        return TagStatus.Active;
     }
 
     private static BookType ParseBookType(string type)

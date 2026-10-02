@@ -38,6 +38,7 @@ public static class ServiceRepositoryCollectionExtensions
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IUserEmailService, UserEmailService>();
         services.AddScoped<ICategoryService, CategoryService>();
+        services.AddScoped<ITagService, TagService>();
         services.AddScoped<IContactUsService, ContactUsService>();
         services.AddScoped<IContactUsEmailService, ContactUsEmailService>();
         services.AddScoped<IMuambatorService, MuambatorService>();

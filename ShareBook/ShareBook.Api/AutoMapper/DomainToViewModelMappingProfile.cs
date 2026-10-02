@@ -1,13 +1,14 @@
 ﻿using AutoMapper;
 using ShareBook.Api.ViewModels;
 using ShareBook.Domain;
+using ShareBook.Domain.Enums;
 using System;
 using System.Globalization;
 using System.Linq;
 
 namespace ShareBook.Api.AutoMapper;
 
-public class DomainToViewModelMappingProfile : Profile
+public class DomainToViewModelMappingProfile : global::AutoMapper.Profile
 {
     public DomainToViewModelMappingProfile() : this("Profile")
     {
@@ -21,6 +22,16 @@ public class DomainToViewModelMappingProfile : Profile
 
         CreateMap<Category, BookCategoryVM>()
             .ForMember(dest => dest.ParentCategoryName, opt => opt.MapFrom(src => src.ParentCategory != null ? src.ParentCategory.Name : null));
+
+        CreateMap<Tag, TagSummaryVM>();
+
+        CreateMap<Tag, TagVM>()
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
+
+        CreateMap<BookTag, TagSummaryVM>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Tag.Id))
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Tag.Name))
+            .ForMember(dest => dest.Family, opt => opt.MapFrom(src => src.Tag.Family));
 
         #region [ Book ]
 
@@ -42,7 +53,12 @@ public class DomainToViewModelMappingProfile : Profile
              .ForMember(dest => dest.TrackingNumber, opt => opt.MapFrom(src => src.TrackingNumber))
              .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.Name))
              .ForMember(dest => dest.CategoryInfo, opt => opt.MapFrom(src => src.Category))
-             .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()));
+             .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()))
+             .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.BookTags
+                .Where(bookTag => bookTag.ReviewStatus == BookTagReviewStatus.Approved
+                    && bookTag.Tag.Status == TagStatus.Active
+                    && bookTag.Tag.IsPublic)
+                .OrderBy(bookTag => bookTag.Position)));
 
         CreateMap<Book, BookVM>()
              .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.User!.Address!.City))
@@ -53,7 +69,12 @@ public class DomainToViewModelMappingProfile : Profile
              .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.Name))
              .ForMember(dest => dest.CategoryInfo, opt => opt.MapFrom(src => src.Category))
              .ForMember(dest => dest.Donor, opt => opt.MapFrom(src => BuildPublicDonor(src.User)))
-             .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()));
+             .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()))
+             .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.BookTags
+                .Where(bookTag => bookTag.ReviewStatus == BookTagReviewStatus.Approved
+                    && bookTag.Tag.Status == TagStatus.Active
+                    && bookTag.Tag.IsPublic)
+                .OrderBy(bookTag => bookTag.Position)));
 
         CreateMap<BookUser, MyBookRequestVM>()
             .ForMember(dest => dest.Author, opt => opt.MapFrom(src => src.Book.Author))
