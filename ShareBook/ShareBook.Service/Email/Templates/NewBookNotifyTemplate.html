@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Novo livro disponível</title>
+    <title>Novo na vitrine: {BookTitle}</title>
     <style>
         * {
             margin: 0;
@@ -101,16 +101,17 @@
 <body>
     <div class="container">
         <div class="main-content">
-            <h2>Novo livro disponível: {BookTitle}</h2>
+            <h2>Novo na vitrine: {BookTitle}</h2>
 
             <div class="message">
                 Olá, {Name}.<br><br>
-                Um novo livro está disponível para doação no Sharebook.<br><br>
+                Tem livro novo na vitrine do Sharebook: <strong>{BookTitle}</strong>.<br><br>
+                Se esse título combina com você, vale abrir a página e fazer sua solicitação enquanto ele está disponível.<br><br>
                 <img src="{BackendUrl}/Images/Books/{BookImageSlug}" alt="{BookTitle}" class="book-image">
             </div>
 
             <a href="{FrontendUrl}/livros/{BookSlug}" class="button" target="_blank">
-                Ver o livro
+                Ver livro na vitrine
             </a>
 
         </div>
