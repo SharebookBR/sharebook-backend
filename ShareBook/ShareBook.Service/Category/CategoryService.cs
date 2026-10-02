@@ -79,7 +79,7 @@ public class CategoryService(
     private async Task<IReadOnlyList<Category>> LoadCategoriesWithCountsAsync()
     {
         var categories = await _repository.Get()
-            .AsNoTracking()
+            .AsNoTrackingWithIdentityResolution()
             .Include(x => x.Children)
             .ToListAsync();
 
