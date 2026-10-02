@@ -20,6 +20,8 @@ public class ApplicationDbContext : DbContext
     public ApplicationDbContext() { }
 
     public DbSet<Book> Books { get; set; }
+    public DbSet<Tag> Tags { get; set; }
+    public DbSet<BookTag> BookTags { get; set; }
     public DbSet<BookDownloadEvent> BookDownloadEvents { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<EFLog> EFLogs { get; set; }

@@ -42,6 +42,8 @@ public class Book : BaseEntity
 
     public virtual ICollection<BookUser> BookUsers { get; set; } = new List<BookUser>();
 
+    public virtual ICollection<BookTag> BookTags { get; set; } = new List<BookTag>();
+
     public string? ImageUrl { get; set; }
 
     public string? ThumbnailUrl { get; set; }
