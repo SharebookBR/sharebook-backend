@@ -25,6 +25,30 @@ public class TagService(ApplicationDbContext context, IUploadService uploadServi
             .ThenBy(tag => tag.Name)
             .ToListAsync();
 
+    public async Task<IDictionary<string, int>> GetPublicBookCountsByTagAsync(IEnumerable<string> tagIds)
+    {
+        var ids = tagIds
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+
+        if (ids.Count == 0)
+        {
+            return new Dictionary<string, int>();
+        }
+
+        return await _context.BookTags
+            .AsNoTracking()
+            .Where(bookTag => ids.Contains(bookTag.TagId)
+                && bookTag.ReviewStatus == BookTagReviewStatus.Approved
+                && bookTag.Book.Status == BookStatus.Available
+                && bookTag.Tag.Status == TagStatus.Active
+                && bookTag.Tag.IsPublic)
+            .GroupBy(bookTag => bookTag.TagId)
+            .Select(group => new { TagId = group.Key, TotalBooks = group.Count() })
+            .ToDictionaryAsync(item => item.TagId, item => item.TotalBooks);
+    }
+
     public async Task<IList<Tag>> GetAdminTagsAsync()
         => await _context.Tags
             .AsNoTracking()

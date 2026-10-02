@@ -7,6 +7,7 @@ public class TagSummaryVM
     public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Family { get; set; } = string.Empty;
+    public int? TotalBooks { get; set; }
 }
 
 public class TagVM : TagSummaryVM

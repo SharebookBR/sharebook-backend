@@ -22,14 +22,37 @@ public class TagController(ITagService tagService, IMapper mapper) : ControllerB
     [HttpGet]
     [ProducesResponseType(typeof(IList<TagSummaryVM>), 200)]
     public async Task<IList<TagSummaryVM>> GetPublicTagsAsync()
-        => _mapper.Map<IList<TagSummaryVM>>(await _tagService.GetPublicTagsAsync());
+    {
+        var tags = await _tagService.GetPublicTagsAsync();
+        var countsByTag = await _tagService.GetPublicBookCountsByTagAsync(tags.Select(tag => tag.Id));
+        var viewModels = _mapper.Map<IList<TagSummaryVM>>(tags);
+
+        foreach (var viewModel in viewModels)
+        {
+            viewModel.TotalBooks = countsByTag.TryGetValue(viewModel.Id, out var totalBooks)
+                ? totalBooks
+                : 0;
+        }
+
+        return viewModels;
+    }
 
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(TagVM), 200)]
     public async Task<IActionResult> GetPublicTagAsync(string id)
     {
         var tag = await _tagService.FindPublicAsync(id);
-        return tag == null ? NotFound() : Ok(_mapper.Map<TagVM>(tag));
+        if (tag == null)
+        {
+            return NotFound();
+        }
+
+        var viewModel = _mapper.Map<TagVM>(tag);
+        var countsByTag = await _tagService.GetPublicBookCountsByTagAsync(new[] { tag.Id });
+        viewModel.TotalBooks = countsByTag.TryGetValue(tag.Id, out var totalBooks)
+            ? totalBooks
+            : 0;
+        return Ok(viewModel);
     }
 
     [HttpGet("{id}/Books/{page:int}/{items:int}")]

@@ -9,6 +9,7 @@ namespace ShareBook.Service;
 public interface ITagService
 {
     Task<IList<Tag>> GetPublicTagsAsync();
+    Task<IDictionary<string, int>> GetPublicBookCountsByTagAsync(IEnumerable<string> tagIds);
     Task<IList<Tag>> GetAdminTagsAsync();
     Task<Tag?> FindPublicAsync(string idOrAlias);
     Task<Tag?> FindAdminAsync(string id);
