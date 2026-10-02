@@ -83,6 +83,30 @@ public class EmailTemplateTests
     }
 
     [Fact]
+    public async Task VerifyEmailBookReceivedParse()
+    {
+        var vm = new
+        {
+            Book = book,
+            User = user,
+            WinnerName = "Maria"
+        };
+
+        var result = await emailTemplate.GenerateHtmlFromTemplateAsync("BookReceivedTemplate", vm);
+
+        Assert.Contains("<html lang=\"pt-br\">", result);
+        Assert.Contains("<title>Doação concluída</title>", result);
+        Assert.Contains("Olá, Rodrigo!", result);
+        Assert.Contains("Boa notícia: Maria confirmou o recebimento do livro <strong>Lord of the Rings</strong>.", result);
+        Assert.Contains("Sua doação foi concluída. Esse livro saiu da sua estante", result);
+        Assert.Contains("<div class=\"info-title\">Resumo da doação</div>", result);
+        Assert.Contains("<li><strong>Quem recebeu:</strong> Maria</li>", result);
+        Assert.Contains("Cada doação concluída deixa o Sharebook um pouco mais vivo.", result);
+        Assert.DoesNotContain("O recebimento do livro", result);
+        Assert.DoesNotContain("Detalhes da doação", result);
+    }
+
+    [Fact]
     public async Task VerifyEmailBookApprovedParse()
     {
         book.Slug = "lord-of-the-rings";
