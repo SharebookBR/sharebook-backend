@@ -297,7 +297,23 @@ public partial class BookService
                         }
                 },
                 Type = u.Type,
-                EBookPdfPath = u.EBookPdfPath
+                EBookPdfPath = u.EBookPdfPath,
+                BookTags = u.BookTags
+                    .Where(bookTag => bookTag.ReviewStatus == BookTagReviewStatus.Approved
+                        && bookTag.Tag.Status == TagStatus.Active
+                        && bookTag.Tag.IsPublic)
+                    .OrderBy(bookTag => bookTag.Position)
+                    .Select(bookTag => new BookTag
+                    {
+                        Position = bookTag.Position,
+                        Tag = new Tag
+                        {
+                            Id = bookTag.Tag.Id,
+                            Name = bookTag.Tag.Name,
+                            Family = bookTag.Tag.Family
+                        }
+                    })
+                    .ToList()
             });
 
         return await FormatPagedListAsync(query, page, itemsPerPage);
