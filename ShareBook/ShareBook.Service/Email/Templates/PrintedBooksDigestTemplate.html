@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Novos livros para você hoje</title>
+    <title>Novos livros chegaram à vitrine</title>
     <style>
         * {
             margin: 0;
@@ -39,6 +39,19 @@
         .message {
             font-size: 18px;
             margin-bottom: 20px;
+        }
+
+        .button {
+            display: block;
+            background-color: #009FC7;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 18px;
+            padding: 18px;
+            text-align: center;
+            border-radius: 3px;
+            margin: 30px 0;
         }
 
         .footer {
@@ -88,22 +101,33 @@
             .message {
                 font-size: 16px;
             }
+
+            .button {
+                font-size: 16px;
+                padding: 15px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="main-content">
-            <h2>Livros novos disponíveis hoje</h2>
+            <h2>Novos livros chegaram à vitrine</h2>
 
             <div class="message">
                 Olá, {Name}.<br><br>
-                {BookCountMessage}
+                A vitrine do Sharebook recebeu novos livros físicos hoje.<br><br>
+                {BookCountMessage}<br><br>
+                Dê uma olhada com calma: talvez tenha um título esperando justamente por você.
             </div>
 
             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 24px 0;">
                 {BookListHtml}
             </table>
+
+            <a href="{FrontendUrl}" class="button" target="_blank">
+                Ver novidades na vitrine
+            </a>
         </div>
 
         <div class="footer">

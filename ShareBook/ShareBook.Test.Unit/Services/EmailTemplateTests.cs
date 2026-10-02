@@ -107,6 +107,32 @@ public class EmailTemplateTests
     }
 
     [Fact]
+    public async Task VerifyEmailPrintedBooksDigestParse()
+    {
+        var vm = new
+        {
+            Name = "Maria",
+            BookCountMessage = "Hoje chegaram 3 livros novos.",
+            BookListHtml = "<tr><td>Lord of the Rings</td></tr>",
+            FrontendUrl = "https://www.sharebook.com.br",
+            UnsubscribeUrl = "https://www.sharebook.com.br/unsubscribe/token"
+        };
+
+        var result = await emailTemplate.GenerateHtmlFromTemplateAsync("PrintedBooksDigestTemplate", vm);
+
+        Assert.Contains("<title>Novos livros chegaram à vitrine</title>", result);
+        Assert.Contains("<h2>Novos livros chegaram à vitrine</h2>", result);
+        Assert.Contains("Olá, Maria.", result);
+        Assert.Contains("A vitrine do Sharebook recebeu novos livros físicos hoje.", result);
+        Assert.Contains("Hoje chegaram 3 livros novos.", result);
+        Assert.Contains("talvez tenha um título esperando justamente por você", result);
+        Assert.Contains("<tr><td>Lord of the Rings</td></tr>", result);
+        Assert.Contains("href=\"https://www.sharebook.com.br\" class=\"button\"", result);
+        Assert.Contains("Ver novidades na vitrine", result);
+        Assert.DoesNotContain("Livros novos disponíveis hoje", result);
+    }
+
+    [Fact]
     public async Task VerifyEmailBookApprovedParse()
     {
         book.Slug = "lord-of-the-rings";
