@@ -158,6 +158,56 @@ public class TagService(ApplicationDbContext context, IUploadService uploadServi
         await _context.SaveChangesAsync();
     }
 
+    public async Task<IList<BookTag>> ApplyMechanicalTagsAsync(Guid bookId, string title, string? synopsis)
+    {
+        var bookExists = await _context.Books.AnyAsync(book => book.Id == bookId);
+        if (!bookExists)
+        {
+            throw new ShareBookException(ShareBookException.Error.NotFound);
+        }
+
+        // Não sobrescreve curadoria manual/editorial existente.
+        var hasExisting = await _context.BookTags.AnyAsync(bookTag => bookTag.BookId == bookId);
+        if (hasExisting)
+        {
+            return await GetBookTagsAsync(bookId);
+        }
+
+        var candidates = BookTagRuleEngine.SuggestTagIds(title, synopsis);
+        if (candidates.Count == 0)
+        {
+            return [];
+        }
+
+        // Resolve só tags que existem, estão ativas e são públicas (vocabulário fechado).
+        var tags = await _context.Tags
+            .Where(tag => candidates.Contains(tag.Id) && tag.Status == TagStatus.Active && tag.IsPublic)
+            .Select(tag => tag.Id)
+            .ToListAsync();
+
+        var orderedIds = candidates.Where(tags.Contains).Take(MaxTagsPerBook).ToList();
+        if (orderedIds.Count == 0)
+        {
+            return [];
+        }
+
+        for (var index = 0; index < orderedIds.Count; index++)
+        {
+            _context.BookTags.Add(new BookTag
+            {
+                BookId = bookId,
+                TagId = orderedIds[index],
+                Position = index + 1,
+                Source = BookTagSource.Mechanical,
+                ReviewStatus = BookTagReviewStatus.Approved
+            });
+        }
+
+        await _context.SaveChangesAsync();
+
+        return await GetBookTagsAsync(bookId);
+    }
+
     public async Task<IList<BookTag>> GetBookTagsAsync(Guid bookId)
         => await _context.BookTags
             .AsNoTracking()

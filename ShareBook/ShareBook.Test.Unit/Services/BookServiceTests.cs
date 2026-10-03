@@ -36,6 +36,7 @@ public class BookServiceTests
 
     readonly Mock<NewBookQueue> sqsMock;
     readonly Mock<ICurrentUserAccessor> currentUserAccessorMock;
+    readonly Mock<ITagService> tagServiceMock;
     readonly Guid _currentUserId;
 
     public BookServiceTests()
@@ -51,6 +52,7 @@ public class BookServiceTests
         bookUserServiceMock = new Mock<IBookUserService>();
         configurationMock = new Mock<IConfiguration>();
         sqsMock = new Mock<NewBookQueue>();
+        tagServiceMock = new Mock<ITagService>();
         _currentUserId = new Guid(new UserMock().GetClaimsUser().Identity!.Name!);
         currentUserAccessorMock = new Mock<ICurrentUserAccessor>();
         currentUserAccessorMock.Setup(x => x.UserId).Returns(_currentUserId);
@@ -600,7 +602,7 @@ public class BookServiceTests
         => new BookService(repository, context,
             unitOfWorkMock.Object, new BookValidator(),
             uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object,
-            sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object, TimeProvider.System, currentUserAccessorMock.Object);
+            sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object, TimeProvider.System, currentUserAccessorMock.Object, tagServiceMock.Object);
 
     private static async Task<ApplicationDbContext> CreateEmptyContextAsync()
     {

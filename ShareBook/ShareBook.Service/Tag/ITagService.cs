@@ -19,4 +19,5 @@ public interface ITagService
     Task DeprecateAsync(string id);
     Task<IList<BookTag>> GetBookTagsAsync(Guid bookId);
     Task<IList<BookTag>> SetBookTagsAsync(Guid bookId, IEnumerable<string> tagIds);
+    Task<IList<BookTag>> ApplyMechanicalTagsAsync(Guid bookId, string title, string? synopsis);
 }

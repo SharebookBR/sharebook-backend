@@ -30,7 +30,7 @@ public partial class BookService(IBookRepository bookRepository,
             IUnitOfWork unitOfWork, IValidator<Book> validator,
             IUploadService uploadService, IBooksEmailService booksEmailService, IConfiguration configuration,
             NewBookQueue newBookQueue, IEBookService ebookService, ICategoryRepository categoryRepository,
-            TimeProvider timeProvider, ICurrentUserAccessor currentUserAccessor) : BaseService<Book>(context, unitOfWork, validator), IBookService
+            TimeProvider timeProvider, ICurrentUserAccessor currentUserAccessor, ITagService tagService) : BaseService<Book>(context, unitOfWork, validator), IBookService
 {
     private const int MaxSlugInsertAttempts = 5;
     private readonly ApplicationDbContext _context = context;
@@ -42,6 +42,7 @@ public partial class BookService(IBookRepository bookRepository,
     private readonly ICategoryRepository _categoryRepository = categoryRepository;
     private readonly TimeProvider _timeProvider = timeProvider;
     private readonly ICurrentUserAccessor _currentUserAccessor = currentUserAccessor;
+    private readonly ITagService _tagService = tagService;
 
     private readonly NewBookQueue _newBookQueue = newBookQueue;
 
@@ -318,6 +319,17 @@ public partial class BookService(IBookRepository bookRepository,
 
             result.Value!.ImageBytes = null;
             result.Value.PdfBytes = null;
+
+            // Atribuição mecânica de tags (determinística, sem IA). Best-effort:
+            // uma falha aqui não pode impedir o cadastro do livro.
+            try
+            {
+                await _tagService.ApplyMechanicalTagsAsync(result.Value!.Id, entity.Title, entity.Synopsis);
+            }
+            catch
+            {
+                // Falha na sugestão mecânica de tags não bloqueia a criação do livro.
+            }
 
             await _booksEmailService.SendEmailNewBookInsertedAsync(entity);
         }

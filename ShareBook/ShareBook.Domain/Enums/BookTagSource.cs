@@ -13,5 +13,8 @@ public enum BookTagSource
     Assisted,
 
     [Description("Backfill")]
-    Backfill
+    Backfill,
+
+    [Description("Mecânica")]
+    Mechanical
 }
