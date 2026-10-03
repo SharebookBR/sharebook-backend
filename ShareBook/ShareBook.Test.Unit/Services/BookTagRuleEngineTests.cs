@@ -76,4 +76,22 @@ public class BookTagRuleEngineTests
         Assert.DoesNotContain("git", tags);
         Assert.Contains("versionamento-de-codigo", tags);
     }
+
+    [Fact]
+    public void SuggestTagIds_ShouldSuggestVimNotEditoresDeTexto()
+    {
+        var tags = BookTagRuleEngine.SuggestTagIds("Vim Recipes", "receitas para o editor Vim.");
+
+        Assert.Contains("vim", tags);
+        Assert.DoesNotContain("editores-de-texto", tags);
+    }
+
+    [Fact]
+    public void SuggestTagIds_ShouldSuggestEditoresDeTextoForEmacs()
+    {
+        var tags = BookTagRuleEngine.SuggestTagIds("Emacs Lisp Programming", "um guia para Emacs.");
+
+        Assert.Contains("editores-de-texto", tags);
+        Assert.DoesNotContain("vim", tags);
+    }
 }
