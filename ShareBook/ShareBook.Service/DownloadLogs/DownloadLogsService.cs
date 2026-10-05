@@ -75,10 +75,10 @@ public class DownloadLogsService(ApplicationDbContext context) : IDownloadLogsSe
 
         const string eventsSql = @"
             SELECT l.""Timestamp"" AS ""Timestamp"",
-                   l.""Properties""->>'Ip' AS ""Ip"",
-                   l.""Properties""->>'Outcome' AS ""Outcome"",
-                   l.""Properties""->>'Slug' AS ""Slug"",
-                   b.""Title"" AS ""Title""
+                   COALESCE(l.""Properties""->>'Ip', '') AS ""Ip"",
+                   COALESCE(l.""Properties""->>'Outcome', '') AS ""Outcome"",
+                   COALESCE(l.""Properties""->>'Slug', '') AS ""Slug"",
+                   COALESCE(b.""Title"", l.""Properties""->>'Slug', '') AS ""Title""
             FROM ""Logs"" l
             LEFT JOIN ""Books"" b ON b.""Slug"" = l.""Properties""->>'Slug'
             WHERE l.""Properties""->>'LogsCategory' = {0}
