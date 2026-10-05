@@ -33,6 +33,16 @@ public class HomeTests(ShareBookTestsFixture fixture)
             && !string.IsNullOrWhiteSpace(book.ThumbnailUrl)
             && book.ImageUrl.EndsWith("?v=1")
             && book.ThumbnailUrl.EndsWith("?v=1"));
+
+        var expectedSlugs = _fixture.ApplicationDbContext.Books
+            .Where(b => b.Status == BookStatus.Available && b.Type == BookType.Printed)
+            .OrderByDescending(b => b.ChooseDate ?? b.CreationDate)
+            .ThenBy(b => b.CreationDate)
+            .Take(15)
+            .Select(b => b.Slug)
+            .ToList();
+
+        books.Select(book => book.Slug).Should().Equal(expectedSlugs);
     }
 
     [Fact]
