@@ -46,6 +46,7 @@ public class Startup(IConfiguration configuration)
     public void ConfigureServices(IServiceCollection services)
     {
         services.AddDatabaseConfiguration(Configuration);
+        services.AddShareBookOpenTelemetry(Configuration);
 
         services.RegisterRepositoryServices();
         services.AddAutoMapper(cfg => cfg.LicenseKey = Environment.GetEnvironmentVariable("AUTOMAPPER_LICENSE_KEY"), typeof(Startup).Assembly);
