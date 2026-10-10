@@ -33,6 +33,17 @@ public class ExceptionHandlerMiddleware(RequestDelegate next, ILogger<ExceptionH
             httpContext.Response.Headers.TryAdd("Content-Type", "application/json");
             await httpContext.Response.WriteAsync(jsonResponse);
         }
+        catch (BadHttpRequestException ex)
+        {
+            // Falha do cliente/rede (corpo incompleto, envio lento demais). Nao e erro da aplicacao.
+            _logger.LogWarning("Bad HTTP request on {Path}: {Reason}", httpContext.Request.Path, ex.Message);
+
+            if (httpContext.Response.HasStarted)
+                return;
+
+            httpContext.Response.Clear();
+            httpContext.Response.StatusCode = ex.StatusCode;
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unhandled exception");
