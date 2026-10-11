@@ -60,3 +60,33 @@ public class GrafanaLogsTests
         public void Emit(LogEvent logEvent) => Events.Add(logEvent);
     }
 }
+
+public class RequestLogLevelTests
+{
+    [Theory]
+    [InlineData("/api/Operations/Ping", 200, LogEventLevel.Verbose)]
+    [InlineData("/api/operations/ping", 200, LogEventLevel.Verbose)]
+    [InlineData("/health", 200, LogEventLevel.Verbose)]
+    [InlineData("/hc", 200, LogEventLevel.Verbose)]
+    [InlineData("/api/Operations/Ping", 500, LogEventLevel.Error)]
+    [InlineData("/api/Account/Register", 200, LogEventLevel.Information)]
+    [InlineData("/api/Account/Register", 408, LogEventLevel.Information)]
+    [InlineData("/api/Account/Register", 500, LogEventLevel.Error)]
+    public void Get_ReturnsExpectedLevel(string path, int status, LogEventLevel expected)
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Path = path;
+        context.Response.StatusCode = status;
+
+        Assert.Equal(expected, RequestLogLevel.Get(context, 1, null));
+    }
+
+    [Fact]
+    public void Get_ReturnsErrorWhenThereIsAnException()
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Path = "/api/Operations/Ping";
+
+        Assert.Equal(LogEventLevel.Error, RequestLogLevel.Get(context, 1, new System.Exception("x")));
+    }
+}

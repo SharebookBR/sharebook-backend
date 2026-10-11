@@ -14,6 +14,7 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 using ShareBook.Api.Configuration;
 using ShareBook.Api.Filters;
+using ShareBook.Api.Logging;
 using ShareBook.Api.Middleware;
 using ShareBook.Api.RateLimiting;
 using ShareBook.Api.Security;
@@ -132,7 +133,7 @@ public class Startup(IConfiguration configuration)
     {
         app.UseForwardedHeaders();
         app.UseClientIpLogContext();
-        app.UseSerilogRequestLogging();
+        app.UseSerilogRequestLogging(options => options.GetLevel = RequestLogLevel.Get);
 
         app.UseHealthChecks("/hc");
         app.UseExceptionHandlerMiddleware();
