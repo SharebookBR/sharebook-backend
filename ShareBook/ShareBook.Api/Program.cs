@@ -41,6 +41,8 @@ public class Program
                                 restrictedToMinimumLevel: LogEventLevel.Error));
                     }
 
+                    lc.AddGrafanaLogs(ctx.Configuration, rollbarEnv);
+
                     var dbProvider = ctx.Configuration["DatabaseProvider"]?.ToLower();
                     var postgresConnection = ctx.Configuration.GetConnectionString("PostgresConnection");
 

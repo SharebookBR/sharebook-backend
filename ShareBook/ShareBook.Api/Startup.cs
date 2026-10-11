@@ -131,6 +131,7 @@ public class Startup(IConfiguration configuration)
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
         app.UseForwardedHeaders();
+        app.UseClientIpLogContext();
         app.UseSerilogRequestLogging();
 
         app.UseHealthChecks("/hc");
