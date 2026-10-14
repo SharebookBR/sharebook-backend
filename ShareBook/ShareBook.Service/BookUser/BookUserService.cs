@@ -109,7 +109,6 @@ public class BookUserService(
             throw new ShareBookException(ShareBookException.Error.BadRequest, "Aguarde a data de decisão.");
 
         var bookUserAccepted = await _repository.Get()
-            .Include(u => u.Book).ThenInclude(b => b.UserFacilitator)
             .Include(u => u.Book).ThenInclude(b => b.User)
             .Include(u => u.User).ThenInclude(u => u.Address)
             .Where(x => x.UserId == userId
@@ -234,7 +233,6 @@ public class BookUserService(
     {
         var book = await _bookRepository.Get()
                                   .Include(d => d.User)
-                                  .Include(f => f.UserFacilitator)
                                   .FirstOrDefaultAsync(id => id.Id == bookId);
         var winnerBookUser = await _repository
                                     .Get()

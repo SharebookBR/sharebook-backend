@@ -39,8 +39,6 @@ public class DomainToViewModelMappingProfile : global::AutoMapper.Profile
              .ForMember(dest => dest.Donor, opt => opt.MapFrom(src => src.User!.Name))
              .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.User!.Address!.City))
              .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.User!.Address!.State))
-             .ForMember(dest => dest.Facilitator, opt => opt.MapFrom(src => src.UserFacilitator != null ? src.UserFacilitator.Name : null))
-             .ForMember(dest => dest.FacilitatorNotes, opt => opt.MapFrom(src => src.FacilitatorNotes))
              .ForMember(dest => dest.PhoneDonor, opt => opt.MapFrom(src => src.User!.Phone))
              .ForMember(dest => dest.DaysInShowcase, opt => opt.MapFrom(src => src.DaysInShowcase()))
              .ForMember(dest => dest.DaysLate, opt => opt.MapFrom(src => src.DaysLate()))
@@ -92,10 +90,6 @@ public class DomainToViewModelMappingProfile : global::AutoMapper.Profile
 
         CreateMap<User, UserVM>()
             .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address));
-
-        CreateMap<User, UserFacilitatorVM>()
-            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
-            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name));
 
         CreateMap<AccessHistory, AccessHistoryVM>()
             .ForMember(dest => dest.Profile, opt => opt.MapFrom(src => src.Profile.ToString()))

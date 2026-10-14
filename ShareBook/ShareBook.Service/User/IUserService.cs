@@ -17,7 +17,6 @@ public interface IUserService : IBaseService<User>
     Task<Result<User>> ChangeUserPasswordAsync(User user, string newPassword);
     Task<Result> GenerateHashCodePasswordAndSendEmailToUserAsync(string email);
     Task<Result> ConfirmHashCodePasswordAsync(string hashCodePassword);
-    IList<User> GetFacilitators(Guid userIdDonator);
     IList<User> GetAdmins();
     Task<IList<User>> GetBySolicitedBookCategoryAsync(Guid bookCategoryId);
     Task<UserStatsDTO> GetStatsAsync(Guid? userId);

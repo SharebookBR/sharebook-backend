@@ -86,8 +86,6 @@ public class RemoveBookFromShowcase : GenericJob, IJob
     {
         var emailSubject = "Seu livro ganhou mais 10 dias na vitrine";
 
-        // O template não usa dados do facilitador. Lê-los aqui só criava
-        // NullReferenceException em livro sem facilitador, que é opcional.
         var vm = new
         {
             DonorName = book.User!.FirstName,

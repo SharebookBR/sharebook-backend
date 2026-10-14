@@ -12,8 +12,6 @@ public class BookMap : IEntityTypeConfiguration<Book>
 
         entityBuilder.Property(t => t.UserId);
 
-        entityBuilder.Property(t => t.UserIdFacilitator);
-
         entityBuilder.Property(t => t.Author)
             .HasMaxLength(200)
             .IsRequired();
@@ -40,9 +38,6 @@ public class BookMap : IEntityTypeConfiguration<Book>
         entityBuilder.Property(t => t.Synopsis)
            .HasMaxLength(2000);
 
-        entityBuilder.Property(t => t.FacilitatorNotes)
-           .HasMaxLength(2000);
-
         entityBuilder.Ignore(t => t.ImageBytes);
 
         entityBuilder.Ignore(t => t.ImageUrl);
@@ -63,8 +58,6 @@ public class BookMap : IEntityTypeConfiguration<Book>
             .HasConversion<int>();
 
         entityBuilder.HasOne(t => t.User);
-
-        entityBuilder.HasOne(t => t.UserFacilitator);
 
         entityBuilder.HasOne(t => t.Category);
     }

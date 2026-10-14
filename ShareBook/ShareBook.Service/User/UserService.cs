@@ -243,53 +243,6 @@ public class UserService(IUserRepository userRepository, IBookRepository bookRep
         return result;
     }
 
-    public IList<User> GetFacilitators(Guid userIdDonator)
-    {
-        var database = (_config["DatabaseProvider"] ?? string.Empty).ToLower();
-
-        string query;
-
-        if (database == "sqlserver")
-        {
-            query = @"
-                    SELECT TOP 100
-                        u.Id,
-                        CONCAT(u.Name, ' (', COUNT(b.Id), ')') as Name
-                    FROM Users u
-                    LEFT JOIN Books b
-                        ON b.UserIdFacilitator = u.Id
-                       AND b.UserId = {0}
-                    WHERE u.Profile = 0
-                    GROUP BY u.Id, u.Name
-                    ORDER BY COUNT(b.Id) DESC, u.Name";
-        }
-        else // Postgres ou SQLite
-        {
-            query = @"
-                    SELECT
-                        u.""Id"",
-                        (u.""Name"" || ' (' || COUNT(b.""Id"") || ')') as ""Name""
-                    FROM ""Users"" u
-                    LEFT JOIN ""Books"" b
-                        ON b.""UserIdFacilitator"" = u.""Id""
-                       AND b.""UserId"" = {0}
-                    WHERE u.""Profile"" = 0
-                    GROUP BY u.""Id"", u.""Name""
-                    ORDER BY COUNT(b.""Id"") DESC, u.""Name""
-                    LIMIT 100";
-        }
-
-        var parameters = new object[] { userIdDonator };
-
-        return _repository.FromSql(query, parameters)
-            .Select(x => new User
-            {
-                Id = x.Id,
-                Name = x.Name
-            }).ToList();
-    }
-
-
     public IList<User> GetAdmins()
     {
         return _userRepository.Get()

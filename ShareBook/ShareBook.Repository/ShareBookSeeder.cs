@@ -117,30 +117,6 @@ public class ShareBookSeeder(ApplicationDbContext context)
                     Country = "Brasil"
                 }
             };
-
-            var facilitator = new User()
-            {
-                Name = "Cussa",
-                Email = "cussa@sharebook.com",
-                Linkedin = "linkedin.com/cussa",
-                Profile = Profile.Administrator,
-                Password = PASSWORD_HASH,
-                PasswordSalt = PASSWORD_SALT,
-                LastLogin = SEED_LAST_LOGIN,
-                CreationDate = DateTime.UtcNow,
-                Address = new Address()
-                {
-                    Street = "Rua teste",
-                    Number = "4",
-                    Complement = "apto 4",
-                    Neighborhood = "Bairro teste",
-                    PostalCode = "11111-111",
-                    City = "São Paulo",
-                    State = "SP",
-                    Country = "Brasil"
-                }
-            };
-
             var dir = new Category() { Name = "Direito", CreationDate = DateTime.UtcNow };
             var psico = new Category() { Name = "Psicologia", CreationDate = DateTime.UtcNow };
             var adm = new Category() { Name = "Administração", CreationDate = DateTime.UtcNow };
@@ -177,8 +153,7 @@ public class ShareBookSeeder(ApplicationDbContext context)
                 Category = ficcaoAventura,
                 CreationDate = DateTime.UtcNow.AddDays(-1),
                 ApprovedAt = DateTime.UtcNow.AddDays(-1),
-                ChooseDate = DateTime.UtcNow.AddDays(5),
-                UserFacilitator = facilitator
+                ChooseDate = DateTime.UtcNow.AddDays(5)
             };
 
 
@@ -194,8 +169,7 @@ public class ShareBookSeeder(ApplicationDbContext context)
                 Category = dir,
                 CreationDate = DateTime.UtcNow.AddDays(-2),
                 ApprovedAt = DateTime.UtcNow.AddDays(-2),
-                ChooseDate = DateTime.UtcNow.AddDays(5),
-                UserFacilitator = facilitator
+                ChooseDate = DateTime.UtcNow.AddDays(5)
             };
 
             var book3 = new Book()
@@ -210,8 +184,7 @@ public class ShareBookSeeder(ApplicationDbContext context)
                 Category = ficcaoFantasia,
                 CreationDate = DateTime.UtcNow.AddDays(-2),
                 ApprovedAt = DateTime.UtcNow.AddDays(-2),
-                ChooseDate = DateTime.UtcNow.AddDays(5),
-                UserFacilitator = facilitator
+                ChooseDate = DateTime.UtcNow.AddDays(5)
             };
 
             var book4 = new Book()
@@ -226,8 +199,7 @@ public class ShareBookSeeder(ApplicationDbContext context)
                 Category = ficcaoFantasia,
                 CreationDate = DateTime.UtcNow.AddDays(-2),
                 ApprovedAt = DateTime.UtcNow.AddDays(-2),
-                ChooseDate = DateTime.UtcNow.AddDays(5),
-                UserFacilitator = facilitator
+                ChooseDate = DateTime.UtcNow.AddDays(5)
             };
 
             var book5 = new Book()
@@ -242,8 +214,7 @@ public class ShareBookSeeder(ApplicationDbContext context)
                 Category = ficcaoFantasia,
                 CreationDate = DateTime.UtcNow.AddDays(-2),
                 ApprovedAt = DateTime.UtcNow.AddDays(-2),
-                ChooseDate = DateTime.UtcNow.AddDays(5),
-                UserFacilitator = facilitator
+                ChooseDate = DateTime.UtcNow.AddDays(5)
             };
 
             var book6 = new Book()
@@ -258,8 +229,7 @@ public class ShareBookSeeder(ApplicationDbContext context)
                 Category = tecnologiaFrontend,
                 CreationDate = DateTime.UtcNow.AddDays(-1),
                 ApprovedAt = DateTime.UtcNow.AddDays(-1),
-                ChooseDate = DateTime.UtcNow.AddDays(5),
-                UserFacilitator = facilitator
+                ChooseDate = DateTime.UtcNow.AddDays(5)
             };
 
             var book7 = new Book()
@@ -274,8 +244,7 @@ public class ShareBookSeeder(ApplicationDbContext context)
                 Category = ficcaoFantasia,
                 CreationDate = DateTime.UtcNow.AddDays(-5),
                 ApprovedAt = DateTime.UtcNow.AddDays(-5),
-                ChooseDate = DateTime.UtcNow.AddDays(5),
-                UserFacilitator = facilitator
+                ChooseDate = DateTime.UtcNow.AddDays(5)
             };
 
             var book8 = new Book()
@@ -290,8 +259,7 @@ public class ShareBookSeeder(ApplicationDbContext context)
                 Category = ficcaoAventura,
                 CreationDate = DateTime.UtcNow.AddDays(-6),
                 ApprovedAt = DateTime.UtcNow.AddDays(-6),
-                ChooseDate = DateTime.UtcNow.AddDays(5),
-                UserFacilitator = facilitator
+                ChooseDate = DateTime.UtcNow.AddDays(5)
             };
 
             var book9 = new Book()
@@ -306,8 +274,7 @@ public class ShareBookSeeder(ApplicationDbContext context)
                 Category = ficcaoCientifica,
                 CreationDate = DateTime.UtcNow.AddDays(-8),
                 ApprovedAt = DateTime.UtcNow.AddDays(-8),
-                ChooseDate = DateTime.UtcNow.AddDays(5),
-                UserFacilitator = facilitator
+                ChooseDate = DateTime.UtcNow.AddDays(5)
             };
 
 
@@ -323,8 +290,7 @@ public class ShareBookSeeder(ApplicationDbContext context)
                 Category = tecnologiaBackend,
                 CreationDate = DateTime.UtcNow.AddDays(-5),
                 ApprovedAt = DateTime.UtcNow.AddDays(-5),
-                ChooseDate = DateTime.UtcNow.AddDays(5),
-                UserFacilitator = facilitator
+                ChooseDate = DateTime.UtcNow.AddDays(5)
             };
 
             var book11 = new Book()
@@ -339,8 +305,7 @@ public class ShareBookSeeder(ApplicationDbContext context)
                 Category = tecnologiaFrontend,
                 CreationDate = DateTime.UtcNow.AddDays(-10),
                 ApprovedAt = DateTime.UtcNow.AddDays(-10),
-                ChooseDate = DateTime.UtcNow.AddDays(5),
-                UserFacilitator = facilitator
+                ChooseDate = DateTime.UtcNow.AddDays(5)
             };
 
             var book12 = new Book()
@@ -355,8 +320,7 @@ public class ShareBookSeeder(ApplicationDbContext context)
                 Category = ficcaoFantasia,
                 CreationDate = DateTime.UtcNow.AddDays(-2),
                 ApprovedAt = DateTime.UtcNow.AddDays(-2),
-                ChooseDate = DateTime.UtcNow.AddDays(5),
-                UserFacilitator = facilitator
+                ChooseDate = DateTime.UtcNow.AddDays(5)
             };
 
             var book13 = new Book()
@@ -371,8 +335,7 @@ public class ShareBookSeeder(ApplicationDbContext context)
                 Category = ficcaoCientifica,
                 CreationDate = DateTime.UtcNow.AddDays(-9),
                 ApprovedAt = DateTime.UtcNow.AddDays(-9),
-                ChooseDate = DateTime.UtcNow.AddDays(5),
-                UserFacilitator = facilitator
+                ChooseDate = DateTime.UtcNow.AddDays(5)
             };
 
             var book14 = new Book()
@@ -387,8 +350,7 @@ public class ShareBookSeeder(ApplicationDbContext context)
                 Category = ficcaoTerror,
                 CreationDate = DateTime.UtcNow.AddDays(-1),
                 ApprovedAt = DateTime.UtcNow.AddDays(-1),
-                ChooseDate = DateTime.UtcNow.AddDays(5),
-                UserFacilitator = facilitator
+                ChooseDate = DateTime.UtcNow.AddDays(5)
             };
 
             var book16 = new Book()
@@ -403,8 +365,7 @@ public class ShareBookSeeder(ApplicationDbContext context)
                 Category = ficcaoMisterio,
                 CreationDate = DateTime.UtcNow.AddDays(-2),
                 ApprovedAt = DateTime.UtcNow.AddDays(-2),
-                ChooseDate = DateTime.UtcNow.AddDays(5),
-                UserFacilitator = facilitator
+                ChooseDate = DateTime.UtcNow.AddDays(5)
             };
 
             var book17 = new Book()
@@ -419,8 +380,7 @@ public class ShareBookSeeder(ApplicationDbContext context)
                 Category = ficcaoDrama,
                 CreationDate = DateTime.UtcNow.AddDays(-3),
                 ApprovedAt = DateTime.UtcNow.AddDays(-3),
-                ChooseDate = DateTime.UtcNow.AddDays(5),
-                UserFacilitator = facilitator
+                ChooseDate = DateTime.UtcNow.AddDays(5)
             };
 
             var book18 = new Book()
@@ -435,8 +395,7 @@ public class ShareBookSeeder(ApplicationDbContext context)
                 Category = ficcaoFantasia,
                 CreationDate = DateTime.UtcNow.AddDays(-1),
                 ApprovedAt = DateTime.UtcNow.AddDays(-1),
-                ChooseDate = DateTime.UtcNow.AddDays(5),
-                UserFacilitator = facilitator
+                ChooseDate = DateTime.UtcNow.AddDays(5)
             };
 
             var book19 = new Book()
@@ -450,8 +409,7 @@ public class ShareBookSeeder(ApplicationDbContext context)
                 Status = BookStatus.AwaitingDonorDecision,
                 Category = ficcaoAventura,
                 CreationDate = DateTime.UtcNow.AddDays(-15),
-                ChooseDate = DateTime.UtcNow.AddDays(-1),
-                UserFacilitator = facilitator
+                ChooseDate = DateTime.UtcNow.AddDays(-1)
             };
 
             var book20 = new Book()
@@ -466,8 +424,7 @@ public class ShareBookSeeder(ApplicationDbContext context)
                 Category = ficcaoDrama,
                 CreationDate = DateTime.UtcNow.AddDays(-4),
                 ApprovedAt = DateTime.UtcNow.AddDays(-4),
-                ChooseDate = DateTime.UtcNow.AddDays(5),
-                UserFacilitator = facilitator
+                ChooseDate = DateTime.UtcNow.AddDays(5)
             };
 
             var book21 = new Book()
@@ -482,8 +439,7 @@ public class ShareBookSeeder(ApplicationDbContext context)
                 Category = ficcaoDrama,
                 CreationDate = DateTime.UtcNow.AddDays(-5),
                 ApprovedAt = DateTime.UtcNow.AddDays(-5),
-                ChooseDate = DateTime.UtcNow.AddDays(5),
-                UserFacilitator = facilitator
+                ChooseDate = DateTime.UtcNow.AddDays(5)
             };
 
             var book22 = new Book()
@@ -498,8 +454,7 @@ public class ShareBookSeeder(ApplicationDbContext context)
                 Category = psico,
                 CreationDate = DateTime.UtcNow.AddDays(-2),
                 ApprovedAt = DateTime.UtcNow.AddDays(-2),
-                ChooseDate = DateTime.UtcNow.AddDays(5),
-                UserFacilitator = facilitator
+                ChooseDate = DateTime.UtcNow.AddDays(5)
             };
 
 
@@ -515,8 +470,7 @@ public class ShareBookSeeder(ApplicationDbContext context)
                 Category = ficcaoFantasia,
                 CreationDate = DateTime.UtcNow.AddDays(-4),
                 ApprovedAt = DateTime.UtcNow.AddDays(-4),
-                ChooseDate = DateTime.UtcNow.AddDays(5),
-                UserFacilitator = facilitator
+                ChooseDate = DateTime.UtcNow.AddDays(5)
             };
 
             var book15 = new Book()
@@ -531,8 +485,7 @@ public class ShareBookSeeder(ApplicationDbContext context)
                 Category = ficcaoDrama,
                 CreationDate = DateTime.UtcNow.AddDays(-2),
                 ApprovedAt = DateTime.UtcNow.AddDays(-2),
-                ChooseDate = DateTime.UtcNow.AddDays(5),
-                UserFacilitator = facilitator
+                ChooseDate = DateTime.UtcNow.AddDays(5)
             };
 
             // E-books (domínio público) - Machado de Assis
@@ -549,8 +502,7 @@ public class ShareBookSeeder(ApplicationDbContext context)
                 EBookPdfPath = "dom-casmurro.pdf",
                 CreationDate = DateTime.UtcNow.AddDays(-3),
                 ApprovedAt = DateTime.UtcNow.AddDays(-3),
-                ChooseDate = null,
-                UserFacilitator = facilitator
+                ChooseDate = null
             };
 
             var ebook2 = new Book()
@@ -566,8 +518,7 @@ public class ShareBookSeeder(ApplicationDbContext context)
                 EBookPdfPath = "memorias-postumas-de-bras-cubas.pdf",
                 CreationDate = DateTime.UtcNow.AddDays(-2),
                 ApprovedAt = DateTime.UtcNow.AddDays(-2),
-                ChooseDate = null,
-                UserFacilitator = facilitator
+                ChooseDate = null
             };
 
             var ebook3 = new Book()
@@ -583,8 +534,7 @@ public class ShareBookSeeder(ApplicationDbContext context)
                 EBookPdfPath = "quincas-borba.pdf",
                 CreationDate = DateTime.UtcNow.AddDays(-1),
                 ApprovedAt = DateTime.UtcNow.AddDays(-1),
-                ChooseDate = null,
-                UserFacilitator = facilitator
+                ChooseDate = null
             };
 
 

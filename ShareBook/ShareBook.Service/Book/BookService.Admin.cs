@@ -55,7 +55,6 @@ public partial class BookService
                 .ThenInclude(u => u!.Address)
             .Include(b => b.BookUsers)
                 .ThenInclude(bu => bu.User)
-            .Include(b => b.UserFacilitator)
             .Include(b => b.Category)
                 .ThenInclude(c => c.ParentCategory);
     }
@@ -101,7 +100,6 @@ public partial class BookService
                 (x.Title != null && x.Title.ToLower().Contains(normalizedSearch))
                 || (x.Author != null && x.Author.ToLower().Contains(normalizedSearch))
                 || (x.User != null && x.User.Name != null && x.User.Name.ToLower().Contains(normalizedSearch))
-                || (x.UserFacilitator != null && x.UserFacilitator.Name != null && x.UserFacilitator.Name.ToLower().Contains(normalizedSearch))
                 || x.BookUsers.Any(bu =>
                     bu.Status == DonationStatus.Donated
                     && bu.User != null

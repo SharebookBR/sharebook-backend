@@ -78,7 +78,7 @@ public class BookController(IBookService bookService,
             x => x.CreationDate,
             page,
             items,
-            new IncludeList<Book>(x => x.User, x => x.BookUsers, x => x.UserFacilitator),
+            new IncludeList<Book>(x => x.User, x => x.BookUsers),
             descending: true
         );
         var responseVM = _mapper.Map<List<BookVMAdm>>(books.Items);
@@ -226,16 +226,6 @@ public class BookController(IBookService bookService,
     }
 
     [Authorize("Bearer")]
-    [ProducesResponseType(typeof(Result), 200)]
-    [HttpPost("AddFacilitatorNotes")]
-    [AuthorizationFilter(Permissions.Permission.ApproveBook)]
-    public async Task<IActionResult> AddFacilitatorNotesAsync([FromBody] AddFacilitatorNotesVM vm)
-    {
-        await _service.AddFacilitatorNotesAsync(vm.BookId, vm.FacilitatorNotes);
-        return Ok();
-    }
-
-    [Authorize("Bearer")]
     [HttpPut("RenewChooseDate/{bookId}")]
     public async Task<IActionResult> RenewChooseDateAsync(Guid bookId)
     {
@@ -257,13 +247,11 @@ public class BookController(IBookService bookService,
         if (book == null) return NotFound();
 
         var donor = _mapper.Map<UserVM>(book.User);
-        var facilitator = _mapper.Map<UserVM>(book.UserFacilitator);
         var winner = _mapper.Map<UserVM>(book.WinnerUser());
 
         var result = new MainUsersVM
         {
             Donor = donor,
-            Facilitator = facilitator,
             Winner = winner
         };
 
@@ -281,12 +269,6 @@ public class BookController(IBookService bookService,
         {
             if (mainUsers is null) return VisitorProfile.Undefined;
 
-            var facilitatorId = Guid.Empty;
-            if (mainUsers.Facilitator is not null)
-            {
-                facilitatorId = mainUsers.Facilitator.Id;
-            }
-
             var winnerId = Guid.Empty;
             if (mainUsers.Winner is not null)
             {
@@ -299,9 +281,8 @@ public class BookController(IBookService bookService,
                 donorId = mainUsers.Donor.Id;
             }
 
-            //O id do usuário logado é comparado com o doador, facilitador e ganhador
-            if (visitor.Id.Equals(facilitatorId)) return VisitorProfile.Facilitator;
-            else if (visitor.Id.Equals(winnerId)) return VisitorProfile.Winner;
+            // O id do usuário logado é comparado com o doador e a pessoa ganhadora.
+            if (visitor.Id.Equals(winnerId)) return VisitorProfile.Winner;
             else if (visitor.Id.Equals(donorId)) return VisitorProfile.Donor;
             else return VisitorProfile.Undefined;
         }

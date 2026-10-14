@@ -133,10 +133,6 @@ namespace ShareBook.Infra.Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
-                    b.Property<string>("FacilitatorNotes")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
-
                     b.Property<int?>("FreightOption")
                         .HasColumnType("integer");
 
@@ -175,9 +171,6 @@ namespace ShareBook.Infra.Data.Migrations
                     b.Property<Guid?>("UserId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("UserIdFacilitator")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
@@ -188,8 +181,6 @@ namespace ShareBook.Infra.Data.Migrations
                         .HasFilter("\"Slug\" IS NOT NULL");
 
                     b.HasIndex("UserId");
-
-                    b.HasIndex("UserIdFacilitator");
 
                     b.ToTable("Books");
                 });
@@ -661,15 +652,9 @@ namespace ShareBook.Infra.Data.Migrations
                         .WithMany("BooksDonated")
                         .HasForeignKey("UserId");
 
-                    b.HasOne("ShareBook.Domain.User", "UserFacilitator")
-                        .WithMany()
-                        .HasForeignKey("UserIdFacilitator");
-
                     b.Navigation("Category");
 
                     b.Navigation("User");
-
-                    b.Navigation("UserFacilitator");
                 });
 
             modelBuilder.Entity("ShareBook.Domain.BookDownloadEvent", b =>

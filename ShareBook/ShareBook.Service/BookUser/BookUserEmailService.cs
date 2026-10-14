@@ -61,7 +61,6 @@ public class BookUserEmailService(IUserService userService, IEmailService emailS
             {
                 BookTitle = book.Title,
                 DonorName = book.User.FirstName,
-                Facilitator = book.UserFacilitator,
                 Winner = winner
             };
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookDonatedTemplateNotifyDonor, vm);
@@ -158,20 +157,9 @@ public class BookUserEmailService(IUserService userService, IEmailService emailS
 
         if (bookUser.User != null && bookUser.User.AllowSendingEmail)
         {
-            // Facilitator pode não estar cadastrado (ex.: livro físico sem facilitador definido).
-            // Usa o doador como fallback para os dados de contato. Se nenhum dos dois existir
-            // (dado inconsistente), não há pra quem notificar o pedido.
-            var facilitator = book.UserFacilitator ?? book.User;
-            if (facilitator == null)
-                return;
-
             var vm = new
             {
                 NameBook = bookUser.Book.Title ?? book.Title,
-                NameFacilitator = facilitator.Name,
-                LinkedinFacilitator = facilitator.Linkedin,
-                PhoneFacilitator = facilitator.Phone,
-                EmailFacilitator = facilitator.Email,
                 ChooseDate = string.Format("{0:dd/MM/yyyy}", book.ChooseDate ?? DateTime.Today.AddDays(30)),
                 NameInterested = bookUser.User.Name,
             };

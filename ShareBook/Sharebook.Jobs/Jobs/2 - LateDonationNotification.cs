@@ -82,21 +82,18 @@ public class LateDonationNotification : GenericJob, IJob
 
     private async Task SendEmailAdminAsync(IList<Book> booksLate, BookStatsDTO status)
     {
-        var htmlTable = "<TABLE border=1 cellpadding=3 cellspacing=0><TR bgcolor='#ffff00'><TD><b>LIVRO</b></TD><TD><b>DIAS DE <BR>ATRASO</b></TD><TD><b>TOTAL <br>INTERESSADOS</b></TD><TD><b>DOADOR</b></TD><TD><b>ANOTAÇÕES</b></TD></TR>";
+        var htmlTable = "<TABLE border=1 cellpadding=3 cellspacing=0><TR bgcolor='#ffff00'><TD><b>LIVRO</b></TD><TD><b>DIAS DE <BR>ATRASO</b></TD><TD><b>TOTAL <br>INTERESSADOS</b></TD><TD><b>DOADOR</b></TD></TR>";
 
         foreach (var book in booksLate)
         {
-            var notes = book.FacilitatorNotes?.Replace("\n", "<BR>");
-
             var whatsappLink = GetWhatsappLink(book.User?.Phone);
 
-            htmlTable += string.Format("<TR><TD>{0}<BR>{1}</TD><TD>{2}</TD><TD>{3}</TD><TD>{4}<BR>{5}<BR>{6}<BR>{7}</TD><TD>{8}</TD></TR>",
+            htmlTable += string.Format("<TR><TD>{0}<BR>{1}</TD><TD>{2}</TD><TD>{3}</TD><TD>{4}<BR>{5}<BR>{6}<BR>{7}</TD></TR>",
                 book.Title,
                 book.Status,
                 book.DaysLate(),
                 book.TotalInterested(),
-                book.User?.Name, book.User?.Email, whatsappLink, book.User?.Linkedin,
-                notes);
+                book.User?.Name, book.User?.Email, whatsappLink, book.User?.Linkedin);
         }
 
         htmlTable += "</TABLE>";

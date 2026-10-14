@@ -21,27 +21,8 @@ public class UserVM : BaseViewModel
     public bool AllowSendingEmail { get; set; }
 }
 
-public class UserFacilitatorVM
-{
-
-    public Guid Id { get; set; }
-
-    public string Name { get; set; } = string.Empty;
-
-    public string Email { get; set; } = string.Empty;
-
-    public string? Linkedin { get; set; }
-
-    public string? Instagram { get; set; }
-
-    public string? Phone { get; set; }
-
-    public Address? Address { get; set; }
-}
-
 public class MainUsersVM
 {
     public UserVM? Donor { get; set; }
-    public UserVM? Facilitator { get; set; }
     public UserVM? Winner { get; set; }
 }

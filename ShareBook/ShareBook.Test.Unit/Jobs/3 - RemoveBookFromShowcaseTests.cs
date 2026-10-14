@@ -29,12 +29,10 @@ public class RemoveBookFromShowcaseTests
         _mockBookService.Setup(s => s.UpdateAsync(It.IsAny<Book>())).ReturnsAsync((Book book) => new Result<Book>(book));
     }
 
-    // Regressão do incidente de 20/08/2026: livro sem facilitador derrubava o job,
-    // que então retentava a cada 5 minutos sem nunca concluir.
     [Fact]
-    public async Task RenewChooseDateWhenBookHasNoFacilitatorAndNoInterested()
+    public async Task RenewChooseDateWhenBookHasNoIntermediaryAndNoInterested()
     {
-        var donor = new User { Id = Guid.NewGuid(), Name = "DonorWithoutFacilitator", Email = "donor@example.com" };
+        var donor = new User { Id = Guid.NewGuid(), Name = "DonorWithoutIntermediary", Email = "donor@example.com" };
         var book = BookMock.GetLordTheRings(donor);
         book.BookUsers = new List<BookUser>();
         book.Status = BookStatus.Available;

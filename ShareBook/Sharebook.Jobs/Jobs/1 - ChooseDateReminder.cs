@@ -89,8 +89,6 @@ public class ChooseDateReminder : GenericJob, IJob
     {
         var EmailSubject = "Hoje é dia de escolher quem vai receber";
 
-        // O template não usa dados do facilitador. Lê-los aqui só criava
-        // NullReferenceException em livro sem facilitador, que é opcional.
         var vm = new
         {
             DonorName = book.User!.FirstName,

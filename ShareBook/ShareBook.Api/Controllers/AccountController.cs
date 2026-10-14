@@ -64,17 +64,6 @@ public class AccountController(IUserService userService,
         return new { profile = user.Profile.ToString() };
     }
 
-    [Authorize("Bearer")]
-    [HttpGet("ListFacilitators/{userIdDonator}")]
-    public IActionResult ListFacilitators(Guid userIdDonator) 
-    {
-        var facilitators = _userService.GetFacilitators(userIdDonator);
-
-        var facilitatorsClean = _mapper.Map<List<UserFacilitatorVM>>(facilitators);
-
-        return Ok(facilitatorsClean);
-    }
-
     [HttpGet("Unsubscribe")]
     public async Task<IActionResult> UnsubscribeAsync([FromQuery] Guid userId, [FromQuery] string token)
     {

@@ -18,9 +18,6 @@ public class BookVMAdm
     public int DownloadCount { get; set; }
     public string? Winner { get; set; }
     public string Donor { get; set; } = string.Empty;
-    public Guid? UserIdFacilitator { get; set; }
-    public string? Facilitator { get; set; }
-    public string? FacilitatorNotes { get; set; }
     public string? PhoneDonor { get; set; }
     public int DaysInShowcase { get; set; }
     public int DaysLate { get; set; }

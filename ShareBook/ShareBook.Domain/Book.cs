@@ -29,13 +29,6 @@ public class Book : BaseEntity
     [ForeignKey("UserId")]
     public User? User { get; set; } // Doador.
 
-    public Guid? UserIdFacilitator { get; set; }
-
-    [ForeignKey("UserIdFacilitator")]
-    public User? UserFacilitator { get; set; } // Facilitador.
-
-    public string? FacilitatorNotes { get; set; }
-
     public Guid CategoryId { get; set; }
 
     public Category Category { get; set; } = null!;

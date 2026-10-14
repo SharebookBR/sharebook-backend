@@ -13,8 +13,6 @@ public class UpdateBookVM : BaseViewModel
 
     public Guid UserId { get; set; }
 
-    public Guid? UserIdFacilitator { get; set; }
-
     public bool Approved { get; set; }
 
     // Imagem é opcional no update (BookService.UpdateAsync mantém a capa existente quando não enviada).

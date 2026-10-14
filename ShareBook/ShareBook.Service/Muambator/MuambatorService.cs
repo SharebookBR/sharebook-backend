@@ -12,7 +12,6 @@ public async Task<dynamic?> AddPackageToTrackerAsync(Book book, User winner, str
 {
   var emailWinner = winner.Email;
   var emailDonor = book.User == null ? string.Empty : book.User.Email;
-  var emailFacilitator = book.UserFacilitator == null ? string.Empty : book.UserFacilitator.Email;
 
   var url = $"https://www.muambator.com.br/api/clientes/v1/pacotes/{packageNumber}/?api-token={MuambatorConfigurator.Token}";
 
@@ -24,7 +23,7 @@ public async Task<dynamic?> AddPackageToTrackerAsync(Book book, User winner, str
     {
       nome = book.Title,
       categoria = "livro",
-      emails = new[] { emailWinner, emailDonor, emailFacilitator }
+      emails = new[] { emailWinner, emailDonor }
 
     };
     

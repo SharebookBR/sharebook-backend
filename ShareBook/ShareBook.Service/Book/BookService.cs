@@ -238,7 +238,6 @@ public partial class BookService(IBookRepository bookRepository,
             .Include(b => b.User)
             .ThenInclude(u => u!.Address)
             .Include(b => b.Category)
-            .Include(b => b.UserFacilitator)
             .Where(b => b.Id == (Guid)keyValue)
             .FirstOrDefaultAsync();
 
@@ -431,9 +430,6 @@ public partial class BookService(IBookRepository bookRepository,
             ? null
             : entity.ChooseDate?.Date;
 
-        if (entity.UserIdFacilitator.HasValue && entity.UserIdFacilitator != Guid.Empty)
-            savedBook.UserIdFacilitator = entity.UserIdFacilitator;
-
         result.Value = await PersistBookUpdateAsync(savedBook);
         result.Value!.ImageBytes = null;
         SetImageUrls(result.Value);
@@ -458,7 +454,7 @@ public partial class BookService(IBookRepository bookRepository,
 
         // livros em que o choosedate é hoje.
         var books = await _repository
-            .Get().Include(x => x.User).Include(x => x.BookUsers).Include(x => x.UserFacilitator)
+            .Get().Include(x => x.User).Include(x => x.BookUsers)
             .Where(x =>
                 x.ChooseDate >= startDateTime &&
                 x.ChooseDate <= endDateTime
@@ -472,7 +468,7 @@ public partial class BookService(IBookRepository bookRepository,
         DateTime today = DateTime.Today;
 
         var booksLate = await _repository
-            .Get().Include(x => x.User).Include(x => x.BookUsers).Include(x => x.UserFacilitator)
+            .Get().Include(x => x.User).Include(x => x.BookUsers)
             .Where(x => x.ChooseDate < today && x.Status == BookStatus.AwaitingDonorDecision)
             .OrderBy(x => x.ChooseDate)
             .ToListAsync();
@@ -491,7 +487,7 @@ public partial class BookService(IBookRepository bookRepository,
 
         // livros em que o choosedate é hoje.
         var books = await _repository
-            .Get().Include(x => x.User).Include(x => x.BookUsers).Include(x => x.UserFacilitator)
+            .Get().Include(x => x.User).Include(x => x.BookUsers)
             .Where(x =>
                 x.ChooseDate <= endDateTime && x.Status == BookStatus.Available
             ).ToListAsync();
@@ -499,25 +495,10 @@ public partial class BookService(IBookRepository bookRepository,
         return books;
     }
 
-    public async Task AddFacilitatorNotesAsync(Guid bookId, string facilitatorNotes)
-    {
-        var book = await _repository.FindAsync(bookId);
-        if (book == null)
-            throw new ShareBookException(ShareBookException.Error.NotFound);
-
-        var saoPauloNow = DateTimeHelper.ConvertDateTimeSaoPaulo(_timeProvider.GetUtcNow().UtcDateTime);
-        var date = saoPauloNow.ToString("dd/MM/yyyy");
-        var lineBreak = (string.IsNullOrEmpty(book.FacilitatorNotes)) ? "" : "\n";
-        book.FacilitatorNotes += string.Format("{0}{1} - {2}", lineBreak, date, facilitatorNotes);
-
-        await PersistBookUpdateAsync(book);
-    }
-
     public async Task<Book?> GetBookWithAllUsersAsync(Guid bookId)
     {
         return await _repository
             .Get().Include(x => x.User).ThenInclude(u => u!.Address)
-            .Include(x => x.UserFacilitator).ThenInclude(u => u!.Address)
             .Include(x => x.BookUsers).ThenInclude(bu => bu.User).ThenInclude(u => u!.Address)
             .Where(x => x.Id == bookId)
             .FirstOrDefaultAsync();

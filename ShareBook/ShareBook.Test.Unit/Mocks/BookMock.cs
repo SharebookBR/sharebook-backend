@@ -7,7 +7,7 @@ namespace ShareBook.Test.Unit.Mocks;
 
 public class BookMock
 {
-    public static Book GetLordTheRings(User user, User userFacilitator = null)
+    public static Book GetLordTheRings(User user)
     {
         Guid bookId = new Guid("d9f5fde8-ee7c-4cf5-aa90-35eca3c170b9");
         return new Book()
@@ -19,7 +19,6 @@ public class BookMock
             ImageBytes = Encoding.UTF8.GetBytes("STRINGBASE64"),
             User = user,
             BookUsers = new List<BookUser> { new BookUser { BookId = bookId, User = user } },
-            UserFacilitator = userFacilitator,
             CategoryId = Guid.NewGuid(),
             Status = ShareBook.Domain.Enums.BookStatus.Available
        };

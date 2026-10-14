@@ -32,8 +32,8 @@ public class LateDonationNotificationTests
 
     public LateDonationNotificationTests()
     {
-        _softBook = BookMock.GetLordTheRings(_softUser, _softUser);
-        _hardBook = BookMock.GetLordTheRings(_hardUser, _hardUser);
+        _softBook = BookMock.GetLordTheRings(_softUser);
+        _hardBook = BookMock.GetLordTheRings(_hardUser);
         _hardBook.ChooseDate = DateTime.UtcNow.AddDays((_maxLateDonationDays + 2) * -1);
         _hardBook.Status = BookStatus.AwaitingDonorDecision;
         _hardUser.BooksDonated = new List<Book> { _hardBook };
@@ -116,14 +116,12 @@ public class LateDonationNotificationTests
         _mockEmailService.VerifyNoOtherCalls();
     }
 
-    // Regressão do incidente de 20/08/2026: facilitador é opcional no livro, e
-    // um único livro sem facilitador derrubava o job inteiro.
     [Fact]
-    public async Task SendEmailsWhenBookHasNoFacilitator()
+    public async Task SendEmailsWhenBookHasNoIntermediary()
     {
-        var donor = new User { Id = Guid.NewGuid(), Name = "DonorWithoutFacilitator", Email = "donor@example.com" };
-        var bookWithoutFacilitator = BookMock.GetLordTheRings(donor);
-        _mockBookService.Setup(s => s.GetBooksChooseDateIsLateAsync()).ReturnsAsync(new List<Book> { bookWithoutFacilitator });
+        var donor = new User { Id = Guid.NewGuid(), Name = "DonorWithoutIntermediary", Email = "donor@example.com" };
+        var book = BookMock.GetLordTheRings(donor);
+        _mockBookService.Setup(s => s.GetBooksChooseDateIsLateAsync()).ReturnsAsync(new List<Book> { book });
 
         object adminVm = null;
         _mockEmailTemplate
@@ -138,8 +136,7 @@ public class LateDonationNotificationTests
         Assert.True(result.IsSuccess);
         Assert.Equal($"Encontradas 1 doações em atraso de 1 doadores distintos.E-mail enviado para o usuário: {donor.Name}", result.Details);
 
-        // A aposentadoria do facilitador começou pela experiência visível:
-        // o relatório continua útil sem expor essa função operacional.
+        // O relatório continua útil sem expor função intermediária operacional.
         var htmlTable = adminVm.GetType().GetProperty("htmlTable").GetValue(adminVm) as string;
         Assert.Contains(donor.Name, htmlTable);
         Assert.DoesNotContain("FACILITADOR", htmlTable);
