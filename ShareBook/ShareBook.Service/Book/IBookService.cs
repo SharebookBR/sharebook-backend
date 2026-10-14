@@ -68,6 +68,8 @@ public interface IBookService : IBaseService<Book>
 
     Task<IList<Book>> GetBooksChooseDateIsTodayOrLateAsync();
 
+    Task AddAdminNotesAsync(Guid bookId, string adminNotes);
+
     Task<Book?> GetBookWithAllUsersAsync(Guid bookId);
 
     Task RenewChooseDateAsync(Guid bookId);

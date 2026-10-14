@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -20,25 +20,24 @@ namespace ShareBook.Infra.Data.Migrations
                 table: "Books");
 
             migrationBuilder.DropColumn(
-                name: "FacilitatorNotes",
-                table: "Books");
-
-            migrationBuilder.DropColumn(
                 name: "UserIdFacilitator",
                 table: "Books");
+
+            migrationBuilder.RenameColumn(
+                name: "FacilitatorNotes",
+                table: "Books",
+                newName: "AdminNotes");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "FacilitatorNotes",
+            migrationBuilder.RenameColumn(
+                name: "AdminNotes",
                 table: "Books",
-                type: "character varying(2000)",
-                maxLength: 2000,
-                nullable: true);
+                newName: "FacilitatorNotes");
 
-            migrationBuilder.AddColumn<Guid?>(
+            migrationBuilder.AddColumn<Guid>(
                 name: "UserIdFacilitator",
                 table: "Books",
                 type: "uuid",

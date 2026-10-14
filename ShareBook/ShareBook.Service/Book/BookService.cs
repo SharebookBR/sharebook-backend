@@ -495,6 +495,20 @@ public partial class BookService(IBookRepository bookRepository,
         return books;
     }
 
+    public async Task AddAdminNotesAsync(Guid bookId, string adminNotes)
+    {
+        var book = await _repository.FindAsync(bookId);
+        if (book == null)
+            throw new ShareBookException(ShareBookException.Error.NotFound);
+
+        var saoPauloNow = DateTimeHelper.ConvertDateTimeSaoPaulo(_timeProvider.GetUtcNow().UtcDateTime);
+        var date = saoPauloNow.ToString("dd/MM/yyyy");
+        var lineBreak = (string.IsNullOrEmpty(book.AdminNotes)) ? "" : "\n";
+        book.AdminNotes += string.Format("{0}{1} - {2}", lineBreak, date, adminNotes);
+
+        await PersistBookUpdateAsync(book);
+    }
+
     public async Task<Book?> GetBookWithAllUsersAsync(Guid bookId)
     {
         return await _repository

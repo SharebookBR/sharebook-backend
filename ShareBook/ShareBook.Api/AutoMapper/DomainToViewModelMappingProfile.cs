@@ -39,6 +39,7 @@ public class DomainToViewModelMappingProfile : global::AutoMapper.Profile
              .ForMember(dest => dest.Donor, opt => opt.MapFrom(src => src.User!.Name))
              .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.User!.Address!.City))
              .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.User!.Address!.State))
+             .ForMember(dest => dest.AdminNotes, opt => opt.MapFrom(src => src.AdminNotes))
              .ForMember(dest => dest.PhoneDonor, opt => opt.MapFrom(src => src.User!.Phone))
              .ForMember(dest => dest.DaysInShowcase, opt => opt.MapFrom(src => src.DaysInShowcase()))
              .ForMember(dest => dest.DaysLate, opt => opt.MapFrom(src => src.DaysLate()))

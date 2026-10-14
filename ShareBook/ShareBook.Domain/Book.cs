@@ -29,6 +29,9 @@ public class Book : BaseEntity
     [ForeignKey("UserId")]
     public User? User { get; set; } // Doador.
 
+    // Anotações internas da administração (histórico datado, uma linha por comentário).
+    public string? AdminNotes { get; set; }
+
     public Guid CategoryId { get; set; }
 
     public Category Category { get; set; } = null!;

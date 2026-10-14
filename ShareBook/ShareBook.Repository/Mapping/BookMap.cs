@@ -38,6 +38,9 @@ public class BookMap : IEntityTypeConfiguration<Book>
         entityBuilder.Property(t => t.Synopsis)
            .HasMaxLength(2000);
 
+        entityBuilder.Property(t => t.AdminNotes)
+           .HasMaxLength(2000);
+
         entityBuilder.Ignore(t => t.ImageBytes);
 
         entityBuilder.Ignore(t => t.ImageUrl);

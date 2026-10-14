@@ -226,6 +226,16 @@ public class BookController(IBookService bookService,
     }
 
     [Authorize("Bearer")]
+    [ProducesResponseType(typeof(Result), 200)]
+    [HttpPost("AddAdminNotes")]
+    [AuthorizationFilter(Permissions.Permission.ApproveBook)]
+    public async Task<IActionResult> AddAdminNotesAsync([FromBody] AddAdminNotesVM vm)
+    {
+        await _service.AddAdminNotesAsync(vm.BookId, vm.AdminNotes);
+        return Ok();
+    }
+
+    [Authorize("Bearer")]
     [HttpPut("RenewChooseDate/{bookId}")]
     public async Task<IActionResult> RenewChooseDateAsync(Guid bookId)
     {
