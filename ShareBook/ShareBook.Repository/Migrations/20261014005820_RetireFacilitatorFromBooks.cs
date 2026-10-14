@@ -15,15 +15,19 @@ namespace ShareBook.Infra.Data.Migrations
             // DROP INDEX direto derrubava o startup (Postgres 42704). Causa da divergencia: a apurar.
             migrationBuilder.Sql("ALTER TABLE \"Books\" DROP CONSTRAINT IF EXISTS \"FK_Books_Users_UserIdFacilitator\";");
             migrationBuilder.Sql("DROP INDEX IF EXISTS \"IX_Books_UserIdFacilitator\";");
+            migrationBuilder.Sql("ALTER TABLE \"Books\" DROP COLUMN IF EXISTS \"UserIdFacilitator\";");
 
-            migrationBuilder.DropColumn(
-                name: "UserIdFacilitator",
-                table: "Books");
-
-            migrationBuilder.RenameColumn(
-                name: "FacilitatorNotes",
-                table: "Books",
-                newName: "AdminNotes");
+            // Preserva os comentarios admin: renomeia FacilitatorNotes -> AdminNotes (ou cria a coluna se nenhuma existir).
+            migrationBuilder.Sql(@"
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'Books' AND column_name = 'FacilitatorNotes')
+       AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'Books' AND column_name = 'AdminNotes') THEN
+        ALTER TABLE ""Books"" RENAME COLUMN ""FacilitatorNotes"" TO ""AdminNotes"";
+    ELSIF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'Books' AND column_name = 'AdminNotes') THEN
+        ALTER TABLE ""Books"" ADD COLUMN ""AdminNotes"" character varying(2000) NULL;
+    END IF;
+END $$;");
         }
 
         /// <inheritdoc />
