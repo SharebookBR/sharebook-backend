@@ -11,13 +11,10 @@ namespace ShareBook.Infra.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Books_Users_UserIdFacilitator",
-                table: "Books");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Books_UserIdFacilitator",
-                table: "Books");
+            // Drops idempotentes: em producao o indice IX_Books_UserIdFacilitator nao existe e o
+            // DROP INDEX direto derrubava o startup (Postgres 42704). Causa da divergencia: a apurar.
+            migrationBuilder.Sql("ALTER TABLE \"Books\" DROP CONSTRAINT IF EXISTS \"FK_Books_Users_UserIdFacilitator\";");
+            migrationBuilder.Sql("DROP INDEX IF EXISTS \"IX_Books_UserIdFacilitator\";");
 
             migrationBuilder.DropColumn(
                 name: "UserIdFacilitator",
