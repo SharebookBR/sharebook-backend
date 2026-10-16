@@ -392,6 +392,29 @@ public partial class BookService(IBookRepository bookRepository,
         if (savedBook == null)
             throw new ShareBookException(ShareBookException.Error.NotFound);
 
+        if (savedBook.IsEbook() && entity.PdfBytes?.Length > 0)
+        {
+            var previousPdfPath = savedBook.EBookPdfPath;
+            savedBook.PdfBytes = entity.PdfBytes;
+
+            _ebookService.Validate(savedBook);
+            var uploadedPdfPath = await _ebookService.UploadPdfAsync(savedBook);
+
+            if (!string.IsNullOrWhiteSpace(uploadedPdfPath))
+            {
+                savedBook.EBookPdfPath = uploadedPdfPath;
+
+                if (!string.IsNullOrWhiteSpace(previousPdfPath)
+                    && !ArePdfPathsEquivalent(previousPdfPath, uploadedPdfPath))
+                {
+                    await _ebookService.DeletePdfAsync(new Book
+                    {
+                        EBookPdfPath = previousPdfPath
+                    });
+                }
+            }
+        }
+
         //imagem eh opcional no update
         if (!string.IsNullOrEmpty(entity.ImageName) && entity.ImageBytes?.Length > 0)
         {
@@ -432,6 +455,7 @@ public partial class BookService(IBookRepository bookRepository,
 
         result.Value = await PersistBookUpdateAsync(savedBook);
         result.Value!.ImageBytes = null;
+        result.Value.PdfBytes = null;
         SetImageUrls(result.Value);
 
         return result;
@@ -555,6 +579,17 @@ public partial class BookService(IBookRepository bookRepository,
     }
 
     #region Private
+
+    private static bool ArePdfPathsEquivalent(string firstPath, string secondPath)
+    {
+        static string Normalize(string path)
+        {
+            var normalized = path.Trim().Replace('\\', '/').TrimStart('/');
+            return normalized.Contains('/') ? normalized : $"ebooks/{normalized}";
+        }
+
+        return string.Equals(Normalize(firstPath), Normalize(secondPath), StringComparison.OrdinalIgnoreCase);
+    }
 
     private async Task<string> GetAvailableSlugAsync(string title)
     {

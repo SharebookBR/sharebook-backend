@@ -535,6 +535,103 @@ public class BookServiceTests
     }
 
     [Fact]
+    public async Task UpdateEBook_WithNewPdf_ShouldUploadUsingSavedSlugAndPersistPath()
+    {
+        var bookId = Guid.NewGuid();
+        var categoryId = Guid.NewGuid();
+        var savedBook = new Book
+        {
+            Id = bookId,
+            Title = "Livro Original",
+            Author = "Autor",
+            CategoryId = categoryId,
+            Synopsis = "x",
+            Type = BookType.Eletronic,
+            Slug = "livro-original",
+            ImageSlug = "livro-original.jpg",
+            EBookPdfPath = "ebooks/livro-original.pdf"
+        };
+        var newPdfBytes = Encoding.UTF8.GetBytes("NEW_PDF");
+
+        categoryRepositoryMock
+            .Setup(repo => repo.Get())
+            .Returns(new[] { new Category { Id = categoryId, Name = "Leaf" } }.AsQueryable());
+        byte[] uploadedPdfBytes = Array.Empty<byte>();
+        ebookServiceMock
+            .Setup(service => service.UploadPdfAsync(It.IsAny<Book>()))
+            .Callback<Book>(book => uploadedPdfBytes = book.PdfBytes)
+            .ReturnsAsync("ebooks/livro-original.pdf");
+
+        await using var context = await CreateEmptyContextAsync();
+        context.Books.Add(savedBook);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(bookRepositoryMock.Object, context);
+
+        var result = await service.UpdateAsync(new Book
+        {
+            Id = bookId,
+            Title = savedBook.Title,
+            Author = savedBook.Author,
+            CategoryId = categoryId,
+            Synopsis = savedBook.Synopsis,
+            PdfBytes = newPdfBytes
+        });
+
+        Assert.True(result.Success);
+        Assert.Equal("ebooks/livro-original.pdf", result.Value.EBookPdfPath);
+        Assert.Null(result.Value.PdfBytes);
+        ebookServiceMock.Verify(service => service.Validate(It.Is<Book>(book =>
+            book.Slug == "livro-original")), Times.Once);
+        ebookServiceMock.Verify(service => service.UploadPdfAsync(It.Is<Book>(book =>
+            book.Slug == "livro-original")), Times.Once);
+        Assert.Same(newPdfBytes, uploadedPdfBytes);
+    }
+
+    [Fact]
+    public async Task UpdateEBook_WithoutNewPdf_ShouldKeepExistingPdf()
+    {
+        var bookId = Guid.NewGuid();
+        var categoryId = Guid.NewGuid();
+        var savedBook = new Book
+        {
+            Id = bookId,
+            Title = "Livro Original",
+            Author = "Autor",
+            CategoryId = categoryId,
+            Synopsis = "x",
+            Type = BookType.Eletronic,
+            Slug = "livro-original",
+            ImageSlug = "livro-original.jpg",
+            EBookPdfPath = "ebooks/livro-original.pdf"
+        };
+
+        categoryRepositoryMock
+            .Setup(repo => repo.Get())
+            .Returns(new[] { new Category { Id = categoryId, Name = "Leaf" } }.AsQueryable());
+
+        await using var context = await CreateEmptyContextAsync();
+        context.Books.Add(savedBook);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(bookRepositoryMock.Object, context);
+
+        var result = await service.UpdateAsync(new Book
+        {
+            Id = bookId,
+            Title = savedBook.Title,
+            Author = savedBook.Author,
+            CategoryId = categoryId,
+            Synopsis = savedBook.Synopsis
+        });
+
+        Assert.True(result.Success);
+        Assert.Equal("ebooks/livro-original.pdf", result.Value.EBookPdfPath);
+        ebookServiceMock.Verify(service => service.Validate(It.IsAny<Book>()), Times.Never);
+        ebookServiceMock.Verify(service => service.UploadPdfAsync(It.IsAny<Book>()), Times.Never);
+    }
+
+    [Fact]
     public async Task DeleteEBook_ShouldTryDeleteAssetsAndDeleteDbRecord()
     {
         var bookId = Guid.NewGuid();
