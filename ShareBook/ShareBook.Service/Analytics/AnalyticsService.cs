@@ -6,8 +6,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ShareBook.Service.Analytics;
@@ -20,22 +22,138 @@ public class AnalyticsService(
 {
     private const string PropertyId = "386966473";
     private const string CacheKey = "ga4_dashboard";
+    private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(24);
+    private static readonly TimeSpan StaleFallbackDuration = TimeSpan.FromHours(1);
 
     private readonly GA4Settings _settings = settings.Value;
     private readonly IMemoryCache _cache = cache;
     private readonly ISearchConsoleService _searchConsoleService = searchConsoleService;
     private readonly ILogger<AnalyticsService> _logger = logger;
+    private readonly object _refreshGate = new();
+    private Task<AnalyticsDashboardDto>? _refreshTask;
+    private AnalyticsDashboardDto? _lastSuccessfulSnapshot;
+    private DateTimeOffset? _lastSuccessfulRefreshAtUtc;
 
     public async Task<AnalyticsDashboardDto> GetDashboardAsync()
     {
         if (_cache.TryGetValue(CacheKey, out AnalyticsDashboardDto? cached) && cached != null)
+        {
+            _logger.LogInformation(
+                "Analytics dashboard cache hit. CacheAgeSeconds={CacheAgeSeconds}",
+                GetCacheAgeSeconds());
             return cached;
+        }
 
-        var client = BuildClient();
-        var dto = await FetchAsync(client);
+        _logger.LogInformation("Analytics dashboard cache miss. Source={Source}", "request");
+        return await RefreshAsync("request");
+    }
 
-        _cache.Set(CacheKey, dto, TimeSpan.FromHours(12));
-        return dto;
+    public async Task WarmCacheAsync(string source, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Analytics dashboard cache warm requested. Source={Source}", source);
+        await RefreshAsync(source, force: true, cancellationToken);
+    }
+
+    private async Task<AnalyticsDashboardDto> RefreshAsync(
+        string source,
+        bool force = false,
+        CancellationToken cancellationToken = default)
+    {
+        Task<AnalyticsDashboardDto> refreshTask;
+
+        lock (_refreshGate)
+        {
+            if (_refreshTask is { IsCompleted: false })
+            {
+                _logger.LogInformation(
+                    "Analytics dashboard refresh already in progress. Source={Source}",
+                    source);
+                refreshTask = _refreshTask;
+            }
+            else if (!force && _cache.TryGetValue(CacheKey, out AnalyticsDashboardDto? cached) && cached != null)
+            {
+                return cached;
+            }
+            else
+            {
+                _refreshTask = RefreshCoreAsync(source);
+                refreshTask = _refreshTask;
+            }
+        }
+
+        return await refreshTask.WaitAsync(cancellationToken);
+    }
+
+    private async Task<AnalyticsDashboardDto> RefreshCoreAsync(string source)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        _logger.LogInformation(
+            "Analytics dashboard refresh started. Source={Source}",
+            source);
+
+        try
+        {
+            var client = BuildClient();
+            var dto = await FetchAsync(client);
+
+            _cache.Set(CacheKey, dto, CacheDuration);
+            _lastSuccessfulSnapshot = dto;
+            _lastSuccessfulRefreshAtUtc = DateTimeOffset.UtcNow;
+
+            _logger.LogInformation(
+                "Analytics dashboard refresh succeeded. Source={Source} ElapsedMs={ElapsedMs} CacheDurationHours={CacheDurationHours}",
+                source,
+                stopwatch.Elapsed.TotalMilliseconds,
+                CacheDuration.TotalHours);
+
+            return dto;
+        }
+        catch (Exception exception)
+        {
+            if (_cache.TryGetValue(CacheKey, out AnalyticsDashboardDto? cached) && cached != null)
+            {
+                _logger.LogWarning(
+                    exception,
+                    "Analytics dashboard refresh failed; preserving current cache. Source={Source} ElapsedMs={ElapsedMs} SnapshotAgeSeconds={SnapshotAgeSeconds}",
+                    source,
+                    stopwatch.Elapsed.TotalMilliseconds,
+                    GetCacheAgeSeconds());
+                return cached;
+            }
+
+            if (_lastSuccessfulSnapshot != null)
+            {
+                _cache.Set(CacheKey, _lastSuccessfulSnapshot, StaleFallbackDuration);
+                _logger.LogWarning(
+                    exception,
+                    "Analytics dashboard refresh failed; serving stale snapshot. Source={Source} ElapsedMs={ElapsedMs} SnapshotAgeSeconds={SnapshotAgeSeconds}",
+                    source,
+                    stopwatch.Elapsed.TotalMilliseconds,
+                    GetCacheAgeSeconds());
+                return _lastSuccessfulSnapshot;
+            }
+
+            _logger.LogError(
+                exception,
+                "Analytics dashboard refresh failed with no snapshot available. Source={Source} ElapsedMs={ElapsedMs}",
+                source,
+                stopwatch.Elapsed.TotalMilliseconds);
+            throw;
+        }
+        finally
+        {
+            lock (_refreshGate)
+            {
+                _refreshTask = null;
+            }
+        }
+    }
+
+    private double? GetCacheAgeSeconds()
+    {
+        return _lastSuccessfulRefreshAtUtc.HasValue
+            ? (DateTimeOffset.UtcNow - _lastSuccessfulRefreshAtUtc.Value).TotalSeconds
+            : null;
     }
 
     private BetaAnalyticsDataClient BuildClient()
@@ -53,24 +171,24 @@ public class AnalyticsService(
 
     private async Task<AnalyticsDashboardDto> FetchAsync(BetaAnalyticsDataClient client)
     {
-        var searchConsoleTask = FetchSearchConsoleSafeAsync();
+        var searchConsoleTask = MeasureAsync("search_console", FetchSearchConsoleSafeAsync);
         var property = $"properties/{PropertyId}";
         var dateRange = new DateRange { StartDate = "84daysAgo", EndDate = "today" };
 
-        var sessions = await FetchWeeklyMetricAsync(client, property, dateRange, "sessions");
-        var downloads = await FetchWeeklyEventAsync(client, property, dateRange, "ebook_download");
-        var totalDownloads = await FetchEventTotalAsync(client, property, dateRange, "ebook_download");
-        var totalLogins = await FetchEventTotalAsync(client, property, dateRange, "login");
-        var totalSignups = await FetchEventTotalAsync(client, property, dateRange, "sign_up");
-        var loginsByWeek = await FetchWeeklyEventAsync(client, property, dateRange, "login");
-        var signupsByWeek = await FetchWeeklyEventAsync(client, property, dateRange, "sign_up");
-        var topViews = await FetchTopBooksAsync(client, property, dateRange, byDownload: false);
-        var topDownloads = await FetchTopBooksAsync(client, property, dateRange, byDownload: true);
-        var topViewsPerWeek = await FetchTopBooksWeeklyAsync(client, property, dateRange, byDownload: false);
-        var topDownloadsPerWeek = await FetchTopBooksWeeklyAsync(client, property, dateRange, byDownload: true);
-        var eventSummary = await FetchEventSummaryAsync(client, property, dateRange);
-        var eventSummaryPerWeek = await FetchEventSummaryWeeklyAsync(client, property, dateRange);
-        var searchAnalytics = await FetchSearchAnalyticsAsync(client, property);
+        var sessions = await MeasureAsync("ga4.sessions_by_week", () => FetchWeeklyMetricAsync(client, property, dateRange, "sessions"));
+        var downloads = await MeasureAsync("ga4.downloads_by_week", () => FetchWeeklyEventAsync(client, property, dateRange, "ebook_download"));
+        var totalDownloads = await MeasureAsync("ga4.total_downloads", () => FetchEventTotalAsync(client, property, dateRange, "ebook_download"));
+        var totalLogins = await MeasureAsync("ga4.total_logins", () => FetchEventTotalAsync(client, property, dateRange, "login"));
+        var totalSignups = await MeasureAsync("ga4.total_signups", () => FetchEventTotalAsync(client, property, dateRange, "sign_up"));
+        var loginsByWeek = await MeasureAsync("ga4.logins_by_week", () => FetchWeeklyEventAsync(client, property, dateRange, "login"));
+        var signupsByWeek = await MeasureAsync("ga4.signups_by_week", () => FetchWeeklyEventAsync(client, property, dateRange, "sign_up"));
+        var topViews = await MeasureAsync("ga4.top_books_by_views", () => FetchTopBooksAsync(client, property, dateRange, byDownload: false));
+        var topDownloads = await MeasureAsync("ga4.top_books_by_downloads", () => FetchTopBooksAsync(client, property, dateRange, byDownload: true));
+        var topViewsPerWeek = await MeasureAsync("ga4.top_books_by_views_per_week", () => FetchTopBooksWeeklyAsync(client, property, dateRange, byDownload: false));
+        var topDownloadsPerWeek = await MeasureAsync("ga4.top_books_by_downloads_per_week", () => FetchTopBooksWeeklyAsync(client, property, dateRange, byDownload: true));
+        var eventSummary = await MeasureAsync("ga4.event_summary", () => FetchEventSummaryAsync(client, property, dateRange));
+        var eventSummaryPerWeek = await MeasureAsync("ga4.event_summary_per_week", () => FetchEventSummaryWeeklyAsync(client, property, dateRange));
+        var searchAnalytics = await MeasureAsync("ga4.search_analytics", () => FetchSearchAnalyticsAsync(client, property));
 
         return new AnalyticsDashboardDto
         {
@@ -90,6 +208,30 @@ public class AnalyticsService(
             SearchAnalytics = searchAnalytics,
             SearchConsole = await searchConsoleTask
         };
+    }
+
+    private async Task<T> MeasureAsync<T>(string operation, Func<Task<T>> action)
+    {
+        var stopwatch = Stopwatch.StartNew();
+
+        try
+        {
+            var result = await action();
+            _logger.LogInformation(
+                "Analytics dashboard dependency completed. Operation={Operation} ElapsedMs={ElapsedMs}",
+                operation,
+                stopwatch.Elapsed.TotalMilliseconds);
+            return result;
+        }
+        catch (Exception exception)
+        {
+            _logger.LogWarning(
+                exception,
+                "Analytics dashboard dependency failed. Operation={Operation} ElapsedMs={ElapsedMs}",
+                operation,
+                stopwatch.Elapsed.TotalMilliseconds);
+            throw;
+        }
     }
 
     private async Task<SearchConsoleAnalytics> FetchSearchConsoleSafeAsync()

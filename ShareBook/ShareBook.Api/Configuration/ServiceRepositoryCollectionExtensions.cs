@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Sharebook.Jobs;
 using ShareBook.Domain;
 using ShareBook.Domain.Validators;
+using ShareBook.Api.HostedServices;
 using ShareBook.Infra.CrossCutting.Identity;
 using ShareBook.Infra.CrossCutting.Identity.Interfaces;
 using ShareBook.Repository;
@@ -51,6 +52,7 @@ public static class ServiceRepositoryCollectionExtensions
         services.AddHttpClient<ISearchConsoleApiClient, SearchConsoleApiClient>();
         services.AddSingleton<ISearchConsoleService, SearchConsoleService>();
         services.AddSingleton<IAnalyticsService, AnalyticsService>();
+        services.AddHostedService<AnalyticsDashboardWarmupHostedService>();
 
         //repositories
         services.AddScoped<IBookRepository, BookRepository>();
