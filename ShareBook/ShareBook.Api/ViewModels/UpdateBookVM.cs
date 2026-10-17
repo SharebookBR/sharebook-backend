@@ -28,5 +28,7 @@ public class UpdateBookVM : BaseViewModel
 
     public string Type { get; set; } = "Printed";
 
+    public int? MaxRequestsOverride { get; set; }
+
     public byte[]? PdfBytes { get; set; }
 }

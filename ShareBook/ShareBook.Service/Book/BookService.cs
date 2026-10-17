@@ -30,7 +30,8 @@ public partial class BookService(IBookRepository bookRepository,
             IUnitOfWork unitOfWork, IValidator<Book> validator,
             IUploadService uploadService, IBooksEmailService booksEmailService, IConfiguration configuration,
             NewBookQueue newBookQueue, IEBookService ebookService, ICategoryRepository categoryRepository,
-            TimeProvider timeProvider, ICurrentUserAccessor currentUserAccessor, ITagService tagService) : BaseService<Book>(context, unitOfWork, validator), IBookService
+            TimeProvider timeProvider, ICurrentUserAccessor currentUserAccessor, ITagService tagService,
+            IBookUsersEmailService? bookUsersEmailService = null) : BaseService<Book>(context, unitOfWork, validator), IBookService
 {
     private const int MaxSlugInsertAttempts = 5;
     private readonly ApplicationDbContext _context = context;
@@ -43,6 +44,7 @@ public partial class BookService(IBookRepository bookRepository,
     private readonly TimeProvider _timeProvider = timeProvider;
     private readonly ICurrentUserAccessor _currentUserAccessor = currentUserAccessor;
     private readonly ITagService _tagService = tagService;
+    private readonly IBookUsersEmailService? _bookUsersEmailService = bookUsersEmailService;
 
     private readonly NewBookQueue _newBookQueue = newBookQueue;
 
@@ -452,13 +454,35 @@ public partial class BookService(IBookRepository bookRepository,
         savedBook.ChooseDate = savedBook.IsEbook()
             ? null
             : entity.ChooseDate?.Date;
+        savedBook.MaxRequestsOverride = savedBook.IsEbook()
+            ? null
+            : entity.MaxRequestsOverride;
+
+        var reachedMaxRequests = await ApplyMaxRequestsOverrideAsync(savedBook);
 
         result.Value = await PersistBookUpdateAsync(savedBook);
         result.Value!.ImageBytes = null;
         result.Value.PdfBytes = null;
         SetImageUrls(result.Value);
 
+        if (reachedMaxRequests && _bookUsersEmailService != null)
+            await _bookUsersEmailService.SendEmailMaxRequestsAsync(savedBook);
+
         return result;
+    }
+
+    private async Task<bool> ApplyMaxRequestsOverrideAsync(Book book)
+    {
+        if (book.IsEbook() || book.Status != BookStatus.Available)
+            return false;
+
+        var requestCount = await _context.BookUser.CountAsync(x => x.BookId == book.Id);
+        if (requestCount < BookRequestLimit.GetEffective(book, _configuration))
+            return false;
+
+        book.Status = BookStatus.AwaitingDonorDecision;
+        book.ChooseDate = DateTime.Today.AddDays(1);
+        return true;
     }
 
     public async Task<bool> UserRequestedBookAsync(Guid bookId)

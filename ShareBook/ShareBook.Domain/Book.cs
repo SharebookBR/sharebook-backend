@@ -58,6 +58,9 @@ public class Book : BaseEntity
 
     public BookType Type { get; set; } = BookType.Printed;
 
+    // Null means that the global SharebookSettings:MaxRequestsPerBook applies.
+    public int? MaxRequestsOverride { get; set; }
+
     public string? EBookPdfPath { get; set; }
 
     public int DownloadCount { get; set; } = 0;

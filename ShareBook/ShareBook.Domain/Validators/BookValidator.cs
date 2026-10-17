@@ -53,6 +53,11 @@ public class BookValidator : AbstractValidator<Book>
             .NotEmpty()
             .When(b => b.Type == BookType.Eletronic && string.IsNullOrEmpty(b.EBookPdfPath))
             .WithMessage(EBookPdfRequired);
+
+        RuleFor(b => b.MaxRequestsOverride)
+            .GreaterThan(0)
+            .When(b => b.Type == BookType.Printed && b.MaxRequestsOverride.HasValue)
+            .WithMessage("O limite personalizado de solicitações deve ser maior que zero.");
     }
 
 

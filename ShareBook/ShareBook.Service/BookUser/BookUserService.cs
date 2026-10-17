@@ -30,6 +30,7 @@ public class BookUserService(
     IUnitOfWork unitOfWork,
     IValidator<BookUser> validator, IConfiguration configuration, ICurrentUserAccessor currentUserAccessor, ILogger<BookUserService>? logger = null) : BaseService<BookUser>(context, unitOfWork, validator), IBookUserService
 {
+    private readonly ApplicationDbContext _context = context;
     private readonly IBookService _bookService = bookService;
     private readonly IBookUsersEmailService _bookUsersEmailService = bookUsersEmailService;
     private readonly IMuambatorService _muambatorService = muambatorService;
@@ -54,49 +55,66 @@ public class BookUserService(
 
     public async Task InsertAsync(Guid bookId, string reason)
     {
-        //obtem o livro requisitado e o doador
-        var bookRequested = await _bookService.GetBookWithAllUsersAsync(bookId);
-        if (bookRequested == null)
-            throw new ShareBookException(ShareBookException.Error.NotFound);
+        await _unitOfWork.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
+        Book? bookRequested = null;
+        BookUser? bookUser = null;
+        var reachedMaxRequests = false;
 
-        var bookUser = new BookUser()
+        try
         {
-            BookId = bookId,
-            UserId = _currentUserAccessor.RequireUserId(),
-            Reason = reason,
-            NickName = $"Interessado {bookRequested.TotalInterested() + 1}"
-        };
+            // Read, insert and limit validation must share the same serializable transaction.
+            bookRequested = await _bookService.GetBookWithAllUsersAsync(bookId);
+            if (bookRequested == null)
+                throw new ShareBookException(ShareBookException.Error.NotFound);
 
-        if (!await _bookService.AnyAsync(x => x.Id == bookUser.BookId))
-            throw new ShareBookException(ShareBookException.Error.NotFound);
+            bookUser = new BookUser()
+            {
+                BookId = bookId,
+                UserId = _currentUserAccessor.RequireUserId(),
+                Reason = reason,
+                NickName = $"Interessado {bookRequested.TotalInterested() + 1}"
+            };
 
-        if (await _repository.AnyAsync(x => x.UserId == bookUser.UserId && x.BookId == bookUser.BookId))
-            throw new ShareBookException("O usuário já possui uma requisição para o mesmo livro.");
+            if (await _repository.AnyAsync(x => x.UserId == bookUser.UserId && x.BookId == bookUser.BookId))
+                throw new ShareBookException("O usuário já possui uma requisição para o mesmo livro.");
 
-        if (bookRequested.Status != BookStatus.Available)
-            throw new ShareBookException("Esse livro não está mais disponível para doação.");
+            if (bookRequested.Status != BookStatus.Available)
+                throw new ShareBookException("Esse livro não está mais disponível para doação.");
 
-        await _repository.InsertAsync(bookUser);
+            await _repository.InsertAsync(bookUser);
 
-        // Remove da vitrine caso o número de pedidos estiver grande demais.
-        await MaxRequestsValidationAsync(bookRequested);
+            // Remove da vitrine caso o número de pedidos estiver grande demais.
+            reachedMaxRequests = await MaxRequestsValidationAsync(bookRequested);
+            await _unitOfWork.CommitAsync();
+        }
+        catch
+        {
+            await _unitOfWork.RollbackAsync();
+            throw;
+        }
 
-        await _bookUsersEmailService.SendEmailBookDonorAsync(bookUser, bookRequested);
-        await _bookUsersEmailService.SendEmailBookInterestedAsync(bookUser, bookRequested);
-        
+        await _bookUsersEmailService.SendEmailBookDonorAsync(bookUser!, bookRequested!);
+        await _bookUsersEmailService.SendEmailBookInterestedAsync(bookUser!, bookRequested!);
+
+        if (reachedMaxRequests)
+            await _bookUsersEmailService.SendEmailMaxRequestsAsync(bookRequested!);
     }
 
-    private async Task MaxRequestsValidationAsync(Book bookRequested)
+    private async Task<bool> MaxRequestsValidationAsync(Book bookRequested)
     {
-        var maxRequestsPerBook = int.Parse(_configuration["SharebookSettings:MaxRequestsPerBook"]!);
-        if (bookRequested.BookUsers.Count < maxRequestsPerBook)
-            return;
+        if (bookRequested.IsEbook())
+            return false;
+
+        var requestCount = await _context.BookUser.CountAsync(x => x.BookId == bookRequested.Id);
+        var maxRequests = BookRequestLimit.GetEffective(bookRequested, _configuration);
+        if (requestCount < maxRequests)
+            return false;
 
         bookRequested.Status = BookStatus.AwaitingDonorDecision;
         bookRequested.ChooseDate = DateTime.Today.AddDays(1);
         await _bookRepository.UpdateAsync(bookRequested);
 
-        await _bookUsersEmailService.SendEmailMaxRequestsAsync(bookRequested);
+        return true;
     }
 
     public async Task DonateBookAsync(Guid bookId, Guid userId, string note)

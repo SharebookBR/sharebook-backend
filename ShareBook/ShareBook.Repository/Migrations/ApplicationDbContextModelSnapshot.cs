@@ -150,6 +150,9 @@ namespace ShareBook.Infra.Data.Migrations
                         .HasColumnType("integer")
                         .HasDefaultValue(1);
 
+                    b.Property<int?>("MaxRequestsOverride")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Slug")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");

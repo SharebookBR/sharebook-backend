@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Moq;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
+using ShareBook.Domain.Enums;
 using ShareBook.Domain.Validators;
 using ShareBook.Repository;
 using ShareBook.Repository.UoW;
@@ -43,7 +44,9 @@ public class BookUserServiceTests
         bookServiceMock.Setup(s => s.AnyAsync(It.IsAny<Expression<Func<Book, bool>>>())).ReturnsAsync(true);
         bookServiceMock.Setup(s => s.GetBookWithAllUsersAsync(It.IsAny<Guid>())).ReturnsAsync(() =>
         {
-            return BookMock.GetLordTheRings();
+            var book = BookMock.GetLordTheRings();
+            book.Id = bookId;
+            return book;
         });
 
         var currentUserId = new Guid(new UserMock().GetClaimsUser().Identity!.Name!);
@@ -75,5 +78,24 @@ public class BookUserServiceTests
         var insertedRequest = await context.BookUser.SingleOrDefaultAsync(bu => bu.BookId == bookId);
         Assert.NotNull(insertedRequest);
         Assert.Equal(reason, insertedRequest.Reason);
+    }
+
+    [Fact]
+    public async Task RequestBook_WithCustomLimit_ClosesBookAtCustomLimit()
+    {
+        await using var context = CreateContext();
+        var book = BookMock.GetLordTheRings();
+        book.Id = bookId;
+        book.MaxRequestsOverride = 1;
+        bookServiceMock.Setup(s => s.GetBookWithAllUsersAsync(It.IsAny<Guid>())).ReturnsAsync(book);
+
+        var service = new BookUserService(context,
+            bookServiceMock.Object, bookUsersEmailService.Object, muambatorServiceMock.Object, bookRepositoryMock.Object,
+            unitOfWorkMock.Object, bookUserValidator.Object, configurationMock.Object, currentUserAccessorMock.Object);
+
+        await service.InsertAsync(bookId, "custom limit");
+
+        Assert.Equal(BookStatus.AwaitingDonorDecision, book.Status);
+        bookUsersEmailService.Verify(x => x.SendEmailMaxRequestsAsync(book), Times.Once);
     }
 }
