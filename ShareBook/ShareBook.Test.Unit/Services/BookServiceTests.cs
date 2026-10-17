@@ -1,7 +1,11 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using AutoMapper;
+using ShareBook.Api.AutoMapper;
+using ShareBook.Api.ViewModels;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.Enums;
@@ -14,6 +18,7 @@ using ShareBook.Service.EBook;
 using ShareBook.Service.Upload;
 using ShareBook.Test.Unit.Mocks;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -629,6 +634,89 @@ public class BookServiceTests
         Assert.Equal("ebooks/livro-original.pdf", result.Value.EBookPdfPath);
         ebookServiceMock.Verify(service => service.Validate(It.IsAny<Book>()), Times.Never);
         ebookServiceMock.Verify(service => service.UploadPdfAsync(It.IsAny<Book>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdatePrintedBook_ShouldPersistCustomLimitAndClearItBackToGlobalDefault()
+    {
+        var bookId = Guid.NewGuid();
+        var categoryId = Guid.NewGuid();
+        var savedBook = new Book
+        {
+            Id = bookId,
+            Title = "Livro Original",
+            Author = "Autor",
+            ImageSlug = "livro-original.jpg",
+            CategoryId = categoryId,
+            Synopsis = "x",
+            Status = BookStatus.Available,
+            MaxRequestsOverride = 7
+        };
+
+        categoryRepositoryMock
+            .Setup(repo => repo.Get())
+            .Returns(new[] { new Category { Id = categoryId, Name = "Leaf" } }.AsQueryable());
+
+        await using var context = await CreateEmptyContextAsync();
+        context.Books.Add(savedBook);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(bookRepositoryMock.Object, context);
+
+        var customResult = await service.UpdateAsync(new Book
+        {
+            Id = bookId,
+            Title = savedBook.Title,
+            Author = savedBook.Author,
+            CategoryId = categoryId,
+            Synopsis = savedBook.Synopsis,
+            MaxRequestsOverride = 12
+        });
+
+        Assert.True(customResult.Success);
+        Assert.Equal(12, (await context.Books.FindAsync(bookId))!.MaxRequestsOverride);
+
+        var defaultResult = await service.UpdateAsync(new Book
+        {
+            Id = bookId,
+            Title = savedBook.Title,
+            Author = savedBook.Author,
+            CategoryId = categoryId,
+            Synopsis = savedBook.Synopsis,
+            MaxRequestsOverride = null
+        });
+
+        Assert.True(defaultResult.Success);
+        Assert.Null((await context.Books.FindAsync(bookId))!.MaxRequestsOverride);
+    }
+
+    [Fact]
+    public void AdminBookMappings_ShouldLoadAndAcceptCustomRequestLimit()
+    {
+        var mapperConfiguration = new MapperConfiguration(configuration =>
+        {
+            configuration.AddProfile<DomainToViewModelMappingProfile>();
+            configuration.AddProfile<ViewModelToDomainMappingProfile>();
+        }, NullLoggerFactory.Instance);
+        var mapper = mapperConfiguration.CreateMapper();
+
+        var adminBook = mapper.Map<BookVMAdm>(new Book
+        {
+            MaxRequestsOverride = 12,
+            User = new User { Name = "Doador", Address = new Address() },
+            Category = new Category { Name = "Leaf" },
+            BookTags = new List<BookTag>()
+        });
+        var updatedBook = mapper.Map<Book>(new UpdateBookVM
+        {
+            Title = "Livro",
+            Author = "Autor",
+            MaxRequestsOverride = 18,
+            Type = "Printed"
+        });
+
+        Assert.Equal(12, adminBook.MaxRequestsOverride);
+        Assert.Equal(18, updatedBook.MaxRequestsOverride);
     }
 
     [Fact]

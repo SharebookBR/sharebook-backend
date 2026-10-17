@@ -98,4 +98,105 @@ public class BookUserServiceTests
         Assert.Equal(BookStatus.AwaitingDonorDecision, book.Status);
         bookUsersEmailService.Verify(x => x.SendEmailMaxRequestsAsync(book), Times.Once);
     }
+
+    [Fact]
+    public async Task RequestBook_WithoutOverride_UsesFallbackLimitOf50()
+    {
+        await using var context = CreateContext();
+        var book = BookMock.GetLordTheRings();
+        book.Id = bookId;
+        book.MaxRequestsOverride = null;
+        bookServiceMock.Setup(s => s.GetBookWithAllUsersAsync(It.IsAny<Guid>())).ReturnsAsync(book);
+        configurationMock.Setup(c => c["SharebookSettings:MaxRequestsPerBook"]).Returns((string?)null);
+        await AddRequestsAsync(context, bookId, 49);
+
+        var service = CreateService(context);
+
+        await service.InsertAsync(bookId, "fallback limit");
+
+        Assert.Equal(50, await context.BookUser.CountAsync(x => x.BookId == bookId));
+        Assert.Equal(BookStatus.AwaitingDonorDecision, book.Status);
+        bookUsersEmailService.Verify(x => x.SendEmailMaxRequestsAsync(book), Times.Once);
+    }
+
+    [Fact]
+    public async Task RequestBook_WithCustomLimit_RemainsAvailableBeforeLimit()
+    {
+        await using var context = CreateContext();
+        var book = BookMock.GetLordTheRings();
+        book.Id = bookId;
+        book.MaxRequestsOverride = 2;
+        bookServiceMock.Setup(s => s.GetBookWithAllUsersAsync(It.IsAny<Guid>())).ReturnsAsync(book);
+        await AddRequestsAsync(context, bookId, 0);
+
+        var service = CreateService(context);
+
+        await service.InsertAsync(bookId, "before custom limit");
+
+        Assert.Equal(BookStatus.Available, book.Status);
+        bookUsersEmailService.Verify(x => x.SendEmailMaxRequestsAsync(It.IsAny<Book>()), Times.Never);
+    }
+
+    [Theory]
+    [InlineData(2, 1, true)]
+    [InlineData(51, 49, false)]
+    [InlineData(51, 50, true)]
+    public async Task RequestBook_UsesCustomLimitBelowOrAboveGlobalDefault(int customLimit, int existingRequests, bool shouldClose)
+    {
+        await using var context = CreateContext();
+        var book = BookMock.GetLordTheRings();
+        book.Id = bookId;
+        book.MaxRequestsOverride = customLimit;
+        bookServiceMock.Setup(s => s.GetBookWithAllUsersAsync(It.IsAny<Guid>())).ReturnsAsync(book);
+        await AddRequestsAsync(context, bookId, existingRequests);
+
+        var service = CreateService(context);
+
+        await service.InsertAsync(bookId, "custom limit boundary");
+
+        Assert.Equal(existingRequests + 1, await context.BookUser.CountAsync(x => x.BookId == bookId));
+        Assert.Equal(shouldClose ? BookStatus.AwaitingDonorDecision : BookStatus.Available, book.Status);
+        bookUsersEmailService.Verify(
+            x => x.SendEmailMaxRequestsAsync(It.IsAny<Book>()),
+            shouldClose ? Times.Once() : Times.Never());
+    }
+
+    [Fact]
+    public async Task RequestBook_Ebook_DoesNotUsePhysicalRequestLimit()
+    {
+        await using var context = CreateContext();
+        var book = BookMock.GetLordTheRings();
+        book.Id = bookId;
+        book.Type = BookType.Eletronic;
+        book.MaxRequestsOverride = 1;
+        bookServiceMock.Setup(s => s.GetBookWithAllUsersAsync(It.IsAny<Guid>())).ReturnsAsync(book);
+        await AddRequestsAsync(context, bookId, 1);
+
+        var service = CreateService(context);
+
+        await service.InsertAsync(bookId, "ebook request");
+
+        Assert.Equal(BookStatus.Available, book.Status);
+        bookUsersEmailService.Verify(x => x.SendEmailMaxRequestsAsync(It.IsAny<Book>()), Times.Never);
+    }
+
+    private BookUserService CreateService(ApplicationDbContext context)
+        => new(context,
+            bookServiceMock.Object, bookUsersEmailService.Object, muambatorServiceMock.Object, bookRepositoryMock.Object,
+            unitOfWorkMock.Object, bookUserValidator.Object, configurationMock.Object, currentUserAccessorMock.Object);
+
+    private static async Task AddRequestsAsync(ApplicationDbContext context, Guid requestedBookId, int count)
+    {
+        for (var index = 0; index < count; index++)
+        {
+            context.BookUser.Add(new BookUser
+            {
+                BookId = requestedBookId,
+                UserId = Guid.NewGuid(),
+                Reason = $"Existing request {index}"
+            });
+        }
+
+        await context.SaveChangesAsync();
+    }
 }
