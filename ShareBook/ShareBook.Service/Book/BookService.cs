@@ -117,7 +117,7 @@ public partial class BookService(IBookRepository bookRepository,
         };
     }
 
-    public async Task ApproveAsync(Guid bookId, DateTime? chooseDate = null)
+    public async Task ApproveAsync(Guid bookId, DateTime? chooseDate = null, DateTime? releaseAtUtc = null)
     {
         var daysInShowcase = int.Parse(_configuration["SharebookSettings:DaysInShowcase"]!);
 
@@ -125,11 +125,18 @@ public partial class BookService(IBookRepository bookRepository,
         if (book == null)
             throw new ShareBookException(ShareBookException.Error.NotFound);
 
+        if (releaseAtUtc.HasValue && (book.IsEbook() || releaseAtUtc.Value.Kind != DateTimeKind.Utc))
+            throw new ShareBookException("O agendamento exige livro físico e data UTC.");
+
+        var nowUtc = _timeProvider.GetUtcNow().UtcDateTime;
         book.Status = BookStatus.Available;
-        book.ApprovedAt = _timeProvider.GetUtcNow().UtcDateTime;
+        book.ApprovedAt = nowUtc;
+        book.ReleaseAtUtc = releaseAtUtc;
         book.ChooseDate = book.IsEbook()
             ? null
-            : chooseDate?.Date ?? DateTime.Today.AddDays(daysInShowcase);
+            : chooseDate?.Date ?? (releaseAtUtc.HasValue && releaseAtUtc.Value > nowUtc
+                ? releaseAtUtc.Value.Date.AddDays(daysInShowcase)
+                : DateTime.Today.AddDays(daysInShowcase));
         await PersistBookUpdateAsync(book);
 
         // notifica o doador
@@ -142,7 +149,8 @@ public partial class BookService(IBookRepository bookRepository,
             BookTitle = book.Title,
             CategoryId = book.CategoryId
         };
-        await _newBookQueue.SendMessageAsync(message);
+        if (!BookReleasePolicy.IsUpcoming(book.Status, book.Type, book.ReleaseAtUtc, nowUtc))
+            await _newBookQueue.SendMessageAsync(message);
 
     }
 
