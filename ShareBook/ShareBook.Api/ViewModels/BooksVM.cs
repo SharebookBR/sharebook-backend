@@ -43,6 +43,7 @@ public class BookVMAdm
     public string Type { get; set; } = string.Empty;
     public string? EBookPdfPath { get; set; }
     public int? MaxRequestsOverride { get; set; }
+    public int MaxRequestsPerBook { get; set; }
     public IList<TagSummaryVM> Tags { get; set; } = new List<TagSummaryVM>();
 }
 

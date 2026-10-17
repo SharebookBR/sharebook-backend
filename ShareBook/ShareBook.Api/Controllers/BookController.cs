@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 using ShareBook.Api.Filters;
 using ShareBook.Api.RateLimiting;
 using ShareBook.Api.ViewModels;
@@ -41,7 +42,8 @@ public class BookController(IBookService bookService,
                       IEBookService ebookService,
                       IEBookDownloadRateLimiter ebookDownloadRateLimiter,
                       ILogger<BookController> logger,
-                      ICurrentUserAccessor currentUserAccessor) : ControllerBase
+                      ICurrentUserAccessor currentUserAccessor,
+                      IConfiguration configuration) : ControllerBase
 {
     private readonly IBookUserService _bookUserService = bookUserService;
     private readonly IBookService _service = bookService;
@@ -52,6 +54,7 @@ public class BookController(IBookService bookService,
     private readonly IEBookDownloadRateLimiter _ebookDownloadRateLimiter = ebookDownloadRateLimiter;
     private readonly ILogger<BookController> _logger = logger;
     private readonly ICurrentUserAccessor _currentUserAccessor = currentUserAccessor;
+    private readonly IConfiguration _configuration = configuration;
     private Expression<Func<Book, object>> _defaultOrder = x => x.Id;
     private readonly IMapper _mapper = mapper;
 
@@ -445,6 +448,10 @@ public class BookController(IBookService bookService,
     {
         var books = await _service.GetAdminBooksAsync(page, pageSize, search, status, bucket, type);
 
+        var items = _mapper.Map<List<BookVMAdm>>(books.Items);
+        for (var index = 0; index < books.Items.Count; index++)
+            items[index].MaxRequestsPerBook = BookRequestLimit.GetEffective(books.Items[index], _configuration);
+
         return new AdminBooksPagedVM
         {
             Page = books.Page,
@@ -460,7 +467,7 @@ public class BookController(IBookService bookService,
                 Finished = books.Summary?.Finished ?? 0,
                 Available = books.Summary?.Available ?? 0
             },
-            Items = _mapper.Map<List<BookVMAdm>>(books.Items)
+            Items = items
         };
     }
 

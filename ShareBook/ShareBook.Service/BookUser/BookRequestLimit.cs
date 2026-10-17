@@ -3,7 +3,7 @@ using ShareBook.Domain;
 
 namespace ShareBook.Service;
 
-internal static class BookRequestLimit
+public static class BookRequestLimit
 {
     private const int DefaultMaxRequests = 50;
 
