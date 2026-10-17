@@ -48,6 +48,9 @@ public class Book : BaseEntity
 
     public DateTime? ChooseDate { get; set; }
 
+    /// <summary>UTC instant when a scheduled physical book becomes requestable. Null means no embargo.</summary>
+    public DateTime? ReleaseAtUtc { get; set; }
+
     public string? Synopsis { get; set; }
 
     public string? TrackingNumber { get; set; }
