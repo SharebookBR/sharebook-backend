@@ -27,6 +27,7 @@ public class BookVMAdm
     public string? TrackingNumber { get; set; }
     public DateTime CreationDate { get; set; }
     public DateTime? ChooseDate { get; set; }
+    public DateTime? ReleaseAtUtc { get; set; }
     public string? FreightOption { get; set; }
     public Guid CategoryId { get; set; }
     public string Category { get; set; } = string.Empty;
@@ -93,6 +94,7 @@ public class BookVM
     public string Status { get; set; } = string.Empty;
     public DateTime CreationDate { get; set; }
     public DateTime? ChooseDate { get; set; }
+    public DateTime? ReleaseAtUtc { get; set; }
     public string? FreightOption { get; set; }
     public Guid CategoryId { get; set; }
     public string Category { get; set; } = string.Empty;
