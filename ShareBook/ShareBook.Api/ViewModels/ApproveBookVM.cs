@@ -8,4 +8,5 @@ public class ApproveBookVM
     /// The date that the winner will be choosed
     /// </summary>
     public DateTime? ChooseDate { get; set; }
+    public DateTime? ReleaseAtUtc { get; set; }
 }
