@@ -11,7 +11,7 @@ namespace ShareBook.Service;
 
 public interface IBookService : IBaseService<Book>
 {
-    Task ApproveAsync(Guid bookId, DateTime? chooseDate);
+    Task ApproveAsync(Guid bookId, DateTime? chooseDate, DateTime? releaseAtUtc = null);
 
     Task MarkAsDeliveredAsync(Guid bookId);
 
