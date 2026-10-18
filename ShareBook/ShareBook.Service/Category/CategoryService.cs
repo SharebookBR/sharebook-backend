@@ -85,7 +85,7 @@ public class CategoryService(
 
         var bookCounts = await _bookRepository.Get()
             .AsNoTracking()
-            .Where(b => b.Status == Domain.Enums.BookStatus.Available)
+            .Where(b => b.Status == Domain.Enums.BookStatus.Available || b.Status == Domain.Enums.BookStatus.Scheduled)
             .GroupBy(b => b.CategoryId)
             .Select(g => new { CategoryId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.CategoryId, x => x.Count);
@@ -112,7 +112,7 @@ public class CategoryService(
 
         var books = await _bookRepository.Get()
             .AsNoTracking()
-            .Where(book => book.Status == BookStatus.Available)
+            .Where(book => book.Status == BookStatus.Available || book.Status == BookStatus.Scheduled)
             .Select(book => new
             {
                 book.CategoryId,

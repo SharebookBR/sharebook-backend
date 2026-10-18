@@ -155,7 +155,7 @@ public partial class BookService
     public async Task<CategoryBooksResultDTO> ByCategoryIdAsync(Guid categoryId, int page, int itemsPerPage)
     {
         var query = _repository.Get()
-            .Where(x => x.Status == BookStatus.Available && x.CategoryId == categoryId);
+            .Where(x => (x.Status == BookStatus.Available || x.Status == BookStatus.Scheduled) && x.CategoryId == categoryId);
 
         return await FormatCategoryBooksResultAsync(query, page, itemsPerPage);
     }
@@ -163,7 +163,7 @@ public partial class BookService
     public async Task<CategoryBooksResultDTO> ByCategoryTreeIdAsync(Guid categoryId, int page, int itemsPerPage)
     {
         var query = _repository.Get()
-            .Where(x => x.Status == BookStatus.Available
+            .Where(x => (x.Status == BookStatus.Available || x.Status == BookStatus.Scheduled)
                 && (x.CategoryId == categoryId || x.Category.ParentCategoryId == categoryId));
 
         return await FormatCategoryBooksResultAsync(query, page, itemsPerPage);
@@ -175,8 +175,11 @@ public partial class BookService
         var physicalCount = await query.CountAsync(x => x.Type == BookType.Printed);
         var ebooksCount = await query.CountAsync(x => x.Type == BookType.Eletronic);
 
+        // Disponíveis primeiro; os "Em breve" (Scheduled) depois, da liberação mais próxima para a mais distante.
         var items = await query
-            .OrderByDescending(x => x.CreationDate)
+            .OrderBy(x => x.Status == BookStatus.Scheduled ? 1 : 0)
+            .ThenBy(x => x.ReleaseDate)
+            .ThenByDescending(x => x.CreationDate)
             .Skip((page - 1) * itemsPerPage)
             .Take(itemsPerPage)
             .ToListAsync();
