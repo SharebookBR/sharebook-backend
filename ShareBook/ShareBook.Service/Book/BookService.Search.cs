@@ -114,6 +114,7 @@ public partial class BookService
                 CreationDate = book.CreationDate,
                 Synopsis = book.Synopsis,
                 ChooseDate = book.ChooseDate,
+                ReleaseDate = book.ReleaseDate,
                 User = new User
                 {
                     Id = book.User!.Id,
@@ -266,6 +267,7 @@ public partial class BookService
                 CreationDate = u.CreationDate,
                 Synopsis = u.Synopsis,
                 ChooseDate = u.ChooseDate,
+                ReleaseDate = u.ReleaseDate,
                 User = new User()
                 {
                     Id = u.User!.Id,
