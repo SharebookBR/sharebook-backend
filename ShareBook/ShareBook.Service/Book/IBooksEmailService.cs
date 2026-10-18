@@ -12,4 +12,6 @@ public interface IBooksEmailService
     Task SendEmailBookReceivedAsync(Book book);
 
     Task SendEmailCopyrightReportAsync(Book book);
+
+    Task SendEmailBookReleasedAsync(Book book, User user, string coverUrl, string frontendUrl, string unsubscribeUrl);
 }

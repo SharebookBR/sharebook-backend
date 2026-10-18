@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chegou o dia: {Book.Title} está na vitrine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #555;
+            background-color: #f2f2f2;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .header {
+            text-align: center;
+            padding: 34px 24px 28px;
+            background: linear-gradient(135deg, #29abe2 0%, #1e8fc4 100%);
+            color: #fff;
+        }
+
+        .wordmark {
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            opacity: 0.9;
+            margin-bottom: 12px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 300;
+            line-height: 1.3;
+        }
+
+        .content {
+            padding: 32px 30px 24px;
+        }
+
+        .greeting {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 14px;
+        }
+
+        .intro {
+            font-size: 16px;
+            line-height: 1.7;
+            margin-bottom: 26px;
+        }
+
+        .book {
+            text-align: center;
+            margin: 8px 0 28px;
+        }
+
+        .book img {
+            width: 170px;
+            max-width: 60%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+        }
+
+        .book-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #222;
+            margin-top: 18px;
+            line-height: 1.4;
+        }
+
+        .book-author {
+            font-size: 15px;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        .cta-wrap {
+            text-align: center;
+            margin: 8px 0 30px;
+        }
+
+        .cta {
+            display: inline-block;
+            background-color: #29abe2;
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 17px;
+            padding: 15px 34px;
+            border-radius: 6px;
+        }
+
+        .info-card {
+            background-color: #e8f4fd;
+            border-radius: 8px;
+            padding: 20px 22px;
+            margin: 0 0 22px;
+            border-left: 4px solid #29abe2;
+        }
+
+        .info-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-card p + p {
+            margin-top: 8px;
+        }
+
+        .note {
+            font-size: 14px;
+            color: #777;
+            margin: 0 0 8px;
+        }
+
+        .reason {
+            font-size: 12px;
+            color: #999;
+            margin-top: 22px;
+        }
+
+        .footer {
+            background-color: #333;
+            color: #fff;
+            padding: 32px 24px 36px;
+            text-align: center;
+        }
+
+        .signature {
+            margin-bottom: 18px;
+        }
+
+        .signature .team {
+            font-weight: bold;
+        }
+
+        .unsubscribe {
+            font-size: 12px;
+            margin-bottom: 16px;
+        }
+
+        .unsubscribe a {
+            color: #aaa;
+        }
+
+        .divider {
+            border-top: 2px solid #505050;
+            margin: 16px 0;
+        }
+
+        .copyright {
+            font-size: 12px;
+            font-style: italic;
+        }
+
+        .copyright a {
+            color: #fff;
+        }
+
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                border-radius: 6px;
+            }
+
+            .content {
+                padding: 24px 20px 18px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .cta {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="wordmark">Sharebook</div>
+            <h1>Chegou o dia</h1>
+        </div>
+
+        <div class="content">
+            <div class="greeting">Olá, {Name}!</div>
+
+            <div class="intro">
+                Você pediu para ser avisado, e a espera acabou: o livro já está na vitrine do Sharebook e as solicitações estão abertas.
+            </div>
+
+            <div class="book">
+                <img src="{CoverUrl}" alt="Capa de {Book.Title}">
+                <div class="book-title">{Book.Title}</div>
+                <div class="book-author">{Book.Author}</div>
+            </div>
+
+            <div class="cta-wrap">
+                <a href="{FrontendUrl}/livros/{Book.Slug}" class="cta" target="_blank">Solicitar livro</a>
+            </div>
+
+            <div class="info-card">
+                <div class="info-title">Como participar</div>
+                <p>Abra a página do livro e clique em <strong>Solicitar livro</strong>. Se pedir, entre na sua conta antes.</p>
+                <p>As solicitações ficam abertas até <strong>{ChooseDate}</strong>, a data de escolha. Elas podem encerrar antes se o livro atingir o limite de solicitações.</p>
+            </div>
+
+            <p class="note">Receber este aviso não reserva o livro nem dá prioridade: para participar, é preciso solicitar.</p>
+
+            <p class="reason">Você recebeu este e-mail porque pediu para ser avisado sobre este livro.</p>
+        </div>
+
+        <div class="footer">
+            <div class="signature">
+                Um abraço,<br>
+                <span class="team">Equipe Sharebook</span><br>
+                <small>Compartilhando conhecimento</small>
+            </div>
+
+            <div class="unsubscribe">
+                <a href="{UnsubscribeUrl}">Cancelar inscrição</a>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="copyright">
+                <a href="{FrontendUrl}">sharebook.com.br</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

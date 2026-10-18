@@ -44,6 +44,9 @@ public class LgpdService(
         // 1 - Exclui as solicitações em aberto.
         RemoveOpenRequests(user);
 
+        // 1.1 - Remove pedidos de aviso de lançamento (não faz sentido avisar uma conta anonimizada).
+        _ctx.BookReleaseInterests.RemoveRange(_ctx.BookReleaseInterests.Where(i => i.UserId == user.Id));
+
         // 2 - Cancela doações em aberto.
         await RemoveOpenDonationsAsync(user);
 

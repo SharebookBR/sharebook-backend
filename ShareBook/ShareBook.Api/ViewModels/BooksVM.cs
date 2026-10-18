@@ -28,6 +28,7 @@ public class BookVMAdm
     public DateTime CreationDate { get; set; }
     public DateTime? ChooseDate { get; set; }
     public DateOnly? ReleaseDate { get; set; }
+    public int ReleaseInterestCount { get; set; }
     public string? FreightOption { get; set; }
     public Guid CategoryId { get; set; }
     public string Category { get; set; } = string.Empty;

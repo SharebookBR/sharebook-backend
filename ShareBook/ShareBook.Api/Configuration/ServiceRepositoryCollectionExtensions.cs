@@ -36,6 +36,7 @@ public static class ServiceRepositoryCollectionExtensions
         services.AddScoped<IBookUsersEmailService, BookUserEmailService>();
         services.AddScoped<IBookService, BookService>();
         services.AddScoped<IBookUserService, BookUserService>();
+        services.AddScoped<IBookReleaseInterestService, BookReleaseInterestService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IUserEmailService, UserEmailService>();
         services.AddScoped<ICategoryService, CategoryService>();

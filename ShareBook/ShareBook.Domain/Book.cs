@@ -71,6 +71,10 @@ public class Book : BaseEntity
     [NotMapped]
     public byte[]? PdfBytes { get; set; }
 
+    /// <summary>Só preenchido nas listagens de admin, para livros Scheduled.</summary>
+    [NotMapped]
+    public int ReleaseInterestCount { get; set; }
+
     public Book()
     {
         Status = BookStatus.WaitingApproval;
