@@ -57,6 +57,7 @@ public class AdminBooksSummaryVM
     public int Ebooks { get; set; }
     public int Finished { get; set; }
     public int Available { get; set; }
+    public int Scheduled { get; set; }
 }
 
 public class AdminBooksPagedVM

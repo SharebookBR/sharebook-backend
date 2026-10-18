@@ -465,7 +465,8 @@ public class BookController(IBookService bookService,
                 Physical = books.Summary?.Physical ?? 0,
                 Ebooks = books.Summary?.Ebooks ?? 0,
                 Finished = books.Summary?.Finished ?? 0,
-                Available = books.Summary?.Available ?? 0
+                Available = books.Summary?.Available ?? 0,
+                Scheduled = books.Summary?.Scheduled ?? 0
             },
             Items = items
         };

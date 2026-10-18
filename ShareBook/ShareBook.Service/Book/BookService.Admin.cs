@@ -82,7 +82,8 @@ public partial class BookService
             Physical = GetTypeCount(BookType.Printed),
             Ebooks = GetTypeCount(BookType.Eletronic),
             Finished = GetStatusCount(BookStatus.Received) + GetStatusCount(BookStatus.Canceled),
-            Available = GetStatusCount(BookStatus.Available)
+            Available = GetStatusCount(BookStatus.Available),
+            Scheduled = GetStatusCount(BookStatus.Scheduled)
         };
     }
 
@@ -136,6 +137,8 @@ public partial class BookService
                 return query.Where(x => x.Type == BookType.Printed);
             case "available":
                 return query.Where(x => x.Status == BookStatus.Available);
+            case "scheduled":
+                return query.Where(x => x.Status == BookStatus.Scheduled);
             default:
                 return query;
         }
