@@ -86,6 +86,33 @@ public class BookServiceTests
     }
 
     [Fact]
+    public async Task FullSearch_PublicSearch_ShouldIncludeUpcomingBooksWithTheirReleaseDate()
+    {
+        await using var context = await CreateSearchContextAsync();
+        var user = await context.Users.FirstAsync();
+        var category = await context.Categories.FirstAsync();
+        context.Books.AddRange(
+            new Book
+            {
+                Title = "Clean Code Em Breve", Author = "Robert Martin", ImageSlug = "clean-code-em-breve.png",
+                Slug = "clean-code-em-breve", Status = BookStatus.Scheduled, Type = BookType.Printed,
+                ReleaseDate = new DateOnly(2026, 11, 1), User = user, Category = category
+            },
+            new Book
+            {
+                Title = "Clean Code Aguardando Aprovacao", Author = "Robert Martin", ImageSlug = "clean-code-aprovacao.png",
+                Slug = "clean-code-aprovacao", Status = BookStatus.WaitingApproval, User = user, Category = category
+            });
+        await context.SaveChangesAsync();
+        var service = CreateService(new BookRepository(context), context);
+
+        var result = await service.FullSearchAsync("clean", 1, 10, false);
+
+        Assert.Equal(new[] { "Clean Code Available", "Clean Code Em Breve" }, result.Items.Select(b => b.Title).OrderBy(t => t).ToArray());
+        Assert.Equal(new DateOnly(2026, 11, 1), result.Items.Single(b => b.Status == BookStatus.Scheduled).ReleaseDate);
+    }
+
+    [Fact]
     public async Task FullSearch_AdminSearch_ShouldReturnBooksFromAllStatuses()
     {
         await using var context = await CreateSearchContextAsync();

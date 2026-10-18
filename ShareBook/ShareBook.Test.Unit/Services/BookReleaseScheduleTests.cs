@@ -160,6 +160,38 @@ public class BookReleaseScheduleTests
         }
     }
 
+    [Fact]
+    public async Task TagBooks_ListsAvailableFirstThenUpcoming_AndCountsBoth()
+    {
+        await using var context = NewContext();
+        var tag = new Tag { Id = "bruxas", Name = "Bruxas", Family = "tema", Status = TagStatus.Active, IsPublic = true };
+        context.Tags.Add(tag);
+        var category = new Category { Id = Guid.NewGuid(), Name = "Fantasia" };
+        var owner = new User { Name = "Quem doa", Email = "doa@example.com", Password = "x", PasswordSalt = "x" };
+
+        Book Tagged(string title, BookStatus status, DateOnly? release = null) => new()
+        {
+            Title = title, Author = "A", Slug = title.ToLower().Replace(' ', '-'), Status = status, Type = BookType.Printed,
+            User = owner, Category = category, ImageSlug = "x.png", ReleaseDate = release,
+            BookTags = { new BookTag { TagId = tag.Id, Position = 1, ReviewStatus = BookTagReviewStatus.Approved } }
+        };
+
+        context.Books.AddRange(
+            Tagged("Em breve", BookStatus.Scheduled, Today.AddDays(14)),
+            Tagged("Disponivel", BookStatus.Available),
+            Tagged("Ja doado", BookStatus.Sent));
+        await context.SaveChangesAsync();
+        var upload = new Mock<IUploadService>();
+        var service = new TagService(context, upload.Object);
+
+        var page = await service.GetPublicBooksAsync("bruxas", 1, 20);
+        var counts = await service.GetPublicBookCountsByTagAsync(new[] { "bruxas" });
+
+        Assert.Equal(new[] { "Disponivel", "Em breve" }, page.Items.Select(b => b.Title).ToArray());
+        Assert.Equal(2, page.TotalItems);
+        Assert.Equal(2, counts["bruxas"]);
+    }
+
     private static ApplicationDbContext NewContext()
         => new(new DbContextOptionsBuilder<ApplicationDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
 

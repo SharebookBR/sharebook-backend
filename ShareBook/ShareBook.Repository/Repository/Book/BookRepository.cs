@@ -42,7 +42,8 @@ public class BookRepository(ApplicationDbContext context) : IBookRepository
         var searchTerm = (normalizedCriteria ?? string.Empty).Trim();
         var books = _context.Books
             .AsNoTracking()
-            .Where(book => includeUnavailable || book.Status == BookStatus.Available);
+            // Busca pública: disponíveis e "Em breve" (Scheduled), que aparecem com o badge de contagem.
+            .Where(book => includeUnavailable || book.Status == BookStatus.Available || book.Status == BookStatus.Scheduled);
 
         if (string.IsNullOrWhiteSpace(searchTerm))
             return books.Where(_ => false);
