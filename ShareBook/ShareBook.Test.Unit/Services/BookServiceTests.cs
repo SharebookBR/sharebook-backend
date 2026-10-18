@@ -99,6 +99,46 @@ public class BookServiceTests
         Assert.Contains(result.Items, book => book.Status == BookStatus.WaitingSend);
     }
 
+    [Fact]
+    public async Task SearchProjections_ScheduledBook_ShouldPreserveReleaseDate()
+    {
+        var releaseDate = new DateOnly(2026, 11, 1);
+        await using var context = await CreateEmptyContextAsync();
+        context.Books.Add(new Book
+        {
+            Title = "Calendar Release",
+            Author = "Sharebook",
+            Slug = "calendar-release",
+            ImageSlug = "calendar-release.jpg",
+            Status = BookStatus.Scheduled,
+            ReleaseDate = releaseDate,
+            Type = BookType.Printed,
+            User = new User
+            {
+                Name = "Calendar Donor",
+                Email = "calendar@example.com",
+                Password = "password",
+                PasswordSalt = "salt",
+                Address = new Address
+                {
+                    City = "Sao Paulo",
+                    State = "SP",
+                    Country = "Brasil"
+                }
+            },
+            Category = new Category { Name = "Fantasy" }
+        });
+        await context.SaveChangesAsync();
+
+        var service = CreateService(new BookRepository(context), context);
+
+        var bySlug = await service.BySlugAsync("calendar-release");
+        var adminSearch = await service.FullSearchAsync("calendar", 1, 10, true);
+
+        Assert.Equal(releaseDate, bySlug?.ReleaseDate);
+        Assert.Equal(releaseDate, Assert.Single(adminSearch.Items).ReleaseDate);
+    }
+
     // O UpdateBookVM nao carrega ImageSlug, entao um PUT sem imagem nova chega
     // ao service com ImageSlug nulo. Se o service copiar isso cegamente, o livro
     // perde a capa. Investigado a partir do incidente de 20/08/2026.
