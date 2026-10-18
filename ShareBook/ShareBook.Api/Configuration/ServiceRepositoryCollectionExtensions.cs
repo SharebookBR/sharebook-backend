@@ -107,6 +107,7 @@ public static class ServiceRepositoryCollectionExtensions
         services.AddScoped<MailSender>();
         services.AddScoped<NewEbookWeeklyDigest>();
         services.AddScoped<CleanupLogsTable>();
+        services.AddScoped<ReleaseScheduledBooks>();
 
         //notification
         services.AddScoped<IPushNotificationService, PushNotificationService>();

@@ -11,7 +11,10 @@ namespace ShareBook.Service;
 
 public interface IBookService : IBaseService<Book>
 {
-    Task ApproveAsync(Guid bookId, DateTime? chooseDate, DateTime? releaseAtUtc = null);
+    Task ApproveAsync(Guid bookId, DateTime? chooseDate, DateOnly? releaseDate = null);
+
+    /// <summary>Promove livros Scheduled com ReleaseDate &lt;= hoje (São Paulo) para Available.</summary>
+    Task<IList<Book>> ReleaseDueScheduledBooksAsync();
 
     Task MarkAsDeliveredAsync(Guid bookId);
 

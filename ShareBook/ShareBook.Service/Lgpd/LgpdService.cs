@@ -76,7 +76,7 @@ public class LgpdService(
     {
         foreach (var book in user.BooksDonated)
         {
-            if (book.Status == BookStatus.WaitingApproval || book.Status == BookStatus.Available || book.Status == BookStatus.AwaitingDonorDecision)
+            if (book.Status == BookStatus.WaitingApproval || book.Status == BookStatus.Available || book.Status == BookStatus.AwaitingDonorDecision || book.Status == BookStatus.Scheduled)
             {
                 await CancelDonationAsync(book);
             }

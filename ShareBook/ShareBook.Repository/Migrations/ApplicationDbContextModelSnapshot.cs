@@ -153,8 +153,8 @@ namespace ShareBook.Infra.Data.Migrations
                     b.Property<int?>("MaxRequestsOverride")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime?>("ReleaseAtUtc")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateOnly?>("ReleaseDate")
+                        .HasColumnType("date");
 
                     b.Property<string>("Slug")
                         .HasMaxLength(100)

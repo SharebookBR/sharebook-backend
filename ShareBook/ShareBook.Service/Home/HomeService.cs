@@ -32,20 +32,17 @@ public class HomeService(
     {
         var books = await _bookRepository.Get()
             .Where(b => b.Status == BookStatus.Available
-                     && b.Type == BookType.Printed
-                     && (b.ReleaseAtUtc == null || b.ReleaseAtUtc <= DateTime.UtcNow))
+                     && b.Type == BookType.Printed)
             .OrderByDescending(b => b.ChooseDate ?? b.CreationDate)
             .ThenBy(b => b.CreationDate)
             .Take(FeaturedPrintedBooks)
             .ToListAsync();
 
-        // Append scheduled releases after the existing available-book selection.
+        // Prévias (Scheduled) vêm depois dos disponíveis, da liberação mais próxima para a mais distante.
         var upcoming = await _bookRepository.Get()
-            .Where(b => b.Status == BookStatus.Available
-                     && b.Type == BookType.Printed
-                     && b.ReleaseAtUtc != null
-                     && b.ReleaseAtUtc > DateTime.UtcNow)
-            .OrderBy(b => b.ReleaseAtUtc)
+            .Where(b => b.Status == BookStatus.Scheduled && b.Type == BookType.Printed)
+            .OrderBy(b => b.ReleaseDate)
+            .ThenBy(b => b.CreationDate)
             .ToListAsync();
 
         books.AddRange(upcoming);
@@ -124,7 +121,7 @@ public class HomeService(
             ImageUrl = _uploadService.GetImageUrl(book.ImageSlug ?? string.Empty, "Books", book.ImageVersion),
             ThumbnailUrl = _uploadService.GetBookThumbnailUrl(book.ImageSlug ?? string.Empty, book.ImageVersion),
             Type = book.Type.ToString(),
-            ReleaseAtUtc = book.ReleaseAtUtc
+            ReleaseDate = book.ReleaseDate
         };
     }
 }

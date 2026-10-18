@@ -157,7 +157,7 @@ public class BookController(IBookService bookService,
     [AuthorizationFilter(Permissions.Permission.ApproveBook)]
     public async Task<Result> ApproveAsync(string id, [FromBody] ApproveBookVM model)
     {
-        await _service.ApproveAsync(new Guid(id), model?.ChooseDate, model?.ReleaseAtUtc);
+        await _service.ApproveAsync(new Guid(id), model?.ChooseDate, model?.ReleaseDate);
         return new Result("Livro aprovado com sucesso.");
     }
 

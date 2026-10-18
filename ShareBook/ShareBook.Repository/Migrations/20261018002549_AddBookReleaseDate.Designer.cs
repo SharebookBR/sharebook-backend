@@ -12,8 +12,8 @@ using ShareBook.Repository;
 namespace ShareBook.Infra.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20261017235516_AddBookReleaseAtUtc")]
-    partial class AddBookReleaseAtUtc
+    [Migration("20261018002549_AddBookReleaseDate")]
+    partial class AddBookReleaseDate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -156,8 +156,8 @@ namespace ShareBook.Infra.Data.Migrations
                     b.Property<int?>("MaxRequestsOverride")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime?>("ReleaseAtUtc")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateOnly?>("ReleaseDate")
+                        .HasColumnType("date");
 
                     b.Property<string>("Slug")
                         .HasMaxLength(100)

@@ -100,6 +100,23 @@ public class BookUserServiceTests
     }
 
     [Fact]
+    public async Task RequestBook_WhenScheduled_IsRejectedAndNothingIsSaved()
+    {
+        await using var context = CreateContext();
+        var book = BookMock.GetLordTheRings();
+        book.Id = bookId;
+        book.Status = BookStatus.Scheduled;
+        bookServiceMock.Setup(s => s.GetBookWithAllUsersAsync(It.IsAny<Guid>())).ReturnsAsync(book);
+
+        var service = CreateService(context);
+
+        var exception = await Assert.ThrowsAsync<ShareBook.Domain.Exceptions.ShareBookException>(() => service.InsertAsync(bookId, "quero muito"));
+
+        Assert.Contains("ainda não foi liberado", exception.Message);
+        Assert.Equal(0, await context.BookUser.CountAsync(x => x.BookId == bookId));
+    }
+
+    [Fact]
     public async Task RequestBook_WithoutOverride_UsesFallbackLimitOf50()
     {
         await using var context = CreateContext();

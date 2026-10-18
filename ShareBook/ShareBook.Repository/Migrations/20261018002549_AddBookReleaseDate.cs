@@ -6,15 +6,15 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ShareBook.Infra.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class AddBookReleaseAtUtc : Migration
+    public partial class AddBookReleaseDate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<DateTime>(
-                name: "ReleaseAtUtc",
+            migrationBuilder.AddColumn<DateOnly>(
+                name: "ReleaseDate",
                 table: "Books",
-                type: "timestamp with time zone",
+                type: "date",
                 nullable: true);
         }
 
@@ -22,7 +22,7 @@ namespace ShareBook.Infra.Data.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "ReleaseAtUtc",
+                name: "ReleaseDate",
                 table: "Books");
         }
     }

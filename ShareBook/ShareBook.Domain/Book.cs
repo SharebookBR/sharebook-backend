@@ -48,8 +48,8 @@ public class Book : BaseEntity
 
     public DateTime? ChooseDate { get; set; }
 
-    /// <summary>UTC instant when a scheduled physical book becomes requestable. Null means no embargo.</summary>
-    public DateTime? ReleaseAtUtc { get; set; }
+    /// <summary>Data (fuso de São Paulo) em que um livro Scheduled passa a Available. Só preenchida enquanto agendado.</summary>
+    public DateOnly? ReleaseDate { get; set; }
 
     public string? Synopsis { get; set; }
 

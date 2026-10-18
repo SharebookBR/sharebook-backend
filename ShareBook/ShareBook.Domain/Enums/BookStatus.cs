@@ -25,5 +25,8 @@ public enum BookStatus
     Received,// Status para quando o ganhador recebe o livro
 
     [Description("Cancelado")]
-    Canceled
+    Canceled,
+
+    [Description("Em breve")]
+    Scheduled// Livro físico aprovado com data de liberação futura. Vira Available no job ReleaseScheduledBooks. Nunca solicitável.
 }

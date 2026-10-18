@@ -28,7 +28,7 @@ public class BookUserService(
     IMuambatorService muambatorService,
     IBookRepository bookRepository,
     IUnitOfWork unitOfWork,
-    IValidator<BookUser> validator, IConfiguration configuration, ICurrentUserAccessor currentUserAccessor, ILogger<BookUserService>? logger = null, TimeProvider? timeProvider = null) : BaseService<BookUser>(context, unitOfWork, validator), IBookUserService
+    IValidator<BookUser> validator, IConfiguration configuration, ICurrentUserAccessor currentUserAccessor, ILogger<BookUserService>? logger = null) : BaseService<BookUser>(context, unitOfWork, validator), IBookUserService
 {
     private readonly ApplicationDbContext _context = context;
     private readonly IBookService _bookService = bookService;
@@ -38,7 +38,6 @@ public class BookUserService(
     private readonly IConfiguration _configuration = configuration;
     private readonly ICurrentUserAccessor _currentUserAccessor = currentUserAccessor;
     private readonly ILogger<BookUserService> _logger = logger ?? NullLogger<BookUserService>.Instance;
-    private readonly TimeProvider _timeProvider = timeProvider ?? TimeProvider.System;
 
     public async Task<IList<User>> GetGranteeUsersByBookIdAsync(Guid bookId) =>
         await _repository.Get().Include(x => x.User)
@@ -79,8 +78,11 @@ public class BookUserService(
             if (await _repository.AnyAsync(x => x.UserId == bookUser.UserId && x.BookId == bookUser.BookId))
                 throw new ShareBookException("O usuário já possui uma requisição para o mesmo livro.");
 
-            if (!BookReleasePolicy.CanRequest(bookRequested.Status, bookRequested.Type, bookRequested.ReleaseAtUtc, _timeProvider.GetUtcNow().UtcDateTime))
-                throw new ShareBookException("Este livro ainda não está disponível para solicitação.");
+            if (bookRequested.Status == BookStatus.Scheduled)
+                throw new ShareBookException("Este livro ainda não foi liberado para solicitação.");
+
+            if (bookRequested.Status != BookStatus.Available)
+                throw new ShareBookException("Esse livro não está mais disponível para doação.");
 
             await _repository.InsertAsync(bookUser);
 
