@@ -1,5 +1,7 @@
 using ShareBook.Domain.Enums;
 using System;
+using System.Linq;
+using System.Linq.Expressions;
 
 namespace ShareBook.Domain;
 
@@ -27,6 +29,17 @@ public static class BookReleasePolicy
 
         return utcNow >= releaseAtUtc.Value;
     }
+
+    /// <summary>
+    /// Available and already requestable. Excludes scheduled physical books whose release is still in the future.
+    /// Use on every public listing, count and recommendation; upcoming books only appear on the home shelf and PDP.
+    /// </summary>
+    public static Expression<Func<Book, bool>> IsPubliclyAvailable(DateTime utcNow)
+        => book => book.Status == BookStatus.Available
+            && (book.Type == BookType.Eletronic || book.ReleaseAtUtc == null || book.ReleaseAtUtc <= utcNow);
+
+    public static IQueryable<Book> WherePubliclyAvailable(this IQueryable<Book> query, DateTime utcNow)
+        => query.Where(IsPubliclyAvailable(utcNow));
 
     public static bool IsUpcoming(BookStatus status, BookType type, DateTime? releaseAtUtc, DateTime utcNow)
     {

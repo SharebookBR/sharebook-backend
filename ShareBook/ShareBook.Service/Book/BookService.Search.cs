@@ -22,7 +22,7 @@ public partial class BookService
                 .ThenInclude(u => u!.Address)
                 .Include(b => b.Category)
                 .ThenInclude(c => c.ParentCategory)
-                .Where(b => b.Status == BookStatus.Available)
+                .WherePubliclyAvailable(_timeProvider.GetUtcNow().UtcDateTime)
                 .OrderBy(x => EF.Functions.Random()) // ordem aleatória
                 .Take(15) // apenas 15 registros
                 .ToListAsync()
@@ -154,7 +154,8 @@ public partial class BookService
     public async Task<CategoryBooksResultDTO> ByCategoryIdAsync(Guid categoryId, int page, int itemsPerPage)
     {
         var query = _repository.Get()
-            .Where(x => x.Status == BookStatus.Available && x.CategoryId == categoryId);
+            .WherePubliclyAvailable(_timeProvider.GetUtcNow().UtcDateTime)
+            .Where(x => x.CategoryId == categoryId);
 
         return await FormatCategoryBooksResultAsync(query, page, itemsPerPage);
     }
@@ -162,8 +163,8 @@ public partial class BookService
     public async Task<CategoryBooksResultDTO> ByCategoryTreeIdAsync(Guid categoryId, int page, int itemsPerPage)
     {
         var query = _repository.Get()
-            .Where(x => x.Status == BookStatus.Available
-                && (x.CategoryId == categoryId || x.Category.ParentCategoryId == categoryId));
+            .WherePubliclyAvailable(_timeProvider.GetUtcNow().UtcDateTime)
+            .Where(x => x.CategoryId == categoryId || x.Category.ParentCategoryId == categoryId);
 
         return await FormatCategoryBooksResultAsync(query, page, itemsPerPage);
     }
@@ -213,7 +214,8 @@ public partial class BookService
             .AsNoTracking()
             .Include(book => book.Category)
                 .ThenInclude(category => category.ParentCategory)
-            .Where(book => book.Status == BookStatus.Available && book.Id != bookId)
+            .WherePubliclyAvailable(_timeProvider.GetUtcNow().UtcDateTime)
+            .Where(book => book.Id != bookId)
             .ToListAsync();
 
         var rankedIds = BookRecommendationRanker

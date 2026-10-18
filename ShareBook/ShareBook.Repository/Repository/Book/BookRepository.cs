@@ -42,7 +42,8 @@ public class BookRepository(ApplicationDbContext context) : IBookRepository
         var searchTerm = (normalizedCriteria ?? string.Empty).Trim();
         var books = _context.Books
             .AsNoTracking()
-            .Where(book => includeUnavailable || book.Status == BookStatus.Available);
+            .Where(book => includeUnavailable || (book.Status == BookStatus.Available
+                && (book.Type == BookType.Eletronic || book.ReleaseAtUtc == null || book.ReleaseAtUtc <= DateTime.UtcNow)));
 
         if (string.IsNullOrWhiteSpace(searchTerm))
             return books.Where(_ => false);

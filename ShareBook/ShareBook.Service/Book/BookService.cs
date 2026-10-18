@@ -546,6 +546,7 @@ public partial class BookService(IBookRepository bookRepository,
             .Get().Include(x => x.User).Include(x => x.BookUsers)
             .Where(x =>
                 x.ChooseDate <= endDateTime && x.Status == BookStatus.Available
+                && (x.ReleaseAtUtc == null || x.ReleaseAtUtc <= DateTime.UtcNow)
             ).ToListAsync();
 
         return books;
