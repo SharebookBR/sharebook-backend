@@ -41,7 +41,7 @@ public class TagService(ApplicationDbContext context, IUploadService uploadServi
             .AsNoTracking()
             .Where(bookTag => ids.Contains(bookTag.TagId)
                 && bookTag.ReviewStatus == BookTagReviewStatus.Approved
-                && bookTag.Book.Status == BookStatus.Available
+                && (bookTag.Book.Status == BookStatus.Available || bookTag.Book.Status == BookStatus.Scheduled)
                 && bookTag.Tag.Status == TagStatus.Active
                 && bookTag.Tag.IsPublic)
             .GroupBy(bookTag => bookTag.TagId)
@@ -84,13 +84,15 @@ public class TagService(ApplicationDbContext context, IUploadService uploadServi
                 .ThenInclude(category => category.ParentCategory)
             .Include(book => book.BookTags)
                 .ThenInclude(bookTag => bookTag.Tag)
-            .Where(book => book.Status == BookStatus.Available
+            .Where(book => (book.Status == BookStatus.Available || book.Status == BookStatus.Scheduled)
                 && book.BookTags.Any(bookTag =>
                     bookTag.TagId == tag.Id
                     && bookTag.ReviewStatus == BookTagReviewStatus.Approved
                     && bookTag.Tag.Status == TagStatus.Active
                     && bookTag.Tag.IsPublic))
-            .OrderByDescending(book => book.CreationDate);
+            .OrderBy(book => book.Status == BookStatus.Scheduled ? 1 : 0)
+            .ThenBy(book => book.ReleaseDate)
+            .ThenByDescending(book => book.CreationDate);
 
         var total = await query.CountAsync();
         var books = await query

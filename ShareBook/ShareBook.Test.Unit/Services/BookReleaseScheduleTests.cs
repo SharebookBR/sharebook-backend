@@ -123,6 +123,43 @@ public class BookReleaseScheduleTests
         Assert.Equal(BookStatus.Scheduled, (await context.Books.FindAsync(book.Id))!.Status);
     }
 
+    [Fact]
+    public async Task CategoryTree_ListsAvailableFirstThenUpcomingByReleaseDate_AndIgnoresOtherStatuses()
+    {
+        await using var context = NewContext();
+        var parent = new Category { Id = Guid.NewGuid(), Name = "Ficção" };
+        var leaf = new Category { Id = Guid.NewGuid(), Name = "Bruxas & Magia", ParentCategoryId = parent.Id };
+        context.Categories.AddRange(parent, leaf);
+        var owner = new User { Name = "Quem doa", Email = "doa@example.com", Password = "x", PasswordSalt = "x" };
+
+        Book NewBook(string title, BookStatus status, DateTime created, DateOnly? release = null) => new()
+        {
+            Title = title, Author = "A", Slug = title.ToLower().Replace(' ', '-'), Status = status, Type = BookType.Printed,
+            User = owner, CategoryId = leaf.Id, ImageSlug = "x.png", CreationDate = created, ReleaseDate = release
+        };
+
+        context.Books.AddRange(
+            NewBook("Disponivel antigo", BookStatus.Available, new DateTime(2026, 1, 1)),
+            NewBook("Em breve distante", BookStatus.Scheduled, new DateTime(2026, 10, 3), Today.AddDays(28)),
+            NewBook("Disponivel novo", BookStatus.Available, new DateTime(2026, 10, 1)),
+            NewBook("Em breve proximo", BookStatus.Scheduled, new DateTime(2026, 10, 2), Today.AddDays(14)),
+            NewBook("Ja doado", BookStatus.Sent, new DateTime(2026, 9, 1)),
+            NewBook("Aguardando aprovacao", BookStatus.WaitingApproval, new DateTime(2026, 10, 4)),
+            NewBook("Cancelado", BookStatus.Canceled, new DateTime(2026, 10, 5)));
+        await context.SaveChangesAsync();
+        var service = CreateService(context);
+
+        foreach (var result in new[] { await service.ByCategoryTreeIdAsync(parent.Id, 1, 20), await service.ByCategoryIdAsync(leaf.Id, 1, 20) })
+        {
+            Assert.Equal(
+                new[] { "Disponivel novo", "Disponivel antigo", "Em breve proximo", "Em breve distante" },
+                result.Items.Select(b => b.Title).ToArray());
+            Assert.Equal(4, result.TotalItems);
+            Assert.Equal(4, result.PhysicalBooksCount);
+            Assert.Equal(Today.AddDays(14), result.Items[2].ReleaseDate);
+        }
+    }
+
     private static ApplicationDbContext NewContext()
         => new(new DbContextOptionsBuilder<ApplicationDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
 
