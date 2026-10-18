@@ -77,7 +77,7 @@ public class BookRepository(ApplicationDbContext context) : IBookRepository
         if (exactTokens.Length == 0 && lexicalTokens.Length == 0)
         {
             return requiresPrinted || requiresElectronic
-                ? books.OrderByDescending(book => book.CreationDate)
+                ? books.OrderByCatalogGroup().ThenByDescending(book => book.CreationDate)
                 : books.Where(_ => false);
         }
 
@@ -96,7 +96,8 @@ public class BookRepository(ApplicationDbContext context) : IBookRepository
                     || (book.Category.ParentCategory != null
                         && book.Category.ParentCategory.Name.ToLower().Contains(loweredTerm))
                     || (book.Synopsis != null && book.Synopsis.ToLower().Contains(loweredTerm)))
-                .OrderByDescending(book => book.CreationDate);
+                .OrderByCatalogGroup()
+                .ThenByDescending(book => book.CreationDate);
         }
 
         var prefixQuery = string.Join(" & ", lexicalTokens.Select(token => $"{token}:*"));
@@ -168,9 +169,16 @@ public class BookRepository(ApplicationDbContext context) : IBookRepository
             filtered = filtered.Where(candidate => candidate.TitleCategoryVector.Matches(
                 EF.Functions.ToTsQuery("simple", exactQuery)));
 
+        // Título exato continua em primeiro: quem digita o nome inteiro quer aquele livro, seja qual for o tipo.
+        // Depois vem a ordem do catálogo (físicos disponíveis, "Em breve", digitais; mesma regra do
+        // BookCatalogOrder, escrita à mão porque aqui a consulta é sobre o tipo anônimo) e só então a relevância.
         return filtered
             .OrderByDescending(candidate =>
                 EF.Functions.Unaccent(candidate.Title) == exactSearchTerm)
+            .ThenBy(candidate => candidate.Book.Type == BookType.Printed && candidate.Book.Status == BookStatus.Available
+                ? 0
+                : candidate.Book.Status == BookStatus.Scheduled ? 1 : 2)
+            .ThenBy(candidate => candidate.Book.ReleaseDate)
             .ThenByDescending(candidate => EF.Functions.ILike(
                 EF.Functions.Unaccent(candidate.Title),
                 exactSearchTerm + "%"))

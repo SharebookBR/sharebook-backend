@@ -32,6 +32,25 @@ public class BookRepositoryFullTextSearchTests
         Assert.Contains("Status", sql);
     }
 
+    [Fact]
+    public void FullTextSearch_PostgresQuery_ShouldKeepExactTitleFirstThenCatalogGroupThenRelevance()
+    {
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseNpgsql("Host=localhost;Database=sharebook_search_translation;Username=test;Password=test")
+            .Options;
+        using var context = new ApplicationDbContext(options);
+        var repository = new BookRepository(context);
+
+        var sql = repository.FullTextSearch("machine learning", includeUnavailable: false).ToQueryString();
+        var orderBy = sql[sql.LastIndexOf("ORDER BY", System.StringComparison.Ordinal)..];
+
+        var exactTitle = orderBy.IndexOf("= @exactSearchTerm", System.StringComparison.Ordinal);
+        var group = orderBy.IndexOf("WHEN b.\"Status\" = 7", System.StringComparison.Ordinal);
+        var relevance = orderBy.IndexOf("ts_rank_cd", System.StringComparison.Ordinal);
+        Assert.True(exactTitle >= 0 && group > exactTitle && relevance > group,
+            $"Ordem esperada: título exato, grupo do catálogo, relevância. SQL: {orderBy}");
+    }
+
     [Theory]
     [InlineData("fisico")]
     [InlineData("impresso")]

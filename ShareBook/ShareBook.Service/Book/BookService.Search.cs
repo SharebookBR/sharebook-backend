@@ -175,10 +175,9 @@ public partial class BookService
         var physicalCount = await query.CountAsync(x => x.Type == BookType.Printed);
         var ebooksCount = await query.CountAsync(x => x.Type == BookType.Eletronic);
 
-        // Disponíveis primeiro; os "Em breve" (Scheduled) depois, da liberação mais próxima para a mais distante.
+        // Físicos disponíveis, físicos "Em breve" e digitais (BookCatalogOrder); por data de cadastro dentro de cada grupo.
         var items = await query
-            .OrderBy(x => x.Status == BookStatus.Scheduled ? 1 : 0)
-            .ThenBy(x => x.ReleaseDate)
+            .OrderByCatalogGroup()
             .ThenByDescending(x => x.CreationDate)
             .Skip((page - 1) * itemsPerPage)
             .Take(itemsPerPage)

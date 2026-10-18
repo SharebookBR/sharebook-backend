@@ -113,6 +113,38 @@ public class BookServiceTests
     }
 
     [Fact]
+    public async Task FullSearch_PublicSearch_ListsPhysicalAvailableThenUpcomingThenDigital()
+    {
+        await using var context = await CreateSearchContextAsync();
+        var user = await context.Users.FirstAsync();
+        var category = await context.Categories.FirstAsync();
+        var available = await context.Books.FirstAsync(b => b.Status == BookStatus.Available);
+        available.Type = BookType.Printed;
+        available.CreationDate = new DateTime(2026, 1, 1);
+        context.Books.AddRange(
+            new Book
+            {
+                Title = "Clean Code Digital Novissimo", Author = "Robert Martin", ImageSlug = "clean-code-digital.png",
+                Slug = "clean-code-digital", Status = BookStatus.Available, Type = BookType.Eletronic,
+                CreationDate = new DateTime(2026, 10, 20), User = user, Category = category
+            },
+            new Book
+            {
+                Title = "Clean Code Em Breve", Author = "Robert Martin", ImageSlug = "clean-code-em-breve.png",
+                Slug = "clean-code-em-breve", Status = BookStatus.Scheduled, Type = BookType.Printed,
+                CreationDate = new DateTime(2026, 10, 1), ReleaseDate = new DateOnly(2026, 11, 1), User = user, Category = category
+            });
+        await context.SaveChangesAsync();
+        var service = CreateService(new BookRepository(context), context);
+
+        var result = await service.FullSearchAsync("clean", 1, 10, false);
+
+        Assert.Equal(
+            new[] { "Clean Code Available", "Clean Code Em Breve", "Clean Code Digital Novissimo" },
+            result.Items.Select(b => b.Title).ToArray());
+    }
+
+    [Fact]
     public async Task FullSearch_AdminSearch_ShouldReturnBooksFromAllStatuses()
     {
         await using var context = await CreateSearchContextAsync();

@@ -124,7 +124,7 @@ public class BookReleaseScheduleTests
     }
 
     [Fact]
-    public async Task CategoryTree_ListsAvailableFirstThenUpcomingByReleaseDate_AndIgnoresOtherStatuses()
+    public async Task CategoryTree_ListsPhysicalAvailableThenUpcomingThenDigital_AndIgnoresOtherStatuses()
     {
         await using var context = NewContext();
         var parent = new Category { Id = Guid.NewGuid(), Name = "Ficção" };
@@ -138,7 +138,11 @@ public class BookReleaseScheduleTests
             User = owner, CategoryId = leaf.Id, ImageSlug = "x.png", CreationDate = created, ReleaseDate = release
         };
 
+        var digital = NewBook("Digital novissimo", BookStatus.Available, new DateTime(2026, 10, 10));
+        digital.Type = BookType.Eletronic;
+
         context.Books.AddRange(
+            digital,
             NewBook("Disponivel antigo", BookStatus.Available, new DateTime(2026, 1, 1)),
             NewBook("Em breve distante", BookStatus.Scheduled, new DateTime(2026, 10, 3), Today.AddDays(28)),
             NewBook("Disponivel novo", BookStatus.Available, new DateTime(2026, 10, 1)),
@@ -152,16 +156,17 @@ public class BookReleaseScheduleTests
         foreach (var result in new[] { await service.ByCategoryTreeIdAsync(parent.Id, 1, 20), await service.ByCategoryIdAsync(leaf.Id, 1, 20) })
         {
             Assert.Equal(
-                new[] { "Disponivel novo", "Disponivel antigo", "Em breve proximo", "Em breve distante" },
+                new[] { "Disponivel novo", "Disponivel antigo", "Em breve proximo", "Em breve distante", "Digital novissimo" },
                 result.Items.Select(b => b.Title).ToArray());
-            Assert.Equal(4, result.TotalItems);
+            Assert.Equal(5, result.TotalItems);
             Assert.Equal(4, result.PhysicalBooksCount);
+            Assert.Equal(1, result.EbooksCount);
             Assert.Equal(Today.AddDays(14), result.Items[2].ReleaseDate);
         }
     }
 
     [Fact]
-    public async Task TagBooks_ListsAvailableFirstThenUpcoming_AndCountsBoth()
+    public async Task TagBooks_ListsPhysicalAvailableThenUpcomingThenDigital_AndCountsAll()
     {
         await using var context = NewContext();
         var tag = new Tag { Id = "bruxas", Name = "Bruxas", Family = "tema", Status = TagStatus.Active, IsPublic = true };
@@ -176,7 +181,12 @@ public class BookReleaseScheduleTests
             BookTags = { new BookTag { TagId = tag.Id, Position = 1, ReviewStatus = BookTagReviewStatus.Approved } }
         };
 
+        var digitalTagged = Tagged("Digital", BookStatus.Available);
+        digitalTagged.Type = BookType.Eletronic;
+        digitalTagged.CreationDate = new DateTime(2026, 10, 20);
+
         context.Books.AddRange(
+            digitalTagged,
             Tagged("Em breve", BookStatus.Scheduled, Today.AddDays(14)),
             Tagged("Disponivel", BookStatus.Available),
             Tagged("Ja doado", BookStatus.Sent));
@@ -187,9 +197,9 @@ public class BookReleaseScheduleTests
         var page = await service.GetPublicBooksAsync("bruxas", 1, 20);
         var counts = await service.GetPublicBookCountsByTagAsync(new[] { "bruxas" });
 
-        Assert.Equal(new[] { "Disponivel", "Em breve" }, page.Items.Select(b => b.Title).ToArray());
-        Assert.Equal(2, page.TotalItems);
-        Assert.Equal(2, counts["bruxas"]);
+        Assert.Equal(new[] { "Disponivel", "Em breve", "Digital" }, page.Items.Select(b => b.Title).ToArray());
+        Assert.Equal(3, page.TotalItems);
+        Assert.Equal(3, counts["bruxas"]);
     }
 
     private static ApplicationDbContext NewContext()

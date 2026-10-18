@@ -90,8 +90,7 @@ public class TagService(ApplicationDbContext context, IUploadService uploadServi
                     && bookTag.ReviewStatus == BookTagReviewStatus.Approved
                     && bookTag.Tag.Status == TagStatus.Active
                     && bookTag.Tag.IsPublic))
-            .OrderBy(book => book.Status == BookStatus.Scheduled ? 1 : 0)
-            .ThenBy(book => book.ReleaseDate)
+            .OrderByCatalogGroup()
             .ThenByDescending(book => book.CreationDate);
 
         var total = await query.CountAsync();
