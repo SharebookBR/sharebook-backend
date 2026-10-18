@@ -157,7 +157,7 @@ public class BookController(IBookService bookService,
     [AuthorizationFilter(Permissions.Permission.ApproveBook)]
     public async Task<Result> ApproveAsync(string id, [FromBody] ApproveBookVM model)
     {
-        await _service.ApproveAsync(new Guid(id), model?.ChooseDate);
+        await _service.ApproveAsync(new Guid(id), model?.ChooseDate, model?.ReleaseDate);
         return new Result("Livro aprovado com sucesso.");
     }
 
@@ -465,7 +465,8 @@ public class BookController(IBookService bookService,
                 Physical = books.Summary?.Physical ?? 0,
                 Ebooks = books.Summary?.Ebooks ?? 0,
                 Finished = books.Summary?.Finished ?? 0,
-                Available = books.Summary?.Available ?? 0
+                Available = books.Summary?.Available ?? 0,
+                Scheduled = books.Summary?.Scheduled ?? 0
             },
             Items = items
         };

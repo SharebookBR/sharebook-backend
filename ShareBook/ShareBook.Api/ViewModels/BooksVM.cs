@@ -27,6 +27,8 @@ public class BookVMAdm
     public string? TrackingNumber { get; set; }
     public DateTime CreationDate { get; set; }
     public DateTime? ChooseDate { get; set; }
+    public DateOnly? ReleaseDate { get; set; }
+    public int ReleaseInterestCount { get; set; }
     public string? FreightOption { get; set; }
     public Guid CategoryId { get; set; }
     public string Category { get; set; } = string.Empty;
@@ -56,6 +58,7 @@ public class AdminBooksSummaryVM
     public int Ebooks { get; set; }
     public int Finished { get; set; }
     public int Available { get; set; }
+    public int Scheduled { get; set; }
 }
 
 public class AdminBooksPagedVM
@@ -93,6 +96,7 @@ public class BookVM
     public string Status { get; set; } = string.Empty;
     public DateTime CreationDate { get; set; }
     public DateTime? ChooseDate { get; set; }
+    public DateOnly? ReleaseDate { get; set; }
     public string? FreightOption { get; set; }
     public Guid CategoryId { get; set; }
     public string Category { get; set; } = string.Empty;

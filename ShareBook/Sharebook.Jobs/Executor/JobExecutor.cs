@@ -31,7 +31,8 @@ public class JobExecutor : IJobExecutor
                         MailSupressListUpdate job6,
                         MailSender job7, // MailSender precisa ser o último!
                         NewEbookWeeklyDigest job8,
-                        CleanupLogsTable job9)
+                        CleanupLogsTable job9,
+                        ReleaseScheduledBooks job10)
     {
         _jobHistoryRepo = jobHistoryRepo;
         _logger = logger;
@@ -48,7 +49,8 @@ public class JobExecutor : IJobExecutor
             job6,
             job7,
             job8,
-            job9
+            job9,
+            job10
         };
 
     }

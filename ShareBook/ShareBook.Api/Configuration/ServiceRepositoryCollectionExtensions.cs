@@ -36,6 +36,7 @@ public static class ServiceRepositoryCollectionExtensions
         services.AddScoped<IBookUsersEmailService, BookUserEmailService>();
         services.AddScoped<IBookService, BookService>();
         services.AddScoped<IBookUserService, BookUserService>();
+        services.AddScoped<IBookReleaseInterestService, BookReleaseInterestService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IUserEmailService, UserEmailService>();
         services.AddScoped<ICategoryService, CategoryService>();
@@ -107,6 +108,7 @@ public static class ServiceRepositoryCollectionExtensions
         services.AddScoped<MailSender>();
         services.AddScoped<NewEbookWeeklyDigest>();
         services.AddScoped<CleanupLogsTable>();
+        services.AddScoped<ReleaseScheduledBooks>();
 
         //notification
         services.AddScoped<IPushNotificationService, PushNotificationService>();

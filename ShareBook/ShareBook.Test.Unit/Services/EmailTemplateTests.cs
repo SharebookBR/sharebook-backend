@@ -133,6 +133,44 @@ public class EmailTemplateTests
     }
 
     [Fact]
+    public async Task VerifyEmailBookReleasedNotifyParse()
+    {
+        book.ChooseDate = new System.DateTime(2026, 11, 11);
+        var vm = new
+        {
+            Name = "Maria",
+            Book = book,
+            CoverUrl = "https://api.sharebook.com.br/Images/Books/capa.png",
+            ChooseDate = "11/11/2026",
+            FrontendUrl = "https://www.sharebook.com.br",
+            UnsubscribeUrl = "https://www.sharebook.com.br/descadastrar?userId=1&token=abc"
+        };
+
+        var result = await emailTemplate.GenerateHtmlFromTemplateAsync("BookReleasedNotifyTemplate", vm);
+
+        Assert.Contains("Chegou o dia", result);
+        Assert.Contains("Olá, Maria!", result);
+        Assert.Contains(book.Title, result);
+        Assert.Contains(book.Author, result);
+        Assert.Contains("src=\"https://api.sharebook.com.br/Images/Books/capa.png\"", result);
+        Assert.Contains($"href=\"https://www.sharebook.com.br/livros/{book.Slug}\"", result);
+        Assert.Contains("Solicitar livro", result);
+        Assert.Contains("11/11/2026", result);
+        Assert.Contains("não reserva o livro nem dá prioridade", result);
+        Assert.Contains("href=\"https://www.sharebook.com.br/descadastrar?userId=1&token=abc\"", result);
+        Assert.Contains("Cancelar inscrição", result);
+        Assert.DoesNotContain("{Name}", result);
+        Assert.DoesNotContain("{Book.", result);
+        Assert.DoesNotContain("{CoverUrl}", result);
+
+        // O EmailTemplate apaga qualquer {...} de uma linha só. O CSS precisa estar em várias linhas
+        // para sobreviver; se alguém compactar, o e-mail sai sem estilo.
+        Assert.Contains("background: linear-gradient(135deg, #29abe2 0%, #1e8fc4 100%);", result);
+        Assert.Contains(".cta {", result);
+        Assert.Contains("@media only screen and (max-width: 600px)", result);
+    }
+
+    [Fact]
     public async Task VerifyEmailEbooksWeeklyDigestParse()
     {
         var vm = new
@@ -398,6 +436,7 @@ public class EmailTemplateTests
 
         var newsletterTemplates = new[]
         {
+            "BookReleasedNotifyTemplate.html",
             "EbooksWeeklyDigestTemplate.html",
             "PrintedBooksDigestTemplate.html"
         };

@@ -38,6 +38,14 @@ public class HomeService(
             .Take(FeaturedPrintedBooks)
             .ToListAsync();
 
+        // Prévias (Scheduled) vêm depois dos disponíveis, da liberação mais próxima para a mais distante.
+        var upcoming = await _bookRepository.Get()
+            .Where(b => b.Status == BookStatus.Scheduled && b.Type == BookType.Printed)
+            .OrderBy(b => b.ReleaseDate)
+            .ThenBy(b => b.CreationDate)
+            .ToListAsync();
+
+        books.AddRange(upcoming);
         return books.Select(ToShowcaseBook).ToList();
     }
 
@@ -112,7 +120,8 @@ public class HomeService(
             Slug = book.Slug,
             ImageUrl = _uploadService.GetImageUrl(book.ImageSlug ?? string.Empty, "Books", book.ImageVersion),
             ThumbnailUrl = _uploadService.GetBookThumbnailUrl(book.ImageSlug ?? string.Empty, book.ImageVersion),
-            Type = book.Type.ToString()
+            Type = book.Type.ToString(),
+            ReleaseDate = book.ReleaseDate
         };
     }
 }

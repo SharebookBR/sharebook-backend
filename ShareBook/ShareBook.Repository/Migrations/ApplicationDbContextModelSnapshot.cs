@@ -153,6 +153,9 @@ namespace ShareBook.Infra.Data.Migrations
                     b.Property<int?>("MaxRequestsOverride")
                         .HasColumnType("integer");
 
+                    b.Property<DateOnly?>("ReleaseDate")
+                        .HasColumnType("date");
+
                     b.Property<string>("Slug")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
@@ -222,6 +225,36 @@ namespace ShareBook.Infra.Data.Migrations
                     b.HasIndex("UserId", "DownloadedAtUtc");
 
                     b.ToTable("BookDownloadEvents");
+                });
+
+            modelBuilder.Entity("ShareBook.Domain.BookReleaseInterest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BookId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CreationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("NotifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NotifiedAt");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("BookId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("BookReleaseInterests");
                 });
 
             modelBuilder.Entity("ShareBook.Domain.BookTag", b =>
@@ -675,6 +708,25 @@ namespace ShareBook.Infra.Data.Migrations
                     b.HasOne("ShareBook.Domain.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId");
+
+                    b.Navigation("Book");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ShareBook.Domain.BookReleaseInterest", b =>
+                {
+                    b.HasOne("ShareBook.Domain.Book", "Book")
+                        .WithMany()
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ShareBook.Domain.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Book");
 

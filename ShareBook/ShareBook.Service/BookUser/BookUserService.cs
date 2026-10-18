@@ -78,6 +78,9 @@ public class BookUserService(
             if (await _repository.AnyAsync(x => x.UserId == bookUser.UserId && x.BookId == bookUser.BookId))
                 throw new ShareBookException("O usuário já possui uma requisição para o mesmo livro.");
 
+            if (bookRequested.Status == BookStatus.Scheduled)
+                throw new ShareBookException("Este livro ainda não foi liberado para solicitação.");
+
             if (bookRequested.Status != BookStatus.Available)
                 throw new ShareBookException("Esse livro não está mais disponível para doação.");
 

@@ -117,7 +117,7 @@ public partial class BookService(IBookRepository bookRepository,
         };
     }
 
-    public async Task ApproveAsync(Guid bookId, DateTime? chooseDate = null)
+    public async Task ApproveAsync(Guid bookId, DateTime? chooseDate = null, DateOnly? releaseDate = null)
     {
         var daysInShowcase = int.Parse(_configuration["SharebookSettings:DaysInShowcase"]!);
 
@@ -125,25 +125,75 @@ public partial class BookService(IBookRepository bookRepository,
         if (book == null)
             throw new ShareBookException(ShareBookException.Error.NotFound);
 
+        if (releaseDate.HasValue && book.IsEbook())
+            throw new ShareBookException("O agendamento de liberação vale apenas para livro físico.");
+
+        var nowUtc = _timeProvider.GetUtcNow().UtcDateTime;
+        var isScheduled = releaseDate.HasValue && releaseDate.Value > TodaySaoPaulo();
+
+        book.ApprovedAt = nowUtc;
+
+        if (isScheduled)
+        {
+            // Fica fora da vitrine comum até o job ReleaseScheduledBooks. ChooseDate, e-mail ao doador
+            // e aviso de novo livro acontecem na liberação, não agora.
+            book.Status = BookStatus.Scheduled;
+            book.ReleaseDate = releaseDate;
+            book.ChooseDate = null;
+            await PersistBookUpdateAsync(book);
+            return;
+        }
+
         book.Status = BookStatus.Available;
-        book.ApprovedAt = _timeProvider.GetUtcNow().UtcDateTime;
+        book.ReleaseDate = null;
         book.ChooseDate = book.IsEbook()
             ? null
             : chooseDate?.Date ?? DateTime.Today.AddDays(daysInShowcase);
         await PersistBookUpdateAsync(book);
 
+        await NotifyBookAvailableAsync(book);
+    }
+
+    public async Task<IList<Book>> ReleaseDueScheduledBooksAsync()
+    {
+        var daysInShowcase = int.Parse(_configuration["SharebookSettings:DaysInShowcase"]!);
+        var today = TodaySaoPaulo();
+
+        var due = await _repository.Get()
+            .Include(b => b.Category)
+            .Where(b => b.Status == BookStatus.Scheduled && b.ReleaseDate != null && b.ReleaseDate <= today)
+            .ToListAsync();
+
+        foreach (var book in due)
+        {
+            book.Status = BookStatus.Available;
+            book.ReleaseDate = null;
+            // ApprovedAt passa a marcar a publicação: o digest diário de novos livros usa esse campo.
+            book.ApprovedAt = _timeProvider.GetUtcNow().UtcDateTime;
+            book.ChooseDate = DateTime.Today.AddDays(daysInShowcase);
+            await PersistBookUpdateAsync(book);
+
+            await NotifyBookAvailableAsync(book);
+        }
+
+        return due;
+    }
+
+    private DateOnly TodaySaoPaulo()
+        => DateOnly.FromDateTime(DateTimeHelper.ConvertDateTimeSaoPaulo(_timeProvider.GetUtcNow().UtcDateTime));
+
+    private async Task NotifyBookAvailableAsync(Book book)
+    {
         // notifica o doador
         await _booksEmailService.SendEmailBookApprovedAsync(book);
 
         // notifica possíveis interessados.
-        var message = new NewBookBody
+        await _newBookQueue.SendMessageAsync(new NewBookBody
         {
             BookId = book.Id,
             BookTitle = book.Title,
             CategoryId = book.CategoryId
-        };
-        await _newBookQueue.SendMessageAsync(message);
-
+        });
     }
 
     public async Task MarkAsDeliveredAsync(Guid bookId)

@@ -48,6 +48,9 @@ public class Book : BaseEntity
 
     public DateTime? ChooseDate { get; set; }
 
+    /// <summary>Data (fuso de São Paulo) em que um livro Scheduled passa a Available. Só preenchida enquanto agendado.</summary>
+    public DateOnly? ReleaseDate { get; set; }
+
     public string? Synopsis { get; set; }
 
     public string? TrackingNumber { get; set; }
@@ -67,6 +70,10 @@ public class Book : BaseEntity
 
     [NotMapped]
     public byte[]? PdfBytes { get; set; }
+
+    /// <summary>Só preenchido nas listagens de admin, para livros Scheduled.</summary>
+    [NotMapped]
+    public int ReleaseInterestCount { get; set; }
 
     public Book()
     {

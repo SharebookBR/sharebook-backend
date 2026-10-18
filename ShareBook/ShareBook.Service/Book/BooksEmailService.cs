@@ -23,6 +23,7 @@ public class BooksEmailService(
     private const string BookApprovedTitle = "Seu livro está na vitrine!";
     private const string EbookApprovedTitle = "Seu livro digital está no ar!";
     private const string NewBookNotifyTemplate = "NewBookNotifyTemplate";
+    private const string BookReleasedNotifyTemplate = "BookReleasedNotifyTemplate";
     private const string BookReceivedTemplate = "BookReceivedTemplate";
 
     private readonly IEmailService _emailService = emailService;
@@ -102,6 +103,23 @@ public class BooksEmailService(
 
             await _emailService.SendAsync(book.User.Email, book.User.Name, html, WaitingApprovalTitle, copyAdmins: false, highPriority: true);
         }
+    }
+
+    public async Task SendEmailBookReleasedAsync(Book book, User user, string coverUrl, string frontendUrl, string unsubscribeUrl)
+    {
+        var vm = new
+        {
+            Name = user.FirstName,
+            Book = book,
+            CoverUrl = coverUrl,
+            ChooseDate = book.ChooseDate?.ToString("dd/MM/yyyy"),
+            FrontendUrl = frontendUrl,
+            UnsubscribeUrl = unsubscribeUrl
+        };
+
+        var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookReleasedNotifyTemplate, vm);
+        // Fila de baixa prioridade: é aviso em lote no dia da liberação, não e-mail transacional.
+        await _emailService.SendAsync(user.Email, user.Name, html, $"Chegou o dia: {book.Title} está na vitrine", copyAdmins: false, highPriority: false);
     }
 
     public async Task SendEmailCopyrightReportAsync(Book book)
