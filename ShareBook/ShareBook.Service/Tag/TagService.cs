@@ -42,7 +42,6 @@ public class TagService(ApplicationDbContext context, IUploadService uploadServi
             .Where(bookTag => ids.Contains(bookTag.TagId)
                 && bookTag.ReviewStatus == BookTagReviewStatus.Approved
                 && bookTag.Book.Status == BookStatus.Available
-                && (bookTag.Book.Type == BookType.Eletronic || bookTag.Book.ReleaseAtUtc == null || bookTag.Book.ReleaseAtUtc <= DateTime.UtcNow)
                 && bookTag.Tag.Status == TagStatus.Active
                 && bookTag.Tag.IsPublic)
             .GroupBy(bookTag => bookTag.TagId)
@@ -85,8 +84,8 @@ public class TagService(ApplicationDbContext context, IUploadService uploadServi
                 .ThenInclude(category => category.ParentCategory)
             .Include(book => book.BookTags)
                 .ThenInclude(bookTag => bookTag.Tag)
-            .WherePubliclyAvailable(DateTime.UtcNow)
-            .Where(book => book.BookTags.Any(bookTag =>
+            .Where(book => book.Status == BookStatus.Available
+                && book.BookTags.Any(bookTag =>
                     bookTag.TagId == tag.Id
                     && bookTag.ReviewStatus == BookTagReviewStatus.Approved
                     && bookTag.Tag.Status == TagStatus.Active
