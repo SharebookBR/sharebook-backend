@@ -17,6 +17,7 @@ public class AnalyticsDashboardDto
     public Dictionary<string, List<BookMetric>> TopBooksByDownloadsPerWeek { get; set; } = new();
     public List<EventMetric> EventSummary { get; set; } = [];
     public Dictionary<string, List<EventMetric>> EventSummaryPerWeek { get; set; } = new();
+    public PrelaunchInterestFunnel PrelaunchInterestFunnel { get; set; } = new();
     public SearchAnalytics SearchAnalytics { get; set; } = new();
     public SearchConsoleAnalytics SearchConsole { get; set; } = new();
 }
@@ -32,6 +33,15 @@ public class BookMetric
     public string Path { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public int Count { get; set; }
+    public string? Type { get; set; }
+    public bool IsScheduled { get; set; }
+}
+
+public class PrelaunchInterestFunnel
+{
+    public string StartDate { get; set; } = string.Empty;
+    public int Clicks { get; set; }
+    public int Conversions { get; set; }
 }
 
 public class EventMetric

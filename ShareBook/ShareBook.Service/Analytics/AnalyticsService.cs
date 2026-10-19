@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ShareBook.Domain.Enums;
 
 namespace ShareBook.Service.Analytics;
 
@@ -18,16 +19,19 @@ public class AnalyticsService(
     IOptions<GA4Settings> settings,
     IMemoryCache cache,
     ISearchConsoleService searchConsoleService,
+    IAnalyticsBookCatalogMetadataService catalogMetadataService,
     ILogger<AnalyticsService> logger) : IAnalyticsService
 {
     private const string PropertyId = "386966473";
     private const string CacheKey = "ga4_dashboard";
+    private const string PrelaunchInterestStartDate = "2026-10-20";
     private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(24);
     private static readonly TimeSpan StaleFallbackDuration = TimeSpan.FromHours(1);
 
     private readonly GA4Settings _settings = settings.Value;
     private readonly IMemoryCache _cache = cache;
     private readonly ISearchConsoleService _searchConsoleService = searchConsoleService;
+    private readonly IAnalyticsBookCatalogMetadataService _catalogMetadataService = catalogMetadataService;
     private readonly ILogger<AnalyticsService> _logger = logger;
     private readonly object _refreshGate = new();
     private Task<AnalyticsDashboardDto>? _refreshTask;
@@ -188,7 +192,10 @@ public class AnalyticsService(
         var topDownloadsPerWeek = await MeasureAsync("ga4.top_books_by_downloads_per_week", () => FetchTopBooksWeeklyAsync(client, property, dateRange, byDownload: true));
         var eventSummary = await MeasureAsync("ga4.event_summary", () => FetchEventSummaryAsync(client, property, dateRange));
         var eventSummaryPerWeek = await MeasureAsync("ga4.event_summary_per_week", () => FetchEventSummaryWeeklyAsync(client, property, dateRange));
+        var prelaunchInterestFunnel = await MeasureAsync("ga4.prelaunch_interest_funnel", () => FetchPrelaunchInterestFunnelAsync(client, property));
         var searchAnalytics = await MeasureAsync("ga4.search_analytics", () => FetchSearchAnalyticsAsync(client, property));
+
+        await MeasureAsync("catalog.analytics_view_metadata", () => EnrichViewMetadataAsync(topViews, topViewsPerWeek));
 
         return new AnalyticsDashboardDto
         {
@@ -205,6 +212,7 @@ public class AnalyticsService(
             TopBooksByDownloadsPerWeek = topDownloadsPerWeek,
             EventSummary = eventSummary,
             EventSummaryPerWeek = eventSummaryPerWeek,
+            PrelaunchInterestFunnel = prelaunchInterestFunnel,
             SearchAnalytics = searchAnalytics,
             SearchConsole = await searchConsoleTask
         };
@@ -418,6 +426,38 @@ public class AnalyticsService(
             : 0;
     }
 
+    private async Task<PrelaunchInterestFunnel> FetchPrelaunchInterestFunnelAsync(
+        BetaAnalyticsDataClient client, string property)
+    {
+        var startDate = DateOnly.Parse(PrelaunchInterestStartDate);
+        var saoPaulo = TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo");
+        var today = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, saoPaulo).Date;
+
+        if (today < startDate.ToDateTime(TimeOnly.MinValue).Date)
+        {
+            return new PrelaunchInterestFunnel { StartDate = PrelaunchInterestStartDate };
+        }
+
+        // Both sides intentionally share this exact fixed window. Using the
+        // same range prevents old subscribe events from inflating the rate.
+        var dateRange = new DateRange
+        {
+            StartDate = PrelaunchInterestStartDate,
+            EndDate = today.ToString("yyyy-MM-dd")
+        };
+
+        var clicksTask = FetchEventTotalAsync(client, property, dateRange, "release_interest_click");
+        var conversionsTask = FetchEventTotalAsync(client, property, dateRange, "release_interest_subscribe");
+        await Task.WhenAll(clicksTask, conversionsTask);
+
+        return new PrelaunchInterestFunnel
+        {
+            StartDate = PrelaunchInterestStartDate,
+            Clicks = clicksTask.Result,
+            Conversions = conversionsTask.Result
+        };
+    }
+
     private async Task<List<BookMetric>> FetchTopBooksAsync(
         BetaAnalyticsDataClient client, string property, DateRange dateRange, bool byDownload)
     {
@@ -529,11 +569,61 @@ public class AnalyticsService(
         return grouped;
     }
 
+    private async Task EnrichViewMetadataAsync(
+        List<BookMetric> allTimeViews,
+        Dictionary<string, List<BookMetric>> weeklyViews)
+    {
+        var viewMetrics = allTimeViews
+            .Concat(weeklyViews.Values.SelectMany(metrics => metrics))
+            .ToList();
+        var metadataBySlug = await _catalogMetadataService.GetBySlugAsync(
+            viewMetrics.Select(metric => ExtractSlug(metric.Path)));
+
+        foreach (var metric in viewMetrics)
+        {
+            if (!metadataBySlug.TryGetValue(ExtractSlug(metric.Path), out var metadata))
+                continue;
+
+            metric.Type = metadata.Type.ToString();
+            metric.IsScheduled = metadata.Status == BookStatus.Scheduled;
+        }
+    }
+
+    private async Task MeasureAsync(string operation, Func<Task> action)
+    {
+        var stopwatch = Stopwatch.StartNew();
+
+        try
+        {
+            await action();
+            _logger.LogInformation(
+                "Analytics dashboard dependency completed. Operation={Operation} ElapsedMs={ElapsedMs}",
+                operation,
+                stopwatch.Elapsed.TotalMilliseconds);
+        }
+        catch (Exception exception)
+        {
+            _logger.LogWarning(
+                exception,
+                "Analytics dashboard dependency failed. Operation={Operation} ElapsedMs={ElapsedMs}",
+                operation,
+                stopwatch.Elapsed.TotalMilliseconds);
+            throw;
+        }
+    }
+
+    private static string ExtractSlug(string path)
+    {
+        var normalizedPath = path.Split('?', 2)[0].TrimEnd('/');
+        return normalizedPath.Split('/').LastOrDefault() ?? string.Empty;
+    }
+
     private static readonly List<string> TrackedEvents =
     [
         "ebook_download", "amazon_click", "share_modal_open",
         "social_share", "search", "login", "sign_up",
-        "book_request_modal_open", "book_request_success", "book_request_error"
+        "book_request_modal_open", "book_request_success", "book_request_error",
+        "release_interest_click", "release_interest_subscribe"
     ];
 
     private async Task<List<EventMetric>> FetchEventSummaryAsync(

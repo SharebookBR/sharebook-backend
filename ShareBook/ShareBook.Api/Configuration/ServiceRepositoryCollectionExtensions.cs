@@ -52,6 +52,7 @@ public static class ServiceRepositoryCollectionExtensions
         services.AddScoped<IImporterDashboardService, ImporterDashboardService>();
         services.AddHttpClient<ISearchConsoleApiClient, SearchConsoleApiClient>();
         services.AddSingleton<ISearchConsoleService, SearchConsoleService>();
+        services.AddSingleton<IAnalyticsBookCatalogMetadataService, AnalyticsBookCatalogMetadataService>();
         services.AddSingleton<IAnalyticsService, AnalyticsService>();
         services.AddHostedService<AnalyticsDashboardWarmupHostedService>();
 
