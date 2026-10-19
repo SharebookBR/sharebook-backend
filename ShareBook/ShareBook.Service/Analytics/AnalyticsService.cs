@@ -45,11 +45,14 @@ public class AnalyticsService(
             _logger.LogInformation(
                 "Analytics dashboard cache hit. CacheAgeSeconds={CacheAgeSeconds}",
                 GetCacheAgeSeconds());
+            await EnrichViewMetadataSafeAsync(cached);
             return cached;
         }
 
         _logger.LogInformation("Analytics dashboard cache miss. Source={Source}", "request");
-        return await RefreshAsync("request");
+        var dashboard = await RefreshAsync("request");
+        await EnrichViewMetadataSafeAsync(dashboard);
+        return dashboard;
     }
 
     public async Task WarmCacheAsync(string source, CancellationToken cancellationToken = default)
@@ -194,8 +197,6 @@ public class AnalyticsService(
         var eventSummaryPerWeek = await MeasureAsync("ga4.event_summary_per_week", () => FetchEventSummaryWeeklyAsync(client, property, dateRange));
         var prelaunchInterestFunnel = await MeasureAsync("ga4.prelaunch_interest_funnel", () => FetchPrelaunchInterestFunnelAsync(client, property));
         var searchAnalytics = await MeasureAsync("ga4.search_analytics", () => FetchSearchAnalyticsAsync(client, property));
-
-        await MeasureAsync("catalog.analytics_view_metadata", () => EnrichViewMetadataAsync(topViews, topViewsPerWeek));
 
         return new AnalyticsDashboardDto
         {
@@ -586,6 +587,35 @@ public class AnalyticsService(
 
             metric.Type = metadata.Type.ToString();
             metric.IsScheduled = metadata.Status == BookStatus.Scheduled;
+        }
+    }
+
+    private async Task EnrichViewMetadataSafeAsync(AnalyticsDashboardDto dashboard)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        var viewMetrics = dashboard.TopBooksByViews
+            .Concat(dashboard.TopBooksByViewsPerWeek.Values.SelectMany(metrics => metrics));
+
+        foreach (var metric in viewMetrics)
+        {
+            metric.Type = null;
+            metric.IsScheduled = false;
+        }
+
+        try
+        {
+            await EnrichViewMetadataAsync(dashboard.TopBooksByViews, dashboard.TopBooksByViewsPerWeek);
+            _logger.LogInformation(
+                "Analytics dashboard dependency completed. Operation={Operation} ElapsedMs={ElapsedMs}",
+                "catalog.analytics_view_metadata",
+                stopwatch.Elapsed.TotalMilliseconds);
+        }
+        catch (Exception exception)
+        {
+            _logger.LogWarning(
+                exception,
+                "Catalog metadata unavailable; serving analytics dashboard without book badges. ElapsedMs={ElapsedMs}",
+                stopwatch.Elapsed.TotalMilliseconds);
         }
     }
 
