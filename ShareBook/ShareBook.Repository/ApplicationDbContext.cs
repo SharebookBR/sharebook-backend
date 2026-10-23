@@ -24,6 +24,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<BookTag> BookTags { get; set; }
     public DbSet<BookReleaseInterest> BookReleaseInterests { get; set; }
     public DbSet<BookDownloadEvent> BookDownloadEvents { get; set; }
+    public DbSet<OnboardingJourney> OnboardingJourneys { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<EFLog> EFLogs { get; set; }
     public DbSet<BookUser> BookUser { get; set; }

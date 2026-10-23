@@ -449,8 +449,17 @@ public class EmailTemplateTests
             "NewBookInsertedTemplate.html"
         };
 
+        var onboardingTemplates = new[]
+        {
+            "OnboardingWelcomeTemplate.html",
+            "OnboardingCatalogTemplate.html",
+            "OnboardingDonationImpactTemplate.html",
+            "OnboardingDonationFlowTemplate.html",
+            "OnboardingCommunityTemplate.html"
+        };
+
         Assert.Equal(
-            transactionalTemplates.Length + newsletterTemplates.Length + internalTemplates.Length,
+            transactionalTemplates.Length + newsletterTemplates.Length + internalTemplates.Length + onboardingTemplates.Length,
             Directory.GetFiles(templatesFolder, "*.html").Length);
 
         foreach (var template in transactionalTemplates)
@@ -478,6 +487,42 @@ public class EmailTemplateTests
             Assert.DoesNotContain("fale com a gente", html);
             AssertCanonicalBranding(html);
         }
+
+        foreach (var template in onboardingTemplates)
+        {
+            var html = ReadTemplate(templatesFolder, template);
+            Assert.Contains("Um abraço", html);
+            Assert.Contains("Cancelar inscrição", html);
+            Assert.DoesNotContain("fale com a gente", html);
+            Assert.Contains("Equipe Sharebook", html);
+        }
+    }
+
+    [Theory]
+    [InlineData("OnboardingWelcomeTemplate", "Bem-vindo ao Sharebook")]
+    [InlineData("OnboardingCatalogTemplate", "Seu próximo livro pode estar aqui")]
+    [InlineData("OnboardingDonationImpactTemplate", "Todo livro importa. Muito.")]
+    [InlineData("OnboardingDonationFlowTemplate", "Não é sorteio. É escolha.")]
+    [InlineData("OnboardingCommunityTemplate", "Entrar na comunidade")]
+    public async Task VerifyOnboardingTemplatesRenderEveryLink(string template, string expectedContent)
+    {
+        var result = await emailTemplate.GenerateHtmlFromTemplateAsync(template, new
+        {
+            Name = "Maria",
+            BackendUrl = "https://api.sharebook.com.br",
+            FrontendUrl = "https://www.sharebook.com.br",
+            CommunityUrl = "https://chat.whatsapp.com/invite",
+            UnsubscribeUrl = "https://www.sharebook.com.br/descadastrar?token=test"
+        });
+
+        Assert.Contains(expectedContent, result);
+        Assert.Contains("Olá, Maria.", result);
+        Assert.Contains("https://www.sharebook.com.br/descadastrar?token=test", result);
+        Assert.DoesNotContain("{Name}", result);
+        Assert.DoesNotContain("{BackendUrl}", result);
+        Assert.DoesNotContain("{FrontendUrl}", result);
+        Assert.DoesNotContain("{CommunityUrl}", result);
+        Assert.DoesNotContain("{UnsubscribeUrl}", result);
     }
 
     private static string ReadTemplate(string templatesFolder, string template)

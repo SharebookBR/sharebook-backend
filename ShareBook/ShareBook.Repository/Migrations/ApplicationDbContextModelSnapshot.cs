@@ -532,6 +532,47 @@ namespace ShareBook.Infra.Data.Migrations
                     b.ToTable("MeetupParticipants");
                 });
 
+            modelBuilder.Entity("ShareBook.Domain.OnboardingJourney", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CanceledAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("CompletedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CompletionReason")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<DateTime?>("CreationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("LastQueuedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("NextEmailAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("NextStep")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.HasIndex("CompletedAtUtc", "CanceledAtUtc", "NextEmailAtUtc");
+
+                    b.ToTable("OnboardingJourneys");
+                });
+
             modelBuilder.Entity("ShareBook.Domain.Tag", b =>
                 {
                     b.Property<string>("Id")
@@ -788,6 +829,17 @@ namespace ShareBook.Infra.Data.Migrations
                         .HasForeignKey("MeetupId");
 
                     b.Navigation("Meetup");
+                });
+
+            modelBuilder.Entity("ShareBook.Domain.OnboardingJourney", b =>
+                {
+                    b.HasOne("ShareBook.Domain.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ShareBook.Domain.Book", b =>

@@ -12,6 +12,7 @@ using ShareBook.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service;
 using ShareBook.Service.Authorization;
+using ShareBook.Service.Onboarding;
 using ShareBook.Service.Recaptcha;
 using ShareBook.Test.Unit.Mocks;
 using System;
@@ -34,6 +35,7 @@ public class UserServiceTests
     readonly Mock<ILogger<UserService>> loggerMock;
     readonly Mock<IConfiguration> configMock;
     readonly Mock<ICurrentUserAccessor> currentUserAccessorMock;
+    readonly Mock<IOnboardingJourneyService> onboardingJourneyServiceMock;
     readonly Guid _currentUserId;
 
     public UserServiceTests()
@@ -49,6 +51,7 @@ public class UserServiceTests
         recaptchaServiceMock = new Mock<IRecaptchaService>();
         loggerMock = new Mock<ILogger<UserService>>();
         configMock = new Mock<IConfiguration>();
+        onboardingJourneyServiceMock = new Mock<IOnboardingJourneyService>();
 
         //Simula login do usuario
         var claimsUser = new UserMock().GetClaimsUser();
@@ -68,7 +71,7 @@ public class UserServiceTests
 
     private UserService CreateService(ApplicationDbContext context)
         => new UserService(userRepositoryMock.Object, bookRepositoryMock.Object, context, unitOfWorkMock.Object,
-            new UserValidator(), mapperMock.Object, userEmailServiceMock.Object, recaptchaServiceMock.Object, configMock.Object, TimeProvider.System, currentUserAccessorMock.Object);
+            new UserValidator(), mapperMock.Object, userEmailServiceMock.Object, recaptchaServiceMock.Object, configMock.Object, TimeProvider.System, currentUserAccessorMock.Object, onboardingJourneyServiceMock.Object);
 
     #region Register User
 

@@ -26,6 +26,7 @@ using ShareBook.Service.AwsSqs;
 using ShareBook.Service.EBook;
 using ShareBook.Service.Muambator;
 using ShareBook.Service.Notification;
+using ShareBook.Service.Onboarding;
 using ShareBook.Service.Server;
 using ShareBook.Service.Upload;
 using System;
@@ -88,6 +89,7 @@ public class Startup(IConfiguration configuration)
         services.Configure<EmailSettings>(options => Configuration.GetSection("EmailSettings").Bind(options));
 
         services.Configure<ServerSettings>(options => Configuration.GetSection("ServerSettings").Bind(options));
+        services.Configure<OnboardingSettings>(options => Configuration.GetSection("OnboardingSettings").Bind(options));
 
         services.Configure<PushNotificationSettings>(options => Configuration.GetSection("PushNotificationSettings").Bind(options));
 

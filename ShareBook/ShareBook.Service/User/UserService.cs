@@ -12,6 +12,7 @@ using ShareBook.Repository;
 using ShareBook.Repository.Repository;
 using ShareBook.Repository.UoW;
 using ShareBook.Service.Generic;
+using ShareBook.Service.Onboarding;
 using ShareBook.Service.Recaptcha;
 using System;
 using System.Collections.Generic;
@@ -29,7 +30,8 @@ public class UserService(IUserRepository userRepository, IBookRepository bookRep
     IValidator<User> validator,
     IMapper mapper,
     IUserEmailService userEmailService,
-    IRecaptchaService recaptchaService, IConfiguration config, TimeProvider timeProvider, ICurrentUserAccessor currentUserAccessor) : BaseService<User>(context, unitOfWork, validator), IUserService
+    IRecaptchaService recaptchaService, IConfiguration config, TimeProvider timeProvider, ICurrentUserAccessor currentUserAccessor,
+    IOnboardingJourneyService onboardingJourneyService) : BaseService<User>(context, unitOfWork, validator), IUserService
 {
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IBookRepository _bookRepository = bookRepository;
@@ -38,6 +40,7 @@ public class UserService(IUserRepository userRepository, IBookRepository bookRep
     private readonly IConfiguration _config = config;
     private readonly TimeProvider _timeProvider = timeProvider;
     private readonly ICurrentUserAccessor _currentUserAccessor = currentUserAccessor;
+    private readonly IOnboardingJourneyService _onboardingJourneyService = onboardingJourneyService;
 
     private readonly IMapper _mapper = mapper;
     private const string DuplicateEmailMessage = "Este e-mail já está cadastrado. Tente entrar ou use \"Esqueci minha senha\" para recuperar o acesso.";
@@ -121,7 +124,9 @@ public class UserService(IUserRepository userRepository, IBookRepository bookRep
             user = GetUserEncryptedPass(user);
             try
             {
-                result.Value = UserCleanup(await _repository.InsertAsync(user));
+                var insertedUser = await _repository.InsertAsync(user);
+                await _onboardingJourneyService.EnrollAsync(insertedUser);
+                result.Value = UserCleanup(insertedUser);
             }
             catch (Exception ex) when (DuplicateEmailExceptionDetector.IsDuplicateEmail(ex))
             {
@@ -316,6 +321,7 @@ public class UserService(IUserRepository userRepository, IBookRepository bookRep
 
         user.AllowSendingEmail = false;
         await _repository.UpdateAsync(user);
+        await _onboardingJourneyService.CancelAsync(user.Id, "unsubscribed");
         return true;
     }
 
@@ -356,6 +362,7 @@ public class UserService(IUserRepository userRepository, IBookRepository bookRep
         await _repository.UpdateAsync(user);
 
         await _userEmailService.SendEmailParentAprovedNotifyUserAsync(user);
+        await _onboardingJourneyService.EnrollAsync(user);
     }
 
 

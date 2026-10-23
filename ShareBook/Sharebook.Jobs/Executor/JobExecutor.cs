@@ -29,7 +29,8 @@ public class JobExecutor : IJobExecutor
                         MeetupSearch job4,
                         NewBookGetInterestedUsers job5,
                         MailSupressListUpdate job6,
-                        MailSender job7, // MailSender precisa ser o último!
+                        OnboardingEmailSender job11,
+                        MailSender job7,
                         NewEbookWeeklyDigest job8,
                         CleanupLogsTable job9,
                         ReleaseScheduledBooks job10)
@@ -47,6 +48,7 @@ public class JobExecutor : IJobExecutor
             job4,
             job5,
             job6,
+            job11,
             job7,
             job8,
             job9,

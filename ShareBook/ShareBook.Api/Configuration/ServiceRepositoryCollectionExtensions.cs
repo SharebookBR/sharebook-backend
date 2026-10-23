@@ -19,6 +19,7 @@ using ShareBook.Service.Importer;
 using ShareBook.Service.Lgpd;
 using ShareBook.Service.Muambator;
 using ShareBook.Service.Notification;
+using ShareBook.Service.Onboarding;
 using ShareBook.Service.Recaptcha;
 using ShareBook.Service.Upload;
 
@@ -39,6 +40,7 @@ public static class ServiceRepositoryCollectionExtensions
         services.AddScoped<IBookReleaseInterestService, BookReleaseInterestService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IUserEmailService, UserEmailService>();
+        services.AddScoped<IOnboardingJourneyService, OnboardingJourneyService>();
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<ITagService, TagService>();
         services.AddScoped<IContactUsService, ContactUsService>();
@@ -110,6 +112,7 @@ public static class ServiceRepositoryCollectionExtensions
         services.AddScoped<NewEbookWeeklyDigest>();
         services.AddScoped<CleanupLogsTable>();
         services.AddScoped<ReleaseScheduledBooks>();
+        services.AddScoped<OnboardingEmailSender>();
 
         //notification
         services.AddScoped<IPushNotificationService, PushNotificationService>();
