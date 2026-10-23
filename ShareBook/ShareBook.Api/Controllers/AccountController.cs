@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using ShareBook.Api.RateLimiting;
 using ShareBook.Api.Filters;
 using ShareBook.Api.ViewModels;
 using ShareBook.Domain;
@@ -30,7 +31,8 @@ public class AccountController(IUserService userService,
     IConfiguration configuration,
     IAccessHistoryRepository historyRepository,
     ILgpdService lgpdService,
-    ICurrentUserAccessor currentUserAccessor) : ControllerBase
+    ICurrentUserAccessor currentUserAccessor,
+    IUnsubscribeRateLimiter unsubscribeRateLimiter) : ControllerBase
 {
     private readonly IUserService _userService = userService;
     private readonly IApplicationSignInManager _signManager = signManager;
@@ -39,6 +41,7 @@ public class AccountController(IUserService userService,
     private readonly IAccessHistoryRepository _historyRepository = historyRepository;
     private readonly ILgpdService _lgpdService = lgpdService;
     private readonly ICurrentUserAccessor _currentUserAccessor = currentUserAccessor;
+    private readonly IUnsubscribeRateLimiter _unsubscribeRateLimiter = unsubscribeRateLimiter;
 
     #region GET
 
@@ -64,13 +67,6 @@ public class AccountController(IUserService userService,
         return new { profile = user.Profile.ToString() };
     }
 
-    [HttpGet("Unsubscribe")]
-    public async Task<IActionResult> UnsubscribeAsync([FromQuery] Guid userId, [FromQuery] string token)
-    {
-        var success = await _userService.UnsubscribeAsync(userId, token);
-        return Ok(new { success });
-    }
-
     [Authorize("Bearer")]
     [HttpGet("WhoAccessed/{userId:Guid}")]
     [ProducesResponseType(typeof(AccessHistoryVM), StatusCodes.Status200OK)]
@@ -93,6 +89,24 @@ public class AccountController(IUserService userService,
     #endregion GET
 
     #region POST
+
+    [HttpPost("Unsubscribe")]
+    public async Task<IActionResult> UnsubscribeAsync([FromBody] UnsubscribeVM request)
+    {
+        var rateLimitResult = _unsubscribeRateLimiter.TryAcquire();
+        if (!rateLimitResult.IsAllowed)
+        {
+            Response.Headers["Retry-After"] = rateLimitResult.RetryAfterSeconds.ToString();
+            return StatusCode(StatusCodes.Status429TooManyRequests, new
+            {
+                message = "Aguarde alguns segundos antes de tentar novamente.",
+                retryAfterSeconds = rateLimitResult.RetryAfterSeconds
+            });
+        }
+
+        var success = await _userService.UnsubscribeAsync(request.UserId, request.Token);
+        return Ok(new { success });
+    }
 
     [HttpPost("Register")]
     [ProducesResponseType(typeof(object), 200)]

@@ -83,6 +83,7 @@ public class Startup(IConfiguration configuration)
         services.AddSingleton(TimeProvider.System);
         services.AddScoped<ICurrentUserAccessor, CurrentUserAccessor>();
         services.AddSingleton<IEBookDownloadRateLimiter, EBookDownloadRateLimiter>();
+        services.AddSingleton<IUnsubscribeRateLimiter, UnsubscribeRateLimiter>();
 
         services.Configure<ImageSettings>(options => Configuration.GetSection("ImageSettings").Bind(options));
 
