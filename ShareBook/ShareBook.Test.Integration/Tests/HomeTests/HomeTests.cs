@@ -12,7 +12,7 @@ public class HomeTests(ShareBookTestsFixture fixture)
     private readonly ShareBookTestsFixture _fixture = fixture;
 
     [Fact]
-    public async Task FeaturedPrintedBooks_ReturnsCompactAvailableList()
+    public async Task FeaturedPrintedBooks_ReturnsNewestAvailableBooksBeforeUpcomingBooks()
     {
         var response = await _fixture.ShareBookApiClient.GetAsync("api/home/featured-printed-books");
 
@@ -20,12 +20,8 @@ public class HomeTests(ShareBookTestsFixture fixture)
         var responseAsString = await response.Content.ReadAsStringAsync();
         var books = JsonConvert.DeserializeObject<IList<HomeShowcaseBookDTO>>(responseAsString);
 
-        var expectedCount = _fixture.ApplicationDbContext.Books
-            .Count(b => b.Status == BookStatus.Available && b.Type == BookType.Printed);
-
         books.Should().NotBeNull();
-        books!.Count.Should().Be(Math.Min(expectedCount, 15));
-        books.Should().OnlyContain(book =>
+        books!.Should().OnlyContain(book =>
             book.Type == BookType.Printed.ToString()
             && !string.IsNullOrWhiteSpace(book.Title)
             && !string.IsNullOrWhiteSpace(book.Slug)
@@ -34,14 +30,21 @@ public class HomeTests(ShareBookTestsFixture fixture)
             && book.ImageUrl.EndsWith("?v=1")
             && book.ThumbnailUrl.EndsWith("?v=1"));
 
-        var expectedSlugs = _fixture.ApplicationDbContext.Books
+        var expectedAvailableSlugs = _fixture.ApplicationDbContext.Books
             .Where(b => b.Status == BookStatus.Available && b.Type == BookType.Printed)
-            .OrderByDescending(b => b.ChooseDate ?? b.CreationDate)
-            .ThenBy(b => b.CreationDate)
+            .OrderByDescending(b => b.CreationDate)
             .Take(15)
-            .Select(b => b.Slug)
-            .ToList();
+            .Select(b => b.Slug);
 
+        var expectedUpcomingSlugs = _fixture.ApplicationDbContext.Books
+            .Where(b => b.Status == BookStatus.Scheduled && b.Type == BookType.Printed)
+            .OrderBy(b => b.ReleaseDate)
+            .ThenBy(b => b.CreationDate)
+            .Select(b => b.Slug);
+
+        var expectedSlugs = expectedAvailableSlugs.Concat(expectedUpcomingSlugs).ToList();
+
+        books.Count.Should().Be(expectedSlugs.Count);
         books.Select(book => book.Slug).Should().Equal(expectedSlugs);
     }
 

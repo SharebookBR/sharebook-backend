@@ -33,8 +33,7 @@ public class HomeService(
         var books = await _bookRepository.Get()
             .Where(b => b.Status == BookStatus.Available
                      && b.Type == BookType.Printed)
-            .OrderByDescending(b => b.ChooseDate ?? b.CreationDate)
-            .ThenBy(b => b.CreationDate)
+            .OrderByDescending(b => b.CreationDate)
             .Take(FeaturedPrintedBooks)
             .ToListAsync();
 
