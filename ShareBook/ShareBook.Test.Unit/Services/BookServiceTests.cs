@@ -86,6 +86,79 @@ public class BookServiceTests
     }
 
     [Fact]
+    public async Task GetNewest15EBooksAsync_ShouldOrderByApprovalDateWithCreationDateFallback()
+    {
+        await using var connection = new SqliteConnection("Data Source=:memory:");
+        await connection.OpenAsync();
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseSqlite(connection)
+            .Options;
+        await using var context = new ApplicationDbContext(options);
+        await context.Database.EnsureCreatedAsync();
+        var user = new User
+        {
+            Name = "Showcase Donor",
+            Email = "showcase@example.com",
+            Password = "password",
+            PasswordSalt = "salt",
+            Address = new Address { City = "Sao Paulo", State = "SP", Country = "Brasil" }
+        };
+        var category = new Category { Name = "Sociedade & Mundo" };
+
+        context.Books.AddRange(
+            new Book
+            {
+                Title = "Aprovado Agora", Author = "Autora", Slug = "aprovado-agora", ImageSlug = "aprovado-agora.png",
+                Status = BookStatus.Available, Type = BookType.Eletronic,
+                CreationDate = new DateTime(2026, 1, 1), ApprovedAt = new DateTime(2026, 10, 30),
+                User = user, Category = category
+            },
+            new Book
+            {
+                Title = "Aprovado Antes", Author = "Autor", Slug = "aprovado-antes", ImageSlug = "aprovado-antes.png",
+                Status = BookStatus.Available, Type = BookType.Eletronic,
+                CreationDate = new DateTime(2026, 10, 20), ApprovedAt = new DateTime(2026, 10, 29),
+                User = user, Category = category
+            },
+            new Book
+            {
+                Title = "Legado Sem Data", Author = "Autora", Slug = "legado-sem-data", ImageSlug = "legado-sem-data.png",
+                Status = BookStatus.Available, Type = BookType.Eletronic,
+                CreationDate = new DateTime(2026, 10, 28),
+                User = user, Category = category
+            },
+            new Book
+            {
+                Title = "Legado Mais Antigo", Author = "Autor", Slug = "legado-mais-antigo", ImageSlug = "legado-mais-antigo.png",
+                Status = BookStatus.Available, Type = BookType.Eletronic,
+                CreationDate = new DateTime(2026, 10, 27),
+                User = user, Category = category
+            });
+        await context.SaveChangesAsync();
+
+        // SaveChanges registra auditoria e fixa CreationDate no instante da gravação.
+        // Ajustamos os dados de fixture diretamente para exercer o fallback de legados
+        // sem passar novamente pela auditoria.
+        await context.Database.ExecuteSqlInterpolatedAsync($"""
+            UPDATE "Books" SET "CreationDate" = {new DateTime(2026, 10, 28)}
+            WHERE "Slug" = {"legado-sem-data"}
+            """);
+        await context.Database.ExecuteSqlInterpolatedAsync($"""
+            UPDATE "Books" SET "CreationDate" = {new DateTime(2026, 10, 27)}
+            WHERE "Slug" = {"legado-mais-antigo"}
+            """);
+        context.ChangeTracker.Clear();
+
+        var service = CreateService(new BookRepository(context), context);
+
+        var books = await service.GetNewest15EBooksAsync();
+
+        Assert.Equal(
+            new[] { "Aprovado Agora", "Aprovado Antes", "Legado Sem Data", "Legado Mais Antigo" },
+            books.Select(book => book.Title).ToArray());
+    }
+
+    [Fact]
     public async Task FullSearch_PublicSearch_ShouldIncludeUpcomingBooksWithTheirReleaseDate()
     {
         await using var context = await CreateSearchContextAsync();

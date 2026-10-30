@@ -38,7 +38,8 @@ public partial class BookService
                 .Include(b => b.Category)
                 .ThenInclude(c => c.ParentCategory)
                 .Where(b => b.Status == BookStatus.Available && b.Type == BookType.Eletronic)
-                .OrderByDescending(x => x.CreationDate) // os mais novos primeiro
+                .OrderByDescending(x => x.ApprovedAt ?? x.CreationDate)
+                .ThenByDescending(x => x.CreationDate)
                 .Take(15) // apenas 15 registros
                 .ToListAsync()
          );
