@@ -186,6 +186,60 @@ public class BookServiceTests
     }
 
     [Fact]
+    public async Task GetUserDonationsAsync_ScheduledBookIncludesRequestedReleaseNotifications()
+    {
+        await using var context = await CreateEmptyContextAsync();
+        var donor = new User
+        {
+            Id = _currentUserId,
+            Name = "Doadora",
+            Email = "doadora@example.com",
+            Password = "password",
+            PasswordSalt = "salt",
+            Address = new Address { City = "Sao Paulo", State = "SP", Country = "Brasil" }
+        };
+        var category = new Category { Name = "Literatura" };
+        var scheduledBook = new Book
+        {
+            Title = "Em breve",
+            Author = "Autora",
+            Slug = "em-breve",
+            ImageSlug = "em-breve.jpg",
+            Status = BookStatus.Scheduled,
+            ReleaseDate = new DateOnly(2026, 11, 15),
+            Type = BookType.Printed,
+            User = donor,
+            Category = category
+        };
+        var availableBook = new Book
+        {
+            Title = "Disponível",
+            Author = "Autor",
+            Slug = "disponivel",
+            ImageSlug = "disponivel.jpg",
+            Status = BookStatus.Available,
+            Type = BookType.Printed,
+            User = donor,
+            Category = category
+        };
+
+        context.Books.AddRange(scheduledBook, availableBook);
+        await context.SaveChangesAsync();
+
+        context.BookReleaseInterests.AddRange(
+            new BookReleaseInterest { BookId = scheduledBook.Id, User = NewReleaseInterestUser("leitor-1@example.com") },
+            new BookReleaseInterest { BookId = scheduledBook.Id, User = NewReleaseInterestUser("leitor-2@example.com") });
+        await context.SaveChangesAsync();
+
+        var service = CreateService(new BookRepository(context), context);
+
+        var result = await service.GetUserDonationsAsync(_currentUserId, 1, 24);
+
+        Assert.Equal(2, result.Items.Single(book => book.Id == scheduledBook.Id).ReleaseInterestCount);
+        Assert.Equal(0, result.Items.Single(book => book.Id == availableBook.Id).ReleaseInterestCount);
+    }
+
+    [Fact]
     public async Task FullSearch_PublicSearch_ListsPhysicalAvailableThenUpcomingThenDigital()
     {
         await using var context = await CreateSearchContextAsync();
@@ -960,6 +1014,15 @@ public class BookServiceTests
             unitOfWorkMock.Object, new BookValidator(),
             uploadServiceMock.Object, bookEmailService.Object, configurationMock.Object,
             sqsMock.Object, ebookServiceMock.Object, categoryRepositoryMock.Object, TimeProvider.System, currentUserAccessorMock.Object, tagServiceMock.Object);
+
+    private static User NewReleaseInterestUser(string email) => new()
+    {
+        Name = email,
+        Email = email,
+        Password = "password",
+        PasswordSalt = "salt",
+        Address = new Address { City = "Sao Paulo", State = "SP", Country = "Brasil" }
+    };
 
     private static async Task<ApplicationDbContext> CreateEmptyContextAsync()
     {

@@ -230,6 +230,8 @@ public partial class BookService
             .Take(normalizedItemsPerPage)
             .ToListAsync();
 
+        await FillReleaseInterestCountsAsync(items);
+
         return new UserDonationsResultDTO
         {
             Page = effectivePage,
