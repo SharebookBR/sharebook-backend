@@ -186,7 +186,7 @@ public class BookServiceTests
     }
 
     [Fact]
-    public async Task GetUserDonationsAsync_ScheduledBookIncludesRequestedReleaseNotifications()
+    public async Task GetUserDonationsAsync_IncludesRequestedReleaseNotificationsRegardlessOfStatus()
     {
         await using var context = await CreateEmptyContextAsync();
         var donor = new User
@@ -228,7 +228,8 @@ public class BookServiceTests
 
         context.BookReleaseInterests.AddRange(
             new BookReleaseInterest { BookId = scheduledBook.Id, User = NewReleaseInterestUser("leitor-1@example.com") },
-            new BookReleaseInterest { BookId = scheduledBook.Id, User = NewReleaseInterestUser("leitor-2@example.com") });
+            new BookReleaseInterest { BookId = scheduledBook.Id, User = NewReleaseInterestUser("leitor-2@example.com") },
+            new BookReleaseInterest { BookId = availableBook.Id, User = NewReleaseInterestUser("leitor-3@example.com") });
         await context.SaveChangesAsync();
 
         var service = CreateService(new BookRepository(context), context);
@@ -236,7 +237,7 @@ public class BookServiceTests
         var result = await service.GetUserDonationsAsync(_currentUserId, 1, 24);
 
         Assert.Equal(2, result.Items.Single(book => book.Id == scheduledBook.Id).ReleaseInterestCount);
-        Assert.Equal(0, result.Items.Single(book => book.Id == availableBook.Id).ReleaseInterestCount);
+        Assert.Equal(1, result.Items.Single(book => book.Id == availableBook.Id).ReleaseInterestCount);
     }
 
     [Fact]

@@ -52,12 +52,12 @@ public partial class BookService
 
     private async Task FillReleaseInterestCountsAsync(IList<Book> books)
     {
-        var scheduledIds = books.Where(b => b.Status == BookStatus.Scheduled).Select(b => b.Id).ToList();
-        if (scheduledIds.Count == 0)
+        var bookIds = books.Select(b => b.Id).ToList();
+        if (bookIds.Count == 0)
             return;
 
         var counts = await _context.BookReleaseInterests
-            .Where(i => scheduledIds.Contains(i.BookId))
+            .Where(i => bookIds.Contains(i.BookId))
             .GroupBy(i => i.BookId)
             .Select(g => new { BookId = g.Key, Total = g.Count() })
             .ToDictionaryAsync(x => x.BookId, x => x.Total);

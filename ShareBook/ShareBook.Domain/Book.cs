@@ -71,7 +71,7 @@ public class Book : BaseEntity
     [NotMapped]
     public byte[]? PdfBytes { get; set; }
 
-    /// <summary>Só preenchido nas listagens de admin, para livros Scheduled.</summary>
+    /// <summary>Preenchido nas listagens de doações com o total de avisos pedidos para o livro.</summary>
     [NotMapped]
     public int ReleaseInterestCount { get; set; }
 
