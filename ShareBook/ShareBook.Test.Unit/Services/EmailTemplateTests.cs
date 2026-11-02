@@ -418,6 +418,7 @@ public class EmailTemplateTests
             "BookNoticeDonorTemplate.html",
             "BookNoticeInterestedTemplate.html",
             "BookReceivedTemplate.html",
+            "BookRejectedTemplate.html",
             "BookTrackingNumberNoticeWinnerTemplate.html",
             "ChooseDateReminderMultipleTemplate.html",
             "ChooseDateReminderTemplate.html",
