@@ -489,13 +489,15 @@ public class EmailTemplateTests
             AssertCanonicalBranding(html);
         }
 
-        foreach (var template in onboardingTemplates)
+        for (var index = 0; index < onboardingTemplates.Length; index++)
         {
-            var html = ReadTemplate(templatesFolder, template);
+            var html = ReadTemplate(templatesFolder, onboardingTemplates[index]);
             Assert.Contains("Um abraço", html);
             Assert.Contains("Cancelar inscrição", html);
             Assert.DoesNotContain("fale com a gente", html);
             Assert.Contains("Equipe Sharebook", html);
+            Assert.Contains(">Onboarding<", html);
+            Assert.Contains($">{index + 1} de 5<", html);
         }
     }
 
