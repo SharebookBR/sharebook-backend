@@ -82,6 +82,42 @@ public class BookReleaseScheduleTests
     }
 
     [Fact]
+    public async Task RejectPendingDonation_CancelsBookRegistersReasonAndNotifiesDonor()
+    {
+        await using var context = NewContext();
+        var book = await AddBookAsync(context, BookStatus.WaitingApproval, BookType.Eletronic);
+
+        await CreateService(context).RejectPendingDonationAsync(
+            book.Id,
+            "A edição enviada não possui autorização para redistribuição.",
+            "Admin Sharebook");
+
+        var saved = (await context.Books.FindAsync(book.Id))!;
+        Assert.Equal(BookStatus.Canceled, saved.Status);
+        Assert.Null(saved.ChooseDate);
+        Assert.Null(saved.ReleaseDate);
+        Assert.Contains("Reprovado por Admin Sharebook", saved.AdminNotes);
+        Assert.Contains("não possui autorização", saved.AdminNotes);
+        emailMock.Verify(x => x.SendEmailBookRejectedAsync(
+            It.Is<Book>(b => b.Id == book.Id),
+            "A edição enviada não possui autorização para redistribuição."), Times.Once);
+    }
+
+    [Fact]
+    public async Task RejectPendingDonation_RejectsAnyStatusOtherThanWaitingApproval()
+    {
+        await using var context = NewContext();
+        var book = await AddBookAsync(context, BookStatus.Available, BookType.Eletronic);
+
+        await Assert.ThrowsAsync<ShareBookException>(() => CreateService(context).RejectPendingDonationAsync(
+            book.Id,
+            "Mensagem", "Admin Sharebook"));
+
+        Assert.Equal(BookStatus.Available, (await context.Books.FindAsync(book.Id))!.Status);
+        emailMock.Verify(x => x.SendEmailBookRejectedAsync(It.IsAny<Book>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
     public async Task ReleaseDue_PromotesOnlyBooksWhoseDateArrived()
     {
         await using var context = NewContext();

@@ -9,6 +9,8 @@ public interface IBooksEmailService
 
     Task SendEmailBookApprovedAsync(Book book);
 
+    Task SendEmailBookRejectedAsync(Book book, string reason);
+
     Task SendEmailBookReceivedAsync(Book book);
 
     Task SendEmailCopyrightReportAsync(Book book);

@@ -162,6 +162,16 @@ public class BookController(IBookService bookService,
     }
 
     [Authorize("Bearer")]
+    [AuthorizationFilter(Permissions.Permission.ApproveBook)]
+    [HttpPost("Reject/{id}")]
+    public async Task<Result> RejectAsync(string id, [FromBody] RejectBookVM model)
+    {
+        var admin = await GetSessionUserAsync();
+        await _service.RejectPendingDonationAsync(new Guid(id), model.Reason, admin?.Name ?? "Administração");
+        return new Result("Doação reprovada e pessoa doadora notificada.");
+    }
+
+    [Authorize("Bearer")]
     [HttpPost("Received/{bookId}")]
     public async Task<Result> ReceivedAsync(string bookId)
     {

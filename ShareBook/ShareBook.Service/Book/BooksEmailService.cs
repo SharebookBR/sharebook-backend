@@ -4,6 +4,7 @@ using ShareBook.Domain;
 using ShareBook.Domain.DTOs;
 using ShareBook.Service.AwsSqs;
 using ShareBook.Service.Server;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace ShareBook.Service;
@@ -22,6 +23,8 @@ public class BooksEmailService(
     private const string EbookApprovedTemplate = "EbookApprovedTemplate";
     private const string BookApprovedTitle = "Seu livro está na vitrine!";
     private const string EbookApprovedTitle = "Seu livro digital está no ar!";
+    private const string BookRejectedTemplate = "BookRejectedTemplate";
+    private const string BookRejectedTitle = "Sua doação não foi aprovada";
     private const string NewBookNotifyTemplate = "NewBookNotifyTemplate";
     private const string BookReleasedNotifyTemplate = "BookReleasedNotifyTemplate";
     private const string BookReceivedTemplate = "BookReceivedTemplate";
@@ -48,6 +51,23 @@ public class BooksEmailService(
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(templateName, vm);
             await _emailService.SendAsync(book.User.Email, book.User.Name, html, title, copyAdmins: true, highPriority: true);
         }
+    }
+
+    public async Task SendEmailBookRejectedAsync(Book book, string reason)
+    {
+        if (book.User == null)
+            book.User = await _userService.FindAsync(book.UserId!);
+
+        if (book.User == null || !book.User.AllowSendingEmail)
+            return;
+
+        var model = new
+        {
+            BookTitle = WebUtility.HtmlEncode(book.Title),
+            Reason = WebUtility.HtmlEncode(reason).Replace("\r\n", "<br>").Replace("\n", "<br>")
+        };
+        var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookRejectedTemplate, model);
+        await _emailService.SendAsync(book.User.Email, book.User.Name, html, BookRejectedTitle, copyAdmins: true, highPriority: true);
     }
 
     public async Task SendEmailBookReceivedAsync(Book book)

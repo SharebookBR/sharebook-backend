@@ -154,6 +154,35 @@ public partial class BookService(IBookRepository bookRepository,
         await NotifyBookAvailableAsync(book);
     }
 
+    public async Task RejectPendingDonationAsync(Guid bookId, string reason, string rejectedBy)
+    {
+        var normalizedReason = reason?.Trim();
+        if (string.IsNullOrWhiteSpace(normalizedReason))
+            throw new ShareBookException("Informe a mensagem que será enviada à pessoa doadora.");
+
+        var book = await _repository.Get()
+            .Include(b => b.User)
+            .FirstOrDefaultAsync(b => b.Id == bookId);
+        if (book == null)
+            throw new ShareBookException(ShareBookException.Error.NotFound);
+
+        if (book.Status != BookStatus.WaitingApproval)
+            throw new ShareBookException("Só é possível reprovar uma doação que esteja aguardando aprovação.");
+
+        book.Status = BookStatus.Canceled;
+        book.ChooseDate = null;
+        book.ReleaseDate = null;
+
+        var localTime = DateTimeHelper.ConvertDateTimeSaoPaulo(_timeProvider.GetUtcNow().UtcDateTime);
+        var auditEntry = $"{localTime:dd/MM/yyyy HH:mm} — Reprovado por {rejectedBy}: {normalizedReason}";
+        book.AdminNotes = string.IsNullOrWhiteSpace(book.AdminNotes)
+            ? auditEntry
+            : $"{book.AdminNotes}\n{auditEntry}";
+
+        await PersistBookUpdateAsync(book);
+        await _booksEmailService.SendEmailBookRejectedAsync(book, normalizedReason);
+    }
+
     public async Task<IList<Book>> ReleaseDueScheduledBooksAsync()
     {
         var daysInShowcase = int.Parse(_configuration["SharebookSettings:DaysInShowcase"]!);
