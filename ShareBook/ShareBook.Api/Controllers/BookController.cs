@@ -584,7 +584,7 @@ public class BookController(IBookService bookService,
     {
         Guid userId = _currentUserAccessor.RequireUserId();
         var donations = await _service.GetUserDonationsAsync(userId);
-        return _mapper.Map<List<BookVMAdm>>(donations);
+        return MapDonationsWithRequestLimit(donations);
     }
 
     [Authorize("Bearer")]
@@ -610,8 +610,17 @@ public class BookController(IBookService bookService,
                 Finished = donations.Summary?.Finished ?? 0,
                 EbookDownloadsTotal = donations.Summary?.EbookDownloadsTotal ?? 0
             },
-            Items = _mapper.Map<List<BookVMAdm>>(donations.Items)
+            Items = MapDonationsWithRequestLimit(donations.Items)
         };
+    }
+
+    private List<BookVMAdm> MapDonationsWithRequestLimit(IList<Book> donations)
+    {
+        var items = _mapper.Map<List<BookVMAdm>>(donations);
+        for (var index = 0; index < donations.Count; index++)
+            items[index].MaxRequestsPerBook = BookRequestLimit.GetEffective(donations[index], _configuration);
+
+        return items;
     }
 
     #endregion Minhas doações
