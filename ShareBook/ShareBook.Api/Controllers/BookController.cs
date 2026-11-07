@@ -234,6 +234,8 @@ public class BookController(IBookService bookService,
     [HttpPost("InformTrackingNumber/{bookId}")]
     public async Task<IActionResult> InformTrackingNumberAsync(Guid bookId, [FromBody] TrackinNumberBookVM trackingNumberBookVM)
     {
+        if (!await _IsBookOwnerAsync(bookId)) return Unauthorized();
+
         await _bookUserService.InformTrackingNumberAsync(bookId, trackingNumberBookVM.TrackingNumber);
         return Ok();
     }
