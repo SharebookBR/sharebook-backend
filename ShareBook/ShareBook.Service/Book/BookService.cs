@@ -185,7 +185,6 @@ public partial class BookService(IBookRepository bookRepository,
 
     public async Task<IList<Book>> ReleaseDueScheduledBooksAsync()
     {
-        var daysInShowcase = int.Parse(_configuration["SharebookSettings:DaysInShowcase"]!);
         var today = TodaySaoPaulo();
 
         var due = await _repository.Get()
@@ -195,11 +194,17 @@ public partial class BookService(IBookRepository bookRepository,
 
         foreach (var book in due)
         {
+            var releaseDate = book.ReleaseDate!.Value;
             book.Status = BookStatus.Available;
             book.ReleaseDate = null;
             // ApprovedAt passa a marcar a publicação: o digest diário de novos livros usa esse campo.
             book.ApprovedAt = _timeProvider.GetUtcNow().UtcDateTime;
-            book.ChooseDate = DateTime.Today.AddDays(daysInShowcase);
+            // O calendário editorial mensal fica aberto do dia da liberação até o primeiro dia
+            // do mês seguinte, quando começa a decisão. Usar a data agendada (e não "hoje")
+            // preserva o ciclo correto se o job recuperar uma liberação atrasada.
+            book.ChooseDate = DateTime.SpecifyKind(
+                releaseDate.AddMonths(1).ToDateTime(TimeOnly.MinValue),
+                DateTimeKind.Utc);
             await PersistBookUpdateAsync(book);
 
             await NotifyBookAvailableAsync(book);

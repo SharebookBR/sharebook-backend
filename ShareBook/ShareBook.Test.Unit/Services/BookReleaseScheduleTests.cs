@@ -136,13 +136,36 @@ public class BookReleaseScheduleTests
             Assert.Equal(BookStatus.Available, saved.Status);
             Assert.Null(saved.ReleaseDate);
             Assert.Equal(NowUtc.UtcDateTime, saved.ApprovedAt);
-            Assert.NotNull(saved.ChooseDate);
+            var expectedChooseDate = saved.Id == dueToday.Id
+                ? new DateTime(2026, 12, 1, 0, 0, 0, DateTimeKind.Utc)
+                : new DateTime(2026, 11, 30, 0, 0, 0, DateTimeKind.Utc);
+            Assert.Equal(expectedChooseDate, saved.ChooseDate);
         }
         var stillScheduled = (await context.Books.FindAsync(future.Id))!;
         Assert.Equal(BookStatus.Scheduled, stillScheduled.Status);
         Assert.Equal(Today.AddDays(1), stillScheduled.ReleaseDate);
         Assert.Equal(BookStatus.Available, (await context.Books.FindAsync(alreadyAvailable.Id))!.Status);
         emailMock.Verify(x => x.SendEmailBookApprovedAsync(It.IsAny<Book>()), Times.Exactly(2));
+    }
+
+    [Theory]
+    [InlineData(2026, 12, 1, 2027, 1, 1)]
+    [InlineData(2028, 2, 1, 2028, 3, 1)]
+    public async Task ReleaseDue_SetsDecisionForTheFirstDayOfTheFollowingMonth(
+        int releaseYear, int releaseMonth, int releaseDay,
+        int decisionYear, int decisionMonth, int decisionDay)
+    {
+        var releaseDate = new DateOnly(releaseYear, releaseMonth, releaseDay);
+        await using var context = NewContext();
+        var book = await AddBookAsync(context, BookStatus.Scheduled, releaseDate: releaseDate);
+        var service = CreateService(context, new DateTimeOffset(releaseYear, releaseMonth, releaseDay, 10, 0, 0, TimeSpan.Zero));
+
+        await service.ReleaseDueScheduledBooksAsync();
+
+        var saved = (await context.Books.FindAsync(book.Id))!;
+        Assert.Equal(
+            new DateTime(decisionYear, decisionMonth, decisionDay, 0, 0, 0, DateTimeKind.Utc),
+            saved.ChooseDate);
     }
 
     [Fact]
