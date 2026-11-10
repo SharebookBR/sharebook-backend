@@ -971,6 +971,7 @@ public class BookServiceTests
         var adminBook = mapper.Map<BookVMAdm>(new Book
         {
             MaxRequestsOverride = 12,
+            ApprovedAt = new DateTime(2026, 11, 1),
             User = new User { Name = "Doador", Address = new Address() },
             Category = new Category { Name = "Leaf" },
             BookTags = new List<BookTag>()
@@ -984,6 +985,7 @@ public class BookServiceTests
         });
 
         Assert.Equal(12, adminBook.MaxRequestsOverride);
+        Assert.Equal(new DateTime(2026, 11, 1), adminBook.ApprovedAt);
         Assert.Equal(18, updatedBook.MaxRequestsOverride);
     }
 

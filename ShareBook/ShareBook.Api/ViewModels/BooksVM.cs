@@ -26,6 +26,7 @@ public class BookVMAdm
     public string Status { get; set; } = string.Empty;
     public string? TrackingNumber { get; set; }
     public DateTime CreationDate { get; set; }
+    public DateTime? ApprovedAt { get; set; }
     public DateTime? ChooseDate { get; set; }
     public DateOnly? ReleaseDate { get; set; }
     public int ReleaseInterestCount { get; set; }
