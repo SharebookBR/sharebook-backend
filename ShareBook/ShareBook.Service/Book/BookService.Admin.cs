@@ -31,9 +31,20 @@ public partial class BookService
         var effectivePage = Math.Min(normalizedPage, totalPages);
         var skip = (effectivePage - 1) * normalizedItemsPerPage;
 
-        var books = await filteredQuery
-            .OrderByDescending(x => x.CreationDate)
-            .ThenByDescending(x => x.Id)
+        var scheduledView = string.Equals(bucket?.Trim(), "scheduled", StringComparison.OrdinalIgnoreCase)
+            || (TryParseBookStatus(status, out var parsedStatus) && parsedStatus == BookStatus.Scheduled);
+
+        var orderedBooks = scheduledView
+            ? filteredQuery
+                .OrderBy(x => x.ReleaseDate == null)
+                .ThenBy(x => x.ReleaseDate)
+                .ThenBy(x => x.CreationDate)
+                .ThenBy(x => x.Id)
+            : filteredQuery
+                .OrderByDescending(x => x.CreationDate)
+                .ThenByDescending(x => x.Id);
+
+        var books = await orderedBooks
             .Skip(skip)
             .Take(normalizedItemsPerPage)
             .ToListAsync();

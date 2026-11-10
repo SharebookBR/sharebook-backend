@@ -186,6 +186,47 @@ public class BookServiceTests
     }
 
     [Fact]
+    public async Task GetAdminBooksAsync_ScheduledBucket_ShouldOrderByReleaseDateAscending()
+    {
+        await using var context = await CreateEmptyContextAsync();
+        var category = new Category { Name = "Tecnologia" };
+        var donor = new User
+        {
+            Name = "Pessoa doadora",
+            Email = "doadora@example.com",
+            Password = "password",
+            PasswordSalt = "salt",
+            Address = new Address { City = "Sao Paulo", State = "SP", Country = "Brasil" }
+        };
+        context.Books.AddRange(
+            new Book
+            {
+                Title = "Março", Author = "Autora", Slug = "marco", ImageSlug = "marco.jpg",
+                Status = BookStatus.Scheduled, Type = BookType.Printed,
+                ReleaseDate = new DateOnly(2027, 3, 1), User = donor, Category = category
+            },
+            new Book
+            {
+                Title = "Dezembro", Author = "Autor", Slug = "dezembro", ImageSlug = "dezembro.jpg",
+                Status = BookStatus.Scheduled, Type = BookType.Printed,
+                ReleaseDate = new DateOnly(2026, 12, 1), User = donor, Category = category
+            },
+            new Book
+            {
+                Title = "Fevereiro", Author = "Autora", Slug = "fevereiro", ImageSlug = "fevereiro.jpg",
+                Status = BookStatus.Scheduled, Type = BookType.Printed,
+                ReleaseDate = new DateOnly(2027, 2, 1), User = donor, Category = category
+            });
+        await context.SaveChangesAsync();
+
+        var service = CreateService(new BookRepository(context), context);
+
+        var result = await service.GetAdminBooksAsync(1, 24, bucket: "scheduled");
+
+        Assert.Equal(new[] { "Dezembro", "Fevereiro", "Março" }, result.Items.Select(book => book.Title).ToArray());
+    }
+
+    [Fact]
     public async Task GetUserDonationsAsync_IncludesRequestedReleaseNotificationsRegardlessOfStatus()
     {
         await using var context = await CreateEmptyContextAsync();
