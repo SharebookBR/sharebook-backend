@@ -135,11 +135,11 @@ public partial class BookService(IBookRepository bookRepository,
 
         if (isScheduled)
         {
-            // Fica fora da vitrine comum até o job ReleaseScheduledBooks. ChooseDate, e-mail ao doador
-            // e aviso de novo livro acontecem na liberação, não agora.
+            // A data de escolha já nasce com o calendário do lançamento. O job apenas a preserva
+            // quando o livro entra na vitrine, evitando que um prazo manual seja sobrescrito.
             book.Status = BookStatus.Scheduled;
             book.ReleaseDate = releaseDate;
-            book.ChooseDate = null;
+            book.ChooseDate = DecisionDateForMonthlyRelease(releaseDate.Value);
             await PersistBookUpdateAsync(book);
             return;
         }
@@ -202,9 +202,7 @@ public partial class BookService(IBookRepository bookRepository,
             // O calendário editorial mensal fica aberto do dia da liberação até o primeiro dia
             // do mês seguinte, quando começa a decisão. Usar a data agendada (e não "hoje")
             // preserva o ciclo correto se o job recuperar uma liberação atrasada.
-            book.ChooseDate = DateTime.SpecifyKind(
-                releaseDate.AddMonths(1).ToDateTime(TimeOnly.MinValue),
-                DateTimeKind.Utc);
+            book.ChooseDate ??= DecisionDateForMonthlyRelease(releaseDate);
             await PersistBookUpdateAsync(book);
 
             await NotifyBookAvailableAsync(book);
@@ -215,6 +213,11 @@ public partial class BookService(IBookRepository bookRepository,
 
     private DateOnly TodaySaoPaulo()
         => DateOnly.FromDateTime(DateTimeHelper.ConvertDateTimeSaoPaulo(_timeProvider.GetUtcNow().UtcDateTime));
+
+    private static DateTime DecisionDateForMonthlyRelease(DateOnly releaseDate)
+        => DateTime.SpecifyKind(
+            releaseDate.AddMonths(1).ToDateTime(TimeOnly.MinValue),
+            DateTimeKind.Utc);
 
     private async Task NotifyBookAvailableAsync(Book book)
     {

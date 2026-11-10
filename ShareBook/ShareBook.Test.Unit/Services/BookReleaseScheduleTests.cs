@@ -46,7 +46,7 @@ public class BookReleaseScheduleTests
         var saved = await context.Books.FindAsync(book.Id);
         Assert.Equal(BookStatus.Scheduled, saved!.Status);
         Assert.Equal(Today.AddDays(14), saved.ReleaseDate);
-        Assert.Null(saved.ChooseDate);
+        Assert.Equal(new DateTime(2026, 12, 15, 0, 0, 0, DateTimeKind.Utc), saved.ChooseDate);
         emailMock.Verify(x => x.SendEmailBookApprovedAsync(It.IsAny<Book>()), Times.Never);
     }
 
@@ -166,6 +166,21 @@ public class BookReleaseScheduleTests
         Assert.Equal(
             new DateTime(decisionYear, decisionMonth, decisionDay, 0, 0, 0, DateTimeKind.Utc),
             saved.ChooseDate);
+    }
+
+    [Fact]
+    public async Task ReleaseDue_PreservesTheDecisionDateSetWhenTheBookWasScheduled()
+    {
+        await using var context = NewContext();
+        var book = await AddBookAsync(context, BookStatus.Scheduled, releaseDate: Today);
+        book.ChooseDate = new DateTime(2026, 12, 1, 0, 0, 0, DateTimeKind.Utc);
+        await context.SaveChangesAsync();
+
+        await CreateService(context).ReleaseDueScheduledBooksAsync();
+
+        Assert.Equal(
+            new DateTime(2026, 12, 1, 0, 0, 0, DateTimeKind.Utc),
+            (await context.Books.FindAsync(book.Id))!.ChooseDate);
     }
 
     [Fact]
