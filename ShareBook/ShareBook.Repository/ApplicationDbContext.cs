@@ -25,6 +25,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<BookReleaseInterest> BookReleaseInterests { get; set; }
     public DbSet<BookDownloadEvent> BookDownloadEvents { get; set; }
     public DbSet<OnboardingJourney> OnboardingJourneys { get; set; }
+    public DbSet<OnboardingEmailDelivery> OnboardingEmailDeliveries { get; set; }
+    public DbSet<OnboardingEmailClick> OnboardingEmailClicks { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<EFLog> EFLogs { get; set; }
     public DbSet<BookUser> BookUser { get; set; }

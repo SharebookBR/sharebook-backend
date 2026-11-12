@@ -25,4 +25,6 @@ public class OnboardingJourney : BaseEntity
     public DateTime? CanceledAtUtc { get; set; }
 
     public string? CompletionReason { get; set; }
+
+    public ICollection<OnboardingEmailDelivery> Deliveries { get; set; } = [];
 }

@@ -532,6 +532,65 @@ namespace ShareBook.Infra.Data.Migrations
                     b.ToTable("MeetupParticipants");
                 });
 
+            modelBuilder.Entity("ShareBook.Domain.OnboardingEmailClick", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CreationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Cta")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateTime>("FirstClickedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("OnboardingEmailDeliveryId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OnboardingEmailDeliveryId", "Cta")
+                        .IsUnique();
+
+                    b.ToTable("OnboardingEmailClicks");
+                });
+
+            modelBuilder.Entity("ShareBook.Domain.OnboardingEmailDelivery", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CreationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("FirstOpenedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("OnboardingJourneyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("QueuedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Step")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OnboardingJourneyId", "Step")
+                        .IsUnique();
+
+                    b.HasIndex("QueuedAtUtc", "Step");
+
+                    b.ToTable("OnboardingEmailDeliveries");
+                });
+
             modelBuilder.Entity("ShareBook.Domain.OnboardingJourney", b =>
                 {
                     b.Property<Guid>("Id")
@@ -831,6 +890,28 @@ namespace ShareBook.Infra.Data.Migrations
                     b.Navigation("Meetup");
                 });
 
+            modelBuilder.Entity("ShareBook.Domain.OnboardingEmailClick", b =>
+                {
+                    b.HasOne("ShareBook.Domain.OnboardingEmailDelivery", "OnboardingEmailDelivery")
+                        .WithMany("Clicks")
+                        .HasForeignKey("OnboardingEmailDeliveryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("OnboardingEmailDelivery");
+                });
+
+            modelBuilder.Entity("ShareBook.Domain.OnboardingEmailDelivery", b =>
+                {
+                    b.HasOne("ShareBook.Domain.OnboardingJourney", "OnboardingJourney")
+                        .WithMany("Deliveries")
+                        .HasForeignKey("OnboardingJourneyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("OnboardingJourney");
+                });
+
             modelBuilder.Entity("ShareBook.Domain.OnboardingJourney", b =>
                 {
                     b.HasOne("ShareBook.Domain.User", "User")
@@ -857,6 +938,16 @@ namespace ShareBook.Infra.Data.Migrations
             modelBuilder.Entity("ShareBook.Domain.Meetup", b =>
                 {
                     b.Navigation("MeetupParticipants");
+                });
+
+            modelBuilder.Entity("ShareBook.Domain.OnboardingEmailDelivery", b =>
+                {
+                    b.Navigation("Clicks");
+                });
+
+            modelBuilder.Entity("ShareBook.Domain.OnboardingJourney", b =>
+                {
+                    b.Navigation("Deliveries");
                 });
 
             modelBuilder.Entity("ShareBook.Domain.User", b =>

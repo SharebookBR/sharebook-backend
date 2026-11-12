@@ -41,6 +41,8 @@ public static class ServiceRepositoryCollectionExtensions
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IUserEmailService, UserEmailService>();
         services.AddScoped<IOnboardingJourneyService, OnboardingJourneyService>();
+        services.AddScoped<IOnboardingEmailTrackingService, OnboardingEmailTrackingService>();
+        services.AddScoped<IOnboardingAnalyticsService, OnboardingAnalyticsService>();
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<ITagService, TagService>();
         services.AddScoped<IContactUsService, ContactUsService>();

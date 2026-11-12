@@ -515,7 +515,9 @@ public class EmailTemplateTests
             BackendUrl = "https://api.sharebook.com.br",
             FrontendUrl = "https://www.sharebook.com.br",
             CommunityUrl = "https://chat.whatsapp.com/invite",
-            UnsubscribeUrl = "https://www.sharebook.com.br/descadastrar?token=test"
+            UnsubscribeUrl = "https://www.sharebook.com.br/descadastrar?token=test",
+            CtaUrl = "https://api.sharebook.com.br/o/click/test/catalog",
+            OpenTrackingUrl = "https://api.sharebook.com.br/o/open/test"
         });
 
         Assert.Contains(expectedContent, result);
@@ -526,6 +528,8 @@ public class EmailTemplateTests
         Assert.DoesNotContain("{FrontendUrl}", result);
         Assert.DoesNotContain("{CommunityUrl}", result);
         Assert.DoesNotContain("{UnsubscribeUrl}", result);
+        Assert.DoesNotContain("{CtaUrl}", result);
+        Assert.DoesNotContain("{OpenTrackingUrl}", result);
     }
 
     private static string ReadTemplate(string templatesFolder, string template)

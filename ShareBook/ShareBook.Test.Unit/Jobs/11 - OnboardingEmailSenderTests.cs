@@ -58,6 +58,7 @@ public class OnboardingEmailSenderTests
         Assert.Equal(5, journey.NextStep);
         Assert.Equal(Start.AddDays(7).UtcDateTime, journey.CompletedAtUtc);
         Assert.Equal("sequence_complete", journey.CompletionReason);
+        Assert.Equal(5, await context.OnboardingEmailDeliveries.CountAsync());
 
         var retry = await CreateJob(context, Start.AddDays(7)).WorkAsync();
         Assert.Contains("Etapas colocadas na fila: 0", retry.Details);
@@ -80,6 +81,9 @@ public class OnboardingEmailSenderTests
         email.Setup(item => item.IsBounceAsync(It.IsAny<string>())).ReturnsAsync(false);
         var users = new Mock<IUserService>();
         users.Setup(item => item.GenerateUnsubscribeToken(It.IsAny<Guid>())).Returns("token");
+        var tracking = new Mock<IOnboardingEmailTrackingService>();
+        tracking.Setup(item => item.BuildOpenUrl(It.IsAny<Guid>())).Returns("https://api.sharebook.com.br/o/open/token");
+        tracking.Setup(item => item.BuildClickUrl(It.IsAny<Guid>(), It.IsAny<string>())).Returns("https://api.sharebook.com.br/o/click/token/catalog");
 
         // A fila desativada permite testar a transição persistida sem acessar AWS.
         var queue = new MailSenderLowPriorityQueue(Options.Create(new AwsSqsSettings { IsActive = false }));
@@ -93,7 +97,8 @@ public class OnboardingEmailSenderTests
             email.Object,
             users.Object,
             configuration,
-            Options.Create(new OnboardingSettings { CommunityUrl = "https://chat.whatsapp.com/invite", MaxJourneysPerRun = 20 }));
+            Options.Create(new OnboardingSettings { CommunityUrl = "https://chat.whatsapp.com/invite", MaxJourneysPerRun = 20 }),
+            tracking.Object);
     }
 
     private static ApplicationDbContext NewContext()

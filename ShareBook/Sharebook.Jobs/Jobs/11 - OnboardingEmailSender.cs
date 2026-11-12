@@ -34,6 +34,7 @@ public class OnboardingEmailSender : GenericJob, IJob
     private readonly IUserService _userService;
     private readonly IConfiguration _configuration;
     private readonly OnboardingSettings _settings;
+    private readonly IOnboardingEmailTrackingService _trackingService;
 
     public OnboardingEmailSender(
         IJobHistoryRepository jobHistoryRepo,
@@ -45,7 +46,8 @@ public class OnboardingEmailSender : GenericJob, IJob
         IEmailService emailService,
         IUserService userService,
         IConfiguration configuration,
-        IOptions<OnboardingSettings> settings) : base(jobHistoryRepo, loggerFactory, timeProvider)
+        IOptions<OnboardingSettings> settings,
+        IOnboardingEmailTrackingService trackingService) : base(jobHistoryRepo, loggerFactory, timeProvider)
     {
         JobName = "OnboardingEmailSender";
         Description = "Envia a sequência de cinco e-mails de ativação para novos cadastros elegíveis.";
@@ -59,6 +61,7 @@ public class OnboardingEmailSender : GenericJob, IJob
         _userService = userService;
         _configuration = configuration;
         _settings = settings.Value;
+        _trackingService = trackingService;
     }
 
     public override async Task<JobHistory> WorkAsync()
@@ -95,7 +98,15 @@ public class OnboardingEmailSender : GenericJob, IJob
                 continue;
             }
 
-            var mail = await BuildMailAsync(journey.NextStep, user);
+            var delivery = new OnboardingEmailDelivery
+            {
+                OnboardingJourneyId = journey.Id,
+                Step = journey.NextStep,
+                QueuedAtUtc = now
+            };
+            _context.OnboardingEmailDeliveries.Add(delivery);
+
+            var mail = await BuildMailAsync(journey.NextStep, user, delivery.Id);
             await _mailQueue.SendMessageAsync(mail);
 
             journey.LastQueuedAtUtc = now;
@@ -125,7 +136,7 @@ public class OnboardingEmailSender : GenericJob, IJob
         };
     }
 
-    private async Task<MailSenderbody> BuildMailAsync(int step, User user)
+    private async Task<MailSenderbody> BuildMailAsync(int step, User user, Guid deliveryId)
     {
         var frontendUrl = _configuration["ServerSettings:FrontendUrl"] ?? string.Empty;
         var backendUrl = _configuration["ServerSettings:BackendUrl"] ?? string.Empty;
@@ -136,7 +147,9 @@ public class OnboardingEmailSender : GenericJob, IJob
             FrontendUrl = frontendUrl,
             BackendUrl = backendUrl,
             CommunityUrl = _settings.CommunityUrl,
-            UnsubscribeUrl = $"{frontendUrl}/descadastrar?userId={user.Id}&token={unsubscribeToken}"
+            UnsubscribeUrl = $"{frontendUrl}/descadastrar?userId={user.Id}&token={unsubscribeToken}",
+            OpenTrackingUrl = _trackingService.BuildOpenUrl(deliveryId),
+            CtaUrl = _trackingService.BuildClickUrl(deliveryId, CtaFor(step))
         };
 
         var (template, subject) = step switch
@@ -167,4 +180,12 @@ public class OnboardingEmailSender : GenericJob, IJob
         journey.CanceledAtUtc = now;
         journey.CompletionReason = reason;
     }
+
+    private static string CtaFor(int step) => step switch
+    {
+        0 or 1 or 3 => "catalog",
+        2 => "donate",
+        4 => "community",
+        _ => throw new InvalidOperationException($"Etapa de onboarding inválida: {step}.")
+    };
 }
