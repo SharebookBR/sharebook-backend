@@ -70,6 +70,7 @@ public abstract class GenericJob
                 => DateTimeHelper.ConvertDateTimeToUtcFromSaoPaulo(GetNextDailyOccurrence(nowSp)),
             Interval.Weekly when BestTimeToExecute.HasValue && BestDayOfWeek.HasValue
                 => DateTimeHelper.ConvertDateTimeToUtcFromSaoPaulo(GetNextWeeklyOccurrence(nowSp)),
+            Interval.Each15Days => GetLastSuccessfulExecutionAtUtc()?.AddDays(15),
             _ => null
         };
     }
@@ -105,6 +106,11 @@ public abstract class GenericJob
                 result = result.AddMinutes(-5);
                 break;
             }
+            case Interval.Each15Days:
+            {
+                result = result.AddDays(-15);
+                break;
+            }
         }
 
         // ajuste de +1 minuto, levando em consideração o tempo que o job
@@ -126,6 +132,13 @@ public abstract class GenericJob
             _ => null
         };
     }
+
+    private DateTime? GetLastSuccessfulExecutionAtUtc()
+        => _jobHistoryRepo.Get()
+            .Where(x => x.JobName == JobName && x.IsSuccess)
+            .OrderByDescending(x => x.CreationDate)
+            .Select(x => (DateTime?)x.CreationDate)
+            .FirstOrDefault();
 
     private DateTime GetLastDailyOccurrence(DateTime nowSp)
     {

@@ -8,4 +8,5 @@ public enum Interval
     Hourly,
     Each30Minutes,
     Each5Minutes,
+    Each15Days,
 }

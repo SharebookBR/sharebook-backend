@@ -116,6 +116,39 @@ public class GenericJobScheduleTests
         Assert.Equal(fixedNow.UtcDateTime.AddHours(-1).AddMinutes(1), dateLimit);
     }
 
+    [Fact]
+    public void Each15DaysJob_ExposesNextExecutionFifteenDaysAfterItsLastSuccess()
+    {
+        var lastExecution = DateTime.UtcNow.AddDays(-2);
+        _jobHistoryRepo.Setup(x => x.Get()).Returns(new[]
+        {
+            new JobHistory
+            {
+                JobName = "ScheduleAwareFakeJob",
+                IsSuccess = true,
+                CreationDate = lastExecution
+            }
+        }.AsQueryable());
+
+        var job = new ScheduleAwareFakeJob(_jobHistoryRepo.Object, _loggerFactory.Object)
+        {
+            Interval = Interval.Each15Days
+        };
+
+        Assert.Equal(lastExecution.AddDays(15), job.GetNextExecutionAtUtc());
+    }
+
+    [Fact]
+    public void Each15DaysJob_UsesFifteenDayLookback()
+    {
+        var fixedNow = new DateTimeOffset(2026, 3, 15, 10, 0, 0, TimeSpan.Zero);
+        var job = new ScheduleAwareFakeJob(_jobHistoryRepo.Object, _loggerFactory.Object, new FixedTimeProvider(fixedNow));
+
+        var dateLimit = job.GetDateLimitByInterval(Interval.Each15Days);
+
+        Assert.Equal(fixedNow.UtcDateTime.AddDays(-15).AddMinutes(1), dateLimit);
+    }
+
     private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
     {
         public override DateTimeOffset GetUtcNow() => now;

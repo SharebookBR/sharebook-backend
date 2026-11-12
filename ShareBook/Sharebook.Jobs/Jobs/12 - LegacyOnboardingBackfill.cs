@@ -10,7 +10,7 @@ using ShareBook.Service.Onboarding;
 namespace Sharebook.Jobs;
 
 /// <summary>
-/// Inclui as contas anteriores ao lançamento do onboarding em lotes semanais.
+/// Inclui as contas anteriores ao lançamento do onboarding em lotes a cada quinze dias.
 /// O cursor é a última conta examinada, ordenada por CreationDate desc e Id desc.
 /// </summary>
 public class LegacyOnboardingBackfill : GenericJob, IJob
@@ -30,10 +30,8 @@ public class LegacyOnboardingBackfill : GenericJob, IJob
     {
         JobName = JobNameValue;
         Description = "Inclui até 2.000 contas anteriores ao onboarding, do cadastro mais novo ao mais antigo.";
-        Interval = Interval.Weekly;
+        Interval = Interval.Each15Days;
         Active = true;
-        BestDayOfWeek = DayOfWeek.Thursday;
-        BestTimeToExecute = TimeSpan.Zero;
 
         _context = context;
         _settings = settings.Value;
