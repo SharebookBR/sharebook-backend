@@ -1,5 +1,6 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
@@ -31,7 +32,8 @@ public partial class BookService(IBookRepository bookRepository,
             IUploadService uploadService, IBooksEmailService booksEmailService, IConfiguration configuration,
             NewBookQueue newBookQueue, IEBookService ebookService, ICategoryRepository categoryRepository,
             TimeProvider timeProvider, ICurrentUserAccessor currentUserAccessor, ITagService tagService,
-            IBookUsersEmailService? bookUsersEmailService = null) : BaseService<Book>(context, unitOfWork, validator), IBookService
+            IBookUsersEmailService? bookUsersEmailService = null,
+            IMemoryCache? memoryCache = null) : BaseService<Book>(context, unitOfWork, validator), IBookService
 {
     private const int MaxSlugInsertAttempts = 5;
     private readonly ApplicationDbContext _context = context;
@@ -45,6 +47,7 @@ public partial class BookService(IBookRepository bookRepository,
     private readonly ICurrentUserAccessor _currentUserAccessor = currentUserAccessor;
     private readonly ITagService _tagService = tagService;
     private readonly IBookUsersEmailService? _bookUsersEmailService = bookUsersEmailService;
+    private readonly IMemoryCache? _memoryCache = memoryCache;
 
     private readonly NewBookQueue _newBookQueue = newBookQueue;
 

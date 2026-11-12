@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.DTOs;
@@ -8,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ShareBook.Service;
@@ -201,29 +203,18 @@ public partial class BookService
         return pagedBook.Items.FirstOrDefault();
     }
 
+    // Recomendações: o ranking precisa comparar o livro com todo o catálogo disponível, o que antes
+    // carregava o catálogo inteiro a cada visita a uma página de livro (p50 ~220 ms, ~40x o Slug) e
+    // pesou no incidente de 2026-11-12. Agora o catálogo enxuto é compartilhado por todos os livros
+    // e o resultado do ranking (só os Ids) fica em cache por livro.
+    private const string RecommendationCandidatesCacheKey = "book-recommendation-candidates";
+    private static readonly TimeSpan RecommendationCacheDuration = TimeSpan.FromMinutes(10);
+    private static readonly SemaphoreSlim RecommendationCandidatesLock = new(1, 1);
+
     public async Task<IList<Book>> GetRecommendationsAsync(Guid bookId, int limit = 6)
     {
         var normalizedLimit = Math.Min(Math.Max(limit, 1), 6);
-        var source = await _repository.Get()
-            .AsNoTracking()
-            .Include(book => book.Category)
-                .ThenInclude(category => category.ParentCategory)
-            .FirstOrDefaultAsync(book => book.Id == bookId);
-
-        if (source == null)
-            throw new ShareBook.Domain.Exceptions.ShareBookException(ShareBook.Domain.Exceptions.ShareBookException.Error.NotFound);
-
-        var candidates = await _repository.Get()
-            .AsNoTracking()
-            .Include(book => book.Category)
-                .ThenInclude(category => category.ParentCategory)
-            .Where(book => book.Status == BookStatus.Available && book.Id != bookId)
-            .ToListAsync();
-
-        var rankedIds = BookRecommendationRanker
-            .Rank(source, candidates, normalizedLimit)
-            .Select(book => book.Id)
-            .ToList();
+        var rankedIds = await GetRankedRecommendationIdsAsync(bookId, normalizedLimit);
 
         if (rankedIds.Count == 0)
             return Array.Empty<Book>();
@@ -245,6 +236,92 @@ public partial class BookService
 
         return SetImageUrls(orderedBooks);
     }
+
+    private async Task<IReadOnlyList<Guid>> GetRankedRecommendationIdsAsync(Guid bookId, int limit)
+    {
+        var cacheKey = $"book-recommendation-ids:{bookId}:{limit}";
+
+        if (_memoryCache != null && _memoryCache.TryGetValue(cacheKey, out IReadOnlyList<Guid>? cachedIds) && cachedIds != null)
+            return cachedIds;
+
+        var source = await _repository.Get()
+            .AsNoTracking()
+            .Include(book => book.Category)
+                .ThenInclude(category => category.ParentCategory)
+            .FirstOrDefaultAsync(book => book.Id == bookId);
+
+        if (source == null)
+            throw new ShareBook.Domain.Exceptions.ShareBookException(ShareBook.Domain.Exceptions.ShareBookException.Error.NotFound);
+
+        var candidates = await GetRecommendationCandidatesAsync();
+
+        IReadOnlyList<Guid> rankedIds = BookRecommendationRanker
+            .Rank(source, candidates, limit)
+            .Select(book => book.Id)
+            .ToList();
+
+        _memoryCache?.Set(cacheKey, rankedIds, RecommendationCacheDuration);
+
+        return rankedIds;
+    }
+
+    private async Task<IReadOnlyList<Book>> GetRecommendationCandidatesAsync()
+    {
+        if (_memoryCache == null)
+            return await LoadRecommendationCandidatesAsync();
+
+        if (_memoryCache.TryGetValue(RecommendationCandidatesCacheKey, out IReadOnlyList<Book>? cached) && cached != null)
+            return cached;
+
+        // Uma única carga por vez: sob rajada, as requisições esperam a primeira em vez de
+        // cada uma carregar o catálogo inteiro (era exatamente o que saturava o pool).
+        await RecommendationCandidatesLock.WaitAsync();
+        try
+        {
+            if (_memoryCache.TryGetValue(RecommendationCandidatesCacheKey, out cached) && cached != null)
+                return cached;
+
+            var candidates = await LoadRecommendationCandidatesAsync();
+            _memoryCache.Set(RecommendationCandidatesCacheKey, candidates, RecommendationCacheDuration);
+            return candidates;
+        }
+        finally
+        {
+            RecommendationCandidatesLock.Release();
+        }
+    }
+
+    // Só os campos que o BookRecommendationRanker usa; evita materializar o livro inteiro (e o
+    // doador) para milhares de candidatos.
+    private async Task<IReadOnlyList<Book>> LoadRecommendationCandidatesAsync()
+        => await _repository.Get()
+            .AsNoTracking()
+            .Where(book => book.Status == BookStatus.Available)
+            .Select(book => new Book
+            {
+                Id = book.Id,
+                Title = book.Title,
+                Author = book.Author,
+                Synopsis = book.Synopsis,
+                Type = book.Type,
+                Status = book.Status,
+                CreationDate = book.CreationDate,
+                CategoryId = book.CategoryId,
+                Category = new Category
+                {
+                    Id = book.Category.Id,
+                    Name = book.Category.Name,
+                    ParentCategoryId = book.Category.ParentCategoryId,
+                    ParentCategory = book.Category.ParentCategory == null
+                        ? null
+                        : new Category
+                        {
+                            Id = book.Category.ParentCategory.Id,
+                            Name = book.Category.ParentCategory.Name,
+                        },
+                },
+            })
+            .ToListAsync();
 
     private async Task<PagedList<Book>> SearchBooksAsync(Expression<Func<Book, bool>> filter, int page, int itemsPerPage)
         => await SearchBooksAsync(filter, page, itemsPerPage, x => x.CreationDate);
