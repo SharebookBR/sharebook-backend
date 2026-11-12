@@ -54,7 +54,8 @@ public class OperationsController : Controller
         MailSender job7,
         NewEbookWeeklyDigest job8,
         CleanupLogsTable job9,
-        ReleaseScheduledBooks job10)
+        ReleaseScheduledBooks job10,
+        LegacyOnboardingBackfill job12)
     {
         _executor = executor;
         _validToken = settings.Value.JobExecutorToken;
@@ -63,7 +64,7 @@ public class OperationsController : Controller
         _cache = memoryCache;
         _config = config;
         _jobHistoryRepo = jobHistoryRepo;
-        _jobs = new List<IJob> { job0, job1, job2, job3, job4, job5, job6, job7, job8, job9, job10 };
+        _jobs = new List<IJob> { job0, job1, job2, job3, job4, job5, job6, job7, job8, job9, job10, job12 };
     }
 
     [HttpGet]

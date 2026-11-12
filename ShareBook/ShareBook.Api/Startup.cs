@@ -91,6 +91,7 @@ public class Startup(IConfiguration configuration)
 
         services.Configure<ServerSettings>(options => Configuration.GetSection("ServerSettings").Bind(options));
         services.Configure<OnboardingSettings>(options => Configuration.GetSection("OnboardingSettings").Bind(options));
+        services.Configure<LegacyOnboardingBackfillSettings>(options => Configuration.GetSection("LegacyOnboardingBackfillSettings").Bind(options));
 
         services.Configure<PushNotificationSettings>(options => Configuration.GetSection("PushNotificationSettings").Bind(options));
 

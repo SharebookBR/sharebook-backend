@@ -33,7 +33,8 @@ public class JobExecutor : IJobExecutor
                         MailSender job7,
                         NewEbookWeeklyDigest job8,
                         CleanupLogsTable job9,
-                        ReleaseScheduledBooks job10)
+                        ReleaseScheduledBooks job10,
+                        LegacyOnboardingBackfill job12)
     {
         _jobHistoryRepo = jobHistoryRepo;
         _logger = logger;
@@ -52,7 +53,8 @@ public class JobExecutor : IJobExecutor
             job7,
             job8,
             job9,
-            job10
+            job10,
+            job12
         };
 
     }

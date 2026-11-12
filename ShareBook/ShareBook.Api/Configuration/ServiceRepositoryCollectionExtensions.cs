@@ -115,6 +115,7 @@ public static class ServiceRepositoryCollectionExtensions
         services.AddScoped<CleanupLogsTable>();
         services.AddScoped<ReleaseScheduledBooks>();
         services.AddScoped<OnboardingEmailSender>();
+        services.AddScoped<LegacyOnboardingBackfill>();
 
         //notification
         services.AddScoped<IPushNotificationService, PushNotificationService>();
