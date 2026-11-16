@@ -107,6 +107,7 @@ public class BooksEmailService(
         var model = new
         {
             Book = book,
+            BookKind = book.IsEbook() ? "Livro digital" : "Livro físico",
             UserStats = userStats
         };
 
