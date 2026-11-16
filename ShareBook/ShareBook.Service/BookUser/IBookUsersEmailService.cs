@@ -9,6 +9,8 @@ public interface IBookUsersEmailService
 {
     Task SendEmailBookDonatedAsync(BookUser bookUser);
 
+    Task SendEmailWinnerSelectionReopenedAsync(BookUser bookUser);
+
     Task SendEmailBookDonatedNotifyDonorAsync(Book book, User winner);
 
     Task SendEmailBookDonorAsync(BookUser bookUser, Book bookRequested);

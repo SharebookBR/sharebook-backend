@@ -17,6 +17,8 @@ public interface IBookUserService
 
     Task DonateBookAsync(Guid bookId, Guid userId, string note);
 
+    Task ChooseAnotherWinnerAsync(Guid bookId, string reason, string adminName);
+
     Task DeniedBookUsersAsync(Guid bookId);
 
     Task<PagedList<BookUser>> GetRequestsByUserAsync(int page, int items);

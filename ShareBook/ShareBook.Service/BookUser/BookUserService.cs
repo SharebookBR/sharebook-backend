@@ -8,6 +8,7 @@ using ShareBook.Domain.Common;
 using ShareBook.Domain.DTOs;
 using ShareBook.Domain.Enums;
 using ShareBook.Domain.Exceptions;
+using ShareBook.Helper;
 using ShareBook.Repository;
 using ShareBook.Repository.Repository;
 using ShareBook.Repository.UoW;
@@ -28,7 +29,8 @@ public class BookUserService(
     IMuambatorService muambatorService,
     IBookRepository bookRepository,
     IUnitOfWork unitOfWork,
-    IValidator<BookUser> validator, IConfiguration configuration, ICurrentUserAccessor currentUserAccessor, ILogger<BookUserService>? logger = null) : BaseService<BookUser>(context, unitOfWork, validator), IBookUserService
+    IValidator<BookUser> validator, IConfiguration configuration, ICurrentUserAccessor currentUserAccessor, ILogger<BookUserService>? logger = null,
+    TimeProvider? timeProvider = null) : BaseService<BookUser>(context, unitOfWork, validator), IBookUserService
 {
     private readonly ApplicationDbContext _context = context;
     private readonly IBookService _bookService = bookService;
@@ -38,6 +40,7 @@ public class BookUserService(
     private readonly IConfiguration _configuration = configuration;
     private readonly ICurrentUserAccessor _currentUserAccessor = currentUserAccessor;
     private readonly ILogger<BookUserService> _logger = logger ?? NullLogger<BookUserService>.Instance;
+    private readonly TimeProvider _timeProvider = timeProvider ?? TimeProvider.System;
 
     public async Task<IList<User>> GetGranteeUsersByBookIdAsync(Guid bookId) =>
         await _repository.Get().Include(x => x.User)
@@ -162,6 +165,62 @@ public class BookUserService(
 
         // avisa o doador
         await _bookUsersEmailService.SendEmailBookDonatedNotifyDonorAsync(bookUserAccepted.Book, bookUserAccepted.User);
+    }
+
+    public async Task ChooseAnotherWinnerAsync(Guid bookId, string reason, string adminName)
+    {
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new ShareBookException(ShareBookException.Error.BadRequest, "Informe o motivo interno para refazer a escolha.");
+
+        await _unitOfWork.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
+        BookUser? previousWinner = null;
+
+        try
+        {
+            var book = await _context.Books
+                .Include(x => x.BookUsers).ThenInclude(x => x.User)
+                .SingleOrDefaultAsync(x => x.Id == bookId);
+
+            if (book == null)
+                throw new ShareBookException(ShareBookException.Error.NotFound);
+
+            if (book.Status != BookStatus.WaitingSend)
+                throw new ShareBookException(ShareBookException.Error.BadRequest, "Só é possível escolher outra pessoa antes do envio do livro.");
+
+            previousWinner = book.BookUsers.SingleOrDefault(x => x.Status == DonationStatus.Donated);
+            if (previousWinner == null)
+                throw new ShareBookException(ShareBookException.Error.BadRequest, "Não há uma pessoa ganhadora para substituir nesta doação.");
+
+            var otherRequesters = book.BookUsers
+                .Where(x => x.Status == DonationStatus.Denied)
+                .ToList();
+
+            if (otherRequesters.Count == 0)
+                throw new ShareBookException(ShareBookException.Error.BadRequest, "Não há outra pessoa interessada para escolher nesta doação.");
+
+            previousWinner.UpdateBookUser(DonationStatus.SelectionReopened, previousWinner.Note);
+            foreach (var requester in otherRequesters)
+                requester.UpdateBookUser(DonationStatus.WaitingAction, requester.Note);
+
+            book.Status = BookStatus.AwaitingDonorDecision;
+            book.ChooseDate = _timeProvider.GetUtcNow().UtcDateTime;
+
+            var saoPauloNow = DateTimeHelper.ConvertDateTimeSaoPaulo(_timeProvider.GetUtcNow().UtcDateTime);
+            var entry = $"{saoPauloNow:dd/MM/yyyy HH:mm} - Escolha refeita por {adminName}: {reason.Trim()}";
+            book.AdminNotes = string.IsNullOrWhiteSpace(book.AdminNotes)
+                ? entry
+                : $"{book.AdminNotes}\n{entry}";
+
+            await _context.SaveChangesAsync();
+            await _unitOfWork.CommitAsync();
+        }
+        catch
+        {
+            await _unitOfWork.RollbackAsync();
+            throw;
+        }
+
+        await _bookUsersEmailService.SendEmailWinnerSelectionReopenedAsync(previousWinner!);
     }
 
     public async Task<Result<Book>> CancelAsync(BookCancelationDTO dto)

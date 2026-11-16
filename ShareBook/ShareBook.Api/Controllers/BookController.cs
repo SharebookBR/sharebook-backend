@@ -230,6 +230,19 @@ public class BookController(IBookService bookService,
     }
 
     [Authorize("Bearer")]
+    [AuthorizationFilter(Permissions.Permission.ApproveBook)]
+    [HttpPost("ChooseAnotherWinner/{bookId}")]
+    public async Task<IActionResult> ChooseAnotherWinnerAsync(Guid bookId, [FromBody] ChooseAnotherWinnerVM model)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var admin = await GetSessionUserAsync();
+        await _bookUserService.ChooseAnotherWinnerAsync(bookId, model.Reason, admin?.Name ?? "Administração");
+        return Ok(new Result("A seleção foi refeita. Escolha outra pessoa para receber o livro."));
+    }
+
+    [Authorize("Bearer")]
     [ProducesResponseType(typeof(Result), 200)]
     [HttpPost("InformTrackingNumber/{bookId}")]
     public async Task<IActionResult> InformTrackingNumberAsync(Guid bookId, [FromBody] TrackinNumberBookVM trackingNumberBookVM)

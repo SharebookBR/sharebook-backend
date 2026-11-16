@@ -15,11 +15,13 @@ public class BookUserEmailService(IUserService userService, IEmailService emailS
 {
     private const string BookNoticeDonorTemplate = "BookNoticeDonorTemplate";
     private const string BookDonatedTemplate = "BookDonatedTemplate";
+    private const string WinnerSelectionReopenedTemplate = "WinnerSelectionReopenedTemplate";
     private const string BookDonatedTemplateNotifyDonor = "BookDonatedNotifyDonorTemplate";
     private const string BookNoticeDeclinedUsersTemplate = "BookNoticeDeclinedUsersTemplate";
     private const string BookCanceledNoticeUsersTemplate = "BookCanceledNoticeUsersTemplate";
     private const string BookTrackingNumberNoticeWinnerTemplate = "BookTrackingNumberNoticeWinnerTemplate";
     private const string BookDonatedTitle = "Você foi escolhido(a) para receber um livro";
+    private const string WinnerSelectionReopenedTitle = "A seleção deste livro foi refeita";
     private const string BookDonatedTitleNotifyDonor = "Agora é hora de combinar a entrega";
     private const string BookNoticeDonorTitle = "Seu livro recebeu uma solicitação";
     private const string BookCanceledTemplate = "BookCanceledTemplate";
@@ -51,6 +53,26 @@ public class BookUserEmailService(IUserService userService, IEmailService emailS
             var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookDonatedTemplate, vm);
             await _emailService.SendAsync(bookUser.User.Email, bookUser.User.Name, html, BookDonatedTitle, copyAdmins: false, highPriority: true);
         }
+    }
+
+    public async Task SendEmailWinnerSelectionReopenedAsync(BookUser bookUser)
+    {
+        if (bookUser.User == null || !bookUser.User.AllowSendingEmail)
+            return;
+
+        var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(WinnerSelectionReopenedTemplate, new
+        {
+            Book = bookUser.Book,
+            User = bookUser.User
+        });
+
+        await _emailService.SendAsync(
+            bookUser.User.Email,
+            bookUser.User.Name,
+            html,
+            WinnerSelectionReopenedTitle,
+            copyAdmins: false,
+            highPriority: true);
     }
 
     public async Task SendEmailBookDonatedNotifyDonorAsync(Book book, User winner)

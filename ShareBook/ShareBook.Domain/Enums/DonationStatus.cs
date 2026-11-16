@@ -16,5 +16,8 @@ public enum DonationStatus
     Denied,
 
     [Description("Cancelado")]
-    Canceled
+    Canceled,
+
+    [Description("Seleção refeita")]
+    SelectionReopened
 }

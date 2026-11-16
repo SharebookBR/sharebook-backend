@@ -197,6 +197,34 @@ public class BookUserServiceTests
         bookUsersEmailService.Verify(x => x.SendEmailMaxRequestsAsync(It.IsAny<Book>()), Times.Never);
     }
 
+    [Fact]
+    public async Task ChooseAnotherWinner_ReopensTheOtherRequestsAndLeavesAnAuditComment()
+    {
+        await using var context = CreateContext();
+        var book = BookMock.GetLordTheRings();
+        book.Id = bookId;
+        book.Status = BookStatus.WaitingSend;
+
+        var previousWinner = new BookUser { BookId = bookId, Book = book, UserId = Guid.NewGuid(), User = new User { Name = "Pessoa anterior", Email = "anterior@example.com", AllowSendingEmail = true } };
+        previousWinner.UpdateBookUser(DonationStatus.Donated, "Escolha original");
+        var otherRequester = new BookUser { BookId = bookId, Book = book, UserId = Guid.NewGuid(), User = new User { Name = "Outra pessoa", Email = "outra@example.com", AllowSendingEmail = true } };
+        otherRequester.UpdateBookUser(DonationStatus.Denied, null);
+
+        context.Books.Add(book);
+        context.BookUser.AddRange(previousWinner, otherRequester);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+        await service.ChooseAnotherWinnerAsync(bookId, "A pessoa doadora não conseguiu contato.", "Raffa");
+
+        Assert.Equal(BookStatus.AwaitingDonorDecision, book.Status);
+        Assert.Equal(DonationStatus.SelectionReopened, previousWinner.Status);
+        Assert.Equal(DonationStatus.WaitingAction, otherRequester.Status);
+        Assert.Contains("Escolha refeita por Raffa", book.AdminNotes);
+        Assert.Contains("não conseguiu contato", book.AdminNotes);
+        bookUsersEmailService.Verify(x => x.SendEmailWinnerSelectionReopenedAsync(previousWinner), Times.Once);
+    }
+
     private BookUserService CreateService(ApplicationDbContext context)
         => new(context,
             bookServiceMock.Object, bookUsersEmailService.Object, muambatorServiceMock.Object, bookRepositoryMock.Object,
