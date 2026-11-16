@@ -44,15 +44,16 @@ public class EmailTemplateTests
     [Fact]
     public async Task VerifyEmailNewBookInsertedParse()
     {
-        var vm = new { Book = book };
+        var vm = new { Book = book, BookKind = "Livro físico" };
 
         var result = await emailTemplate.GenerateHtmlFromTemplateAsync("NewBookInsertedTemplate", vm);
         //<!DOCTYPE html>\r\n<html lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\">\r\n<head>\r\n    <meta charset=\"utf-8\" />\r\n    <title>Novo livro cadastrado - Sharebook</title>\r\n</head>\r\n<body>\r\n    <p>\r\n        Olá Cussa Mitre,\r\n    </p>\r\n    <p>\r\n        Um novo livro foi cadastrado. Veja mais informações abaixo:\r\n    </p>\r\n\r\n    <ul>\r\n        <li><strong>Livro: </strong>Lord of the Rings</li>\r\n        <li><strong>Autor: </strong>J. R. R. Tolkien</li>\r\n        <li><strong>Usuário: </strong>Rodrigo</li>\r\n    </ul>\r\n\r\n    <p>Sharebook</p>\r\n</body>\r\n</html>
 
-        Assert.Contains("Há um novo livro aguardando revisão.", result);
-        Assert.Contains("<li><strong>Livro: </strong>Lord of the Rings</li>", result);
-        Assert.Contains("<li><strong>Autor: </strong>J. R. R. Tolkien</li>", result);
-        Assert.Contains("<li><strong>Pessoa responsável: </strong>Rodrigo</li>", result);
+        Assert.Contains("Uma nova doação chegou para revisão. Confira os dados antes de publicar na vitrine.", result);
+        Assert.Contains("Livro físico", result);
+        Assert.Contains("<h2 class=\"book-title\">Lord of the Rings</h2>", result);
+        Assert.Contains("<p class=\"book-author\">J. R. R. Tolkien</p>", result);
+        Assert.Contains("<strong>Pessoa responsável:</strong> Rodrigo", result);
         Assert.Contains("https://www.sharebook.com.br/book/form/d9f5fde8-ee7c-4cf5-aa90-35eca3c170b9", result);
     
     }        
@@ -432,7 +433,8 @@ public class EmailTemplateTests
             "NewBookNotifyTemplate.html",
             "ParentAprovedNotifyUser.html",
             "RequestParentAproval.html",
-            "WaitingApprovalTemplate.html"
+            "WaitingApprovalTemplate.html",
+            "WinnerSelectionReopenedTemplate.html"
         };
 
         var newsletterTemplates = new[]
