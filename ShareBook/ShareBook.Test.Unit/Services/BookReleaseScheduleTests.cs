@@ -50,6 +50,21 @@ public class BookReleaseScheduleTests
         emailMock.Verify(x => x.SendEmailBookApprovedAsync(It.IsAny<Book>()), Times.Never);
     }
 
+    [Fact]
+    public async Task Approve_WithFutureReleaseDateAndChooseDate_UsesInformedChooseDate()
+    {
+        await using var context = NewContext();
+        var book = await AddBookAsync(context, BookStatus.WaitingApproval);
+        var service = CreateService(context);
+        var chooseDate = new DateTime(2026, 12, 20, 15, 30, 0);
+
+        await service.ApproveAsync(book.Id, chooseDate, Today.AddDays(14));
+
+        var saved = await context.Books.FindAsync(book.Id);
+        Assert.Equal(BookStatus.Scheduled, saved!.Status);
+        Assert.Equal(chooseDate.Date, saved.ChooseDate);
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData(0)]

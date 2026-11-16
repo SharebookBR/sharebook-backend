@@ -138,11 +138,12 @@ public partial class BookService(IBookRepository bookRepository,
 
         if (isScheduled)
         {
-            // A data de escolha já nasce com o calendário do lançamento. O job apenas a preserva
-            // quando o livro entra na vitrine, evitando que um prazo manual seja sobrescrito.
+            // A data de escolha informada pelo admin tem prioridade; sem ela, nasce com o calendário
+            // do lançamento. O job apenas a preserva quando o livro entra na vitrine, evitando que
+            // um prazo manual seja sobrescrito.
             book.Status = BookStatus.Scheduled;
             book.ReleaseDate = releaseDate;
-            book.ChooseDate = DecisionDateForMonthlyRelease(releaseDate.Value);
+            book.ChooseDate = chooseDate?.Date ?? DecisionDateForMonthlyRelease(releaseDate.Value);
             await PersistBookUpdateAsync(book);
             return;
         }
