@@ -231,15 +231,15 @@ public class BookController(IBookService bookService,
 
     [Authorize("Bearer")]
     [AuthorizationFilter(Permissions.Permission.ApproveBook)]
-    [HttpPost("ChooseAnotherWinner/{bookId}")]
-    public async Task<IActionResult> ChooseAnotherWinnerAsync(Guid bookId, [FromBody] ChooseAnotherWinnerVM model)
+    [HttpPost("ChangeStatus/{bookId}")]
+    public async Task<IActionResult> ChangeStatusAsync(Guid bookId, [FromBody] ChangeBookStatusVM model)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
         var admin = await GetSessionUserAsync();
-        await _bookUserService.ChooseAnotherWinnerAsync(bookId, model.Reason, admin?.Name ?? "Administração");
-        return Ok(new Result("A seleção foi refeita. Escolha outra pessoa para receber o livro."));
+        await _bookUserService.ChangeStatusAsync(bookId, model.NewStatus!.Value, model.Reason, admin?.Name ?? "Administração");
+        return Ok(new Result("O status foi alterado para aguardando decisão da pessoa doadora."));
     }
 
     [Authorize("Bearer")]

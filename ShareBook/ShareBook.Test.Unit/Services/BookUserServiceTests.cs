@@ -4,6 +4,7 @@ using Moq;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.Enums;
+using ShareBook.Domain.Exceptions;
 using ShareBook.Domain.Validators;
 using ShareBook.Repository;
 using ShareBook.Repository.UoW;
@@ -198,7 +199,7 @@ public class BookUserServiceTests
     }
 
     [Fact]
-    public async Task ChooseAnotherWinner_ReopensTheOtherRequestsAndLeavesAnAuditComment()
+    public async Task ChangeStatus_ReopensTheOtherRequestsAndLeavesAnAuditComment()
     {
         await using var context = CreateContext();
         var book = BookMock.GetLordTheRings();
@@ -215,14 +216,34 @@ public class BookUserServiceTests
         await context.SaveChangesAsync();
 
         var service = CreateService(context);
-        await service.ChooseAnotherWinnerAsync(bookId, "A pessoa doadora não conseguiu contato.", "Raffa");
+        await service.ChangeStatusAsync(bookId, BookStatus.AwaitingDonorDecision, "A pessoa doadora não conseguiu contato.", "Raffa");
 
         Assert.Equal(BookStatus.AwaitingDonorDecision, book.Status);
         Assert.Equal(DonationStatus.SelectionReopened, previousWinner.Status);
         Assert.Equal(DonationStatus.WaitingAction, otherRequester.Status);
-        Assert.Contains("Escolha refeita por Raffa", book.AdminNotes);
+        Assert.Contains("Status alterado por Raffa", book.AdminNotes);
+        Assert.Contains("Aguardando envio → Aguardando decisão da pessoa doadora", book.AdminNotes);
         Assert.Contains("não conseguiu contato", book.AdminNotes);
         bookUsersEmailService.Verify(x => x.SendEmailWinnerSelectionReopenedAsync(previousWinner), Times.Once);
+    }
+
+    [Fact]
+    public async Task ChangeStatus_RejectsAnUnsupportedTransition()
+    {
+        await using var context = CreateContext();
+        var book = BookMock.GetLordTheRings();
+        book.Id = bookId;
+        book.Status = BookStatus.WaitingSend;
+        context.Books.Add(book);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        var exception = await Assert.ThrowsAsync<ShareBookException>(() =>
+            service.ChangeStatusAsync(bookId, BookStatus.Sent, "Teste de transição não permitida.", "Raffa"));
+
+        Assert.Contains("Aguardando envio", exception.Message);
+        bookUsersEmailService.Verify(x => x.SendEmailWinnerSelectionReopenedAsync(It.IsAny<BookUser>()), Times.Never);
     }
 
     private BookUserService CreateService(ApplicationDbContext context)

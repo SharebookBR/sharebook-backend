@@ -167,10 +167,10 @@ public class BookUserService(
         await _bookUsersEmailService.SendEmailBookDonatedNotifyDonorAsync(bookUserAccepted.Book, bookUserAccepted.User);
     }
 
-    public async Task ChooseAnotherWinnerAsync(Guid bookId, string reason, string adminName)
+    public async Task ChangeStatusAsync(Guid bookId, BookStatus newStatus, string reason, string adminName)
     {
         if (string.IsNullOrWhiteSpace(reason))
-            throw new ShareBookException(ShareBookException.Error.BadRequest, "Informe o motivo interno para refazer a escolha.");
+            throw new ShareBookException(ShareBookException.Error.BadRequest, "Informe o motivo interno para alterar o status.");
 
         await _unitOfWork.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
         BookUser? previousWinner = null;
@@ -184,8 +184,8 @@ public class BookUserService(
             if (book == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
-            if (book.Status != BookStatus.WaitingSend)
-                throw new ShareBookException(ShareBookException.Error.BadRequest, "Só é possível escolher outra pessoa antes do envio do livro.");
+            if (book.Status != BookStatus.WaitingSend || newStatus != BookStatus.AwaitingDonorDecision)
+                throw new ShareBookException(ShareBookException.Error.BadRequest, "Por enquanto, apenas a transição de Aguardando envio para Aguardando decisão da pessoa doadora é permitida.");
 
             previousWinner = book.BookUsers.SingleOrDefault(x => x.Status == DonationStatus.Donated);
             if (previousWinner == null)
@@ -206,7 +206,7 @@ public class BookUserService(
             book.ChooseDate = _timeProvider.GetUtcNow().UtcDateTime;
 
             var saoPauloNow = DateTimeHelper.ConvertDateTimeSaoPaulo(_timeProvider.GetUtcNow().UtcDateTime);
-            var entry = $"{saoPauloNow:dd/MM/yyyy HH:mm} - Escolha refeita por {adminName}: {reason.Trim()}";
+            var entry = $"{saoPauloNow:dd/MM/yyyy HH:mm} - Status alterado por {adminName}: Aguardando envio → Aguardando decisão da pessoa doadora. Motivo: {reason.Trim()}";
             book.AdminNotes = string.IsNullOrWhiteSpace(book.AdminNotes)
                 ? entry
                 : $"{book.AdminNotes}\n{entry}";

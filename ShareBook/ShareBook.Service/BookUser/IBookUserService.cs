@@ -1,6 +1,7 @@
 ﻿using ShareBook.Domain;
 using ShareBook.Domain.Common;
 using ShareBook.Domain.DTOs;
+using ShareBook.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -17,7 +18,7 @@ public interface IBookUserService
 
     Task DonateBookAsync(Guid bookId, Guid userId, string note);
 
-    Task ChooseAnotherWinnerAsync(Guid bookId, string reason, string adminName);
+    Task ChangeStatusAsync(Guid bookId, BookStatus newStatus, string reason, string adminName);
 
     Task DeniedBookUsersAsync(Guid bookId);
 
