@@ -57,6 +57,7 @@ public class HomeTests(ShareBookTestsFixture fixture)
             .ToList();
 
         ebooks.Count.Should().BeGreaterThanOrEqualTo(2);
+        ebooks[0].DownloadCount = 42;
 
         _fixture.ApplicationDbContext.BookDownloadEvents.AddRange(
             new BookDownloadEvent { BookId = ebooks[0].Id, DownloadedAtUtc = DateTime.UtcNow.AddDays(-1), Source = BookDownloadEventSource.Live },
@@ -72,6 +73,7 @@ public class HomeTests(ShareBookTestsFixture fixture)
 
         books.Should().NotBeNull();
         books!.First().Slug.Should().Be(ebooks[0].Slug);
+        books.First().DownloadCount.Should().Be(42);
         books.Should().NotContain(book => book.Slug == ebooks[1].Slug);
     }
 

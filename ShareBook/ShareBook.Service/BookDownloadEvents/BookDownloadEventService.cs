@@ -81,7 +81,8 @@ public class BookDownloadEventService(
             Slug = book.Slug,
             ImageUrl = _uploadService.GetImageUrl(book.ImageSlug ?? string.Empty, "Books", book.ImageVersion),
             ThumbnailUrl = _uploadService.GetBookThumbnailUrl(book.ImageSlug ?? string.Empty, book.ImageVersion),
-            Type = book.Type.ToString()
+            Type = book.Type.ToString(),
+            DownloadCount = book.DownloadCount
         };
     }
 }

@@ -13,6 +13,7 @@ public class HomeShowcaseBookDTO
     public string? ThumbnailUrl { get; set; }
     public string Type { get; set; } = string.Empty;
     public DateOnly? ReleaseDate { get; set; }
+    public int DownloadCount { get; set; }
 }
 
 public class HomeShowcaseCategoryDTO

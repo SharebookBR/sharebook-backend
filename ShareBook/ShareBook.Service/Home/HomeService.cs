@@ -120,7 +120,8 @@ public class HomeService(
             ImageUrl = _uploadService.GetImageUrl(book.ImageSlug ?? string.Empty, "Books", book.ImageVersion),
             ThumbnailUrl = _uploadService.GetBookThumbnailUrl(book.ImageSlug ?? string.Empty, book.ImageVersion),
             Type = book.Type.ToString(),
-            ReleaseDate = book.ReleaseDate
+            ReleaseDate = book.ReleaseDate,
+            DownloadCount = book.DownloadCount
         };
     }
 }
