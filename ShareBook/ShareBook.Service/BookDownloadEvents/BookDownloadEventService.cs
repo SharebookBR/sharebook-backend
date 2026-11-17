@@ -35,13 +35,16 @@ public class BookDownloadEventService(
 
     public async Task<List<HomeShowcaseBookDTO>> GetTopDownloadedEbooksAsync(int days, int limit)
     {
-        var windowDays = days <= 0 ? 30 : days;
         var take = limit <= 0 ? 15 : limit;
-        var since = _timeProvider.GetUtcNow().UtcDateTime.AddDays(-windowDays);
+        var downloads = _downloadEventRepository.Get().AsNoTracking();
 
-        var rankedDownloads = await _downloadEventRepository.Get()
-            .AsNoTracking()
-            .Where(download => download.DownloadedAtUtc >= since)
+        if (days > 0)
+        {
+            var since = _timeProvider.GetUtcNow().UtcDateTime.AddDays(-days);
+            downloads = downloads.Where(download => download.DownloadedAtUtc >= since);
+        }
+
+        var rankedDownloads = await downloads
             .GroupBy(download => download.BookId)
             .Select(downloadsByBook => new
             {
@@ -67,11 +70,11 @@ public class BookDownloadEventService(
 
         return rankedDownloads
             .Where(download => booksById.ContainsKey(download.BookId))
-            .Select(download => ToShowcaseBook(booksById[download.BookId]))
+            .Select(download => ToShowcaseBook(booksById[download.BookId], download.Count))
             .ToList();
     }
 
-    private HomeShowcaseBookDTO ToShowcaseBook(Book book)
+    private HomeShowcaseBookDTO ToShowcaseBook(Book book, int downloadCount)
     {
         return new HomeShowcaseBookDTO
         {
@@ -82,7 +85,7 @@ public class BookDownloadEventService(
             ImageUrl = _uploadService.GetImageUrl(book.ImageSlug ?? string.Empty, "Books", book.ImageVersion),
             ThumbnailUrl = _uploadService.GetBookThumbnailUrl(book.ImageSlug ?? string.Empty, book.ImageVersion),
             Type = book.Type.ToString(),
-            DownloadCount = book.DownloadCount
+            DownloadCount = downloadCount
         };
     }
 }

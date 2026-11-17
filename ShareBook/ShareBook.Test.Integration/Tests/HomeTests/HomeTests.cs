@@ -49,7 +49,7 @@ public class HomeTests(ShareBookTestsFixture fixture)
     }
 
     [Fact]
-    public async Task TopDownloadedEbooks_ReturnsDownloadsFromRequestedWindow()
+    public async Task TopDownloadedEbooks_ReturnsWindowSpecificCounts()
     {
         var ebooks = _fixture.ApplicationDbContext.Books
             .Where(b => b.Status == BookStatus.Available && b.Type == BookType.Eletronic)
@@ -57,15 +57,13 @@ public class HomeTests(ShareBookTestsFixture fixture)
             .ToList();
 
         ebooks.Count.Should().BeGreaterThanOrEqualTo(2);
-        ebooks[0].DownloadCount = 42;
-
         _fixture.ApplicationDbContext.BookDownloadEvents.AddRange(
             new BookDownloadEvent { BookId = ebooks[0].Id, DownloadedAtUtc = DateTime.UtcNow.AddDays(-1), Source = BookDownloadEventSource.Live },
             new BookDownloadEvent { BookId = ebooks[0].Id, DownloadedAtUtc = DateTime.UtcNow.AddDays(-1), Source = BookDownloadEventSource.Live },
             new BookDownloadEvent { BookId = ebooks[1].Id, DownloadedAtUtc = DateTime.UtcNow.AddDays(-40), Source = BookDownloadEventSource.Live });
         await _fixture.ApplicationDbContext.SaveChangesAsync();
 
-        var response = await _fixture.ShareBookApiClient.GetAsync("api/home/top-downloaded-ebooks?days=30");
+        var response = await _fixture.ShareBookApiClient.GetAsync("api/home/top-downloaded-ebooks?days=15");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var responseAsString = await response.Content.ReadAsStringAsync();
@@ -73,8 +71,15 @@ public class HomeTests(ShareBookTestsFixture fixture)
 
         books.Should().NotBeNull();
         books!.First().Slug.Should().Be(ebooks[0].Slug);
-        books.First().DownloadCount.Should().Be(42);
+        books.First().DownloadCount.Should().Be(2);
         books.Should().NotContain(book => book.Slug == ebooks[1].Slug);
+
+        var allTimeResponse = await _fixture.ShareBookApiClient.GetAsync("api/home/top-downloaded-ebooks?days=0");
+        var allTimeBooks = JsonConvert.DeserializeObject<IList<HomeShowcaseBookDTO>>(
+            await allTimeResponse.Content.ReadAsStringAsync());
+
+        allTimeResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        allTimeBooks.Should().Contain(book => book.Slug == ebooks[1].Slug && book.DownloadCount == 1);
     }
 
     [Fact]
