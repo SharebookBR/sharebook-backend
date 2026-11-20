@@ -27,7 +27,7 @@
         .stats th { width: 72%; color: #536d7b; font-weight: 400; }
         .stats td { color: #173042; font-weight: 700; text-align: right; }
         .stats tr:last-child th, .stats tr:last-child td { border-bottom: 0; }
-        .cta-wrap { padding: 4px 0 28px; text-align: center; }
+        .cta-wrap { padding: 22px 0 28px; text-align: center; }
         .cta { display: inline-block; border-radius: 8px; background-color: #29abe2; color: #ffffff !important; font-size: 16px; font-weight: 700; padding: 14px 24px; text-decoration: none; }
         .note { border-left: 4px solid #ffb020; background-color: #fff8e8; border-radius: 8px; color: #71531b; font-size: 14px; line-height: 1.5; padding: 14px 16px; }
         .footer { padding: 24px 32px 30px; color: #718795; font-size: 13px; line-height: 1.55; text-align: center; }
@@ -61,12 +61,24 @@
                                     <h2 class="book-title">{Book.Title}</h2>
                                     <p class="book-author">{Book.Author}</p>
                                 </div>
-                                <div class="book-meta"><strong>Pessoa responsável:</strong> {Book.User.Name}</div>
+                                <div class="book-meta"><strong>Pessoa doadora:</strong> {Book.User.Name}</div>
+                            </div>
+
+                            <div class="note">Para contas novas, aprove um livro por vez antes de revisar os demais.</div>
+
+                            <div class="cta-wrap">
+                                <table role="presentation" align="center" cellpadding="0" cellspacing="0">
+                                    <tr>
+                                        <td bgcolor="#29abe2" style="border-radius: 8px;">
+                                            <a href="https://www.sharebook.com.br/book/form/{Book.Id}" class="cta" style="background-color: #29abe2; border-radius: 8px; color: #ffffff; display: inline-block; font-size: 16px; font-weight: 700; padding: 14px 24px; text-decoration: none;">Revisar livro</a>
+                                        </td>
+                                    </tr>
+                                </table>
                             </div>
 
                             <p class="section-title">Histórico da conta</p>
                             <table role="presentation" class="stats" width="100%" cellpadding="0" cellspacing="0">
-                                <tr><th>Data de cadastro</th><td>{UserStats.CreationDate}</td></tr>
+                                <tr><th>Data de cadastro</th><td>{CreationDate}</td></tr>
                                 <tr><th>Doações concluídas</th><td>{UserStats.TotalOk}</td></tr>
                                 <tr><th>Doações canceladas</th><td>{UserStats.TotalCanceled}</td></tr>
                                 <tr><th>Doações em atraso</th><td>{UserStats.TotalLate}</td></tr>
@@ -74,9 +86,6 @@
                                 <tr><th>Na vitrine</th><td>{UserStats.TotalAvailable}</td></tr>
                             </table>
 
-                            <div class="cta-wrap"><a href="https://www.sharebook.com.br/book/form/{Book.Id}" class="cta">Revisar livro</a></div>
-
-                            <div class="note">Para contas novas, aprove apenas um livro inicialmente. Depois da primeira doação concluída, avalie os demais.</div>
                         </td>
                     </tr>
                     <tr>

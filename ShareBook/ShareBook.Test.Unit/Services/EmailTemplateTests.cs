@@ -44,7 +44,20 @@ public class EmailTemplateTests
     [Fact]
     public async Task VerifyEmailNewBookInsertedParse()
     {
-        var vm = new { Book = book, BookKind = "Livro físico" };
+        var vm = new
+        {
+            Book = book,
+            BookKind = "Livro físico",
+            CreationDate = "20/11/2026 às 04:22",
+            UserStats = new
+            {
+                TotalOk = 0,
+                TotalCanceled = 0,
+                TotalLate = 0,
+                TotalWaitingApproval = 1,
+                TotalAvailable = 0
+            }
+        };
 
         var result = await emailTemplate.GenerateHtmlFromTemplateAsync("NewBookInsertedTemplate", vm);
         //<!DOCTYPE html>\r\n<html lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\">\r\n<head>\r\n    <meta charset=\"utf-8\" />\r\n    <title>Novo livro cadastrado - Sharebook</title>\r\n</head>\r\n<body>\r\n    <p>\r\n        Olá Cussa Mitre,\r\n    </p>\r\n    <p>\r\n        Um novo livro foi cadastrado. Veja mais informações abaixo:\r\n    </p>\r\n\r\n    <ul>\r\n        <li><strong>Livro: </strong>Lord of the Rings</li>\r\n        <li><strong>Autor: </strong>J. R. R. Tolkien</li>\r\n        <li><strong>Usuário: </strong>Rodrigo</li>\r\n    </ul>\r\n\r\n    <p>Sharebook</p>\r\n</body>\r\n</html>
@@ -53,7 +66,10 @@ public class EmailTemplateTests
         Assert.Contains("Livro físico", result);
         Assert.Contains("<h2 class=\"book-title\">Lord of the Rings</h2>", result);
         Assert.Contains("<p class=\"book-author\">J. R. R. Tolkien</p>", result);
-        Assert.Contains("<strong>Pessoa responsável:</strong> Rodrigo", result);
+        Assert.Contains("<strong>Pessoa doadora:</strong> Rodrigo", result);
+        Assert.Contains("Para contas novas, aprove um livro por vez antes de revisar os demais.", result);
+        Assert.Contains("20/11/2026 às 04:22", result);
+        Assert.Contains("bgcolor=\"#29abe2\"", result);
         Assert.Contains("https://www.sharebook.com.br/book/form/d9f5fde8-ee7c-4cf5-aa90-35eca3c170b9", result);
     
     }        

@@ -108,6 +108,7 @@ public class BooksEmailService(
         {
             Book = book,
             BookKind = book.IsEbook() ? "Livro digital" : "Livro físico",
+            CreationDate = userStats.CreationDate?.ToString("dd/MM/yyyy 'às' HH:mm") ?? "Não informada",
             UserStats = userStats
         };
 
