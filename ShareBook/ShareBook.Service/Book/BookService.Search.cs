@@ -124,6 +124,7 @@ public partial class BookService
                     Email = book.User.Email,
                     Name = book.User.Name,
                     Linkedin = book.User.Linkedin,
+                    Instagram = book.User.Instagram,
                     Address = new Address
                     {
                         City = book.User.Address!.City,
@@ -354,6 +355,7 @@ public partial class BookService
                     Email = u.User.Email,
                     Name = u.User.Name,
                     Linkedin = u.User.Linkedin,
+                    Instagram = u.User.Instagram,
                     Address = new Address()
                     {
                         City = u.User.Address!.City,

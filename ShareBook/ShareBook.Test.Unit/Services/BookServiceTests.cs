@@ -86,6 +86,20 @@ public class BookServiceTests
     }
 
     [Fact]
+    public async Task BySlug_ShouldIncludeDonorInstagram()
+    {
+        await using var context = await CreateSearchContextAsync();
+        var donor = await context.Users.SingleAsync();
+        donor.Instagram = "@ana_escreve";
+        await context.SaveChangesAsync();
+        var service = CreateService(new BookRepository(context), context);
+
+        var book = await service.BySlugAsync("clean-code-available");
+
+        Assert.Equal("@ana_escreve", book!.User!.Instagram);
+    }
+
+    [Fact]
     public async Task GetNewest15EBooksAsync_ShouldOrderByApprovalDateWithCreationDateFallback()
     {
         await using var connection = new SqliteConnection("Data Source=:memory:");
