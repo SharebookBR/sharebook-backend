@@ -122,7 +122,8 @@ public class DomainToViewModelMappingProfile : global::AutoMapper.Profile
         return new BookDonorVM
         {
             DisplayName = ToTitleCase(AbbreviateName(user.Name)),
-            Linkedin = NormalizeLinkedinUrl(user.Linkedin)
+            Linkedin = NormalizeLinkedinUrl(user.Linkedin),
+            Instagram = NormalizeInstagramUrl(user.Instagram)
         };
     }
 
@@ -193,5 +194,28 @@ public class DomainToViewModelMappingProfile : global::AutoMapper.Profile
         }
 
         return $"https://{linkedin.TrimStart('/')}";
+    }
+
+    private static string? NormalizeInstagramUrl(string? instagram)
+    {
+        if (string.IsNullOrWhiteSpace(instagram))
+        {
+            return null;
+        }
+
+        var value = instagram.Trim();
+        if (value.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            return value;
+        }
+
+        if (value.StartsWith("instagram.com/", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("www.instagram.com/", StringComparison.OrdinalIgnoreCase))
+        {
+            return $"https://{value.TrimStart('/')}";
+        }
+
+        return $"https://www.instagram.com/{value.Trim().TrimStart('@').Trim('/')}/";
     }
 }

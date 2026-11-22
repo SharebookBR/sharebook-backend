@@ -990,6 +990,32 @@ public class BookServiceTests
     }
 
     [Fact]
+    public void PublicEbookDonorMapping_ShouldExposeNormalizedInstagram()
+    {
+        var mapperConfiguration = new MapperConfiguration(configuration =>
+        {
+            configuration.AddProfile<DomainToViewModelMappingProfile>();
+        }, NullLoggerFactory.Instance);
+        var mapper = mapperConfiguration.CreateMapper();
+
+        var book = mapper.Map<BookVM>(new Book
+        {
+            Type = BookType.Eletronic,
+            User = new User
+            {
+                Name = "Ana Silva",
+                Instagram = "@ana_escreve",
+                Address = new Address()
+            },
+            Category = new Category { Name = "Aventuras e Fantasia" },
+            BookTags = new List<BookTag>()
+        });
+
+        Assert.Equal("Ana S.", book.Donor!.DisplayName);
+        Assert.Equal("https://www.instagram.com/ana_escreve/", book.Donor.Instagram);
+    }
+
+    [Fact]
     public async Task DeleteEBook_ShouldTryDeleteAssetsAndDeleteDbRecord()
     {
         var bookId = Guid.NewGuid();

@@ -120,4 +120,5 @@ public class BookDonorVM
 {
     public string? DisplayName { get; set; }
     public string? Linkedin { get; set; }
+    public string? Instagram { get; set; }
 }
