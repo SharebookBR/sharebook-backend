@@ -63,6 +63,7 @@ public class BooksEmailService(
 
         var model = new
         {
+            Name = WebUtility.HtmlEncode(book.User.FirstName),
             BookTitle = WebUtility.HtmlEncode(book.Title),
             Reason = WebUtility.HtmlEncode(reason).Replace("\r\n", "<br>").Replace("\n", "<br>")
         };

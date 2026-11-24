@@ -42,6 +42,27 @@ public class EmailTemplateTests
     }
 
     [Fact]
+    public async Task VerifyEmailBookRejectedParse()
+    {
+        var vm = new
+        {
+            Name = "Maria",
+            BookTitle = "Lord of the Rings",
+            Reason = "Não vamos seguir com esta doação.<br>Você não precisa enviar o livro."
+        };
+
+        var result = await emailTemplate.GenerateHtmlFromTemplateAsync("BookRejectedTemplate", vm);
+
+        Assert.Contains("<title>Sobre a sua doação</title>", result);
+        Assert.Contains("Olá, Maria!", result);
+        Assert.Contains("Obrigado por pensar em colocar <strong>“Lord of the Rings”</strong> em circulação pelo Sharebook.", result);
+        Assert.Contains("Não vamos seguir com esta doação.<br>Você não precisa enviar o livro.", result);
+        Assert.DoesNotContain("{Name}", result);
+        Assert.DoesNotContain("{BookTitle}", result);
+        Assert.DoesNotContain("{Reason}", result);
+    }
+
+    [Fact]
     public async Task VerifyEmailNewBookInsertedParse()
     {
         var vm = new
