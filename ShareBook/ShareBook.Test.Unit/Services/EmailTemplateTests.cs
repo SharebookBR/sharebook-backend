@@ -179,7 +179,11 @@ public class EmailTemplateTests
             Name = "Maria",
             Book = book,
             CoverUrl = "https://api.sharebook.com.br/Images/Books/capa.png",
-            ChooseDate = "11/11/2026",
+            ReleaseIntro = "Você pediu para ser avisado, e a espera acabou: o livro já está na vitrine do Sharebook e as solicitações estão abertas.",
+            ReleaseCta = "Solicitar livro",
+            ReleaseInstructions = "Abra a página do livro e clique em Solicitar livro. Se pedir, entre na sua conta antes.",
+            ReleaseNote = "As solicitações ficam abertas até 11/11/2026, a data de escolha.",
+            ReleaseDisclaimer = "Receber este aviso não reserva o livro nem dá prioridade: para participar, é preciso solicitar.",
             FrontendUrl = "https://www.sharebook.com.br",
             UnsubscribeUrl = "https://www.sharebook.com.br/descadastrar?userId=1&token=abc"
         };
@@ -438,6 +442,24 @@ public class EmailTemplateTests
         Assert.Contains("<div class=\"field-value\">(11) 954422-2765</div>", result);
         Assert.Contains("<div class=\"field-value\">At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident</div>", result);
 
+    }
+
+    [Fact]
+    public async Task VerifyEmailBookCanceledTemplateParse()
+    {
+        var vm = new
+        {
+            Donor = "Marina",
+            ActionTitle = "Livro digital retirado da vitrine",
+            ActionDescription = "O livro digital foi retirado da vitrine.",
+            Reason = "A pessoa doadora pediu a retirada."
+        };
+
+        var result = await emailTemplate.GenerateHtmlFromTemplateAsync("BookCanceledTemplate", vm);
+
+        Assert.Contains("Olá, Marina!", result);
+        Assert.Contains("Livro digital retirado da vitrine", result);
+        Assert.Contains("A pessoa doadora pediu a retirada.", result);
     }
 
     [Fact]

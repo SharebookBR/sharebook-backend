@@ -57,14 +57,14 @@ public class HomeService(
     {
         // root categories com ebooks diretos
         var directRootIds = _bookRepository.Get()
-            .Where(b => b.Status == BookStatus.Available
+            .Where(b => (b.Status == BookStatus.Available || b.Status == BookStatus.Scheduled)
                      && b.Type == BookType.Eletronic
                      && b.Category.ParentCategoryId == null)
             .Select(b => b.CategoryId);
 
         // root categories com ebooks em subcategorias
         var subRootIds = _bookRepository.Get()
-            .Where(b => b.Status == BookStatus.Available
+            .Where(b => (b.Status == BookStatus.Available || b.Status == BookStatus.Scheduled)
                      && b.Type == BookType.Eletronic
                      && b.Category.ParentCategoryId != null)
             .Select(b => b.Category.ParentCategoryId!.Value);
@@ -92,7 +92,7 @@ public class HomeService(
             // inclui ebooks diretamente na categoria raiz E em suas subcategorias
             var books = await _bookRepository.Get()
                 .Where(b => (b.CategoryId == categoryId || b.Category.ParentCategoryId == categoryId)
-                         && b.Status == BookStatus.Available
+                         && (b.Status == BookStatus.Available || b.Status == BookStatus.Scheduled)
                          && b.Type == BookType.Eletronic)
                 .OrderBy(b => EF.Functions.Random())
                 .Take(BooksPerCategory)

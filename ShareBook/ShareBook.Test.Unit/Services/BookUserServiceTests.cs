@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Moq;
 using ShareBook.Domain;
 using ShareBook.Domain.Common;
+using ShareBook.Domain.DTOs;
 using ShareBook.Domain.Enums;
 using ShareBook.Domain.Exceptions;
 using ShareBook.Domain.Validators;
@@ -180,7 +181,7 @@ public class BookUserServiceTests
     }
 
     [Fact]
-    public async Task RequestBook_Ebook_DoesNotUsePhysicalRequestLimit()
+    public async Task RequestBook_Ebook_IsRejectedAndNothingIsSaved()
     {
         await using var context = CreateContext();
         var book = BookMock.GetLordTheRings();
@@ -192,10 +193,43 @@ public class BookUserServiceTests
 
         var service = CreateService(context);
 
-        await service.InsertAsync(bookId, "ebook request");
+        var exception = await Assert.ThrowsAsync<ShareBookException>(() => service.InsertAsync(bookId, "ebook request"));
 
+        Assert.Contains("download", exception.Message);
+        Assert.Equal(1, await context.BookUser.CountAsync(x => x.BookId == bookId));
         Assert.Equal(BookStatus.Available, book.Status);
         bookUsersEmailService.Verify(x => x.SendEmailMaxRequestsAsync(It.IsAny<Book>()), Times.Never);
+        bookUsersEmailService.Verify(x => x.SendEmailBookDonorAsync(It.IsAny<BookUser>(), It.IsAny<Book>()), Times.Never);
+        bookUsersEmailService.Verify(x => x.SendEmailBookInterestedAsync(It.IsAny<BookUser>(), It.IsAny<Book>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task CancelDonation_RequiresMessageAndRegistersTheExactText()
+    {
+        await using var context = CreateContext();
+        var book = BookMock.GetLordTheRings();
+        book.Id = bookId;
+        book.Type = BookType.Eletronic;
+        book.Status = BookStatus.Available;
+        book.ReleaseDate = new DateOnly(2026, 12, 1);
+
+        bookServiceMock.Setup(s => s.UpdateAsync(It.IsAny<Book>()))
+            .ReturnsAsync(new Result<Book>(book));
+
+        var service = CreateService(context);
+        await service.CancelAsync(new BookCancelationDTO
+        {
+            Book = book,
+            CanceledBy = "Admin Sharebook",
+            Reason = "  O arquivo será substituído por uma nova edição.  "
+        });
+
+        Assert.Equal(BookStatus.Canceled, book.Status);
+        Assert.Null(book.ReleaseDate);
+        Assert.Contains("Livro digital retirado da vitrine por Admin Sharebook", book.AdminNotes);
+        Assert.Contains("O arquivo será substituído por uma nova edição.", book.AdminNotes);
+        bookUsersEmailService.Verify(x => x.SendEmailBookCanceledToAdminsAndDonorAsync(
+            It.Is<BookCancelationDTO>(dto => dto.Reason == "O arquivo será substituído por uma nova edição.")), Times.Once);
     }
 
     [Fact]

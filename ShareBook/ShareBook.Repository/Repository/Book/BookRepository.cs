@@ -170,7 +170,7 @@ public class BookRepository(ApplicationDbContext context) : IBookRepository
                 EF.Functions.ToTsQuery("simple", exactQuery)));
 
         // Título exato continua em primeiro: quem digita o nome inteiro quer aquele livro, seja qual for o tipo.
-        // Depois vem a ordem do catálogo (físicos disponíveis, "Em breve", digitais; mesma regra do
+        // Depois vem a ordem do catálogo (físicos disponíveis, "Em breve", digitais disponíveis; mesma regra do
         // BookCatalogOrder, escrita à mão porque aqui a consulta é sobre o tipo anônimo) e só então a relevância.
         return filtered
             .OrderByDescending(candidate =>

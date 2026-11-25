@@ -128,9 +128,6 @@ public partial class BookService(IBookRepository bookRepository,
         if (book == null)
             throw new ShareBookException(ShareBookException.Error.NotFound);
 
-        if (releaseDate.HasValue && book.IsEbook())
-            throw new ShareBookException("O agendamento de liberação vale apenas para livro físico.");
-
         var nowUtc = _timeProvider.GetUtcNow().UtcDateTime;
         var isScheduled = releaseDate.HasValue && releaseDate.Value > TodaySaoPaulo();
 
@@ -138,12 +135,13 @@ public partial class BookService(IBookRepository bookRepository,
 
         if (isScheduled)
         {
-            // A data de escolha informada pelo admin tem prioridade; sem ela, nasce com o calendário
-            // do lançamento. O job apenas a preserva quando o livro entra na vitrine, evitando que
-            // um prazo manual seja sobrescrito.
+            // Para livro físico, a data de escolha informada pelo admin tem prioridade; sem ela,
+            // nasce com o calendário do lançamento. Livro digital não tem etapa de escolha.
             book.Status = BookStatus.Scheduled;
             book.ReleaseDate = releaseDate;
-            book.ChooseDate = chooseDate?.Date ?? DecisionDateForMonthlyRelease(releaseDate.Value);
+            book.ChooseDate = book.IsEbook()
+                ? null
+                : chooseDate?.Date ?? DecisionDateForMonthlyRelease(releaseDate.Value);
             await PersistBookUpdateAsync(book);
             return;
         }
@@ -203,10 +201,10 @@ public partial class BookService(IBookRepository bookRepository,
             book.ReleaseDate = null;
             // ApprovedAt passa a marcar a publicação: o digest diário de novos livros usa esse campo.
             book.ApprovedAt = _timeProvider.GetUtcNow().UtcDateTime;
-            // O calendário editorial mensal fica aberto do dia da liberação até o primeiro dia
-            // do mês seguinte, quando começa a decisão. Usar a data agendada (e não "hoje")
-            // preserva o ciclo correto se o job recuperar uma liberação atrasada.
-            book.ChooseDate ??= DecisionDateForMonthlyRelease(releaseDate);
+            // O calendário editorial mensal só vale para livro físico. Usar a data agendada
+            // (e não "hoje") preserva o ciclo correto se o job recuperar uma liberação atrasada.
+            if (!book.IsEbook())
+                book.ChooseDate ??= DecisionDateForMonthlyRelease(releaseDate);
             await PersistBookUpdateAsync(book);
 
             await NotifyBookAvailableAsync(book);

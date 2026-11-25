@@ -85,15 +85,18 @@ public class BookReleaseScheduleTests
     }
 
     [Fact]
-    public async Task Approve_EbookWithReleaseDate_IsRejected()
+    public async Task Approve_EbookWithReleaseDate_SchedulesWithoutDecisionDate()
     {
         await using var context = NewContext();
         var book = await AddBookAsync(context, BookStatus.WaitingApproval, BookType.Eletronic);
         var service = CreateService(context);
 
-        await Assert.ThrowsAsync<ShareBookException>(() => service.ApproveAsync(book.Id, null, Today.AddDays(1)));
+        await service.ApproveAsync(book.Id, null, Today.AddDays(1));
 
-        Assert.Equal(BookStatus.WaitingApproval, (await context.Books.FindAsync(book.Id))!.Status);
+        var saved = (await context.Books.FindAsync(book.Id))!;
+        Assert.Equal(BookStatus.Scheduled, saved.Status);
+        Assert.Equal(Today.AddDays(1), saved.ReleaseDate);
+        Assert.Null(saved.ChooseDate);
     }
 
     [Fact]
@@ -196,6 +199,21 @@ public class BookReleaseScheduleTests
         Assert.Equal(
             new DateTime(2026, 12, 1, 0, 0, 0, DateTimeKind.Utc),
             (await context.Books.FindAsync(book.Id))!.ChooseDate);
+    }
+
+    [Fact]
+    public async Task ReleaseDue_EbookBecomesAvailableWithoutDecisionDate()
+    {
+        await using var context = NewContext();
+        var ebook = await AddBookAsync(context, BookStatus.Scheduled, BookType.Eletronic, Today);
+
+        await CreateService(context).ReleaseDueScheduledBooksAsync();
+
+        var saved = (await context.Books.FindAsync(ebook.Id))!;
+        Assert.Equal(BookStatus.Available, saved.Status);
+        Assert.Null(saved.ReleaseDate);
+        Assert.Null(saved.ChooseDate);
+        Assert.Equal(NowUtc.UtcDateTime, saved.ApprovedAt);
     }
 
     [Fact]

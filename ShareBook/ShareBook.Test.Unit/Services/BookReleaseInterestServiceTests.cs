@@ -53,6 +53,21 @@ public class BookReleaseInterestServiceTests
     }
 
     [Fact]
+    public async Task Subscribe_ToScheduledEbook_CountsOnceEvenWhenRepeated()
+    {
+        await using var context = NewContext();
+        var book = await AddBookAsync(context, BookStatus.Scheduled, BookType.Eletronic);
+        var user = await AddUserAsync(context);
+        var service = CreateService(context, user.Id);
+
+        await service.SubscribeAsync(book.Id);
+        var status = await service.SubscribeAsync(book.Id);
+
+        Assert.Equal(1, status.Total);
+        Assert.True(status.Subscribed);
+    }
+
+    [Fact]
     public async Task Status_ShowsTotalAcrossPeople_AndSubscribedOnlyForTheCaller()
     {
         await using var context = NewContext();
@@ -206,14 +221,14 @@ public class BookReleaseInterestServiceTests
             configuration, new FixedTimeProvider(NowUtc));
     }
 
-    private static async Task<Book> AddBookAsync(ApplicationDbContext context, BookStatus status)
+    private static async Task<Book> AddBookAsync(ApplicationDbContext context, BookStatus status, BookType type = BookType.Printed)
     {
         var owner = new User { Name = "Quem doa", Email = $"{Guid.NewGuid()}@example.com", Password = "x", PasswordSalt = "x", Active = true };
         var category = new Category { Name = "Fantasia" };
         var book = new Book
         {
             Title = "Harry Potter", Author = "J. K. Rowling", Slug = $"hp-{Guid.NewGuid():N}", Status = status,
-            Type = BookType.Printed, User = owner, Category = category, ImageSlug = "hp.png", ChooseDate = new DateTime(2026, 11, 11)
+            Type = type, User = owner, Category = category, ImageSlug = "hp.png", ChooseDate = type == BookType.Eletronic ? null : new DateTime(2026, 11, 11)
         };
         context.Books.Add(book);
         await context.SaveChangesAsync();

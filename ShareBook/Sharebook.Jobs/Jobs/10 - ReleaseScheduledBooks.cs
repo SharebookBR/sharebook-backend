@@ -22,7 +22,7 @@ public class ReleaseScheduledBooks : GenericJob, IJob
         ILoggerFactory loggerFactory) : base(jobHistoryRepo, loggerFactory, timeProvider)
     {
         JobName = "ReleaseScheduledBooks";
-        Description = "Libera livros físicos agendados (Em breve) cuja data de liberação chegou e avisa quem pediu (Quero ser avisado). " +
+        Description = "Libera livros agendados (Em breve) cuja data de liberação chegou e avisa quem pediu (Quero ser avisado). " +
                       "Roda antes do digest de novos livros (NewBookGetInterestedUsers, 8h) para que ele já inclua os liberados.";
         Interval = Interval.Dayly;
         Active = true;

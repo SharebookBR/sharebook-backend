@@ -5,9 +5,9 @@ namespace ShareBook.Domain;
 
 /// <summary>
 /// Ordem de apresentação das listagens públicas que misturam físicos e digitais (categoria, tag e busca):
-/// físicos disponíveis, depois físicos "Em breve" (Scheduled, da liberação mais próxima para a mais distante),
-/// depois digitais. Dentro de cada grupo, o critério de cada listagem (data de cadastro, relevância...).
-/// Decisão do Raffa (2026-10-18): a prévia é a vitrine da campanha e o físico é o diferencial do Sharebook.
+/// físicos disponíveis, depois livros "Em breve" (Scheduled, da liberação mais próxima para a mais distante),
+/// depois digitais disponíveis. Dentro de cada grupo, o critério de cada listagem (data de cadastro, relevância...).
+/// Decisão do Raffa (2026-10-18, ampliada em 2026-11-25): a prévia é a vitrine da campanha e o físico é o diferencial do Sharebook.
 /// Se mudar aqui, a busca tem a mesma expressão escrita à mão (BookRepository.FullTextSearch): manter igual.
 /// </summary>
 public static class BookCatalogOrder

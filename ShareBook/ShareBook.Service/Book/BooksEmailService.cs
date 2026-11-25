@@ -130,12 +130,25 @@ public class BooksEmailService(
 
     public async Task SendEmailBookReleasedAsync(Book book, User user, string coverUrl, string frontendUrl, string unsubscribeUrl)
     {
+        var isEbook = book.IsEbook();
         var vm = new
         {
             Name = user.FirstName,
             Book = book,
             CoverUrl = coverUrl,
-            ChooseDate = book.ChooseDate?.ToString("dd/MM/yyyy"),
+            ReleaseIntro = isEbook
+                ? "Você pediu para ser avisado, e a espera acabou: este livro digital já está disponível para ler e baixar."
+                : "Você pediu para ser avisado, e a espera acabou: o livro já está na vitrine do Sharebook e as solicitações estão abertas.",
+            ReleaseCta = isEbook ? "Receber livro digital" : "Solicitar livro",
+            ReleaseInstructions = isEbook
+                ? "Abra a página do livro e clique em Receber livro digital. O acesso é gratuito."
+                : "Abra a página do livro e clique em Solicitar livro. Se pedir, entre na sua conta antes.",
+            ReleaseNote = isEbook
+                ? "O livro está disponível agora: abra a página e comece a leitura quando quiser."
+                : $"As solicitações ficam abertas até {book.ChooseDate?.ToString("dd/MM/yyyy") ?? "a data de escolha"}. Elas podem encerrar antes se o livro atingir o limite de solicitações.",
+            ReleaseDisclaimer = isEbook
+                ? "Receber este aviso não baixa o arquivo automaticamente: escolha quando começar a leitura."
+                : "Receber este aviso não reserva o livro nem dá prioridade: para participar, é preciso solicitar.",
             FrontendUrl = frontendUrl,
             UnsubscribeUrl = unsubscribeUrl
         };

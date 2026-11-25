@@ -214,7 +214,7 @@
             <div class="greeting">Olá, {Name}!</div>
 
             <div class="intro">
-                Você pediu para ser avisado, e a espera acabou: o livro já está na vitrine do Sharebook e as solicitações estão abertas.
+                {ReleaseIntro}
             </div>
 
             <div class="book">
@@ -224,16 +224,16 @@
             </div>
 
             <div class="cta-wrap">
-                <a href="{FrontendUrl}/livros/{Book.Slug}" class="cta" target="_blank">Solicitar livro</a>
+                <a href="{FrontendUrl}/livros/{Book.Slug}" class="cta" target="_blank">{ReleaseCta}</a>
             </div>
 
             <div class="info-card">
-                <div class="info-title">Como participar</div>
-                <p>Abra a página do livro e clique em <strong>Solicitar livro</strong>. Se pedir, entre na sua conta antes.</p>
-                <p>As solicitações ficam abertas até <strong>{ChooseDate}</strong>, a data de escolha. Elas podem encerrar antes se o livro atingir o limite de solicitações.</p>
+                <div class="info-title">Como acessar</div>
+                <p>{ReleaseInstructions}</p>
+                <p>{ReleaseNote}</p>
             </div>
 
-            <p class="note">Receber este aviso não reserva o livro nem dá prioridade: para participar, é preciso solicitar.</p>
+            <p class="note">{ReleaseDisclaimer}</p>
 
             <p class="reason">Você recebeu este e-mail porque pediu para ser avisado sobre este livro.</p>
         </div>

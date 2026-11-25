@@ -70,6 +70,9 @@ public class BookUserService(
             if (bookRequested == null)
                 throw new ShareBookException(ShareBookException.Error.NotFound);
 
+            if (bookRequested.IsEbook())
+                throw new ShareBookException("Livros digitais estão disponíveis para download e não recebem solicitações.");
+
             bookUser = new BookUser()
             {
                 BookId = bookId,
@@ -228,8 +231,24 @@ public class BookUserService(
         if (dto.Book == null)
             throw new ShareBookException(ShareBookException.Error.NotFound);
 
+        var reason = dto.Reason?.Trim();
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new ShareBookException("Informe a mensagem que será enviada à pessoa doadora.");
+        if (reason.Length > 2000)
+            throw new ShareBookException("A mensagem de cancelamento pode ter no máximo 2000 caracteres.");
+
+        dto.Reason = reason;
+
         dto.Book.ChooseDate = null;
+        dto.Book.ReleaseDate = null;
         dto.Book.Status = BookStatus.Canceled;
+
+        var saoPauloNow = DateTimeHelper.ConvertDateTimeSaoPaulo(_timeProvider.GetUtcNow().UtcDateTime);
+        var action = dto.Book.IsEbook() ? "Livro digital retirado da vitrine" : "Doação cancelada";
+        var auditEntry = $"{saoPauloNow:dd/MM/yyyy HH:mm} - {action} por {dto.CanceledBy}: {reason}";
+        dto.Book.AdminNotes = string.IsNullOrWhiteSpace(dto.Book.AdminNotes)
+            ? auditEntry
+            : $"{dto.Book.AdminNotes}\n{auditEntry}";
 
         await CancelBookUsersAndSendNotificationAsync(dto.Book);
 

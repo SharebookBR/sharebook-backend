@@ -263,11 +263,16 @@ public class BookUserEmailService(IUserService userService, IEmailService emailS
             Title = dto.Book.Title,
             Donor = donor.Name,
             CanceledBy = dto.CanceledBy,
-            Reason = dto.Reason
+            Reason = dto.Reason,
+            ActionTitle = dto.Book.IsEbook() ? "Livro digital retirado da vitrine" : "Doação cancelada",
+            ActionDescription = dto.Book.IsEbook()
+                ? $"O livro digital <strong>\"{dto.Book.Title}\"</strong> foi retirado da vitrine e não receberá novos downloads."
+                : $"A doação do livro <strong>\"{dto.Book.Title}\"</strong> foi cancelada."
         };
 
         var html = await _emailTemplate.GenerateHtmlFromTemplateAsync(BookCanceledTemplate, templateData);
-        await _emailService.SendAsync(donor.Email, donor.Name, html, BookCanceledTitle, copyAdmins: true, highPriority: true);
+        var subject = dto.Book.IsEbook() ? "Livro digital retirado da vitrine" : BookCanceledTitle;
+        await _emailService.SendAsync(donor.Email, donor.Name, html, subject, copyAdmins: true, highPriority: true);
     }
 
     public async Task SendEmailTrackingNumberInformedAsync(BookUser bookUserWinner, Book book)
