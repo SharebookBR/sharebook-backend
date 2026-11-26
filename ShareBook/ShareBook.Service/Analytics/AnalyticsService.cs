@@ -653,7 +653,8 @@ public class AnalyticsService(
         "ebook_download", "amazon_click", "share_modal_open",
         "social_share", "search", "login", "sign_up",
         "book_request_modal_open", "book_request_success", "book_request_error",
-        "release_interest_click", "release_interest_subscribe"
+        "release_interest_click", "release_interest_subscribe",
+        "vakinha_banner_view", "vakinha_cta_click"
     ];
 
     private async Task<List<EventMetric>> FetchEventSummaryAsync(
