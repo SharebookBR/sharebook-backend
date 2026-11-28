@@ -1,4 +1,8 @@
 using ShareBook.Domain;
+using ShareBook.Service;
+using MimeKit;
+using System.IO;
+using System.Text;
 using Xunit;
 
 namespace ShareBook.Test.Unit.Domain;
@@ -89,5 +93,100 @@ Remote server returned '554 5.2.2 mailbox full; STOREDRV.Deliver.Exception:Quota
         Assert.True(bounce.IsSoft);
         Assert.Equal("421", bounce.ErrorCode);
         Assert.Equal("temporary@example.com", bounce.Email);
+    }
+
+    [Fact]
+    public void Constructor_ShouldParseStandardDsnStatusAndPreferFinalRecipient()
+    {
+        var body = @"Reporting-MTA: dns; mail.example.org
+
+Final-Recipient: rfc822; bounced@example.com
+Action: failed
+Status: 5.1.1";
+
+        var bounce = new MailBounce("Delivery Status Notification (Failure)", body);
+
+        Assert.True(bounce.IsBounce);
+        Assert.False(bounce.IsSoft);
+        Assert.Equal("550", bounce.ErrorCode);
+        Assert.Equal("bounced@example.com", bounce.Email);
+    }
+
+    [Fact]
+    public void Constructor_ShouldParseTemporaryStandardDsnStatus()
+    {
+        var body = @"Final-Recipient: rfc822; retry@example.com
+Action: delayed
+Status: 4.2.0";
+
+        var bounce = new MailBounce("Warning: Delay in message delivery", body);
+
+        Assert.True(bounce.IsBounce);
+        Assert.True(bounce.IsSoft);
+        Assert.Equal("450", bounce.ErrorCode);
+        Assert.Equal("retry@example.com", bounce.Email);
+    }
+
+    [Fact]
+    public void Constructor_ShouldParsePortugueseDeliveryFailure()
+    {
+        var body = @"Não foi possível entregar a sua mensagem para o destinatário abaixo.
+Destinatário: inexistente@example.com
+Erro SMTP: 550 5.1.1 endereço não existe.";
+
+        var bounce = new MailBounce("Falha na entrega", body);
+
+        Assert.True(bounce.IsBounce);
+        Assert.False(bounce.IsSoft);
+        Assert.Equal("550", bounce.ErrorCode);
+        Assert.Equal("inexistente@example.com", bounce.Email);
+    }
+
+    [Fact]
+    public void Constructor_ShouldNotTreatHumanReplyMentioningAnErrorAsBounce()
+    {
+        var body = "Oi, recebi um erro 550 no meu sistema ontem. Pode me ajudar?";
+
+        var bounce = new MailBounce("Dúvida", body);
+
+        Assert.False(bounce.IsBounce);
+    }
+
+    [Fact]
+    public void BounceMessageContentExtractor_ShouldReadStructuredMimeDsn()
+    {
+        const string rawMessage = """
+            From: MAILER-DAEMON <mailer-daemon@example.org>
+            To: bounces@sharebook.com.br
+            Subject: Delivery Status Notification (Failure)
+            MIME-Version: 1.0
+            Content-Type: multipart/report; report-type=delivery-status; boundary=report
+
+            --report
+            Content-Type: text/plain; charset=utf-8
+
+            Your message could not be delivered.
+
+            --report
+            Content-Type: message/delivery-status
+
+            Reporting-MTA: dns; example.org
+
+            Final-Recipient: rfc822; structured@example.com
+            Action: failed
+            Status: 5.1.1
+            Diagnostic-Code: smtp; 550 5.1.1 User unknown
+            --report--
+            """;
+
+        var message = MimeMessage.Load(new MemoryStream(Encoding.UTF8.GetBytes(rawMessage)));
+        var content = BounceMessageContentExtractor.Extract(message);
+        var bounce = new MailBounce(message.Subject, content);
+
+        Assert.Contains("Final-Recipient: rfc822; structured@example.com", content);
+        Assert.True(bounce.IsBounce);
+        Assert.False(bounce.IsSoft);
+        Assert.Equal("550", bounce.ErrorCode);
+        Assert.Equal("structured@example.com", bounce.Email);
     }
 }

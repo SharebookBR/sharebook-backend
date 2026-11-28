@@ -256,7 +256,7 @@ public class EmailService : IEmailService
         foreach (var item in items)
         {
             var message = await bounceFolder.GetMessageAsync(item.UniqueId);
-            var body = message.TextBody ?? message.HtmlBody ?? message.Body?.ToString() ?? string.Empty;
+            var body = BounceMessageContentExtractor.Extract(message);
             var bounce = new MailBounce(message.Subject ?? string.Empty, body);
 
             if (bounce.IsBounce)
