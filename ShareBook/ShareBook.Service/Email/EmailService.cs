@@ -265,6 +265,11 @@ public class EmailService : IEmailService
                 await _ctx.MailBounces.AddAsync(bounce);
                 await bounceFolder.AddFlagsAsync(item.UniqueId, MessageFlags.Deleted, true);
             }
+            else if (AutoReplyMessageDetector.IsAutoReply(message))
+            {
+                log.Add($"Autoreply ignorado e apagado: subject: {message.Subject}");
+                await bounceFolder.AddFlagsAsync(item.UniqueId, MessageFlags.Deleted, true);
+            }
             else
             {
                 log.Add($"Não vou processar nem apagar porque NÃO É um email bounce:  subject: {message.Subject}");

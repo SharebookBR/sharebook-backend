@@ -153,6 +153,33 @@ Erro SMTP: 550 5.1.1 endereço não existe.";
     }
 
     [Fact]
+    public void AutoReplyMessageDetector_ShouldRecognizeAutoSubmittedReply()
+    {
+        var message = new MimeMessage();
+        message.Headers.Add("Auto-Submitted", "auto-replied");
+
+        Assert.True(AutoReplyMessageDetector.IsAutoReply(message));
+    }
+
+    [Fact]
+    public void AutoReplyMessageDetector_ShouldRecognizeXAutoreply()
+    {
+        var message = new MimeMessage();
+        message.Headers.Add("X-Autoreply", "yes");
+
+        Assert.True(AutoReplyMessageDetector.IsAutoReply(message));
+    }
+
+    [Fact]
+    public void AutoReplyMessageDetector_ShouldNotRecognizeHumanReply()
+    {
+        var message = new MimeMessage();
+        message.Headers.Add("Auto-Submitted", "no");
+
+        Assert.False(AutoReplyMessageDetector.IsAutoReply(message));
+    }
+
+    [Fact]
     public void BounceMessageContentExtractor_ShouldReadStructuredMimeDsn()
     {
         const string rawMessage = """
