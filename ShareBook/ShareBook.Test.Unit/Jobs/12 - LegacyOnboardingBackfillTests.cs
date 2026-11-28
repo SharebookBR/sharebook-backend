@@ -59,6 +59,7 @@ public class LegacyOnboardingBackfillTests
         var firstResult = await firstJob.WorkAsync();
         Assert.Contains("2 jornada", firstResult.Details);
         Assert.Equal(2, await context.OnboardingJourneys.CountAsync(journey => journey.NextStep == 0));
+        Assert.Equal(1, await context.LegacyOnboardingBatches.CountAsync());
         Assert.Equal(new[] { newest.Id, second.Id }, await context.OnboardingJourneys
             .Where(journey => journey.NextStep == 0)
             .OrderByDescending(journey => journey.User.CreationDate)
@@ -79,6 +80,7 @@ public class LegacyOnboardingBackfillTests
         Assert.DoesNotContain(invalidEmail.Id, legacyJourneyIds);
         Assert.DoesNotContain(bounced.Id, legacyJourneyIds);
         Assert.DoesNotContain(optedOut.Id, legacyJourneyIds);
+        Assert.Equal(2, await context.LegacyOnboardingBatches.CountAsync());
     }
 
     [Fact]

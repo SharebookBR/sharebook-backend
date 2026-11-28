@@ -11,6 +11,11 @@ public class OnboardingJourney : BaseEntity
 
     public User User { get; set; } = null!;
 
+    /// <summary>Nulo para jornadas iniciadas no cadastro normal.</summary>
+    public Guid? LegacyOnboardingBatchId { get; set; }
+
+    public LegacyOnboardingBatch? LegacyOnboardingBatch { get; set; }
+
     /// <summary>Próxima etapa a enviar, de 0 a 4.</summary>
     public int NextStep { get; set; }
 

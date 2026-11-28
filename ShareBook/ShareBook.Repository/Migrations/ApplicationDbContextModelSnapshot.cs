@@ -429,6 +429,40 @@ namespace ShareBook.Infra.Data.Migrations
                     b.ToTable("JobHistories");
                 });
 
+            modelBuilder.Entity("ShareBook.Domain.LegacyOnboardingBatch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CreationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("EnrolledCount")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("ExecutedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("NewestUserCreationAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("OldestUserCreationAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("SequenceNumber")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExecutedAtUtc");
+
+                    b.HasIndex("SequenceNumber")
+                        .IsUnique();
+
+                    b.ToTable("LegacyOnboardingBatches");
+                });
+
             modelBuilder.Entity("ShareBook.Domain.MailBounce", b =>
                 {
                     b.Property<Guid>("Id")
@@ -613,6 +647,9 @@ namespace ShareBook.Infra.Data.Migrations
                     b.Property<DateTime?>("LastQueuedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("LegacyOnboardingBatchId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("NextEmailAtUtc")
                         .HasColumnType("timestamp with time zone");
 
@@ -623,6 +660,8 @@ namespace ShareBook.Infra.Data.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LegacyOnboardingBatchId");
 
                     b.HasIndex("UserId")
                         .IsUnique();
@@ -914,11 +953,18 @@ namespace ShareBook.Infra.Data.Migrations
 
             modelBuilder.Entity("ShareBook.Domain.OnboardingJourney", b =>
                 {
+                    b.HasOne("ShareBook.Domain.LegacyOnboardingBatch", "LegacyOnboardingBatch")
+                        .WithMany("Journeys")
+                        .HasForeignKey("LegacyOnboardingBatchId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("ShareBook.Domain.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("LegacyOnboardingBatch");
 
                     b.Navigation("User");
                 });
@@ -933,6 +979,11 @@ namespace ShareBook.Infra.Data.Migrations
             modelBuilder.Entity("ShareBook.Domain.Category", b =>
                 {
                     b.Navigation("Children");
+                });
+
+            modelBuilder.Entity("ShareBook.Domain.LegacyOnboardingBatch", b =>
+                {
+                    b.Navigation("Journeys");
                 });
 
             modelBuilder.Entity("ShareBook.Domain.Meetup", b =>

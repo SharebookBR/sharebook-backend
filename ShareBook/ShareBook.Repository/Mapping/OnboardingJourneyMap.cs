@@ -15,11 +15,17 @@ public class OnboardingJourneyMap : IEntityTypeConfiguration<OnboardingJourney>
             .HasForeignKey(journey => journey.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        entityBuilder.HasOne(journey => journey.LegacyOnboardingBatch)
+            .WithMany(batch => batch.Journeys)
+            .HasForeignKey(journey => journey.LegacyOnboardingBatchId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         // Uma conta nova só pode entrar uma vez na jornada.
         entityBuilder.HasIndex(journey => journey.UserId)
             .IsUnique();
 
         entityBuilder.HasIndex(journey => new { journey.CompletedAtUtc, journey.CanceledAtUtc, journey.NextEmailAtUtc });
+        entityBuilder.HasIndex(journey => journey.LegacyOnboardingBatchId);
 
         entityBuilder.Property(journey => journey.CompletionReason)
             .HasMaxLength(120);

@@ -74,9 +74,23 @@ public class LegacyOnboardingBackfill : GenericJob, IJob
 
         if (enrolled.Count > 0)
         {
+            var sequenceNumber = ((await _context.LegacyOnboardingBatches
+                .OrderByDescending(batch => batch.SequenceNumber)
+                .Select(batch => (int?)batch.SequenceNumber)
+                .FirstOrDefaultAsync()) ?? 0) + 1;
+            var batch = new LegacyOnboardingBatch
+            {
+                SequenceNumber = sequenceNumber,
+                ExecutedAtUtc = now,
+                EnrolledCount = enrolled.Count,
+                NewestUserCreationAtUtc = enrolled.First().CreationDate,
+                OldestUserCreationAtUtc = enrolled.Last().CreationDate
+            };
+            _context.LegacyOnboardingBatches.Add(batch);
             _context.OnboardingJourneys.AddRange(enrolled.Select(user => new OnboardingJourney
             {
                 UserId = user.Id,
+                LegacyOnboardingBatch = batch,
                 NextStep = 0,
                 NextEmailAtUtc = now
             }));
